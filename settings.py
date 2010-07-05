@@ -68,11 +68,13 @@ TEMPLATE_LOADERS = (
 )
 
 MIDDLEWARE_CLASSES = (
+	'django.middleware.gzip.GZipMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+	'debug_toolbar.middleware.DebugToolbarMiddleware',
 )
 
 ROOT_URLCONF = 'everdi.urls'
@@ -93,4 +95,9 @@ INSTALLED_APPS = (
     'django.contrib.admin',
 	'django.contrib.admindocs',
 	'everdi.blueprints',
+	'debug_toolbar',
+)
+
+INTERNAL_IPS = (
+	'192.168.1.1',
 )
