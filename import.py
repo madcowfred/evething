@@ -1,4 +1,3 @@
-import psycopg2
 import sqlite3
 
 
@@ -7,7 +6,7 @@ def main():
 	inconn = sqlite3.connect('tyr10-sqlite3-v1.db')
 	incur = inconn.cursor()
 	
-	outconn = psycopg2.connect("dbname='everdi' user='freddie' host='localhost'")
+	outconn = sqlite3.connect('everdi.db')
 	outcur = outconn.cursor()
 	
 	# Regions
@@ -22,7 +21,7 @@ def main():
 	#   marketGroupID,chanceOfDuplicating
 	incur.execute('SELECT typeID, typeName FROM invTypes')
 	for row in incur:
-		outcur.execute("INSERT INTO blueprints_item (id, name, sell_median, buy_median) VALUES (%s, %s, 0, 0)", row)
+		outcur.execute("INSERT INTO blueprints_item (id, name, sell_median, buy_median) VALUES (?, ?, 0, 0)", row)
 	outconn.commit()
 	
 	# Blueprints
@@ -38,7 +37,7 @@ FROM invBlueprintTypes AS b
 INSERT INTO blueprints_blueprint
 (id, name, item_id, production_time, productivity_modifier, material_modifier, waste_factor)
 VALUES
-(%s, %s, %s, %s, %s, %s, %s)
+(?, ?, ?, ?, ?, ?, ?)
 """, bprow)
 		
 		# Base materials
@@ -48,7 +47,7 @@ VALUES
 INSERT INTO blueprints_blueprintcomponent
 (blueprint_id, item_id, count, needs_waste)
 VALUES
-(%s, %s, %s, TRUE)
+(?, ?, ?, 1)
 """, (bprow[0], baserow[0], baserow[1]))
 		
 		# Extra materials. activityID 1 is manufacturing - categoryID 16 is skill requirements
@@ -69,7 +68,7 @@ WHERE r.typeID = ?
 INSERT INTO blueprints_blueprintcomponent
 (blueprint_id, item_id, count, needs_waste)
 VALUES
-(%s, %s, %s, FALSE)
+(?, ?, ?, 0)
 """, (bprow[0], extrarow[0], extrarow[1]))
 	
 	outconn.commit()

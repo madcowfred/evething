@@ -1,4 +1,4 @@
-import psycopg2
+import sqlite3
 import urllib2
 import xml.etree.ElementTree as ET
 
@@ -18,15 +18,15 @@ ITEMS = [
 
 
 def main():
-	conn = psycopg2.connect("dbname='everdi' user='freddie' host='localhost'")
+	conn = sqlite3.connect('everdi.db')
 	cur = conn.cursor()
 	
 	url = MARKET_URL % ('&'.join('typeid=%s' % i for i in ITEMS))
-	#f = urllib2.urlopen(url)
-	#data = f.read()
-	#f.close()
+	f = urllib2.urlopen(url)
+	data = f.read()
+	f.close()
 	#open('data.txt', 'w').write(data)
-	data = open('data.txt').read()
+	#data = open('data.txt').read()
 	
 	root = ET.fromstring(data)
 	for t in root.findall('marketstat/type'):
@@ -34,7 +34,7 @@ def main():
 		sell_median = t.find('sell/median').text
 		buy_median = t.find('buy/median').text
 		
-		cur.execute('UPDATE blueprints_item SET sell_median=%s, buy_median=%s WHERE id=%s', (sell_median, buy_median, typeid))
+		cur.execute('UPDATE blueprints_item SET sell_median=?, buy_median=? WHERE id=?', (sell_median, buy_median, typeid))
 	
 	conn.commit()
 
