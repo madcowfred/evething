@@ -19,9 +19,9 @@ def main():
 	# Items
 	# typeID,groupID,typeName,description,graphicID,radius,mass,volume,capacity,portionSize,raceID,basePrice,published,
 	#   marketGroupID,chanceOfDuplicating
-	incur.execute('SELECT typeID, typeName FROM invTypes')
+	incur.execute('SELECT typeID, typeName, portionSize FROM invTypes')
 	for row in incur:
-		outcur.execute("INSERT INTO blueprints_item (id, name, sell_median, buy_median) VALUES (?, ?, 0, 0)", row)
+		outcur.execute("INSERT INTO blueprints_item (id, name, portion_size, sell_median, buy_median) VALUES (?, ?, ?, 0, 0)", row)
 	outconn.commit()
 	
 	# Blueprints
@@ -30,6 +30,7 @@ SELECT b.blueprintTypeID, t.typeName, b.productTypeID, b.productionTime, b.produ
 FROM invBlueprintTypes AS b
   INNER JOIN invTypes AS t
     ON b.blueprintTypeID = t.typeID
+WHERE t.published = 1
 """)
 	bprows = incur.fetchall()
 	for bprow in bprows:
@@ -72,36 +73,6 @@ VALUES
 """, (bprow[0], extrarow[0], extrarow[1]))
 	
 	outconn.commit()
-
-"""
--- Extra materials
-SELECT t.typeName, r.quantity, r.damagePerJob
-FROM ramTypeRequirements AS r
- INNER JOIN invTypes AS t
-  ON r.requiredTypeID = t.typeID
- INNER JOIN invGroups AS g
-  ON t.groupID = g.groupID
-WHERE r.typeID = 30467 -- Electromechanical Interface Nexus Blueprint
- AND r.activityID = 1 -- Manufacturing
- AND g.categoryID != 16; -- Skill
-"""
-
-"""
--- Base materials
-SELECT t.typeName, m.quantity
-FROM invTypeMaterials AS m
- INNER JOIN invTypes AS t
-  ON m.materialTypeID = t.typeID
-WHERE m.typeID = 27912; -- Concussion Bomb
- 
--- Extra materials and skills
-SELECT t.typeName, r.quantity, r.damagePerJob
-FROM ramTypeRequirements AS r
- INNER JOIN invTypes AS t
-  ON r.requiredTypeID = t.typeID
-WHERE r.typeID = 27913 -- Concussion Bomb Blueprint
- AND r.activityID = 1; -- Manufacturing
- """
 
 
 if __name__ == '__main__':

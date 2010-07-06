@@ -21,6 +21,8 @@ class Character(models.Model):
 class Item(models.Model):
 	id = models.IntegerField(primary_key=True)
 	name = models.CharField(max_length=128)
+	portion_size = models.IntegerField()
+	
 	sell_median = models.DecimalField(max_digits=15, decimal_places=2)
 	buy_median = models.DecimalField(max_digits=15, decimal_places=2)
 	
@@ -141,5 +143,10 @@ WF = bpi.blueprint.waste_factor
 		
 		# Calculate taxes and fees
 		total_cost = total_cost * (1 + (self.character.sales_tax / 100)) * (1 + (self.character.brokers_fee / 100))
+		
+		# Run count
+		print total_cost, self.blueprint.item.portion_size
+		total_cost /= self.blueprint.item.portion_size
+		print total_cost
 		
 		return total_cost.quantize(Decimal('.01'), rounding=ROUND_UP)
