@@ -1,0 +1,22 @@
+{% if object_list %}
+	<table>
+		<tr>
+			<th>Blueprint</th>
+			<th>ME</th>
+			<th>PE</th>
+			<th>Time</th>
+			<th>Cost</th>
+		</tr>
+	{% for bpi in object_list %}
+		<tr>
+			<td><a href="{{ bpi.id }}">{{ bpi }}</a></td>
+			<td>{{ bpi.material_level }}</td>
+			<td>{{ bpi.productivity_level }}</td>
+			<td>{{ bpi.nice_production_time }}</td>
+			<td>{{ bpi.calc_production_cost }}</td>
+		</tr>
+	{% endfor %}
+	</table>
+{% else %}
+	<p>No blueprint instances are available.</p>
+{% endif %}

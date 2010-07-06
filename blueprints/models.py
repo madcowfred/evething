@@ -1,6 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+from decimal import *
+
 
 class Character(models.Model):
 	user = models.ForeignKey(User)
@@ -54,8 +56,88 @@ class BlueprintInstance(models.Model):
 	material_level = models.IntegerField()
 	productivity_level = models.IntegerField()
 	
+	class Meta:
+		ordering = ('blueprint',)
+	
 	def __unicode__(self):
 		return "%s's %s" % (self.character.name, self.blueprint.name)
 	
-	class Meta:
-		ordering = ('blueprint',)
+	def calc_production_time(self):
+		# PTM = ProductionTimeModifier = (1 - (0.04 * IndustrySkill)) * ImplantModifier * ProductionSlotModifier
+		# ProductionTime (PE>=0) = BaseProductionTime * (1 - (ProductivityModifier / BaseProductionTime) * (PE / (1 + PE)) * PTM
+		# ProductionTime (PE<0)  = BaseProductionTime * (1 - (ProductivityModifier / BaseProductionTime) * (PE - 1)) * PTM
+		PTM = (1 - (Decimal('0.04') * self.character.industry_skill)) # implement implants/production slots
+		BPT = self.blueprint.production_time
+		PE = self.productivity_level
+		
+		if PE >= 0:
+			pt = BPT * (1 - (PTM / BPT) * (PE / (1 + PE))) * PTM
+		else:
+			pt = BPT * (1 - (PTM / BPT) * (PE - 1)) * PTM
+		
+		return pt.quantize(Decimal('0'), rounding=ROUND_UP)
+	
+	def nice_production_time(self):
+		pt = self.calc_production_time()
+		
+		m, s = divmod(pt, 60)
+		h, m = divmod(m, 60)
+		d, h = divmod(h, 24)
+		
+		parts = []
+		if d:
+			parts.append('%dd' % (d))
+		if h:
+			parts.append('%dh' % (h))
+		if s:
+			parts.append('%ds' % (s))
+		
+		return ' '.join(parts)
+	
+	def calc_production_cost(self):
+		"""
+from everdi.blueprints.models import *
+bpi = BlueprintInstance.objects.all()[0]
+bpi.calc_production_cost()
+cq = BlueprintComponent.objects.filter(blueprint=bpi.blueprint)
+PES = bpi.character.production_efficiency_skill
+ME = bpi.material_level
+WF = bpi.blueprint.waste_factor
+		"""
+		
+		total_cost = Decimal(0)
+		
+		# Calculate component costs
+		PES = self.character.production_efficiency_skill
+		ME = self.material_level
+		WF = self.blueprint.waste_factor
+		
+		component_queryset = BlueprintComponent.objects.filter(blueprint=self.blueprint)
+		for component in component_queryset:
+			CC = component.count
+			if component.needs_waste:
+				amt = round(CC * (1 + ((WF / 100.0) / (ME + 1)) + (0.25 - (0.05 * PES))))
+				#if ME >= 0:
+				#	ME_waste = round(CC * (WF / 100.0) * (1 / (ME + 1)))
+				#else:
+				#	amt = round(CC * (1 + ((WF / 100.0) / (ME + 1)) + (0.25 - (0.05 * PES))))
+				#	ME_waste = round(CC * (WF / 100.0) * (1 - ME))
+				
+				#skill_waste = round(CC * (0.04 * self.character.production_efficiency_skill))
+				#amt = CC + ME_waste + skill_waste
+			
+			else:
+				amt = CC
+			
+			total_cost += (Decimal(str(amt)) * component.item.buy_median)
+		
+		# Calculate factory costs
+		total_cost += self.character.factory_cost
+		
+		PT = self.calc_production_time()
+		total_cost += (self.character.factory_per_hour * (PT / 3600))
+		
+		# Calculate taxes and fees
+		total_cost = total_cost * (1 + (self.character.sales_tax / 100)) * (1 + (self.character.brokers_fee / 100))
+		
+		return total_cost.quantize(Decimal('.01'), rounding=ROUND_UP)
