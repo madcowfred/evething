@@ -1,0 +1,33 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<html lang="en">
+<head>
+    <title>{% block title %}{% endblock %}</title>
+	<style type="text/css">
+		body {
+			background: #224466; 
+			color: #EEEEEE;
+		}
+		a {
+			color: #FFFF88;
+		}
+		td {
+			padding-left: 10px;
+			padding-right: 10px;
+			padding-top: 4px;
+			padding-bottom: 4px;
+		}
+		tr th {
+			background: #AA9955;
+		}
+		tr.odd td {
+			background: #664422;
+		}
+		tr.even td {
+			background: #446622;
+		}
+	</style>
+</head>
+<body>
+    {% block content %}{% endblock %}
+</body>
+</html>

@@ -1,3 +1,8 @@
+{% extends "blueprints/base.html" %}
+
+{% block title %}Rubber Ducky Space Industries: Blueprints{% endblock %}
+
+{% block content %}
 {% if object_list %}
 	<table>
 		<tr>
@@ -8,7 +13,7 @@
 			<th>Cost</th>
 		</tr>
 	{% for bpi in object_list %}
-		<tr>
+		<tr class="{% cycle 'odd' 'even' %}">
 			<td><a href="{{ bpi.id }}">{{ bpi }}</a></td>
 			<td align="center">{{ bpi.material_level }}</td>
 			<td align="center">{{ bpi.productivity_level }}</td>
@@ -20,3 +25,4 @@
 {% else %}
 	<p>No blueprint instances are available.</p>
 {% endif %}
+{% endblock %}
