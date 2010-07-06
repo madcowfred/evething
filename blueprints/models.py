@@ -17,6 +17,9 @@ class Character(models.Model):
 	
 	def __unicode__(self):
 		return self.name
+	
+	class Meta:
+		ordering = ('name',)
 
 class Item(models.Model):
 	id = models.IntegerField(primary_key=True)
@@ -28,6 +31,9 @@ class Item(models.Model):
 	
 	def __unicode__(self):
 		return self.name
+	
+	def Meta:
+		ordering = ('name',)
 
 class Blueprint(models.Model):
 	id = models.IntegerField(primary_key=True)
@@ -59,7 +65,7 @@ class BlueprintInstance(models.Model):
 	productivity_level = models.IntegerField(default=0)
 	
 	class Meta:
-		ordering = ('blueprint',)
+		ordering = ('character', 'blueprint')
 	
 	def __unicode__(self):
 		return "%s's %s" % (self.character.name, self.blueprint.name)
