@@ -89,6 +89,8 @@ class BlueprintInstance(models.Model):
 			parts.append('%dd' % (d))
 		if h:
 			parts.append('%dh' % (h))
+		if m:
+			parts.append('%dm' % (m))
 		if s:
 			parts.append('%ds' % (s))
 		
