@@ -10,10 +10,10 @@
 	{% for bpi in object_list %}
 		<tr>
 			<td><a href="{{ bpi.id }}">{{ bpi }}</a></td>
-			<td>{{ bpi.material_level }}</td>
-			<td>{{ bpi.productivity_level }}</td>
-			<td>{{ bpi.nice_production_time }}</td>
-			<td>{{ bpi.calc_production_cost }}</td>
+			<td align="center">{{ bpi.material_level }}</td>
+			<td align="center">{{ bpi.productivity_level }}</td>
+			<td align="center">{{ bpi.nice_production_time }}</td>
+			<td align="right">{{ bpi.calc_production_cost }}</td>
 		</tr>
 	{% endfor %}
 	</table>

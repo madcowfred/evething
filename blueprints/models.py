@@ -55,8 +55,8 @@ class BlueprintComponent(models.Model):
 class BlueprintInstance(models.Model):
 	character = models.ForeignKey(Character)
 	blueprint = models.ForeignKey(Blueprint)
-	material_level = models.IntegerField()
-	productivity_level = models.IntegerField()
+	material_level = models.IntegerField(default=0)
+	productivity_level = models.IntegerField(default=0)
 	
 	class Meta:
 		ordering = ('blueprint',)
