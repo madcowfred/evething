@@ -16,27 +16,14 @@ class Character(models.Model):
 	def __unicode__(self):
 		return self.name
 
-class Region(models.Model):
-	id = models.IntegerField(primary_key=True)
-	name = models.CharField(max_length=30)
-	
-	def __unicode__(self):
-		return self.name
-
 class Item(models.Model):
 	id = models.IntegerField(primary_key=True)
 	name = models.CharField(max_length=128)
+	sell_median = models.DecimalField(max_digits=15, decimal_places=2)
+	buy_median = models.DecimalField(max_digits=15, decimal_places=2)
 	
 	def __unicode__(self):
 		return self.name
-
-class ItemPrice(models.Model):
-	item = models.ForeignKey(Item)
-	region = models.ForeignKey(Region)
-	sell_price = models.DecimalField(max_digits=15, decimal_places=2)
-	sell_volume = models.IntegerField()
-	buy_price = models.DecimalField(max_digits=15, decimal_places=2)
-	buy_volume = models.IntegerField()
 
 class Blueprint(models.Model):
 	id = models.IntegerField(primary_key=True)
