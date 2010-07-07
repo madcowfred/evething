@@ -11,7 +11,8 @@
 			<th>ME</th>
 			<th>PE</th>
 			<th>Time</th>
-			<th>Cost</th>
+			<th>Cost (Buy)</th>
+			<th>Cost (Sell)</th>
 		</tr>
 	{% for bpi in object_list %}
 		<tr class="{% cycle 'odd' 'even' %}">
@@ -21,6 +22,7 @@
 			<td align="center">{{ bpi.productivity_level }}</td>
 			<td align="right">{{ bpi.nice_production_time }}</td>
 			<td align="right">{{ bpi.nice_production_cost }}</td>
+			<td align="right">{{ bpi.nice_production_cost_sell }}</td>
 		</tr>
 	{% endfor %}
 	</table>

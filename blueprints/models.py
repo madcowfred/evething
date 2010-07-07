@@ -136,4 +136,6 @@ WF = bpi.blueprint.waste_factor
 	
 	def nice_production_cost(self):
 		return commas(self.calc_production_cost())
-
+	
+	def nice_production_cost_sell(self):
+		return commas(self.calc_production_cost(use_sell=True))
