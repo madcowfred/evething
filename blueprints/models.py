@@ -2,14 +2,15 @@ from django.db import models
 from django.contrib.auth.models import User
 
 from decimal import *
+from everdi.common import commas, nice_time
 
 
 class Character(models.Model):
 	user = models.ForeignKey(User)
 	name = models.CharField(max_length=30)
 	api_key = models.CharField(max_length=64)
-	industry_skill = models.IntegerField()
-	production_efficiency_skill = models.IntegerField()
+	industry_skill = models.IntegerField(default=0)
+	production_efficiency_skill = models.IntegerField(default=0)
 	factory_cost = models.DecimalField(max_digits=8, decimal_places=2)
 	factory_per_hour = models.DecimalField(max_digits=8, decimal_places=2)
 	sales_tax = models.DecimalField(max_digits=4, decimal_places=2)
@@ -70,13 +71,13 @@ class BlueprintInstance(models.Model):
 	def __unicode__(self):
 		return "%s's %s" % (self.character.name, self.blueprint.name)
 	
-	def calc_production_time(self):
+	def calc_production_time(self, fudge_pe=0):
 		# PTM = ProductionTimeModifier = (1 - (0.04 * IndustrySkill)) * ImplantModifier * ProductionSlotModifier
 		# ProductionTime (PE>=0) = BaseProductionTime * (1 - (ProductivityModifier / BaseProductionTime) * (PE / (1 + PE)) * PTM
 		# ProductionTime (PE<0)  = BaseProductionTime * (1 - (ProductivityModifier / BaseProductionTime) * (PE - 1)) * PTM
 		PTM = (1 - (Decimal('0.04') * self.character.industry_skill)) # implement implants/production slots
 		BPT = self.blueprint.production_time
-		PE = self.productivity_level
+		PE = self.productivity_level + fudge_pe
 		
 		if PE >= 0:
 			pt = BPT * (1 - (PTM / BPT) * (PE / (1 + PE))) * PTM
@@ -86,25 +87,9 @@ class BlueprintInstance(models.Model):
 		return pt.quantize(Decimal('0'), rounding=ROUND_UP)
 	
 	def nice_production_time(self):
-		pt = self.calc_production_time()
-		
-		m, s = divmod(pt, 60)
-		h, m = divmod(m, 60)
-		d, h = divmod(h, 24)
-		
-		parts = []
-		if d:
-			parts.append('%dd' % (d))
-		if h:
-			parts.append('%dh' % (h))
-		if m:
-			parts.append('%dm' % (m))
-		if s:
-			parts.append('%ds' % (s))
-		
-		return ' '.join(parts)
+		return nice_time(self.calc_production_time())
 	
-	def calc_production_cost(self):
+	def calc_production_cost(self, use_sell=False, fudge_me=0):
 		"""
 from everdi.blueprints.models import *
 bpi = BlueprintInstance.objects.all()[0]
@@ -119,7 +104,7 @@ WF = bpi.blueprint.waste_factor
 		
 		# Calculate component costs
 		PES = self.character.production_efficiency_skill
-		ME = self.material_level
+		ME = self.material_level + fudge_me
 		WF = self.blueprint.waste_factor
 		
 		component_queryset = BlueprintComponent.objects.filter(blueprint=self.blueprint)
@@ -127,19 +112,13 @@ WF = bpi.blueprint.waste_factor
 			CC = component.count
 			if component.needs_waste:
 				amt = round(CC * (1 + ((WF / 100.0) / (ME + 1)) + (0.25 - (0.05 * PES))))
-				#if ME >= 0:
-				#	ME_waste = round(CC * (WF / 100.0) * (1 / (ME + 1)))
-				#else:
-				#	amt = round(CC * (1 + ((WF / 100.0) / (ME + 1)) + (0.25 - (0.05 * PES))))
-				#	ME_waste = round(CC * (WF / 100.0) * (1 - ME))
-				
-				#skill_waste = round(CC * (0.04 * self.character.production_efficiency_skill))
-				#amt = CC + ME_waste + skill_waste
-			
 			else:
 				amt = CC
 			
-			total_cost += (Decimal(str(amt)) * component.item.buy_median)
+			if use_sell is True:
+				total_cost += (Decimal(str(amt)) * component.item.sell_median)
+			else:
+				total_cost += (Decimal(str(amt)) * component.item.buy_median)
 		
 		# Calculate factory costs
 		total_cost += self.character.factory_cost
@@ -151,8 +130,10 @@ WF = bpi.blueprint.waste_factor
 		total_cost = total_cost * (1 + (self.character.sales_tax / 100)) * (1 + (self.character.brokers_fee / 100))
 		
 		# Run count
-		print total_cost, self.blueprint.item.portion_size
 		total_cost /= self.blueprint.item.portion_size
-		print total_cost
 		
 		return total_cost.quantize(Decimal('.01'), rounding=ROUND_UP)
+	
+	def nice_production_cost(self):
+		return commas(self.calc_production_cost())
+
