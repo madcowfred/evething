@@ -71,32 +71,35 @@ class BlueprintInstance(models.Model):
 	def __unicode__(self):
 		return "%s's %s" % (self.character.name, self.blueprint.name)
 	
-	def calc_production_time(self, fudge_pe=0):
+	def calc_production_time(self, fudge_pl=0):
 		# PTM = ProductionTimeModifier = (1 - (0.04 * IndustrySkill)) * ImplantModifier * ProductionSlotModifier
-		# ProductionTime (PE>=0) = BaseProductionTime * (1 - (ProductivityModifier / BaseProductionTime) * (PE / (1 + PE)) * PTM
-		# ProductionTime (PE<0)  = BaseProductionTime * (1 - (ProductivityModifier / BaseProductionTime) * (PE - 1)) * PTM
+		# ProductionTime (PL>=0) = BaseProductionTime * (1 - (ProductivityModifier / BaseProductionTime) * (PL / (1 + PL)) * PTM
+		# ProductionTime (PL<0)  = BaseProductionTime * (1 - (ProductivityModifier / BaseProductionTime) * (PL - 1)) * PTM
 		PTM = (1 - (Decimal('0.04') * self.character.industry_skill)) # implement implants/production slots
-		BPT = self.blueprint.production_time
-		PE = self.productivity_level + fudge_pe
+		BPT = Decimal(self.blueprint.production_time)
+		BPM = self.blueprint.productivity_modifier
+		PL = Decimal(self.productivity_level + fudge_pl)
 		
-		if PE >= 0:
-			pt = BPT * (1 - (PTM / BPT) * (PE / (1 + PE))) * PTM
+		if PL >= 0:
+			pt = BPT * (1 - (BPM / BPT) * (PL / (1 + PL))) * PTM
 		else:
-			pt = BPT * (1 - (PTM / BPT) * (PE - 1)) * PTM
+			pt = BPT * (1 - (BPM / BPT) * (PL - 1)) * PTM
+		
+		print pt, PTM, BPT, BPM, PL
 		
 		return pt.quantize(Decimal('0'), rounding=ROUND_UP)
 	
 	def nice_production_time(self):
 		return nice_time(self.calc_production_time())
 	
-	def calc_production_cost(self, use_sell=False, fudge_me=0):
+	def calc_production_cost(self, use_sell=False, fudge_ml=0):
 		"""
 from everdi.blueprints.models import *
 bpi = BlueprintInstance.objects.all()[0]
 bpi.calc_production_cost()
 cq = BlueprintComponent.objects.filter(blueprint=bpi.blueprint)
 PES = bpi.character.production_efficiency_skill
-ME = bpi.material_level
+ML = bpi.material_level
 WF = bpi.blueprint.waste_factor
 		"""
 		
@@ -104,14 +107,14 @@ WF = bpi.blueprint.waste_factor
 		
 		# Calculate component costs
 		PES = self.character.production_efficiency_skill
-		ME = self.material_level + fudge_me
+		ML = self.material_level + fudge_ml
 		WF = self.blueprint.waste_factor
 		
 		component_queryset = BlueprintComponent.objects.filter(blueprint=self.blueprint)
 		for component in component_queryset:
 			CC = component.count
 			if component.needs_waste:
-				amt = round(CC * (1 + ((WF / 100.0) / (ME + 1)) + (0.25 - (0.05 * PES))))
+				amt = round(CC * (1 + ((WF / 100.0) / (ML + 1)) + (0.25 - (0.05 * PES))))
 			else:
 				amt = CC
 			

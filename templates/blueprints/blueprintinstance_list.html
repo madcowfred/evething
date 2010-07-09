@@ -8,11 +8,12 @@
 		<tr>
 			<th>Owner</th>
 			<th>Blueprint</th>
-			<th>ME</th>
-			<th>PE</th>
+			<th>ML</th>
+			<th>PL</th>
+			<th>#</th>
 			<th>Time</th>
-			<th>Cost (Buy)</th>
-			<th>Cost (Sell)</th>
+			<th>Unit Cost (Buy)</th>
+			<th>Unit Cost (Sell)</th>
 		</tr>
 	{% for bpi in object_list %}
 		<tr class="{% cycle 'odd' 'even' %}">
@@ -20,6 +21,7 @@
 			<td><a href="{{ bpi.id }}">{{ bpi.blueprint }}</a></td>
 			<td align="center">{{ bpi.material_level }}</td>
 			<td align="center">{{ bpi.productivity_level }}</td>
+			<td align="right">{{ bpi.blueprint.item.portion_size }}</td>
 			<td align="right">{{ bpi.nice_production_time }}</td>
 			<td align="right">{{ bpi.nice_production_cost }}</td>
 			<td align="right">{{ bpi.nice_production_cost_sell }}</td>
