@@ -16,11 +16,11 @@ class Character(models.Model):
 	sales_tax = models.DecimalField(max_digits=4, decimal_places=2)
 	brokers_fee = models.DecimalField(max_digits=4, decimal_places=2)
 	
-	def __unicode__(self):
-		return self.name
-	
 	class Meta:
 		ordering = ('name',)
+	
+	def __unicode__(self):
+		return self.name
 
 class Item(models.Model):
 	id = models.IntegerField(primary_key=True)
@@ -30,11 +30,14 @@ class Item(models.Model):
 	sell_median = models.DecimalField(max_digits=15, decimal_places=2)
 	buy_median = models.DecimalField(max_digits=15, decimal_places=2)
 	
-	def __unicode__(self):
-		return self.name
-	
 	class Meta:
 		ordering = ('name',)
+	
+	def __unicode__(self):
+		return self.name
+
+	def nice_sell_median(self):
+		return commas(self.sell_median)
 
 class Blueprint(models.Model):
 	id = models.IntegerField(primary_key=True)
@@ -47,11 +50,11 @@ class Blueprint(models.Model):
 	material_modifier = models.IntegerField()
 	waste_factor = models.IntegerField()
 	
-	def __unicode__(self):
-		return self.name
-	
 	class Meta:
 		ordering = ('name',)
+	
+	def __unicode__(self):
+		return self.name
 
 class BlueprintComponent(models.Model):
 	blueprint = models.ForeignKey(Blueprint)

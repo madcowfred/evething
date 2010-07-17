@@ -3,29 +3,43 @@ import urllib2
 import xml.etree.ElementTree as ET
 
 
-MARKET_URL = 'http://api.eve-central.com/api/marketstat?hours=24&%s'
+MARKET_URL = 'http://api.eve-central.com/api/marketstat?hours=72&%s'
 
 
 def main():
 	conn = sqlite3.connect('everdi.db')
 	cur = conn.cursor()
 	
-	# Get all items used in current BlueprintInstances
+	rows = set()
+	
+	# Get all items used in current BlueprintInstances as components
 	cur.execute("""
 SELECT DISTINCT c.item_id
 FROM blueprints_blueprintcomponent c
   INNER JOIN blueprints_blueprintinstance AS bi
     ON c.blueprint_id = bi.blueprint_id
 """)
-	rows = cur.fetchall()
+	rows.update(cur.fetchall())
 	
+	# Get the final items made by all BlueprintInstances
+	cur.execute("""
+SELECT DISTINCT i.id, i.name
+FROM blueprints_item i
+  INNER JOIN blueprints_blueprint AS bp
+    ON bp.item_id = i.id
+  INNER JOIN blueprints_blueprintinstance AS bi
+    ON bi.blueprint_id = bp.id
+""")
+    rows.update(cur.fetchall())
+    
+    rows = list(rows)
+    
+	# Fetch market data and write to the database
 	for i in range(0, len(rows), 20):
 		url = MARKET_URL % ('&'.join('typeid=%s' % item for item in rows[i:i+20]))
 		f = urllib2.urlopen(url)
 		data = f.read()
 		f.close()
-		#open('data.txt', 'w').write(data)
-		#data = open('data.txt').read()
 		
 		root = ET.fromstring(data)
 		for t in root.findall('marketstat/type'):
