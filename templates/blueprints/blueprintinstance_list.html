@@ -12,9 +12,9 @@
 			<th>PL</th>
 			<th>#</th>
 			<th>Time</th>
-			<th>Unit Cost (Buy)</th>
-			<th>Unit Cost (Sell)</th>
-			<th>Median Sell Price</th>
+			<th>Unit (Buy)</th>
+			<th>Unit (Sell)</th>
+			<th>Market Price</th>
 		</tr>
 	{% for bpi in object_list %}
 		<tr class="{% cycle 'odd' 'even' %}">
@@ -26,7 +26,7 @@
 			<td align="right">{{ bpi.nice_production_time }}</td>
 			<td align="right">{{ bpi.nice_production_cost }}</td>
 			<td align="right">{{ bpi.nice_production_cost_sell }}</td>
-			<td aiign="right">{{ bpi.item.nice_sell_median }}</td>
+			<td align="right">{{ bpi.blueprint.item.nice_sell_median }}</td>
 		</tr>
 	{% endfor %}
 	</table>
