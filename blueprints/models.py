@@ -35,7 +35,7 @@ class Item(models.Model):
 	
 	def __unicode__(self):
 		return self.name
-
+	
 	def nice_sell_median(self):
 		return commas(self.sell_median)
 

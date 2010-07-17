@@ -23,17 +23,17 @@ FROM blueprints_blueprintcomponent c
 	
 	# Get the final items made by all BlueprintInstances
 	cur.execute("""
-SELECT DISTINCT i.id, i.name
+SELECT DISTINCT i.id
 FROM blueprints_item i
   INNER JOIN blueprints_blueprint AS bp
     ON bp.item_id = i.id
   INNER JOIN blueprints_blueprintinstance AS bi
     ON bi.blueprint_id = bp.id
 """)
-    rows.update(cur.fetchall())
-    
-    rows = list(rows)
-    
+	rows.update(cur.fetchall())
+	
+	rows = list(rows)
+	
 	# Fetch market data and write to the database
 	for i in range(0, len(rows), 20):
 		url = MARKET_URL % ('&'.join('typeid=%s' % item for item in rows[i:i+20]))
