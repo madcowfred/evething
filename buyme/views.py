@@ -28,12 +28,11 @@ def calc(request):
 	
 	for k, v in request.GET.items():
 		if k.isdigit() and v.isdigit():
-			price = PRICE_OVERRIDE.get(int(k), 0)
-			if price == 0:
-				results = Item.objects.filter(id=k, buy_median__gt=0)
-				if not results:
-					continue
-				price = results[0].buy_median
+			results = Item.objects.filter(id=k)
+			if not results:
+				continue
+			
+			price = PRICE_OVERRIDE.get(int(k), 0) or results[0].buy_median
 			
 			unit_total = price * int(v)
 			total += unit_total
