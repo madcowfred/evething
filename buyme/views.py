@@ -31,8 +31,9 @@ def calc(request):
 			price = PRICE_OVERRIDE.get(int(k), 0)
 			if price == 0:
 				results = Item.objects.filter(id=k, buy_median__gt=0)
-				if results:
-					price = results[0].buy_median
+				if not results:
+					continue
+				price = results[0].buy_median
 			
 			unit_total = price * int(v)
 			total += unit_total
