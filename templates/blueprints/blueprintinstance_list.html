@@ -15,6 +15,7 @@
 			<th>Unit (Buy)</th>
 			<th>Unit (Sell)</th>
 			<th>Market Price</th>
+			<th>Jita</th>
 		</tr>
 	{% for bpi in object_list %}
 		<tr class="{% cycle 'odd' 'even' %}">
@@ -27,6 +28,7 @@
 			<td align="right">{{ bpi.nice_production_cost }}</td>
 			<td align="right">{{ bpi.nice_production_cost_sell }}</td>
 			<td align="right">{{ bpi.blueprint.item.nice_sell_median }}</td>
+			<td><a href="http://www.eve-central.com/home/quicklook.html?typeid={{ bpi.blueprint.item.id }}&usesystem=30000142">EC</a></td>
 		</tr>
 	{% endfor %}
 	</table>
