@@ -30,7 +30,7 @@
 		{% for bpi in bpis %}
 		<tr class="{% cycle 'odd' 'even' %}">
 			<td>{{ bpi.character }}</td>
-			<td><a href="{{ bpi.id }}">{{ bpi.blueprint_name }}</a></td>
+			<td><a href="{{ bpi.id }}">{{ bpi.blueprint }}</a></td>
 			<td align="center">{{ bpi.material_level }}</td>
 			<td align="center">{{ bpi.productivity_level }}</td>
 			<td align="right">{{ bpi.count }}</td>

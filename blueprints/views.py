@@ -15,7 +15,7 @@ def index(request):
 		bpis.append({
 			'character': bpi.character,
 			'id': bpi.id,
-			'blueprint_name': bpi.blueprint.name,
+			'blueprint': bpi.blueprint,
 			'material_level': bpi.material_level,
 			'productivity_level': bpi.productivity_level,
 			'count': bpi.blueprint.item.portion_size * runs,
