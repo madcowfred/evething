@@ -3,7 +3,17 @@
 {% block title %}Rubber Ducky Space Industries: Blueprints{% endblock %}
 
 {% block content %}
-{% if object_list %}
+{% if bpis %}
+	<form action="/blueprints/" method="GET">
+	<table>
+		<tr>
+			<td>Runs :</td>
+			<td><input type="text" name="runs" value="{{ runs }}"></td>
+			<td><input type="submit" value="Go"></td>
+		</tr>
+	</table>
+	</form>
+	
 	<table>
 		<tr>
 			<th>Owner</th>
@@ -17,20 +27,20 @@
 			<th>Market Price</th>
 			<th>Jita</th>
 		</tr>
-	{% for bpi in object_list %}
+		{% for bpi in bpis %}
 		<tr class="{% cycle 'odd' 'even' %}">
 			<td>{{ bpi.character }}</td>
-			<td><a href="{{ bpi.id }}">{{ bpi.blueprint }}</a></td>
+			<td><a href="{{ bpi.id }}">{{ bpi.blueprint_name }}</a></td>
 			<td align="center">{{ bpi.material_level }}</td>
 			<td align="center">{{ bpi.productivity_level }}</td>
-			<td align="right">{{ bpi.blueprint.item.portion_size }}</td>
-			<td align="right">{{ bpi.nice_production_time }}</td>
-			<td align="right">{{ bpi.nice_production_cost }}</td>
-			<td align="right">{{ bpi.nice_production_cost_sell }}</td>
-			<td align="right">{{ bpi.blueprint.item.nice_sell_median }}</td>
+			<td align="right">{{ bpi.count }}</td>
+			<td align="right">{{ bpi.production_time }}</td>
+			<td align="right">{{ bpi.unit_cost_buy }}</td>
+			<td align="right">{{ bpi.unit_cost_sell }}</td>
+			<td align="right">{{ bpi.market_price }}</td>
 			<td><a href="http://www.eve-central.com/home/quicklook.html?typeid={{ bpi.blueprint.item.id }}&usesystem=30000142">EC</a></td>
 		</tr>
-	{% endfor %}
+		{% endfor %}
 	</table>
 {% else %}
 	<p>No blueprint instances are available.</p>

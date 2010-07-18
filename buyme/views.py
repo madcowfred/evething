@@ -1,6 +1,5 @@
 # Create your views here.
 from django.shortcuts import render_to_response
-from django.http import HttpResponse
 
 from everdi.blueprints.models import BlueprintComponent, BlueprintInstance, Item
 from everdi.buyme.price_override import PRICE_OVERRIDE

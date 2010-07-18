@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}Rubber Ducky Space Industries: Blueprint Details{% endblock %}
+
+{% block content %}
+<h1>{{ blueprint_name }}</h1>
+
+<table>
+	<tr>
+		<th>Item</th>
+		<th>#</th>
+		<th>Unit (Buy)</th>
+		<th>Total (Buy)</th>
+		<th>Unit (Sell)</th>
+		<th>Total (Sell)</th>
+	</tr>
+	{% for component in components %}
+	<tr class="{% cycle 'odd' 'even' %}">
+		<td>{{ component.name }}</td>
+		<td align="right">{{ component.count }}</td>
+		<td align="right">{{ component.buy_median }}</td>
+		<td align="right">{{ component.buy_total }}</td>
+		<td align="right">{{ component.sell_median }}</td>
+		<td align="right">{{ component.sell_total }}</td>
+	</tr>
+	{% endfor %}
+	<tr>
+		<td colspan="2"></td>
+		<td colspan="2" align="right">{{ buy_total }}</td>
+		<td colspan="2" align="right">{{ sell_total }}</td>
+	</tr>
+</table>
+{% endblock %}

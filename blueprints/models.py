@@ -74,7 +74,7 @@ class BlueprintInstance(models.Model):
 	def __unicode__(self):
 		return "%s's %s" % (self.character.name, self.blueprint.name)
 	
-	def calc_production_time(self, fudge_pl=0):
+	def calc_production_time(self, runs=1, fudge_pl=0):
 		# PTM = ProductionTimeModifier = (1 - (0.04 * IndustrySkill)) * ImplantModifier * ProductionSlotModifier
 		# ProductionTime (PL>=0) = BaseProductionTime * (1 - (ProductivityModifier / BaseProductionTime) * (PL / (1 + PL)) * PTM
 		# ProductionTime (PL<0)  = BaseProductionTime * (1 - (ProductivityModifier / BaseProductionTime) * (PL - 1)) * PTM
@@ -88,14 +88,14 @@ class BlueprintInstance(models.Model):
 		else:
 			pt = BPT * (1 - (BPM / BPT) * (PL - 1)) * PTM
 		
-		print pt, PTM, BPT, BPM, PL
+		pt *= runs
 		
 		return pt.quantize(Decimal('0'), rounding=ROUND_UP)
 	
-	def nice_production_time(self):
-		return nice_time(self.calc_production_time())
+	def nice_production_time(self, runs=1):
+		return nice_time(self.calc_production_time(runs=runs))
 	
-	def calc_production_cost(self, use_sell=False, fudge_ml=0):
+	def calc_production_cost(self, runs=1, fudge_ml=0, use_sell=False, ):
 		"""
 from everdi.blueprints.models import *
 bpi = BlueprintInstance.objects.all()[0]
@@ -121,6 +121,8 @@ WF = bpi.blueprint.waste_factor
 			else:
 				amt = CC
 			
+			amt *= runs
+			
 			if use_sell is True:
 				total_cost += (Decimal(str(amt)) * component.item.sell_median)
 			else:
@@ -129,19 +131,19 @@ WF = bpi.blueprint.waste_factor
 		# Calculate factory costs
 		total_cost += self.character.factory_cost
 		
-		PT = self.calc_production_time()
+		PT = self.calc_production_time(runs=runs)
 		total_cost += (self.character.factory_per_hour * (PT / 3600))
 		
 		# Calculate taxes and fees
 		total_cost = total_cost * (1 + (self.character.sales_tax / 100)) * (1 + (self.character.brokers_fee / 100))
 		
 		# Run count
-		total_cost /= self.blueprint.item.portion_size
+		total_cost /= (self.blueprint.item.portion_size * runs)
 		
 		return total_cost.quantize(Decimal('.01'), rounding=ROUND_UP)
 	
-	def nice_production_cost(self):
-		return commas(self.calc_production_cost())
+	def nice_production_cost(self, runs=1, use_sell=False):
+		return commas(self.calc_production_cost(runs=runs, use_sell=use_sell))
 	
-	def nice_production_cost_sell(self):
-		return commas(self.calc_production_cost(use_sell=True))
+	#def nice_production_cost_sell(self):
+	#	return commas(self.calc_production_cost(use_sell=True))

@@ -1,18 +1,6 @@
 from django.conf.urls.defaults import *
-from everdi.blueprints.models import BlueprintInstance
 
-info_dict = {
-	'queryset': BlueprintInstance.objects.all(),
-}
-
-urlpatterns = patterns('',
-    (r'^$', 'django.views.generic.list_detail.object_list', info_dict),
-    (r'^(?P<object_id>\d+)/$', 'django.views.generic.list_detail.object_detail', info_dict),
+urlpatterns = patterns('everdi.blueprints.views',
+    (r'^$',					'index'),
+    (r'^(?P<bpi_id>\d+)/$', 'details'),
 )
-
-
-#from django.conf.urls.defaults import *
-#
-#urlpatterns = patterns('everdi.blueprints.views',
-#	(r'^$', 'index'),
-#)
