@@ -29,6 +29,7 @@ def index(request):
 		'blueprints/index.html',
 		{
 			'bpis': bpis,
+			'runs': runs,
 		}
 	)
 
