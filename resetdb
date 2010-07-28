@@ -1,0 +1,3 @@
+#!/bin/sh
+
+rm everdi.db && python manage.py syncdb && python import.py
