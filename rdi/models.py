@@ -4,17 +4,46 @@ from django.contrib.auth.models import User
 from decimal import *
 from everdi.common import commas, nice_time
 
+# Corporation
+class Corporation(models.Model):
+	id = models.IntegerField(primary_key=True)
+	name = models.CharField(max_length=64)
+	
+	class Meta:
+		ordering = ('name',)
+	
+	def __unicode__(self):
+		return self.name
+	
+	def get_total_balance(self):
+		return self.corpwallet_set.aggregate(Sum('balance'))['balance_sum']
 
+# Corporation wallets
+class CorpWallet(models.Model):
+	account_id = models.IntegerField(primary_key=True)
+	corporation = models.ForeignKey(Corporation)
+	account_key = models.IntegerField()
+	balance = models.DecimalField(max_digits=18, decimal_places=2)
+
+# Character
 class Character(models.Model):
 	user = models.ForeignKey(User)
+	
 	name = models.CharField(max_length=30)
-	api_key = models.CharField(max_length=64)
+	corporation = models.ForeignKey(Corporation)
+	
 	industry_skill = models.IntegerField(default=0)
 	production_efficiency_skill = models.IntegerField(default=0)
+	
 	factory_cost = models.DecimalField(max_digits=8, decimal_places=2)
 	factory_per_hour = models.DecimalField(max_digits=8, decimal_places=2)
+	
 	sales_tax = models.DecimalField(max_digits=4, decimal_places=2)
 	brokers_fee = models.DecimalField(max_digits=4, decimal_places=2)
+	
+	eve_user_id = models.IntegerField(blank=True, verbose_name='User ID')
+	eve_api_key = models.CharField(max_length=64, blank=True, verbose_name='API key')
+	eve_character_id = models.IntegerField(default=0)
 	
 	class Meta:
 		ordering = ('name',)
@@ -22,16 +51,14 @@ class Character(models.Model):
 	def __unicode__(self):
 		return self.name
 
+# Items
 class Item(models.Model):
 	id = models.IntegerField(primary_key=True)
 	name = models.CharField(max_length=128)
 	portion_size = models.IntegerField()
 	
-	sell_median = models.DecimalField(max_digits=15, decimal_places=2)
-	buy_median = models.DecimalField(max_digits=15, decimal_places=2)
-	
-	class Meta:
-		ordering = ('name',)
+	sell_median = models.DecimalField(max_digits=15, decimal_places=2, default=0)
+	buy_median = models.DecimalField(max_digits=15, decimal_places=2, default=0)
 	
 	def __unicode__(self):
 		return self.name
@@ -39,11 +66,30 @@ class Item(models.Model):
 	def nice_sell_median(self):
 		return commas(self.sell_median)
 
+# Station
+class Station(models.Model):
+	id = models.IntegerField(primary_key=True)
+	name = models.CharField(max_length=128)
+
+# Wallet transactions
+class Transaction(models.Model):
+	id = models.IntegerField(primary_key=True)
+	corporation = models.ForeignKey(Corporation)
+	corp_wallet = models.ForeignKey(CorpWallet)
+	
+	date = models.DateField()
+	t_type = models.CharField(max_length=1, choices=((u'B', u'Buy'), (u'S', u'Sell')))
+	item = models.ForeignKey(Item)
+	quantity = models.IntegerField()
+	price = models.DecimalField(max_digits=14, decimal_places=2)
+	station = models.ForeignKey(Station)
+
+# Blueprints
 class Blueprint(models.Model):
 	id = models.IntegerField(primary_key=True)
 	name = models.CharField(max_length=128)
 	item = models.ForeignKey(Item)
-	components = models.ManyToManyField(Item, through='BlueprintComponent', related_name='components')
+	#components = models.ManyToManyField(Item, through='BlueprintComponent', related_name='components')
 	
 	production_time = models.IntegerField()
 	productivity_modifier = models.IntegerField()
@@ -60,7 +106,7 @@ class BlueprintComponent(models.Model):
 	blueprint = models.ForeignKey(Blueprint)
 	item = models.ForeignKey(Item)
 	count = models.IntegerField()
-	needs_waste = models.BooleanField()
+	needs_waste = models.BooleanField(default=True)
 
 class BlueprintInstance(models.Model):
 	character = models.ForeignKey(Character)

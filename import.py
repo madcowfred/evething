@@ -21,7 +21,7 @@ def main():
 	#   marketGroupID,chanceOfDuplicating
 	incur.execute('SELECT typeID, typeName, portionSize FROM invTypes')
 	for row in incur:
-		outcur.execute("INSERT INTO blueprints_item (id, name, portion_size, sell_median, buy_median) VALUES (?, ?, ?, 0, 0)", row)
+		outcur.execute("INSERT INTO rdi_item (id, name, portion_size, sell_median, buy_median) VALUES (?, ?, ?, 0, 0)", row)
 	outconn.commit()
 	
 	# Blueprints
@@ -35,7 +35,7 @@ WHERE t.published = 1
 	bprows = incur.fetchall()
 	for bprow in bprows:
 		outcur.execute("""
-INSERT INTO blueprints_blueprint
+INSERT INTO rdi_blueprint
 (id, name, item_id, production_time, productivity_modifier, material_modifier, waste_factor)
 VALUES
 (?, ?, ?, ?, ?, ?, ?)
@@ -45,7 +45,7 @@ VALUES
 		incur.execute('SELECT materialTypeID, quantity FROM invTypeMaterials WHERE typeID=?', (bprow[2],))
 		for baserow in incur:
 			outcur.execute("""
-INSERT INTO blueprints_blueprintcomponent
+INSERT INTO rdi_blueprintcomponent
 (blueprint_id, item_id, count, needs_waste)
 VALUES
 (?, ?, ?, 1)
@@ -66,7 +66,7 @@ WHERE r.typeID = ?
 		
 		for extrarow in incur:
 			outcur.execute("""
-INSERT INTO blueprints_blueprintcomponent
+INSERT INTO rdi_blueprintcomponent
 (blueprint_id, item_id, count, needs_waste)
 VALUES
 (?, ?, ?, 0)

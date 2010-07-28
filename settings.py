@@ -94,7 +94,7 @@ INSTALLED_APPS = (
     # Uncomment the next line to enable the admin:
     'django.contrib.admin',
 	'django.contrib.admindocs',
-	'everdi.blueprints',
+	'everdi.rdi',
 )
 
 INTERNAL_IPS = (

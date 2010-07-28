@@ -1,9 +1,11 @@
 # Create your views here.
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import render_to_response, get_object_or_404
-from everdi.blueprints.models import BlueprintComponent, BlueprintInstance
+
+from everdi.rdi.models import BlueprintComponent, BlueprintInstance, Character
 
 
-def index(request):
+def blueprints(request):
 	runs = request.GET.get('runs')
 	if runs and runs.isdigit():
 		runs = int(runs)
@@ -26,14 +28,14 @@ def index(request):
 		})
 	
 	return render_to_response(
-		'blueprints/index.html',
+		'rdi/blueprints.html',
 		{
 			'bpis': bpis,
 			'runs': runs,
 		}
 	)
 
-def details(request, bpi_id):
+def blueprint_details(request, bpi_id):
 	bpi = get_object_or_404(BlueprintInstance, pk=bpi_id)
 	components = BlueprintComponent.objects.filter(blueprint=bpi.blueprint)
 	
@@ -53,7 +55,7 @@ def details(request, bpi_id):
 		sell_total += comps[-1]['sell_total']
 	
 	return render_to_response(
-		'blueprints/details.html',
+		'rdi/blueprint_details.html',
 		{
 			'blueprint_name': bpi.blueprint.name,
 			'components': comps,
@@ -61,3 +63,16 @@ def details(request, bpi_id):
 			'sell_total': sell_total,
 		}
 	)
+
+# Corp main page
+@login_required
+def corp_index(request):
+	# Check that they have a valid character
+	chars = Character.objects.filter(user=request.user)
+	if not chars:
+		return render_to_response('rdi/error.html', { 'error': "You do not have a character defined." })
+	if not chars[0].corporation:
+		return render_to_response('rdi/error.html', { 'error': "Your character doesn't seem to be in a corporation." })
+	
+	
+	return render_to_response('rdi/error.html')
