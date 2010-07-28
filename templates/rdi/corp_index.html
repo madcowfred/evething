@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% load rdi_extras %}
+
+{% block title %}Rubber Ducky Space Industries: Corporation{% endblock %}
+
+{% block content %}
+<h1>{{ corporation.name }}</h1>
+<table>
+	<tr>
+		<th>Wallet balance</th>
+	</tr>
+	<tr class="odd">
+		<td align="right">{{ wallet_balance|commas }}</td>
+	</tr>
+</table>
+<br>
+{% autoescape off %}
+<table>
+	<tr>
+		<th></th>
+		<th>1 day</th>
+		<th>7 days</th>
+		<th>30 days</th>
+		<th>All time</th>
+	</tr>
+	<tr class="odd">
+		<td>Buy Total</td>
+		<td align="right">{{ 1day_buy_total|commas }}</td>
+		<td align="right">{{ 7day_buy_total|commas }}</td>
+		<td align="right">{{ 30day_buy_total|commas }}</td>
+		<td align="right">{{ 9999day_buy_total|commas }}</td>
+	</tr>
+	<tr class="even">
+		<td>Sell Total</td>
+		<td align="right">{{ 1day_sell_total|commas }}</td>
+		<td align="right">{{ 7day_sell_total|commas }}</td>
+		<td align="right">{{ 30day_sell_total|commas }}</td>
+		<td align="right">{{ 9999day_sell_total|commas }}</td>
+	</tr>
+	<tr class="odd">
+		<td>Balance</td>
+		<td align="right"{{ 1day_class }}>{{ 1day_balance|commas }}</td>
+		<td align="right"{{ 7day_class }}>{{ 7day_balance|commas }}</td>
+		<td align="right"{{ 30day_class }}>{{ 30day_balance|commas }}</td>
+		<td align="right"{{ 9999day_class }}>{{ 9999day_balance|commas }}</td>
+	</tr>
+</table>
+{% endautoescape %}
+{% endblock %}

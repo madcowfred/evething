@@ -79,10 +79,11 @@ class Transaction(models.Model):
 	
 	date = models.DateField()
 	t_type = models.CharField(max_length=1, choices=((u'B', u'Buy'), (u'S', u'Sell')))
+	station = models.ForeignKey(Station)
 	item = models.ForeignKey(Item)
 	quantity = models.IntegerField()
 	price = models.DecimalField(max_digits=14, decimal_places=2)
-	station = models.ForeignKey(Station)
+	total_price = models.DecimalField(max_digits=17, decimal_places=2)
 
 # Blueprints
 class Blueprint(models.Model):

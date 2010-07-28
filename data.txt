@@ -1,8 +1,0 @@
-<?xml version='1.0' encoding='UTF-8'?>
-<eveapi version="2">
-  <currentTime>2010-07-28 01:17:13</currentTime>
-  <result>
-    <rowset name="transactions" key="transactionID" columns="transactionDateTime,transactionID,quantity,typeName,typeID,price,clientID,clientName,characterID,characterName,stationID,stationName,transactionType,transactionFor" />
-  </result>
-  <cachedUntil>2010-07-28 01:31:55</cachedUntil>
-</eveapi>

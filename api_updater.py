@@ -146,16 +146,19 @@ def main():
 							station.save()
 						
 						# Make the transaction object
+						quantity = int(row.attrib['quantity'])
+						price = Decimal(row.attrib['price'])
 						t = Transaction(
 							id=int(row.attrib['transactionID']),
 							corporation=corporation,
 							corp_wallet=wallet,
 							date=parse_api_date(row.attrib['transactionDateTime']),
 							t_type=row.attrib['transactionType'][0].upper(),
-							item=Item.objects.filter(pk=row.attrib['typeID'])[0],
-							quantity=int(row.attrib['quantity']),
-							price=Decimal(row.attrib['price']),
 							station=station,
+							item=Item.objects.filter(pk=row.attrib['typeID'])[0],
+							quantity=quantity,
+							price=price,
+							total_price=quantity * price,
 						)
 						t.save()
 						
@@ -183,7 +186,7 @@ def fetch_api(url, params, character):
 	f = urllib2.urlopen(url, urlencode(params))
 	data = f.read()
 	f.close()
-	open('data.txt', 'w').write(data)
+	
 	root = ET.fromstring(data)
 	current = parse_api_date(root.find('currentTime').text)
 	until = parse_api_date(root.find('cachedUntil').text)
