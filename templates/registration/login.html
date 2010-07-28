@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+{% if form.errors %}
+<p class="error">Sorry, that's not a valid username or password</p>
+{% endif %}
+
+<form action='.' method='post'>
+{% csrf_token %}
+<table>
+	<tr class="odd">
+		<td>Username:</td>
+		<td><input type="text" name="username" value=""></td>
+	</tr>
+	<tr class="even">
+		<td>Password:</td>
+		<td><input type="password" name="password" value=""></td>
+	</tr>
+	<tr>
+		<td colspan="2" align="right"><input type="submit" value="login"></td>
+	</tr>
+</table>
+<input type="hidden" name="next" value="{{ next|escape }}" />
+</form>
+
+{% endblock %}
