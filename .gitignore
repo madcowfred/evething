@@ -1,2 +1,4 @@
 *.db
 *.pyc
+cache/*.xml
+cache/cache.pickle
