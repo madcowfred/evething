@@ -84,9 +84,10 @@ def main():
 					wallet = CorpWallet.objects.filter(pk=accountID)
 					if wallet:
 						wallet[0].balance = balance
+						wallet[0].save()
 					else:
 						wallet = CorpWallet(account_id=accountID, corporation=corporation, account_key=accountKey, balance=balance)
-					wallet.save()
+						wallet.save()
 		
 		# Update corporation transactions
 		if _now() > cache['corp'][corporation.name]['transactions']:
