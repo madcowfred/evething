@@ -86,7 +86,7 @@ def main():
 						wallet[0].balance = balance
 					else:
 						wallet = CorpWallet(account_id=accountID, corporation=corporation, account_key=accountKey, balance=balance)
-						wallet.save()
+					wallet.save()
 		
 		# Update corporation transactions
 		if _now() > cache['corp'][corporation.name]['transactions']:
