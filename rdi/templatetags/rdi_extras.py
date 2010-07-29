@@ -1,4 +1,5 @@
 import re
+from decimal import *
 
 from django import template
 from django.template.defaultfilters import stringfilter
@@ -8,6 +9,8 @@ re_digits_nondigits = re.compile(r'\d+|\D+')
 register = template.Library()
 
 
+# Put commas in things
+# http://code.activestate.com/recipes/498181-add-thousands-separator-commas-to-formatted-number/
 @register.filter
 @stringfilter
 def commas(value):
@@ -28,21 +31,20 @@ def _commafy(s):
 	return ''.join(r)
 
 
-def oldcommas(value):
-	if '.' in value:
-		l, r = value.split('.')
+# Shorten numbers to a human readable version
+THOUSAND = 10**3
+MILLION = 10**6
+BILLION = 10**9
+@register.filter
+def humanize(value):
+	if value >= BILLION or value <= -BILLION:
+		v = Decimal(value) / BILLION
+		return '%sB' % (v.quantize(Decimal('.01'), rounding=ROUND_UP))
+	elif value >= MILLION or value <= -MILLION:
+		v = Decimal(value) / MILLION
+		return '%sM' % (v.quantize(Decimal('.01'), rounding=ROUND_UP))
+	elif value >= THOUSAND or value <= -THOUSAND:
+		v = Decimal(value) / THOUSAND
+		return '%sK' % (v.quantize(Decimal('.1'), rounding=ROUND_UP))
 	else:
-		l = value
-		r = ''
-	
-	rev = l[::-1]
-	
-	newnum = []
-	for i in range(0, len(l), 3):
-		newnum.insert(0, rev[i:i+3][::-1])
-	
-	l = ','.join(newnum)
-	if r:
-		return '%s.%s' % (l, r)
-	else:
-		return l
+		return value

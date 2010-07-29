@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% load rdi_extras %}
+
+{% block title %}Rubber Ducky Space Industries: Corporation{% endblock %}
+
+{% block content %}
+<h1>Item Sales for last {{ days }} days.</h1>
+<table class="tablesorter">
+	<thead>
+		<tr>
+			<th></th>
+			<th colspan="5">Buy</th>
+			<th colspan="5">Sell</th>
+			<th colspan="3"></th>
+		</tr>
+		<tr>
+			<th>Item</th>
+			<th>Quantity</th>
+			<th>Min</th>
+			<th>Avg</th>
+			<th>Max</th>
+			<th>Total</th>
+			<th>Quantity</th>
+			<th>Min</th>
+			<th>Avg</th>
+			<th>Max</th>
+			<th>Total</th>
+			<th colspan="2">Avg Profit</th>
+			<th>Balance</th>
+		</tr>
+	</thead>
+	<tbody>
+		{% autoescape off %}
+		{% for item in items %}
+		<tr class="{% cycle 'odd' 'even' %}">
+			<td align="left">{{ item.item.name }}</td>
+			<td class="alt">{{ item.buy_quantity|humanize }}</td>
+			<td class="alt">{{ item.buy_minimum|humanize }}</td>
+			<td class="alt">{{ item.buy_average|humanize }}</td>
+			<td class="alt">{{ item.buy_maximum|humanize }}</td>
+			<td class="alt">{{ item.buy_total|humanize }}</td>
+			<td>{{ item.sell_quantity|humanize }}</td>
+			<td>{{ item.sell_minimum|humanize }}</td>
+			<td>{{ item.sell_average|humanize }}</td>
+			<td>{{ item.sell_maximum|humanize }}</td>
+			<td>{{ item.sell_total|humanize }}</td>
+			<td class="alt">{{ item.average_profit|humanize }}
+			<td class="alt">{{ item.average_profit_per }}%</td>
+			<td{{ item.class }}>{{ item.balance|humanize }}</td>
+		</tr>
+		{% endfor %}
+		{% endautoescape %}
+	</tbody>
+</table>
+{% endblock %}

@@ -3,6 +3,8 @@
 
 {% block title %}Rubber Ducky Space Industries: Corporation{% endblock %}
 
+{% block nav-corp %}<strong class="nav-active">Corp Finances</strong>{% endblock %}
+
 {% block content %}
 <h1>{{ corporation.name }}</h1>
 <table>
@@ -18,31 +20,31 @@
 <table>
 	<tr>
 		<th></th>
-		<th>1 day</th>
-		<th>7 days</th>
-		<th>30 days</th>
-		<th>All time</th>
+		<th><a href="{% url everdi.rdi.views.corp_details 1 %}">1 day</a></th>
+		<th><a href="{% url everdi.rdi.views.corp_details 7 %}">7 days</a></th>
+		<th><a href="{% url everdi.rdi.views.corp_details 30 %}">30 days</a></th>
+		<th><a href="{% url everdi.rdi.views.corp_details 9999 %}">All time</a></th>
 	</tr>
 	<tr class="odd">
-		<td>Buy Total</td>
-		<td align="right">{{ 1day_buy_total|commas }}</td>
-		<td align="right">{{ 7day_buy_total|commas }}</td>
-		<td align="right">{{ 30day_buy_total|commas }}</td>
-		<td align="right">{{ 9999day_buy_total|commas }}</td>
+		<td align="left">Buy Total</td>
+		<td>{{ 1day_buy_total|commas }}</td>
+		<td>{{ 7day_buy_total|commas }}</td>
+		<td>{{ 30day_buy_total|commas }}</td>
+		<td>{{ 9999day_buy_total|commas }}</td>
 	</tr>
 	<tr class="even">
-		<td>Sell Total</td>
-		<td align="right">{{ 1day_sell_total|commas }}</td>
-		<td align="right">{{ 7day_sell_total|commas }}</td>
-		<td align="right">{{ 30day_sell_total|commas }}</td>
-		<td align="right">{{ 9999day_sell_total|commas }}</td>
+		<td align="left">Sell Total</td>
+		<td>{{ 1day_sell_total|commas }}</td>
+		<td>{{ 7day_sell_total|commas }}</td>
+		<td>{{ 30day_sell_total|commas }}</td>
+		<td>{{ 9999day_sell_total|commas }}</td>
 	</tr>
 	<tr class="odd">
-		<td>Balance</td>
-		<td align="right"{{ 1day_class }}>{{ 1day_balance|commas }}</td>
-		<td align="right"{{ 7day_class }}>{{ 7day_balance|commas }}</td>
-		<td align="right"{{ 30day_class }}>{{ 30day_balance|commas }}</td>
-		<td align="right"{{ 9999day_class }}>{{ 9999day_balance|commas }}</td>
+		<td align="left">Balance</td>
+		<td{{ 1day_class }}>{{ 1day_balance|commas }}</td>
+		<td{{ 7day_class }}>{{ 7day_balance|commas }}</td>
+		<td{{ 30day_class }}>{{ 30day_balance|commas }}</td>
+		<td{{ 9999day_class }}>{{ 9999day_balance|commas }}</td>
 	</tr>
 </table>
 {% endautoescape %}

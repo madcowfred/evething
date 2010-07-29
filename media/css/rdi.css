@@ -1,0 +1,44 @@
+body {
+	font-family: Frutiger, "Frutiger Linotype", Univers, Calibri, "Gill Sans", "Gill Sans MT", "Myriad Pro", Myriad, "DejaVu Sans Condensed", "Liberation Sans", "Nimbus Sans L", Tahoma, Geneva, "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+a {
+	color: #0000FF;
+}
+
+table {
+	empty-cells: hide;
+	border-spacing: 1px;
+}
+td {
+	padding: 4px 8px 4px 8px;
+	text-align: right;
+}
+
+th {
+	background: #BFBFCF;
+	padding: 4px 8px 4px 8px;
+}
+tr.odd td {
+	background: #EFEFFF;
+}
+tr.even td {
+	background: #DFDFEF;
+}
+tr.odd td.alt {
+	background: #DFDFEF;
+}
+tr.even td.alt {
+	background: #CECEDE;
+}
+td.g {
+	color: #2FAF2F;
+}
+td.r {
+	color: #FF0000;
+}
+td.bl {
+	border-left: 10px black;
+}
+td.br {
+	border-right: 1px black;
+}

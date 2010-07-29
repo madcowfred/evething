@@ -2,6 +2,8 @@
 
 {% block title %}Rubber Ducky Space Industries: Blueprints{% endblock %}
 
+{% block nav-blueprints %}<strong class="nav-active">Blueprints</strong>{% endblock %}
+
 {% block content %}
 {% if bpis %}
 	<form action="/blueprints/" method="GET">
@@ -29,16 +31,16 @@
 		</tr>
 		{% for bpi in bpis %}
 		<tr class="{% cycle 'odd' 'even' %}">
-			<td>{{ bpi.character }}</td>
-			<td><a href="{{ bpi.id }}">{{ bpi.blueprint }}</a></td>
+			<td align="left">{{ bpi.character }}</td>
+			<td align="left"><a href="{{ bpi.id }}">{{ bpi.blueprint }}</a></td>
 			<td align="center">{{ bpi.material_level }}</td>
 			<td align="center">{{ bpi.productivity_level }}</td>
-			<td align="right">{{ bpi.count }}</td>
-			<td align="right">{{ bpi.production_time }}</td>
-			<td align="right">{{ bpi.unit_cost_buy }}</td>
-			<td align="right">{{ bpi.unit_cost_sell }}</td>
-			<td align="right">{{ bpi.market_price }}</td>
-			<td><a href="http://www.eve-central.com/home/quicklook.html?typeid={{ bpi.blueprint.item.id }}&usesystem=30000142">EC</a></td>
+			<td>{{ bpi.count }}</td>
+			<td>{{ bpi.production_time }}</td>
+			<td>{{ bpi.unit_cost_buy }}</td>
+			<td>{{ bpi.unit_cost_sell }}</td>
+			<td>{{ bpi.market_price }}</td>
+			<td align="left"><a href="http://www.eve-central.com/home/quicklook.html?typeid={{ bpi.blueprint.item.id }}&usesystem=30000142">EC</a></td>
 		</tr>
 		{% endfor %}
 	</table>

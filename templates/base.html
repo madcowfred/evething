@@ -1,36 +1,16 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
-<html lang="en">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
-    <title>{% block title %}{% endblock %}</title>
-	<style type="text/css">
-		body {
-			font-family: Frutiger, "Frutiger Linotype", Univers, Calibri, "Gill Sans", "Gill Sans MT", "Myriad Pro", Myriad, "DejaVu Sans Condensed", "Liberation Sans", "Nimbus Sans L", Tahoma, Geneva, "Helvetica Neue", Helvetica, Arial, sans-serif;
-		}
-		a {
-			color: #0000FF;
-		}
-		td {
-			padding: 4px 8px 4px 8px;
-		}
-		tr th {
-			background: #BFBFCF;
-			padding: 4px 8px 4px 8px;
-		}
-		tr.odd td {
-			background: #EFEFFF;
-		}
-		tr.even td {
-			background: #DFDFEF;
-		}
-		td.g {
-			color: #009F00;
-		}
-		td.r {
-			color: #FF0000;
-		}
-	</style>
+	<title>{% block title %}{% endblock %}</title>
+	<link rel="stylesheet" href="/media/css/rdi.css" type="text/css" />
 </head>
 <body>
+	{% block nav %}
+	<ul id="nav">
+		<li>{% block nav-blueprints %}<a href="{% url everdi.rdi.views.blueprints %}">Blueprints</a>{% endblock %}</li>
+		<li>{% block nav-corp %}<a href="{% url everdi.rdi.views.corp_index %}">Corp Finances</a>{% endblock %}</li>
+	</ul>
+	{%endblock %}
 	{% block content %}{% endblock %}
 </body>
 </html>

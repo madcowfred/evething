@@ -100,18 +100,104 @@ def corp_index(request):
 		sell_total = transactions.filter(t_type='S').aggregate(Sum('total_price'))['total_price__sum']
 		data['%sday_sell_total' % days] = sell_total
 		
-		balance = sell_total - buy_total
-		data['%sday_balance' % days] = balance
-		if balance > 0:
-			data['%sday_class' % days] = ' class="g"'
-		elif balance < 0:
-			data['%sday_class' % days] = ' class="r"'
+		if buy_total is None or sell_total is None:
+			balance = 0
 		else:
-			data['%sday_class' % days] = ''
+			balance = sell_total - buy_total
+		
+		data['%sday_balance' % days] = balance
+		data['%sday_class' % days] = rdi_balance_class(balance)
 	
 	
 	return render_to_response('rdi/corp_index.html', data)
 
+# Corp trade details for last x days
+@login_required
+def corp_details(request, days):
+	# Check that they have a valid character
+	chars = Character.objects.filter(user=request.user)
+	if not chars:
+		return rdi_error("You do not have a character defined.")
+	if not chars[0].corporation:
+		return rdi_error("Your character doesn't seem to be in a corporation.")
+	
+	# Sanity check
+	days = int(days)
+	if days <= 0:
+		days = 1
+	
+	corporation = chars[0].corporation
+	data = { 'corporation': corporation, 'days': days }
+	now = datetime.datetime.now()
+	
+	# Get a QuerySet of transactions for those days
+	delta = now - datetime.timedelta(days)
+	transactions = Transaction.objects.filter(date__gt=delta)
+	
+	# Get distinct item ids
+	item_ids = transactions.values_list('item').distinct()
+	if not item_ids:
+		return rdi_error("There are no transactions or something, idk.")
+	print item_ids
+	# Start gathering data
+	data['items'] = []
+	for item_id in item_ids:
+		iid = item_id[0]
+		item_data = { 'item': Item.objects.filter(pk=iid)[0] }
+		
+		t = transactions.filter(item=iid)
+		t_buy = t.filter(t_type='B')
+		if not t_buy:
+			continue
+		t_sell = t.filter(t_type='S')
+		if not t_sell:
+			continue
+		
+		# Buy data, urgh
+		item_data.update(t_buy.aggregate(
+			buy_quantity=Sum('quantity'),
+			buy_minimum=Min('price'),
+			buy_average=Avg('price'),
+			buy_maximum=Max('price'),
+			buy_total=Sum('total_price'),
+		))
+		
+		# Sell data, urgh
+		item_data.update(t_sell.aggregate(
+			sell_quantity=Sum('quantity'),
+			sell_minimum=Min('price'),
+			sell_average=Avg('price'),
+			sell_maximum=Max('price'),
+			sell_total=Sum('total_price'),
+		))
+		
+		# Why are Avg results returned as floats with Decimal inputs? Who knows. Let us fix that.
+		item_data['buy_average'] = Decimal('%.2f' % (item_data['buy_average']))
+		item_data['sell_average'] = Decimal('%.2f' % (item_data['sell_average']))
+		# Average profit
+		item_data['average_profit'] = item_data['sell_average'] - item_data['buy_average']
+		item_data['average_profit_per'] = Decimal('%.1f' % (item_data['average_profit'] / item_data['buy_average'] * 100))
+		# Balance
+		item_data['balance'] = item_data['sell_total'] - item_data['buy_total']
+		item_data['class'] = rdi_balance_class(item_data['balance'])
+		
+		data['items'].append(item_data)
+	
+	# Ugh turn it into a sorted by balance list
+	data['items'].sort(key=lambda a: a['balance'])
+	data['items'].reverse()
+	
+	# GENERATE
+	return render_to_response('rdi/corp_details.html', data)
+
 
 def rdi_error(error_msg):
 	return render_to_response('rdi/error.html', { 'error': error_msg })
+
+def rdi_balance_class(balance):
+	if balance > 0:
+		return ' class="g"'
+	elif balance < 0:
+		return ' class="r"'
+	else:
+		return ''

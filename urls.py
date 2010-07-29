@@ -7,8 +7,9 @@ from django.contrib import admin
 admin.autodiscover()
 
 urlpatterns = patterns('',
-	(r'^blueprints/$', 'everdi.rdi.views.blueprints'),
-	(r'^corp/$',       'everdi.rdi.views.corp_index'),
+	(r'^blueprints/$',        'everdi.rdi.views.blueprints'),
+	(r'^corp/$',              'everdi.rdi.views.corp_index'),
+	(r'^corp/(?P<days>\d+)/', 'everdi.rdi.views.corp_details'),
 	#(r'^buyme/',       include('everdi.buyme.urls')),
 	
 	# Uncomment the admin/doc line below and add 'django.contrib.admindocs' 
