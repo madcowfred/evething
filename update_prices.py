@@ -15,8 +15,8 @@ def main():
 	# Get all items used in current BlueprintInstances as components
 	cur.execute("""
 SELECT DISTINCT c.item_id
-FROM blueprints_blueprintcomponent c
-  INNER JOIN blueprints_blueprintinstance AS bi
+FROM rdi_blueprintcomponent c
+  INNER JOIN rdi_blueprintinstance AS bi
     ON c.blueprint_id = bi.blueprint_id
 """)
 	rows.update(cur.fetchall())
@@ -24,10 +24,10 @@ FROM blueprints_blueprintcomponent c
 	# Get the final items made by all BlueprintInstances
 	cur.execute("""
 SELECT DISTINCT i.id
-FROM blueprints_item i
-  INNER JOIN blueprints_blueprint AS bp
+FROM rdi_item i
+  INNER JOIN rdi_blueprint AS bp
     ON bp.item_id = i.id
-  INNER JOIN blueprints_blueprintinstance AS bi
+  INNER JOIN rdi_blueprintinstance AS bi
     ON bi.blueprint_id = bp.id
 """)
 	rows.update(cur.fetchall())
@@ -47,7 +47,7 @@ FROM blueprints_item i
 			sell_median = t.find('sell/median').text
 			buy_median = t.find('buy/median').text
 			
-			cur.execute('UPDATE blueprints_item SET sell_median=?, buy_median=? WHERE id=?', (sell_median, buy_median, typeid))
+			cur.execute('UPDATE rdi_item SET sell_median=?, buy_median=? WHERE id=?', (sell_median, buy_median, typeid))
 		
 		conn.commit()
 
