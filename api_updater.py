@@ -37,13 +37,13 @@ def main():
 	
 	
 	for character in Character.objects.all():
+		# Skip if they have no valid user_id/api_key
+		if not character.eve_user_id or len(character.eve_api_key) != 64:
+			continue
+		
 		# Initialise cache
 		if character.name not in cache['char']:
 			cache['char'][character.name] = {}
-		
-		# Skip if they have no API key defined
-		if not character.eve_api_key:
-			continue
 		
 		# Get their character ID if it has never been retrieved
 		if not character.eve_character_id:
