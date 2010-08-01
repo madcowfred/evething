@@ -19,13 +19,13 @@
 	<tbody>
 		{% autoescape off %}
 		{% for transaction in transactions %}
-		<tr class="{% cycle 'odd' 'even' %}{{ transaction.t_type }}">
-			<td align="left">{{ transaction.date|date:"Y-m-d H:i" }}</td>
-			<td align="left">{{ transaction.station.name }}</td>
-			<td align="left">{{ transaction.get_t_type_display }}</td>
-			<td>{{ transaction.quantity|commas }}</td>
-			<td>{{ transaction.price|humanize }}</td>
-			<td>{{ transaction.total_price|humanize }}</td>
+		<tr class="{% cycle 'odd' 'even' %}">
+			<td class="{{ transaction.t_type }}">{{ transaction.date|date:"Y-m-d H:i" }}</td>
+			<td class="{{ transaction.t_type }}">{{ transaction.station.name }}</td>
+			<td class="{{ transaction.t_type }}">{{ transaction.get_t_type_display }}</td>
+			<td class="{{ transaction.t_type }}" align="center">{{ transaction.quantity|commas }}</td>
+			<td class="{{ transaction.t_type }}" align="right">{{ transaction.price|humanize }}</td>
+			<td class="{{ transaction.t_type }}" align="right">{{ transaction.total_price|humanize }}</td>
 		</tr>
 		{% endfor %}
 		{% endautoescape %}

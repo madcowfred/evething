@@ -33,20 +33,20 @@
 		{% autoescape off %}
 		{% for item in items %}
 		<tr class="{% cycle 'odd' 'even' %}">
-			<td align="left"><a href="{% url everdi.rdi.views.corp_item days item.item.id %}">{{ item.item.name }}</a></td>
-			<td class="alt">{{ item.buy_quantity|humanize }}</td>
-			<td class="alt">{{ item.buy_minimum|humanize }}</td>
-			<td class="alt">{{ item.buy_average|humanize }}</td>
-			<td class="alt">{{ item.buy_maximum|humanize }}</td>
-			<td class="alt">{{ item.buy_total|humanize }}</td>
-			<td>{{ item.sell_quantity|humanize }}</td>
-			<td>{{ item.sell_minimum|humanize }}</td>
-			<td>{{ item.sell_average|humanize }}</td>
-			<td>{{ item.sell_maximum|humanize }}</td>
-			<td>{{ item.sell_total|humanize }}</td>
-			<td class="alt">{{ item.average_profit|humanize }}
-			<td class="alt">{{ item.average_profit_per }}%</td>
-			<td{{ item.class }}>{{ item.balance|humanize }}</td>
+			<td><a href="{% url everdi.rdi.views.corp_item days item.item.id %}">{{ item.item.name }}</a></td>
+			<td align="center" class="alt">{{ item.buy_quantity|humanize }}</td>
+			<td align="right" class="alt">{{ item.buy_minimum|humanize }}</td>
+			<td align="right" class="alt">{{ item.buy_average|humanize }}</td>
+			<td align="right" class="alt">{{ item.buy_maximum|humanize }}</td>
+			<td align="right" class="alt">{{ item.buy_total|humanize }}</td>
+			<td align="right">{{ item.sell_quantity|humanize }}</td>
+			<td align="right">{{ item.sell_minimum|humanize }}</td>
+			<td align="right">{{ item.sell_average|humanize }}</td>
+			<td align="right">{{ item.sell_maximum|humanize }}</td>
+			<td align="right">{{ item.sell_total|humanize }}</td>
+			<td align="right" class="alt">{{ item.average_profit|humanize }}
+			<td align="right" class="alt">{{ item.average_profit_per }}%</td>
+			<td align="right"{{ item.class }}>{{ item.balance|humanize }}</td>
 		</tr>
 		{% endfor %}
 		{% endautoescape %}
