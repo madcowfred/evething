@@ -77,7 +77,7 @@ class Transaction(models.Model):
 	corporation = models.ForeignKey(Corporation)
 	corp_wallet = models.ForeignKey(CorpWallet)
 	
-	date = models.DateField()
+	date = models.DateTimeField()
 	t_type = models.CharField(max_length=1, choices=((u'B', u'Buy'), (u'S', u'Sell')))
 	station = models.ForeignKey(Station)
 	item = models.ForeignKey(Item)
