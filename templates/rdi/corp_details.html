@@ -33,7 +33,7 @@
 		{% autoescape off %}
 		{% for item in items %}
 		<tr class="{% cycle 'odd' 'even' %}">
-			<td align="left">{{ item.item.name }}</td>
+			<td align="left"><a href="{% url everdi.rdi.views.corp_item days item.item.id %}">{{ item.item.name }}</a></td>
 			<td class="alt">{{ item.buy_quantity|humanize }}</td>
 			<td class="alt">{{ item.buy_minimum|humanize }}</td>
 			<td class="alt">{{ item.buy_average|humanize }}</td>

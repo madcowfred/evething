@@ -73,9 +73,9 @@ def corp_index(request):
 	# Check that they have a valid character
 	chars = Character.objects.filter(user=request.user)
 	if not chars:
-		return rdi_error("You do not have a character defined.")
+		return "You do not have a character defined."
 	if not chars[0].corporation:
-		return rdi_error("Your character doesn't seem to be in a corporation.")
+		return "Your character doesn't seem to be in a corporation."
 	
 	corporation = chars[0].corporation
 	data = { 'corporation': corporation }
@@ -117,9 +117,9 @@ def corp_details(request, days):
 	# Check that they have a valid character
 	chars = Character.objects.filter(user=request.user)
 	if not chars:
-		return rdi_error("You do not have a character defined.")
+		return "You do not have a character defined."
 	if not chars[0].corporation:
-		return rdi_error("Your character doesn't seem to be in a corporation.")
+		return "Your character doesn't seem to be in a corporation."
 	
 	# Sanity check
 	days = int(days)
@@ -189,6 +189,38 @@ def corp_details(request, days):
 	
 	# GENERATE
 	return render_to_response('rdi/corp_details.html', data)
+
+# Corp trade details for last x days for specific item
+@login_required
+def corp_item(request, days, item_id):
+	# Check that they have a valid character
+	chars = Character.objects.filter(user=request.user)
+	if not chars:
+		return "You do not have a character defined."
+	if not chars[0].corporation:
+		return "Your character doesn't seem to be in a corporation."
+	
+	corporation = chars[0].corporation
+	
+	# Sanity check
+	days = int(days)
+	if days <= 0:
+		days = 1
+	item_id = int(item_id)
+	
+	# Make sure item_id is valid
+	transactions = Transaction.objects.filter(corporation=corporation, item=item_id).order_by('date').reverse()
+	if not transactions:
+		return rdi_error("There are no transactions for that item_id.")
+	
+	data = {
+		'days': days,
+		'item': transactions[0].item.name,
+		'transactions': transactions,
+	}
+	
+	# Spit it out I guess
+	return render_to_response('rdi/corp_item.html', data)
 
 
 def rdi_error(error_msg):

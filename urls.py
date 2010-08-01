@@ -9,7 +9,8 @@ admin.autodiscover()
 urlpatterns = patterns('',
 	(r'^blueprints/$',        'everdi.rdi.views.blueprints'),
 	(r'^corp/$',              'everdi.rdi.views.corp_index'),
-	(r'^corp/(?P<days>\d+)/', 'everdi.rdi.views.corp_details'),
+	(r'^corp/(?P<days>\d+)/$', 'everdi.rdi.views.corp_details'),
+	(r'^corp/(?P<days>\d+)/(?P<item_id>\d+)/$', 'everdi.rdi.views.corp_item'),
 	#(r'^buyme/',       include('everdi.buyme.urls')),
 	
 	# Uncomment the admin/doc line below and add 'django.contrib.admindocs' 
