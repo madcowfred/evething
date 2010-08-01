@@ -92,17 +92,12 @@ def main():
 		# Update corporation transactions
 		if _now() > cache['corp'][corporation.name]['transactions']:
 			for wallet in CorpWallet.objects.filter(corporation=corporation):
-				# If this wallet already has some transactions, we can stop adding at the most recent one
-				transactions = Transaction.objects.filter(corp_wallet=wallet).order_by('id')
-				if transactions:
-					stop_at = transactions[0].id
-				else:
-					stop_at = -1
-				
 				params = {
 					'characterID': character.eve_character_id,
 					'accountKey': wallet.account_key,
 				}
+				
+				one_week_ago = None
 				
 				while 1:
 					breakwhile = False
@@ -120,6 +115,11 @@ def main():
 							break
 					else:
 						open(cache_file, 'w').write(ET.tostring(root))
+					
+					# We need to stop asking for data if the oldest transaction entry is older
+					# than one week
+					if one_week_ago is None:
+						one_week_ago = parse_api_date(root.find('currentTime').text) - datetime.timedelta(7)
 					
 					#<row transactionDateTime="2008-08-04 22:01:00" transactionID="705664738" 
 					#	quantity="50000" typeName="Oxygen Isotopes" typeID="17887" price="250.00" 
@@ -166,7 +166,7 @@ def main():
 						print t.id, t.date, t.t_type, t.item, t.quantity, t.price
 					
 					# If we got 1000 rows we should retrieve some more
-					if len(rows) == 1000:
+					if len(rows) == 1000 and t.date > one_week_ago:
 						params['beforeTransID'] = t.id
 					else:
 						breakwhile = True
