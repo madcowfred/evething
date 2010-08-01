@@ -34,7 +34,7 @@
 		{% for item in items %}
 		<tr class="{% cycle 'odd' 'even' %}">
 			<td><a href="{% url everdi.rdi.views.corp_item days item.item.id %}">{{ item.item.name }}</a></td>
-			<td align="center" class="alt">{{ item.buy_quantity|humanize }}</td>
+			<td align="right" class="alt">{{ item.buy_quantity|humanize }}</td>
 			<td align="right" class="alt">{{ item.buy_minimum|humanize }}</td>
 			<td align="right" class="alt">{{ item.buy_average|humanize }}</td>
 			<td align="right" class="alt">{{ item.buy_maximum|humanize }}</td>
