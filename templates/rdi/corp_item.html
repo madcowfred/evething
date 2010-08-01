@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% load rdi_extras %}
+
+{% block title %}Rubber Ducky Space Industries: Corporation{% endblock %}
+
+{% block content %}
+<h1>Item Sales for {{ item }} for the last {{ days }} days.</h1>
+<table>
+	<thead>
+		<tr>
+			<th>Date</th>
+			<th>Station</th>
+			<th>Type</th>
+			<th>Quantity</th>
+			<th>Unit Price</th>
+			<th>Total Price</th>
+		</tr>
+	</thead>
+	<tbody>
+		{% autoescape off %}
+		{% for transaction in transactions %}
+		<tr class="{% cycle 'odd' 'even' %}{{ transaction.t_type }}">
+			<td align="left">{{ transaction.date|date:"Y-m-d H:i" }}</td>
+			<td align="left">{{ transaction.station.name }}</td>
+			<td align="left">{{ transaction.get_t_type_display }}</td>
+			<td>{{ transaction.quantity|commas }}</td>
+			<td>{{ transaction.price|humanize }}</td>
+			<td>{{ transaction.total_price|humanize }}</td>
+		</tr>
+		{% endfor %}
+		{% endautoescape %}
+	</tbody>
+</table>
+{% endblock %}
