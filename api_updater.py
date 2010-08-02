@@ -132,6 +132,8 @@ def main():
 						break
 					
 					for row in rows:
+						transaction_time = parse_api_date(row.attrib['transactionDateTime'])
+						
 						# Skip already seen transactions
 						transaction_id = int(row.attrib['transactionID'])
 						if Transaction.objects.filter(pk=transaction_id):
@@ -153,7 +155,7 @@ def main():
 							id=int(row.attrib['transactionID']),
 							corporation=corporation,
 							corp_wallet=wallet,
-							date=parse_api_date(row.attrib['transactionDateTime']),
+							date=transaction_time,
 							t_type=row.attrib['transactionType'][0].upper(),
 							station=station,
 							item=Item.objects.filter(pk=row.attrib['typeID'])[0],
@@ -166,7 +168,7 @@ def main():
 						print t.id, t.date, t.t_type, t.item, t.quantity, t.price
 					
 					# If we got 1000 rows we should retrieve some more
-					if len(rows) == 1000 and t.date > one_week_ago:
+					if len(rows) == 1000 and transaction_time > one_week_ago:
 						params['beforeTransID'] = t.id
 					else:
 						breakwhile = True
