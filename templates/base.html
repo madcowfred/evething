@@ -8,7 +8,8 @@
 	{% block nav %}
 	<ul id="nav">
 		<li>{% block nav-blueprints %}<a href="{% url everdi.rdi.views.blueprints %}">Blueprints</a>{% endblock %}</li>
-		<li>{% block nav-corp %}<a href="{% url everdi.rdi.views.corp_index %}">Corp Finances</a>{% endblock %}</li>
+		<li>{% block nav-finances %}<a href="{% url everdi.rdi.views.finances %}">Finances</a>{% endblock %}</li>
+		<li>{% block nav-transactions %}<a href="{% url everdi.rdi.views.transactions %}">Transactions</a>{% endblock %}</li>
 	</ul>
 	{%endblock %}
 	{% block content %}{% endblock %}

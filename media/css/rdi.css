@@ -10,12 +10,12 @@ table {
 	border-spacing: 1px;
 }
 td {
-	padding: 4px 8px 4px 8px;
+	padding: 4px 6px 4px 6px;
 }
 
 th {
 	background: #BFBFCF;
-	padding: 4px 8px 4px 8px;
+	padding: 4px 6px 4px 6px;
 }
 tr.odd td {
 	background: #EFEFFF;

@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 {% load rdi_extras %}
 
-{% block title %}Rubber Ducky Space Industries: Corporation{% endblock %}
+{% block title %}Rubber Ducky Space Industries: Finances{% endblock %}
 
-{% block nav-corp %}<strong class="nav-active">Corp Finances</strong>{% endblock %}
+{% block nav-finances %}<strong class="nav-active">Finances</strong>{% endblock %}
 
 {% block content %}
 <h1>{{ corporation.name }}</h1>
@@ -20,10 +20,10 @@
 <table>
 	<tr>
 		<th></th>
-		<th><a href="{% url everdi.rdi.views.corp_details 1 %}">1 day</a></th>
-		<th><a href="{% url everdi.rdi.views.corp_details 7 %}">7 days</a></th>
-		<th><a href="{% url everdi.rdi.views.corp_details 30 %}">30 days</a></th>
-		<th><a href="{% url everdi.rdi.views.corp_details 9999 %}">All time</a></th>
+		<th><a href="{% url everdi.rdi.views.finances_timeframe 'day' %}">Day</a></th>
+		<th><a href="{% url everdi.rdi.views.finances_timeframe 'week' %}">Week</a></th>
+		<th><a href="{% url everdi.rdi.views.finances_timeframe 'month' %}">Month</a></th>
+		<th><a href="{% url everdi.rdi.views.finances_timeframe 'all' %}">All</a></th>
 	</tr>
 	<tr class="odd">
 		<td>Buy Total</td>

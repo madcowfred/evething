@@ -69,7 +69,7 @@ def blueprint_details(request, bpi_id):
 
 # Corp main page
 @login_required
-def corp_index(request):
+def finances(request):
 	# Check that they have a valid character
 	chars = Character.objects.filter(user=request.user)
 	if not chars:
@@ -109,11 +109,17 @@ def corp_index(request):
 		data['%sday_class' % days] = rdi_balance_class(balance)
 	
 	
-	return render_to_response('rdi/corp_index.html', data)
+	return render_to_response('rdi/finances.html', data)
 
-# Corp trade details for last x days
+# Corp transaction overview for last x days
+DAYS = {
+	'day': 1,
+	'week': 7,
+	'month': 30,
+	'all': 9999,
+}
 @login_required
-def corp_details(request, days):
+def finances_timeframe(request, timeframe):
 	# Check that they have a valid character
 	chars = Character.objects.filter(user=request.user)
 	if not chars:
@@ -121,13 +127,9 @@ def corp_details(request, days):
 	if not chars[0].corporation:
 		return "Your character doesn't seem to be in a corporation."
 	
-	# Sanity check
-	days = int(days)
-	if days <= 0:
-		days = 1
-	
+	days = DAYS[timeframe]
 	corporation = chars[0].corporation
-	data = { 'corporation': corporation, 'days': days }
+	data = { 'corporation': corporation, 'timeframe': timeframe }
 	now = datetime.datetime.now()
 	
 	# Get a QuerySet of transactions for those days
@@ -188,11 +190,17 @@ def corp_details(request, days):
 	data['items'].reverse()
 	
 	# GENERATE
-	return render_to_response('rdi/corp_details.html', data)
+	return render_to_response('rdi/finances_timeframe.html', data)
 
-# Corp trade details for last x days for specific item
+
+# Corp transaction details
 @login_required
-def corp_item(request, days, item_id):
+def transactions(request):
+	return rdi_error('Not yet implemented.')
+
+# Corp transaction details for last x days for specific item
+@login_required
+def transactions_item(request, timeframe, item_id):
 	# Check that they have a valid character
 	chars = Character.objects.filter(user=request.user)
 	if not chars:
@@ -203,9 +211,7 @@ def corp_item(request, days, item_id):
 	corporation = chars[0].corporation
 	
 	# Sanity check
-	days = int(days)
-	if days <= 0:
-		days = 1
+	days = DAYS[timeframe]
 	item_id = int(item_id)
 	
 	# Make sure item_id is valid
@@ -220,7 +226,7 @@ def corp_item(request, days, item_id):
 	}
 	
 	# Spit it out I guess
-	return render_to_response('rdi/corp_item.html', data)
+	return render_to_response('rdi/transactions_item.html', data)
 
 
 def rdi_error(error_msg):

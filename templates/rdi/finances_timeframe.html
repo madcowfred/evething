@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 {% load rdi_extras %}
 
-{% block title %}Rubber Ducky Space Industries: Corporation{% endblock %}
+{% block title %}Rubber Ducky Space Industries: Finances{% endblock %}
 
 {% block content %}
-<h1>Item Sales for last {{ days }} days.</h1>
+<h1>Item Sales for last {{ timeframe }}</h1>
 <table class="tablesorter">
 	<thead>
 		<tr>
@@ -33,7 +33,7 @@
 		{% autoescape off %}
 		{% for item in items %}
 		<tr class="{% cycle 'odd' 'even' %}">
-			<td><a href="{% url everdi.rdi.views.corp_item days item.item.id %}">{{ item.item.name }}</a></td>
+			<td><a href="{% url everdi.rdi.views.transactions_item timeframe item.item.id %}">{{ item.item.name }}</a></td>
 			<td align="right" class="alt">{{ item.buy_quantity|humanize }}</td>
 			<td align="right" class="alt">{{ item.buy_minimum|humanize }}</td>
 			<td align="right" class="alt">{{ item.buy_average|humanize }}</td>

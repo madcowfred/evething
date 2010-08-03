@@ -52,6 +52,13 @@ class Character(models.Model):
 		return self.name
 
 # Items
+ITEM_NAME_SHORT = (
+	('Small', 'S'),
+	('Medium', 'M'),
+	('Large', 'L'),
+	('Beta Reactor Control', 'BRC'),
+	('Local Power Plant Manager', 'LPPM'),
+)
 class Item(models.Model):
 	id = models.IntegerField(primary_key=True)
 	name = models.CharField(max_length=128)
@@ -63,8 +70,11 @@ class Item(models.Model):
 	def __unicode__(self):
 		return self.name
 	
-	def nice_sell_median(self):
-		return commas(self.sell_median)
+	def shorter_name(self):
+		for orig, rep in ITEM_NAME_SHORT:
+			if self.name.startswith(orig):
+				return self.name.replace(orig, rep, 1)
+		return self.name
 
 # Station
 class Station(models.Model):
