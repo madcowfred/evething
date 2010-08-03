@@ -140,7 +140,7 @@ def finances_timeframe(request, timeframe):
 	item_ids = transactions.values_list('item').distinct()
 	if not item_ids:
 		return rdi_error("There are no transactions or something, idk.")
-	print item_ids
+	
 	# Start gathering data
 	data['items'] = []
 	for item_id in item_ids:

@@ -165,7 +165,7 @@ def main():
 						)
 						t.save()
 						
-						print t.id, t.date, t.t_type, t.item, t.quantity, t.price
+						#print t.id, t.date, t.t_type, t.item, t.quantity, t.price
 					
 					# If we got 1000 rows we should retrieve some more
 					if len(rows) == 1000 and transaction_time > one_week_ago:
