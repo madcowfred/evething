@@ -26,9 +26,10 @@ def main():
 	_now = datetime.datetime.now
 	
 	# Load cache
-	cache_filepath = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'cache/cache.pickle')
-	if os.path.exists(cache_filepath):
-		cache = cPickle.load(open(cache_filepath, 'rb'))
+	cache_path = os.path.dirname(os.path.abspath(__file__))
+	pickle_filepath = os.path.join(cache_path, 'cache/cache.pickle')
+	if os.path.exists(pickle_filepath):
+		cache = cPickle.load(open(pickle_filepath, 'rb'))
 	else:
 		cache = {
 			'char': {},
@@ -102,7 +103,7 @@ def main():
 				while 1:
 					breakwhile = False
 					
-					cache_file = 'cache/%s_%s.xml' % (corporation.id, wallet.account_key)
+					cache_file = os.path.join(cache_path, 'cache/%s_%s.xml' % (corporation.id, wallet.account_key))
 					
 					root, delta = fetch_api(TRANSACTIONS_URL, params, character)
 					err = root.find('error')
@@ -179,7 +180,7 @@ def main():
 				cache['corp'][corporation.name]['transactions'] = _now() + delta
 	
 	# Save cache
-	cPickle.dump(cache, open(cache_filepath, 'wb'))
+	cPickle.dump(cache, open(pickle_filepath, 'wb'))
 
 
 def fetch_api(url, params, character):
