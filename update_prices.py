@@ -1,9 +1,10 @@
 import sqlite3
+import time
 import urllib2
 import xml.etree.ElementTree as ET
 
 
-MARKET_URL = 'http://api.eve-central.com/api/marketstat?hours=72&%s'
+QUICKLOOK_URL = 'http://api.eve-central.com/api/quicklook?typeid=%s&usesystem=30000142'
 
 
 def main():
@@ -32,24 +33,32 @@ FROM rdi_item i
 """)
 	rows.update(cur.fetchall())
 	
-	rows = list(rows)
-	
 	# Fetch market data and write to the database
-	for i in range(0, len(rows), 20):
-		url = MARKET_URL % ('&'.join('typeid=%s' % item for item in rows[i:i+20]))
+	for row in rows:
+		item_id = row[0]
+		url = QUICKLOOK_URL % (item_id)
 		f = urllib2.urlopen(url)
 		data = f.read()
 		f.close()
 		
 		root = ET.fromstring(data)
-		for t in root.findall('marketstat/type'):
-			typeid = t.get('id')
-			sell_median = t.find('sell/median').text
-			buy_median = t.find('buy/median').text
-			
-			cur.execute('UPDATE rdi_item SET sell_median=?, buy_median=? WHERE id=?', (sell_median, buy_median, typeid))
 		
+		sell_orders = root.findall('quicklook/sell_orders/order')
+		if not sell_orders:
+			continue
+		n = min(2, len(sell_orders) - 1)
+		sell_median = sell_orders[n].find('price').text
+		
+		buy_orders = root.findall('quicklook/buy_orders/order')
+		if not buy_orders:
+			continue
+		n = min(2, len(buy_orders) - 1)
+		buy_median = buy_orders[n].find('price').text
+		
+		cur.execute('UPDATE rdi_item SET sell_median=?, buy_median=? WHERE id=?', (sell_median, buy_median, item_id))
 		conn.commit()
+		
+		time.sleep(1)
 
 if __name__ == '__main__':
 	main()
