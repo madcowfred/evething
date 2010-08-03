@@ -52,10 +52,8 @@ class Character(models.Model):
 
 # Items
 ITEM_NAME_SHORT = (
-	('Small', 'S'),
-	('Medium', 'M'),
-	('Large', 'L'),
 	('Beta Reactor Control', 'BRC'),
+	('Local Hull Conversion', 'LHC'),
 	('Local Power Plant Manager', 'LPPM'),
 )
 class Item(models.Model):
@@ -130,14 +128,15 @@ class BlueprintInstance(models.Model):
 	def __unicode__(self):
 		return "%s's %s" % (self.character.name, self.blueprint.name)
 	
-	def calc_production_time(self, runs=1, fudge_pl=0):
+	# Calculate production time, taking PL and skills into account
+	def calc_production_time(self, runs=1):
 		# PTM = ProductionTimeModifier = (1 - (0.04 * IndustrySkill)) * ImplantModifier * ProductionSlotModifier
 		# ProductionTime (PL>=0) = BaseProductionTime * (1 - (ProductivityModifier / BaseProductionTime) * (PL / (1 + PL)) * PTM
 		# ProductionTime (PL<0)  = BaseProductionTime * (1 - (ProductivityModifier / BaseProductionTime) * (PL - 1)) * PTM
 		PTM = (1 - (Decimal('0.04') * self.character.industry_skill)) # implement implants/production slots
 		BPT = Decimal(self.blueprint.production_time)
 		BPM = self.blueprint.productivity_modifier
-		PL = Decimal(self.productivity_level + fudge_pl)
+		PL = Decimal(self.productivity_level)
 		
 		if PL >= 0:
 			pt = BPT * (1 - (BPM / BPT) * (PL / (1 + PL))) * PTM
@@ -148,23 +147,40 @@ class BlueprintInstance(models.Model):
 		
 		return pt.quantize(Decimal('0'), rounding=ROUND_UP)
 	
-	def calc_production_cost(self, runs=1, fudge_ml=0, use_sell=False, ):
-		"""
-from everdi.blueprints.models import *
-bpi = BlueprintInstance.objects.all()[0]
-bpi.calc_production_cost()
-cq = BlueprintComponent.objects.filter(blueprint=bpi.blueprint)
-PES = bpi.character.production_efficiency_skill
-ML = bpi.material_level
-WF = bpi.blueprint.waste_factor
-		"""
-		
+	# Calculate production cost, taking ML and skills into account
+	def calc_production_cost(self, runs=1, use_sell=False, ):
 		total_cost = Decimal(0)
 		
-		# Calculate component costs
+		# Component costs
+		for item, amt in self._get_components(runs=runs):
+			if use_sell is True:
+				total_cost += (Decimal(str(amt)) * item.sell_median)
+			else:
+				total_cost += (Decimal(str(amt)) * item.buy_median)
+		
+		# Factory costs
+		total_cost += self.character.factory_cost
+		
+		PT = self.calc_production_time(runs=runs)
+		total_cost += (self.character.factory_per_hour * (PT / 3600))
+		
+		# Sales tax
+		total_cost *= (1 + (self.character.sales_tax / 100))
+		# Broker's fee
+		total_cost *= (1 + (self.character.brokers_fee / 100))
+		
+		# Run count
+		total_cost /= (self.blueprint.item.portion_size * runs)
+		
+		return total_cost.quantize(Decimal('.01'), rounding=ROUND_UP)
+	
+	# Get all components required for this item, adjusted for ML and relevant skills
+	def _get_components(self, runs=1):
 		PES = self.character.production_efficiency_skill
-		ML = self.material_level + fudge_ml
+		ML = self.material_level
 		WF = self.blueprint.waste_factor
+		
+		comps = []
 		
 		component_queryset = BlueprintComponent.objects.filter(blueprint=self.blueprint)
 		for component in component_queryset:
@@ -174,23 +190,6 @@ WF = bpi.blueprint.waste_factor
 			else:
 				amt = CC
 			
-			amt *= runs
-			
-			if use_sell is True:
-				total_cost += (Decimal(str(amt)) * component.item.sell_median)
-			else:
-				total_cost += (Decimal(str(amt)) * component.item.buy_median)
+			comps.append((component.item, amt))
 		
-		# Calculate factory costs
-		total_cost += self.character.factory_cost
-		
-		PT = self.calc_production_time(runs=runs)
-		total_cost += (self.character.factory_per_hour * (PT / 3600))
-		
-		# Calculate taxes and fees
-		total_cost = total_cost * (1 + (self.character.sales_tax / 100)) * (1 + (self.character.brokers_fee / 100))
-		
-		# Run count
-		total_cost /= (self.blueprint.item.portion_size * runs)
-		
-		return total_cost.quantize(Decimal('.01'), rounding=ROUND_UP)
+		return comps
