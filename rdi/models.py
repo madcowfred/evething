@@ -190,6 +190,8 @@ class BlueprintInstance(models.Model):
 			else:
 				amt = CC
 			
+			amt *= runs
+			
 			comps.append((component.item, amt))
 		
 		return comps
