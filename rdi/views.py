@@ -24,10 +24,10 @@ def blueprints(request):
 			'material_level': bpi.material_level,
 			'productivity_level': bpi.productivity_level,
 			'count': bpi.blueprint.item.portion_size * runs,
-			'production_time': bpi.nice_production_time(runs=runs),
-			'unit_cost_buy': bpi.nice_production_cost(runs=runs),
-			'unit_cost_sell': bpi.nice_production_cost(runs=runs, use_sell=True),
-			'market_price': bpi.blueprint.item.nice_sell_median(),
+			'production_time': bpi.calc_production_time(runs=runs),
+			'unit_cost_buy': bpi.calc_production_cost(runs=runs),
+			'unit_cost_sell': bpi.calc_production_cost(runs=runs, use_sell=True),
+			'market_price': bpi.blueprint.item.sell_median,
 		})
 	
 	return render_to_response(

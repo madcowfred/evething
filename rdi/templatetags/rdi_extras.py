@@ -48,3 +48,23 @@ def humanize(value):
 		return '%sK' % (v.quantize(Decimal('.1'), rounding=ROUND_UP))
 	else:
 		return value
+
+
+# Turn a duration in seconds into a human readable string
+@register.filter
+def duration(s):
+	m, s = divmod(s, 60)
+	h, m = divmod(m, 60)
+	d, h = divmod(h, 24)
+	
+	parts = []
+	if d:
+		parts.append('%dd' % (d))
+	if h:
+		parts.append('%dh' % (h))
+	if m:
+		parts.append('%dm' % (m))
+	if s:
+		parts.append('%ds' % (s))
+	
+	return ' '.join(parts)

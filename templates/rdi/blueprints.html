@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load rdi_extras %}
 
 {% block title %}Rubber Ducky Space Industries: Blueprints{% endblock %}
 
@@ -36,10 +37,10 @@
 			<td align="center">{{ bpi.material_level }}</td>
 			<td align="center">{{ bpi.productivity_level }}</td>
 			<td align="right">{{ bpi.count }}</td>
-			<td align="right">{{ bpi.production_time }}</td>
-			<td align="right">{{ bpi.unit_cost_buy }}</td>
-			<td align="right">{{ bpi.unit_cost_sell }}</td>
-			<td align="right">{{ bpi.market_price }}</td>
+			<td align="right">{{ bpi.production_time|duration }}</td>
+			<td align="right">{{ bpi.unit_cost_buy|humanize }}</td>
+			<td align="right">{{ bpi.unit_cost_sell|humanize }}</td>
+			<td align="right">{{ bpi.market_price|humanize }}</td>
 			<td><a href="http://www.eve-central.com/home/quicklook.html?typeid={{ bpi.blueprint.item.id }}&usesystem=30000142">EC</a></td>
 		</tr>
 		{% endfor %}

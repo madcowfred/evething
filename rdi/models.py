@@ -2,7 +2,6 @@ from django.db import models
 from django.contrib.auth.models import User
 
 from decimal import *
-from everdi.common import commas, nice_time
 
 # Corporation
 class Corporation(models.Model):
@@ -149,9 +148,6 @@ class BlueprintInstance(models.Model):
 		
 		return pt.quantize(Decimal('0'), rounding=ROUND_UP)
 	
-	def nice_production_time(self, runs=1):
-		return nice_time(self.calc_production_time(runs=runs))
-	
 	def calc_production_cost(self, runs=1, fudge_ml=0, use_sell=False, ):
 		"""
 from everdi.blueprints.models import *
@@ -198,9 +194,3 @@ WF = bpi.blueprint.waste_factor
 		total_cost /= (self.blueprint.item.portion_size * runs)
 		
 		return total_cost.quantize(Decimal('.01'), rounding=ROUND_UP)
-	
-	def nice_production_cost(self, runs=1, use_sell=False):
-		return commas(self.calc_production_cost(runs=runs, use_sell=use_sell))
-	
-	#def nice_production_cost_sell(self):
-	#	return commas(self.calc_production_cost(use_sell=True))
