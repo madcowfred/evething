@@ -1,3 +1,4 @@
+import os
 import sqlite3
 import time
 import urllib2
@@ -8,7 +9,8 @@ QUICKLOOK_URL = 'http://api.eve-central.com/api/quicklook?typeid=%s&usesystem=30
 
 
 def main():
-	conn = sqlite3.connect('everdi.db')
+	db_filepath = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'everdi.db')
+	conn = sqlite3.connect(db_filepath)
 	cur = conn.cursor()
 	
 	rows = set()
