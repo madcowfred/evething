@@ -72,10 +72,10 @@ def main():
 		
 		# Update corporation wallet information/balances
 		if _now() > cache['corp'][corporation.name]['balances']:
-			root, delta = fetch_api(WALLET_URL, {'characterID': character.eve_character_id}, character)
+			root, times = fetch_api(WALLET_URL, {'characterID': character.eve_character_id}, character)
 			err = root.find('error')
 			if err is not None:
-				show_error('corpwallet', err, root)
+				show_error('corpwallet', err, times)
 				print _now(), tcache.get(wak, None)
 			else:
 				for row in root.findall('result/rowset/row'):
@@ -91,7 +91,7 @@ def main():
 						wallet = CorpWallet(account_id=accountID, corporation=corporation, account_key=accountKey, balance=balance)
 						wallet.save()
 			
-			cache['corp'][corporation.name]['balances'] = _now() + delta + PADDING
+			cache['corp'][corporation.name]['balances'] = _now() + times['delta'] + PADDING
 		
 		
 		# Update corporation transactions
@@ -112,7 +112,7 @@ def main():
 				root, delta = fetch_api(TRANSACTIONS_URL, params, character)
 				err = root.find('error')
 				if err is not None:
-					show_error('corptrans', err, root)
+					show_error('corptrans', err, times)
 					print _now(), tcache.get(wak, None)
 					break
 				
@@ -167,7 +167,8 @@ def main():
 				else:
 					break
 			
-			tcache[wak] = _now() + delta + PADDING
+			tcache[wak] = _now() + times['delta'] + PADDING
+			print 'DEBUG: %s | %s | %s || %s | %s | %s' % (wak, _now(), tcache[wak], times['current'], times['until'], times['delta'])
 	
 	# Save cache
 	cPickle.dump(cache, open(pickle_filepath, 'wb'))
@@ -182,18 +183,21 @@ def fetch_api(url, params, character):
 	f.close()
 	
 	root = ET.fromstring(data)
-	current = parse_api_date(root.find('currentTime').text)
-	until = parse_api_date(root.find('cachedUntil').text)
+	times = {
+		'current': parse_api_date(root.find('currentTime').text),
+		'until': parse_api_date(root.find('cachedUntil').text),
+	}
+	times['delta'] = times['until'] - times['current']
 	
-	print 'DEBUG: %s | currentTime: %s | cachedUntil: %s | delta: %s' % (url, current, until, until - current)
+	print 'DEBUG: %s | currentTime: %s | cachedUntil: %s | delta: %s' % (url, times['current'], times['until'], times['delta'])
 	
-	return (root, until - current)
+	return (root, times)
 
 def parse_api_date(s):
 	return datetime.datetime.strptime(s, '%Y-%m-%d %H:%M:%S')
 
-def show_error(text, err, root):
-	print '(%s) %s: %s | %s -> %s' % (text, err.attrib['code'], err.text, root.find('currentTime').text, root.find('cachedUntil').text)
+def show_error(text, err, times):
+	print '(%s) %s: %s | %s -> %s' % (text, err.attrib['code'], err.text, times['current'], times['until'])
 
 
 if __name__ == '__main__':
