@@ -107,19 +107,19 @@ def main():
 			while 1:
 				breakwhile = False
 				
-				cache_file = os.path.join(cache_path, 'cache/%s_%s.xml' % (corporation.id, wak))
+				#cache_file = os.path.join(cache_path, 'cache/%s_%s.xml' % (corporation.id, wak))
 				
 				root, delta = fetch_api(TRANSACTIONS_URL, params, character)
 				err = root.find('error')
 				if err is not None:
 					# Delay until later
-					if err.attrib['code'] == '101':
-						root = ET.fromstring(open(cache_file).read())
-					else:
-						print "ERROR %s: %s" % (err.attrib['code'], err.text)
-						break
-				else:
-					open(cache_file, 'w').write(ET.tostring(root))
+					#if err.attrib['code'] == '101':
+					#	root = ET.fromstring(open(cache_file).read())
+					#else:
+					print "ERROR %s: %s" % (err.attrib['code'], err.text)
+					break
+				#else:
+				#	open(cache_file, 'w').write(ET.tostring(root))
 				
 				# We need to stop asking for data if the oldest transaction entry is older
 				# than one week
