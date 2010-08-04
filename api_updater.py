@@ -75,7 +75,8 @@ def main():
 			root, delta = fetch_api(WALLET_URL, {'characterID': character.eve_character_id}, character)
 			err = root.find('error')
 			if err is not None:
-				show_error('(corpwallet)', err, root)
+				show_error('corpwallet', err, root)
+				print _now(), tcache.get(wak, None)
 			else:
 				for row in root.findall('result/rowset/row'):
 					accountID = int(row.attrib['accountID'])
@@ -111,7 +112,8 @@ def main():
 				root, delta = fetch_api(TRANSACTIONS_URL, params, character)
 				err = root.find('error')
 				if err is not None:
-					show_error('(corptrans)', err, root)
+					show_error('corptrans', err, root)
+					print _now(), tcache.get(wak, None)
 					break
 				
 				# We need to stop asking for data if the oldest transaction entry is older
@@ -182,6 +184,8 @@ def fetch_api(url, params, character):
 	root = ET.fromstring(data)
 	current = parse_api_date(root.find('currentTime').text)
 	until = parse_api_date(root.find('cachedUntil').text)
+	
+	print 'DEBUG: %s | currentTime: %s | cachedUntil: %s | delta: %s' % (url, current, until, until - current)
 	
 	return (root, until - current)
 
