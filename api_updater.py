@@ -21,6 +21,8 @@ CHARACTERS_URL = '%s/account/Characters.xml.aspx' % (BASE_URL)
 TRANSACTIONS_URL = '%s/corp/WalletTransactions.xml.aspx' % (BASE_URL)
 WALLET_URL = '%s/corp/AccountBalance.xml.aspx' % (BASE_URL)
 
+PADDING = datetime.timedelta(minutes=1)
+
 
 def main():
 	_now = datetime.datetime.now
@@ -75,7 +77,7 @@ def main():
 			if err is not None:
 				print "ERROR %s: %s" % (err.attrib['code'], err.text)
 			else:
-				cache['corp'][corporation.name]['balances'] = _now() + delta
+				cache['corp'][corporation.name]['balances'] = _now() + delta + PADDING
 				
 				for row in root.findall('result/rowset/row'):
 					accountID = int(row.attrib['accountID'])
@@ -105,33 +107,17 @@ def main():
 			one_week_ago = None
 			
 			while 1:
-				breakwhile = False
-				
-				#cache_file = os.path.join(cache_path, 'cache/%s_%s.xml' % (corporation.id, wak))
-				
 				root, delta = fetch_api(TRANSACTIONS_URL, params, character)
 				err = root.find('error')
 				if err is not None:
-					# Delay until later
-					#if err.attrib['code'] == '101':
-					#	root = ET.fromstring(open(cache_file).read())
-					#else:
 					print "ERROR %s: %s" % (err.attrib['code'], err.text)
 					break
-				#else:
-				#	open(cache_file, 'w').write(ET.tostring(root))
 				
 				# We need to stop asking for data if the oldest transaction entry is older
 				# than one week
 				if one_week_ago is None:
 					one_week_ago = parse_api_date(root.find('currentTime').text) - datetime.timedelta(7)
 				
-				#<row transactionDateTime="2008-08-04 22:01:00" transactionID="705664738" 
-				#	quantity="50000" typeName="Oxygen Isotopes" typeID="17887" price="250.00" 
-				#	clientID="174312871" clientName="ACHAR" characterID="000000000" 
-				#	characterName="SELLER" stationID="60004375" 
-				#	stationName="SYSTEM IV - Moon 10 - Corporate Police Force Testing Facilities" 
-				#	transactionType="buy" transactionFor="corporation"/>
 				rows = root.findall('result/rowset/row')
 				if not rows:
 					break
@@ -157,7 +143,7 @@ def main():
 					quantity = int(row.attrib['quantity'])
 					price = Decimal(row.attrib['price'])
 					t = Transaction(
-						id=int(row.attrib['transactionID']),
+						id=transaction_id,
 						corporation=corporation,
 						corp_wallet=wallet,
 						date=transaction_time,
@@ -176,12 +162,9 @@ def main():
 				if len(rows) == 1000 and transaction_time > one_week_ago:
 					params['beforeTransID'] = t.id
 				else:
-					breakwhile = True
-				
-				if breakwhile:
 					break
 			
-			tcache[wak] = _now() + delta
+			tcache[wak] = _now() + delta + PADDING
 	
 	# Save cache
 	cPickle.dump(cache, open(pickle_filepath, 'wb'))
