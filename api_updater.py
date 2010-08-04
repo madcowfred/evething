@@ -75,10 +75,8 @@ def main():
 			root, delta = fetch_api(WALLET_URL, {'characterID': character.eve_character_id}, character)
 			err = root.find('error')
 			if err is not None:
-				print "ERROR %s: %s" % (err.attrib['code'], err.text)
+				show_error('(corpwallet)', err, root)
 			else:
-				cache['corp'][corporation.name]['balances'] = _now() + delta + PADDING
-				
 				for row in root.findall('result/rowset/row'):
 					accountID = int(row.attrib['accountID'])
 					accountKey = int(row.attrib['accountKey'])
@@ -91,6 +89,9 @@ def main():
 					else:
 						wallet = CorpWallet(account_id=accountID, corporation=corporation, account_key=accountKey, balance=balance)
 						wallet.save()
+			
+			cache['corp'][corporation.name]['balances'] = _now() + delta + PADDING
+		
 		
 		# Update corporation transactions
 		tcache = cache['corp'][corporation.name]['transactions']
@@ -110,7 +111,7 @@ def main():
 				root, delta = fetch_api(TRANSACTIONS_URL, params, character)
 				err = root.find('error')
 				if err is not None:
-					print "ERROR %s: %s" % (err.attrib['code'], err.text)
+					show_error('(corptrans)', err, root)
 					break
 				
 				# We need to stop asking for data if the oldest transaction entry is older
@@ -186,6 +187,9 @@ def fetch_api(url, params, character):
 
 def parse_api_date(s):
 	return datetime.datetime.strptime(s, '%Y-%m-%d %H:%M:%S')
+
+def show_error(text, err, root):
+	print '(%s) %s: %s | %s -> %s' % (text, err.attrib['code'], err.text, root.find('currentTime').text, root.find('cachedUntil').text)
 
 
 if __name__ == '__main__':
