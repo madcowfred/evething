@@ -65,7 +65,7 @@ def main():
 		if corporation.name not in cache['corp']:
 			cache['corp'][corporation.name] = {
 				'balances': datetime.datetime(1900, 1, 1),
-				'transactions': datetime.datetime(1900, 1, 1),
+				'transactions': {},
 			}
 		
 		# Update corporation wallet information/balances
@@ -91,93 +91,97 @@ def main():
 						wallet.save()
 		
 		# Update corporation transactions
-		if _now() > cache['corp'][corporation.name]['transactions']:
-			for wallet in CorpWallet.objects.filter(corporation=corporation):
-				params = {
-					'characterID': character.eve_character_id,
-					'accountKey': wallet.account_key,
-				}
+		tcache = cache['corp'][corporation.name]['transactions']
+		for wallet in CorpWallet.objects.filter(corporation=corporation):
+			wak = wallet.account_key
+			if wak in tcache and _now() < tcache[wak]:
+				continue
+			
+			params = {
+				'characterID': character.eve_character_id,
+				'accountKey': wak,
+			}
+			
+			one_week_ago = None
+			
+			while 1:
+				breakwhile = False
 				
-				one_week_ago = None
+				cache_file = os.path.join(cache_path, 'cache/%s_%s.xml' % (corporation.id, wak))
 				
-				while 1:
-					breakwhile = False
-					
-					cache_file = os.path.join(cache_path, 'cache/%s_%s.xml' % (corporation.id, wallet.account_key))
-					
-					root, delta = fetch_api(TRANSACTIONS_URL, params, character)
-					err = root.find('error')
-					if err is not None:
-						# Delay until later
-						if err.attrib['code'] == '101':
-							root = ET.fromstring(open(cache_file).read())
-						else:
-							print "ERROR %s: %s" % (err.attrib['code'], err.text)
-							break
+				root, delta = fetch_api(TRANSACTIONS_URL, params, character)
+				err = root.find('error')
+				if err is not None:
+					# Delay until later
+					if err.attrib['code'] == '101':
+						root = ET.fromstring(open(cache_file).read())
 					else:
-						open(cache_file, 'w').write(ET.tostring(root))
-					
-					# We need to stop asking for data if the oldest transaction entry is older
-					# than one week
-					if one_week_ago is None:
-						one_week_ago = parse_api_date(root.find('currentTime').text) - datetime.timedelta(7)
-					
-					#<row transactionDateTime="2008-08-04 22:01:00" transactionID="705664738" 
-					#	quantity="50000" typeName="Oxygen Isotopes" typeID="17887" price="250.00" 
-					#	clientID="174312871" clientName="ACHAR" characterID="000000000" 
-					#	characterName="SELLER" stationID="60004375" 
-					#	stationName="SYSTEM IV - Moon 10 - Corporate Police Force Testing Facilities" 
-					#	transactionType="buy" transactionFor="corporation"/>
-					rows = root.findall('result/rowset/row')
-					if not rows:
+						print "ERROR %s: %s" % (err.attrib['code'], err.text)
 						break
-					
-					for row in rows:
-						transaction_time = parse_api_date(row.attrib['transactionDateTime'])
-						
-						# Skip already seen transactions
-						transaction_id = int(row.attrib['transactionID'])
-						if Transaction.objects.filter(pk=transaction_id):
-							continue
-						
-						# Make the station object if it doesn't already exist
-						station_id = int(row.attrib['stationID'])
-						station = Station.objects.filter(pk=station_id)
-						if station:
-							station = station[0]
-						else:
-							station = Station(id=station_id, name=row.attrib['stationName'])
-							station.save()
-						
-						# Make the transaction object
-						quantity = int(row.attrib['quantity'])
-						price = Decimal(row.attrib['price'])
-						t = Transaction(
-							id=int(row.attrib['transactionID']),
-							corporation=corporation,
-							corp_wallet=wallet,
-							date=transaction_time,
-							t_type=row.attrib['transactionType'][0].upper(),
-							station=station,
-							item=Item.objects.filter(pk=row.attrib['typeID'])[0],
-							quantity=quantity,
-							price=price,
-							total_price=quantity * price,
-						)
-						t.save()
-						
-						#print t.id, t.date, t.t_type, t.item, t.quantity, t.price
-					
-					# If we got 1000 rows we should retrieve some more
-					if len(rows) == 1000 and transaction_time > one_week_ago:
-						params['beforeTransID'] = t.id
-					else:
-						breakwhile = True
-					
-					if breakwhile:
-						break
+				else:
+					open(cache_file, 'w').write(ET.tostring(root))
 				
-				cache['corp'][corporation.name]['transactions'] = _now() + delta
+				# We need to stop asking for data if the oldest transaction entry is older
+				# than one week
+				if one_week_ago is None:
+					one_week_ago = parse_api_date(root.find('currentTime').text) - datetime.timedelta(7)
+				
+				#<row transactionDateTime="2008-08-04 22:01:00" transactionID="705664738" 
+				#	quantity="50000" typeName="Oxygen Isotopes" typeID="17887" price="250.00" 
+				#	clientID="174312871" clientName="ACHAR" characterID="000000000" 
+				#	characterName="SELLER" stationID="60004375" 
+				#	stationName="SYSTEM IV - Moon 10 - Corporate Police Force Testing Facilities" 
+				#	transactionType="buy" transactionFor="corporation"/>
+				rows = root.findall('result/rowset/row')
+				if not rows:
+					break
+				
+				for row in rows:
+					transaction_time = parse_api_date(row.attrib['transactionDateTime'])
+					
+					# Skip already seen transactions
+					transaction_id = int(row.attrib['transactionID'])
+					if Transaction.objects.filter(pk=transaction_id):
+						continue
+					
+					# Make the station object if it doesn't already exist
+					station_id = int(row.attrib['stationID'])
+					station = Station.objects.filter(pk=station_id)
+					if station:
+						station = station[0]
+					else:
+						station = Station(id=station_id, name=row.attrib['stationName'])
+						station.save()
+					
+					# Make the transaction object
+					quantity = int(row.attrib['quantity'])
+					price = Decimal(row.attrib['price'])
+					t = Transaction(
+						id=int(row.attrib['transactionID']),
+						corporation=corporation,
+						corp_wallet=wallet,
+						date=transaction_time,
+						t_type=row.attrib['transactionType'][0].upper(),
+						station=station,
+						item=Item.objects.filter(pk=row.attrib['typeID'])[0],
+						quantity=quantity,
+						price=price,
+						total_price=quantity * price,
+					)
+					t.save()
+					
+					#print t.id, t.date, t.t_type, t.item, t.quantity, t.price
+				
+				# If we got 1000 rows we should retrieve some more
+				if len(rows) == 1000 and transaction_time > one_week_ago:
+					params['beforeTransID'] = t.id
+				else:
+					breakwhile = True
+				
+				if breakwhile:
+					break
+			
+			tcache[wak] = _now() + delta
 	
 	# Save cache
 	cPickle.dump(cache, open(pickle_filepath, 'wb'))
