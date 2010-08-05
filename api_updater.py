@@ -113,7 +113,7 @@ def main():
 				err = root.find('error')
 				if err is not None:
 					# Fuck it, the API flat out lies about cache times
-					if error not in ('101', '103'):
+					if err.attrib['code'] not in ('101', '103'):
 						show_error('corptrans', err, times)
 					break
 				
