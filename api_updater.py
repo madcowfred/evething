@@ -50,10 +50,10 @@ def main():
 		
 		# Get their character ID if it has never been retrieved
 		if not character.eve_character_id:
-			root, delta = fetch_api(CHARACTERS_URL, {}, character)
+			root, times = fetch_api(CHARACTERS_URL, {}, character)
 			err = root.find('error')
 			if err is not None:
-				print "ERROR %s: %s" % (err.attrib['code'], err.text)
+				show_error('character', err, times)
 			else:
 				for row in root.findall('result/rowset/row'):
 					if row.attrib['name'].lower() == character.name.lower():
@@ -76,7 +76,7 @@ def main():
 			err = root.find('error')
 			if err is not None:
 				show_error('corpwallet', err, times)
-				print _now(), tcache.get(wak, None)
+				#print 'DEBUG: now: %s | bc: %s' % (_now(), cache['corp'][corporation.name]['balances'])
 			else:
 				for row in root.findall('result/rowset/row'):
 					accountID = int(row.attrib['accountID'])
@@ -109,17 +109,18 @@ def main():
 			one_week_ago = None
 			
 			while 1:
-				root, delta = fetch_api(TRANSACTIONS_URL, params, character)
+				root, times = fetch_api(TRANSACTIONS_URL, params, character)
 				err = root.find('error')
 				if err is not None:
-					show_error('corptrans', err, times)
-					print _now(), tcache.get(wak, None)
+					# Fuck it, the API flat out lies about cache times
+					if error not in ('101', '103'):
+						show_error('corptrans', err, times)
 					break
 				
 				# We need to stop asking for data if the oldest transaction entry is older
 				# than one week
 				if one_week_ago is None:
-					one_week_ago = parse_api_date(root.find('currentTime').text) - datetime.timedelta(7)
+					one_week_ago = times['current'] - datetime.timedelta(7)
 				
 				rows = root.findall('result/rowset/row')
 				if not rows:
@@ -162,19 +163,22 @@ def main():
 					#print t.id, t.date, t.t_type, t.item, t.quantity, t.price
 				
 				# If we got 1000 rows we should retrieve some more
+				#print 'DEBUG: rows: %d | cur: %s | owa: %s | tt: %s' % (len(rows), times['current'], one_week_ago, transaction_time)
 				if len(rows) == 1000 and transaction_time > one_week_ago:
 					params['beforeTransID'] = t.id
 				else:
 					break
 			
+			#print 'DEBUG: tcw: %s' % (tcache.get(wak, 0))
 			tcache[wak] = _now() + times['delta'] + PADDING
-			print 'DEBUG: %s | %s | %s || %s | %s | %s' % (wak, _now(), tcache[wak], times['current'], times['until'], times['delta'])
+			#print 'DEBUG: wak: %s | now: %s | tcw: %s' % (wak, _now(), tcache[wak])
 	
 	# Save cache
 	cPickle.dump(cache, open(pickle_filepath, 'wb'))
 
 
 def fetch_api(url, params, character):
+	#print 'params: %s' % (params)
 	params['userID'] = character.eve_user_id
 	params['apiKey'] = character.eve_api_key
 	
@@ -189,7 +193,7 @@ def fetch_api(url, params, character):
 	}
 	times['delta'] = times['until'] - times['current']
 	
-	print 'DEBUG: %s | currentTime: %s | cachedUntil: %s | delta: %s' % (url, times['current'], times['until'], times['delta'])
+	#print '%s | currentTime: %s | cachedUntil: %s | delta: %s' % (url, times['current'], times['until'], times['delta'])
 	
 	return (root, times)
 
