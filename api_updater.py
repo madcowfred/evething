@@ -165,7 +165,7 @@ def main():
 				# If we got 1000 rows we should retrieve some more
 				#print 'DEBUG: rows: %d | cur: %s | owa: %s | tt: %s' % (len(rows), times['current'], one_week_ago, transaction_time)
 				if len(rows) == 1000 and transaction_time > one_week_ago:
-					params['beforeTransID'] = t.id
+					params['beforeTransID'] = transaction_id
 				else:
 					break
 			
