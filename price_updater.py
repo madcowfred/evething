@@ -5,62 +5,52 @@ import sqlite3
 import time
 import urllib2
 import xml.etree.ElementTree as ET
+from decimal import *
+
+# Aurgh
+from django.core.management import setup_environ
+import settings
+setup_environ(settings)
+
+from rdi.models import *
 
 
 QUICKLOOK_URL = 'http://api.eve-central.com/api/quicklook?typeid=%s&usesystem=30000142'
 
 
 def main():
-	db_filepath = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'everdi.db')
-	conn = sqlite3.connect(db_filepath)
-	cur = conn.cursor()
-	
-	rows = set()
-	
-	# Get all items used in current BlueprintInstances as components
-	cur.execute("""
-SELECT DISTINCT c.item_id
-FROM rdi_blueprintcomponent c
-  INNER JOIN rdi_blueprintinstance AS bi
-    ON c.blueprint_id = bi.blueprint_id
-""")
-	rows.update(cur.fetchall())
-	
-	# Get the final items made by all BlueprintInstances
-	cur.execute("""
-SELECT DISTINCT i.id
-FROM rdi_item i
-  INNER JOIN rdi_blueprint AS bp
-    ON bp.item_id = i.id
-  INNER JOIN rdi_blueprintinstance AS bi
-    ON bi.blueprint_id = bp.id
-""")
-	rows.update(cur.fetchall())
-	
+	# Get a list of items required to construct blueprint instances - I apologise, this is horrible
+	item_ids = set()
+	for bp_id in BlueprintInstance.objects.values_list('blueprint').distinct():
+		for item_id in BlueprintComponent.objects.filter(blueprint=bp_id[0]).values_list('item'):
+			item_ids.update((item_id[0],))
+		
+		item_ids.update((Blueprint.objects.filter(pk=bp_id[0])[0].item.id,))
+		
 	# Fetch market data and write to the database
-	for row in rows:
-		item_id = row[0]
+	for item_id in item_ids:
+		item = Item.objects.filter(pk=item_id)[0]
+		
+		# Retrieve quicklook data and parse the XML
 		url = QUICKLOOK_URL % (item_id)
 		f = urllib2.urlopen(url)
 		data = f.read()
 		f.close()
-		
 		root = ET.fromstring(data)
 		
+		# Find a not quite bottom sell order
 		sell_orders = root.findall('quicklook/sell_orders/order')
 		if not sell_orders:
 			continue
 		n = min(2, len(sell_orders) - 1)
-		sell_median = sell_orders[n].find('price').text
+		item.sell_price = Decimal(sell_orders[n].find('price').text)
 		
+		# Find a not quite bottom buy order
 		buy_orders = root.findall('quicklook/buy_orders/order')
 		if not buy_orders:
 			continue
 		n = min(2, len(buy_orders) - 1)
-		buy_median = buy_orders[n].find('price').text
-		
-		cur.execute('UPDATE rdi_item SET sell_median=?, buy_median=? WHERE id=?', (sell_median, buy_median, item_id))
-		conn.commit()
+		item.buy_price = Decimal(buy_orders[n].find('price').text)
 		
 		time.sleep(1)
 
