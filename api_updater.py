@@ -256,12 +256,9 @@ def fetch_api(url, params, character):
 	params['userID'] = character.eve_user_id
 	params['apiKey'] = character.eve_api_key
 	
-	if url == ORDERS_URL:
-		data = open('orders.xml').read()
-	else:
-		f = urllib2.urlopen(url, urlencode(params))
-		data = f.read()
-		f.close()
+	f = urllib2.urlopen(url, urlencode(params))
+	data = f.read()
+	f.close()
 	
 	root = ET.fromstring(data)
 	times = {
