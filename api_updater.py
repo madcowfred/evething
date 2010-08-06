@@ -238,7 +238,7 @@ def main():
 						duration=int(row.attrib['duration']),
 						escrow=Decimal(row.attrib['escrow']),
 						price=price,
-						total_price=volume_remaining*price,
+						total_price=remaining*price,
 					)
 					order.save()
 					
