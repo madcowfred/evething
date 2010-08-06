@@ -37,6 +37,9 @@ MILLION = 10**6
 BILLION = 10**9
 @register.filter
 def humanize(value):
+	if value is None or value == '':
+		return '0'
+	
 	if value >= BILLION or value <= -BILLION:
 		v = Decimal(value) / BILLION
 		return '%sB' % (v.quantize(Decimal('.01'), rounding=ROUND_UP))
