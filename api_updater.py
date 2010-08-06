@@ -18,6 +18,7 @@ from rdi.models import *
 
 BASE_URL = 'http://api.eve-online.com'
 CHARACTERS_URL = '%s/account/Characters.xml.aspx' % (BASE_URL)
+ORDERS_URL = '%s/corp/MarketOrders.xml.aspx' % (BASE_URL)
 TRANSACTIONS_URL = '%s/corp/WalletTransactions.xml.aspx' % (BASE_URL)
 WALLET_URL = '%s/corp/AccountBalance.xml.aspx' % (BASE_URL)
 
@@ -67,6 +68,7 @@ def main():
 		if corporation.name not in cache['corp']:
 			cache['corp'][corporation.name] = {
 				'balances': datetime.datetime(1900, 1, 1),
+				'orders': datetime.datetime(1900, 1, 1),
 				'transactions': {},
 			}
 		
@@ -135,13 +137,7 @@ def main():
 						continue
 					
 					# Make the station object if it doesn't already exist
-					station_id = int(row.attrib['stationID'])
-					station = Station.objects.filter(pk=station_id)
-					if station:
-						station = station[0]
-					else:
-						station = Station(id=station_id, name=row.attrib['stationName'])
-						station.save()
+					station = rdi_station(int(row.attrib['stationID']), row.attrib['stationName'])
 					
 					# Make the transaction object
 					quantity = int(row.attrib['quantity'])
@@ -172,6 +168,84 @@ def main():
 			#print 'DEBUG: tcw: %s' % (tcache.get(wak, 0))
 			tcache[wak] = _now() + times['delta'] + PADDING
 			#print 'DEBUG: wak: %s | now: %s | tcw: %s' % (wak, _now(), tcache[wak])
+		
+		
+		# Update corporation orders
+		if _now() > cache['corp'][corporation.name]['orders']:
+			params = {
+				'characterID': character.eve_character_id,
+			}
+			
+			root, times = fetch_api(ORDERS_URL, params, character)
+			err = root.find('error')
+			if err is not None:
+				# Fuck it, the API flat out lies about cache times
+				#if err.attrib['code'] not in ('101', '103'):
+				show_error('corporders', err, times)
+				break
+			
+			rows = root.findall('result/rowset/row')
+			if not rows:
+				break
+			
+			for row in rows:
+				order_id = int(row.attrib['orderID'])
+				orders = Order.objects.filter(pk=order_id)
+				
+				# Hey, this transaction already exists
+				if orders:
+					order = orders[0]
+					
+					# Order is active, update stuff I guess
+					if row.attrib['orderState'] == '0':
+						order.issued = parse_api_date(row.attrib['issued'])
+						order.volume_remaining = int(row.attrib['volRemaining'])
+						order.escrow = Decimal(row.attrib['escrow'])
+						order.price = Decimal(row.attrib['price'])
+						order.total_price = order.volume_remaining * order.price
+						order.save()
+						
+					# Not active, nuke it from orbit
+					else:
+						order.delete()
+				
+				# Doesn't exist and is active, make a new order
+				elif row.attrib['orderState'] == '0':
+					if row.attrib['bid'] == '0':
+						o_type = 'S'
+					else:
+						o_type = 'B'
+					
+					chars = Character.objects.filter(eve_character_id=row.attrib['charID'])
+					if not chars:
+						print 'ERROR: no matching Character object for charID=%s' % (row.attrib['charID'])
+						continue
+					
+					remaining = int(row.attrib['volRemaining'])
+					price = Decimal(row.attrib['price'])
+					order = Order(
+						id=order_id,
+						corporation=corporation,
+						corp_wallet=CorpWallet.objects.filter(corporation=corporation, account_key=row.attrib['accountKey'])[0],
+						character=chars[0],
+						station=rdi_station(int(row.attrib['stationID']), 'UNKNOWN STATION'),
+						item=Item.objects.filter(pk=int(row.attrib['typeID']))[0],
+						issued=parse_api_date(row.attrib['issued']),
+						o_type=o_type,
+						volume_entered=int(row.attrib['volEntered']),
+						volume_remaining=remaining,
+						min_volume=int(row.attrib['minVolume']),
+						duration=int(row.attrib['duration']),
+						escrow=Decimal(row.attrib['escrow']),
+						price=price,
+						total_price=volume_remaining*price,
+					)
+					order.save()
+					
+					#print t.id, t.date, t.t_type, t.item, t.quantity, t.price
+			
+			cache['corp'][corporation.name]['orders'] = _now() + times['delta'] + PADDING
+	
 	
 	# Save cache
 	cPickle.dump(cache, open(pickle_filepath, 'wb'))
@@ -182,9 +256,12 @@ def fetch_api(url, params, character):
 	params['userID'] = character.eve_user_id
 	params['apiKey'] = character.eve_api_key
 	
-	f = urllib2.urlopen(url, urlencode(params))
-	data = f.read()
-	f.close()
+	if url == ORDERS_URL:
+		data = open('orders.xml').read()
+	else:
+		f = urllib2.urlopen(url, urlencode(params))
+		data = f.read()
+		f.close()
 	
 	root = ET.fromstring(data)
 	times = {
@@ -202,6 +279,15 @@ def parse_api_date(s):
 
 def show_error(text, err, times):
 	print '(%s) %s: %s | %s -> %s' % (text, err.attrib['code'], err.text, times['current'], times['until'])
+
+def rdi_station(station_id, station_name):
+	station = Station.objects.filter(pk=station_id)
+	if station:
+		station = station[0]
+	else:
+		station = Station(id=station_id, name=station_name)
+		station.save()
+	return station
 
 
 if __name__ == '__main__':

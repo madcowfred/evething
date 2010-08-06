@@ -104,13 +104,14 @@ class Order(models.Model):
 	item = models.ForeignKey(Item)
 	
 	issued = models.DateTimeField()
+	o_type = models.CharField(max_length=1, choices=((u'B', u'Buy'), (u'S', u'Sell')))
 	volume_entered = models.IntegerField()
 	volume_remaining = models.IntegerField()
 	min_volume = models.IntegerField()
 	duration = models.IntegerField()
 	escrow = models.DecimalField(max_digits=17, decimal_places=2)
 	price = models.DecimalField(max_digits=14, decimal_places=2)
-	o_type = models.CharField(max_length=1, choices=((u'B', u'Buy'), (u'S', u'Sell')))
+	total_price = models.DecimalField(max_digits=17, decimal_places=2)
 
 # Blueprints
 class Blueprint(models.Model):

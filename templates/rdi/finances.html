@@ -9,10 +9,27 @@
 <h1>{{ corporation.name }}</h1>
 <table>
 	<tr>
-		<th>Wallet balance</th>
+		<th colspan=2>Quick Overview</th>
 	</tr>
 	<tr class="odd">
-		<td align="right">{{ wallet_balance|commas }}</td>
+		<td>Wallet:</td>
+		<td align="right">{{ wallet_balance|humanize }}</td>
+	</tr>
+	<tr class="even">
+		<td>Sell Orders:</td>
+		<td align="right">{{ sell_total|humanize }}</td>
+	</tr>
+	<tr class="odd">
+		<td>Buy Orders:</td>
+		<td align="right">{{ buy_total|humanize }}</td>
+	</tr>
+	<tr class="even">
+		<td>Escrow:</td>
+		<td align="right">{{ escrow_total|humanize }}</td>
+	</tr>
+	<tr class="odd">
+		<td><b>Net Asset Value</b>:</td>
+		<td align="right">{{ net_asset_value|humanize }}</td>
 	</tr>
 </table>
 <br>

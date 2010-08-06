@@ -87,7 +87,15 @@ def finances(request):
 		return rdi_error("'%s' has no corporation wallets in the database, run api_updater.py!" % (corporation.name))
 	
 	data['wallets'] = wallets
-	data['wallet_balance'] = wallets.aggregate(Sum('balance'))['balance__sum']
+	data['wallet_balance'] = wallets.aggregate(Sum('balance'))['balance__sum'] or 0
+	
+	# Order information
+	orders = Order.objects.filter(corporation=corporation)
+	data['sell_total'] = orders.filter(o_type='S').aggregate(Sum('total_price'))['total_price__sum'] or 0
+	buy_orders = orders.filter(o_type='B')
+	data['buy_total'] = buy_orders.aggregate(Sum('total_price'))['total_price__sum'] or 0
+	data['buy_escrow'] = buy_orders.aggregate(Sum('escrow'))['escrow__sum'] or 0
+	data['net_asset_value'] = data['wallet_balance'] + data['sell_total'] + data['buy_escrow']
 	
 	# Transaction volume recently
 	for days in (1, 7, 30, 9999):
