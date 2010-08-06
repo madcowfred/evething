@@ -27,7 +27,7 @@ def blueprints(request):
 			'production_time': bpi.calc_production_time(runs=runs),
 			'unit_cost_buy': bpi.calc_production_cost(runs=runs),
 			'unit_cost_sell': bpi.calc_production_cost(runs=runs, use_sell=True),
-			'market_price': bpi.blueprint.item.sell_median,
+			'market_price': bpi.blueprint.item.sell_price,
 		})
 	
 	return render_to_response(
@@ -49,10 +49,10 @@ def blueprint_details(request, bpi_id):
 		comps.append({
 			'name': component.item.name,
 			'count': component.count,
-			'buy_median': component.item.buy_median,
-			'buy_total': component.count * component.item.buy_median,
-			'sell_median': component.item.sell_median,
-			'sell_total': component.count * component.item.sell_median,
+			'buy_price': component.item.buy_price,
+			'buy_total': component.count * component.item.buy_price,
+			'sell_price': component.item.sell_price,
+			'sell_total': component.count * component.item.sell_price,
 		})
 		buy_total += comps[-1]['buy_total']
 		sell_total += comps[-1]['sell_total']

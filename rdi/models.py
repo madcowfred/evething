@@ -37,11 +37,11 @@ class Character(models.Model):
 	factory_cost = models.DecimalField(max_digits=8, decimal_places=2)
 	factory_per_hour = models.DecimalField(max_digits=8, decimal_places=2)
 	
-	sales_tax = models.DecimalField(max_digits=4, decimal_places=2)
-	brokers_fee = models.DecimalField(max_digits=4, decimal_places=2)
+	sales_tax = models.DecimalField(max_digits=3, decimal_places=2)
+	brokers_fee = models.DecimalField(max_digits=3, decimal_places=2)
 	
-	eve_user_id = models.IntegerField(blank=True, verbose_name='User ID')
-	eve_api_key = models.CharField(max_length=64, blank=True, verbose_name='API key')
+	eve_user_id = models.IntegerField(verbose_name='User ID', default=0)
+	eve_api_key = models.CharField(max_length=64, verbose_name='API key', default='zzz')
 	eve_character_id = models.IntegerField(default=0)
 	
 	class Meta:
@@ -61,8 +61,8 @@ class Item(models.Model):
 	name = models.CharField(max_length=128)
 	portion_size = models.IntegerField()
 	
-	sell_median = models.DecimalField(max_digits=15, decimal_places=2, default=0)
-	buy_median = models.DecimalField(max_digits=15, decimal_places=2, default=0)
+	sell_price = models.DecimalField(max_digits=15, decimal_places=2, default=0)
+	buy_price = models.DecimalField(max_digits=15, decimal_places=2, default=0)
 	
 	def __unicode__(self):
 		return self.name
@@ -80,7 +80,7 @@ class Station(models.Model):
 
 # Wallet transactions
 class Transaction(models.Model):
-	id = models.IntegerField(primary_key=True)
+	id = models.BigIntegerField(primary_key=True)
 	corporation = models.ForeignKey(Corporation)
 	corp_wallet = models.ForeignKey(CorpWallet)
 	
@@ -91,6 +91,26 @@ class Transaction(models.Model):
 	quantity = models.IntegerField()
 	price = models.DecimalField(max_digits=14, decimal_places=2)
 	total_price = models.DecimalField(max_digits=17, decimal_places=2)
+
+# Market orders
+# http://wiki.eve-id.net/APIv2_Corp_MarketOrders_XML
+class Order(models.Model):
+	id = models.BigIntegerField(primary_key=True)
+	
+	corporation = models.ForeignKey(Corporation)
+	corp_wallet = models.ForeignKey(CorpWallet)
+	character = models.ForeignKey(Character)
+	station = models.ForeignKey(Station)
+	item = models.ForeignKey(Item)
+	
+	issued = models.DateTimeField()
+	volume_entered = models.IntegerField()
+	volume_remaining = models.IntegerField()
+	min_volume = models.IntegerField()
+	duration = models.IntegerField()
+	escrow = models.DecimalField(max_digits=17, decimal_places=2)
+	price = models.DecimalField(max_digits=14, decimal_places=2)
+	o_type = models.CharField(max_length=1, choices=((u'B', u'Buy'), (u'S', u'Sell')))
 
 # Blueprints
 class Blueprint(models.Model):
@@ -154,9 +174,9 @@ class BlueprintInstance(models.Model):
 		# Component costs
 		for item, amt in self._get_components(runs=runs):
 			if use_sell is True:
-				total_cost += (Decimal(str(amt)) * item.sell_median)
+				total_cost += (Decimal(str(amt)) * item.sell_price)
 			else:
-				total_cost += (Decimal(str(amt)) * item.buy_median)
+				total_cost += (Decimal(str(amt)) * item.buy_price)
 		
 		# Factory costs
 		total_cost += self.character.factory_cost
@@ -184,14 +204,11 @@ class BlueprintInstance(models.Model):
 		
 		component_queryset = BlueprintComponent.objects.filter(blueprint=self.blueprint)
 		for component in component_queryset:
-			CC = component.count
 			if component.needs_waste:
-				amt = round(CC * (1 + ((WF / 100.0) / (ML + 1)) + (0.25 - (0.05 * PES))))
+				amt = round(component.count * (1 + ((WF / 100.0) / (ML + 1)) + (0.25 - (0.05 * PES))))
 			else:
-				amt = CC
+				amt = component.count
 			
-			amt *= runs
-			
-			comps.append((component.item, amt))
+			comps.append((component.item, amt * runs))
 		
 		return comps
