@@ -18,6 +18,8 @@
 			<th>Unit Price</th>
 			<th>Total Price</th>
 			<th>Escrow</th>
+			<th>Buy Price</th>
+			<th>Sell Price</th>
 		</tr>
 	</thead>
 	<tbody>
@@ -33,6 +35,8 @@
 			<td class="{{ order.o_type }}" align="right">{{ order.price|humanize }}</td>
 			<td class="{{ order.o_type }}" align="right">{{ order.total_price|humanize }}</td>
 			<td class="{{ order.o_type }}" align="right">{{ order.escrow|humanize }}</td>
+			<td class="{{ order.o_type }}" align="right">{{ order.item.buy_price|humanize }}</td>
+			<td class="{{ order.o_type }}" align="right">{{ order.item.sell_price|humanize }}</td>
 		</tr>
 		{% endfor %}
 		{% endautoescape %}
