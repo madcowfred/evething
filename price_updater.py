@@ -1,7 +1,6 @@
 #!/usr/local/bin/python
 
 import os
-import sqlite3
 import time
 import urllib2
 import xml.etree.ElementTree as ET
@@ -26,7 +25,11 @@ def main():
 			item_ids.update((item_id[0],))
 		
 		item_ids.update((Blueprint.objects.filter(pk=bp_id[0])[0].item.id,))
-		
+	
+	# Get a list of items in active orders
+	for item_id in Order.objects.values_list('item').distinct():
+		item_ids.update(item_id)
+	
 	# Fetch market data and write to the database
 	for item_id in item_ids:
 		item = Item.objects.filter(pk=item_id)[0]
@@ -51,6 +54,8 @@ def main():
 			continue
 		n = min(2, len(buy_orders) - 1)
 		item.buy_price = Decimal(buy_orders[n].find('price').text)
+		
+		item.save()
 		
 		time.sleep(1)
 
