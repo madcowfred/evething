@@ -236,6 +236,23 @@ def transactions_item(request, timeframe, item_id):
 	# Spit it out I guess
 	return render_to_response('rdi/transactions_item.html', data)
 
+# Active orders
+@login_required
+def orders(request):
+	# Check that they have a valid character
+	chars = Character.objects.filter(user=request.user)
+	if not chars:
+		return "You do not have a character defined."
+	if not chars[0].corporation:
+		return "Your character doesn't seem to be in a corporation."
+	
+	corporation = chars[0].corporation
+	
+	# Retriever orders
+	orders = Order.objects.filter(corporation=corporation)
+	
+	return render_to_response('rdi/orders.html', { 'orders': orders })
+
 
 def rdi_error(error_msg):
 	return render_to_response('rdi/error.html', { 'error': error_msg })

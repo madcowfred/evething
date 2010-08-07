@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% load rdi_extras %}
+
+{% block title %}Rubber Ducky Space Industries: Orders{% endblock %}
+
+{% block nav-orders %}<strong class="nav-active">Orders</strong>{% endblock %}
+
+{% block content %}
+<h1>Active Orders</h1>
+<table>
+	<thead>
+		<tr>
+			<th>Expires</th>
+			<th>Station</th>
+			<th>Type</th>
+			<th>Item</th>
+			<th colspan="2">Volume</th>
+			<th>Unit Price</th>
+			<th>Total Price</th>
+			<th>Escrow</th>
+		</tr>
+	</thead>
+	<tbody>
+		{% autoescape off %}
+		{% for order in orders %}
+		<tr class="{% cycle 'odd' 'even' %}">
+			<td class="{{ order.o_type }}">{{ order.get_expiry_date|date:"Y-m-d H:i" }}</td>
+			<td class="{{ order.o_type }}">{{ order.station.shorter_name }}</td>
+			<td class="{{ order.o_type }}">{{ order.get_o_type_display }}</td>
+			<td class="{{ order.o_type }}"><a href="{% url everdi.rdi.views.transactions_item 'all' order.item.id %}">{{ order.item.name }}</a></td>
+			<td class="{{ order.o_type }}" align="right">{{ order.volume_remaining|humanize }}</td>
+			<td class="{{ order.o_type }}" align="right">{{ order.volume_entered|humanize }}</td>
+			<td class="{{ order.o_type }}" align="right">{{ order.price|humanize }}</td>
+			<td class="{{ order.o_type }}" align="right">{{ order.total_price|humanize }}</td>
+			<td class="{{ order.o_type }}" align="right">{{ order.escrow|humanize }}</td>
+		</tr>
+		{% endfor %}
+		{% endautoescape %}
+	</tbody>
+</table>
+{% endblock %}

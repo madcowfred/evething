@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+import datetime
 from decimal import *
 
 # Corporation
@@ -74,9 +75,18 @@ class Item(models.Model):
 		return self.name
 
 # Station
+STATION_NAME_SHORT = {
+	'Jita IV - Moon 4 - Caldari Navy Assembly Plant': 'Jita 4-4',
+}
 class Station(models.Model):
 	id = models.IntegerField(primary_key=True)
 	name = models.CharField(max_length=128)
+	
+	def __unicode__(self):
+		return self.name
+	
+	def shorter_name(self):
+		return STATION_NAME_SHORT.get(self.name, self.name)
 
 # Wallet transactions
 class Transaction(models.Model):
@@ -112,6 +122,12 @@ class Order(models.Model):
 	escrow = models.DecimalField(max_digits=17, decimal_places=2)
 	price = models.DecimalField(max_digits=14, decimal_places=2)
 	total_price = models.DecimalField(max_digits=17, decimal_places=2)
+	
+	class Meta:
+		ordering = ('-o_type', 'item__name')
+	
+	def get_expiry_date(self):
+		return self.issued + datetime.timedelta(self.duration)
 
 # Blueprints
 class Blueprint(models.Model):
