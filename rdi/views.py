@@ -157,19 +157,19 @@ def finances_timeframe(request, timeframe):
 		
 		t = transactions.filter(item=iid)
 		t_buy = t.filter(t_type='B')
-		#if not t_buy:
-		#	continue
+		if not t_buy:
+			continue
 		t_sell = t.filter(t_type='S')
-		#if not t_sell:
-		#	continue
+		if not t_sell:
+			continue
 		
 		# Buy data, urgh
 		item_data.update(t_buy.aggregate(
-			buy_quantity=Sum('quantity'),
-			buy_minimum=Min('price'),
-			buy_average=Avg('price'),
-			buy_maximum=Max('price'),
-			buy_total=Sum('total_price'),
+			buy_quantity=Sum('quantity') or 0,
+			buy_minimum=Min('price') or 0,
+			buy_average=Avg('price') or 0,
+			buy_maximum=Max('price') or 0,
+			buy_total=Sum('total_price') or 0,
 		))
 		
 		# Sell data, urgh
