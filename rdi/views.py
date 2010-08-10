@@ -157,11 +157,11 @@ def finances_timeframe(request, timeframe):
 		
 		t = transactions.filter(item=iid)
 		t_buy = t.filter(t_type='B')
-		if not t_buy:
-			continue
+		#if not t_buy:
+		#	continue
 		t_sell = t.filter(t_type='S')
-		if not t_sell:
-			continue
+		#if not t_sell:
+		#	continue
 		
 		# Buy data, urgh
 		item_data.update(t_buy.aggregate(
