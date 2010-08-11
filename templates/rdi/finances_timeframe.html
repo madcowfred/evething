@@ -15,18 +15,19 @@
 		</tr>
 		<tr>
 			<th>Item</th>
-			<th>Quantity</th>
+			<th>#</th>
 			<th>Min</th>
 			<th>Avg</th>
 			<th>Max</th>
 			<th>Total</th>
-			<th>Quantity</th>
+			<th>#</th>
 			<th>Min</th>
 			<th>Avg</th>
 			<th>Max</th>
 			<th>Total</th>
 			<th colspan="2">Avg Profit</th>
 			<th>Balance</th>
+			<th>Projected</th>
 		</tr>
 	</thead>
 	<tbody>
@@ -46,7 +47,8 @@
 			<td align="right">{{ item.sell_total|humanize }}</td>
 			<td align="right" class="alt">{{ item.average_profit|humanize }}
 			<td align="right" class="alt">{{ item.average_profit_per }}%</td>
-			<td align="right"{{ item.class }}>{{ item.balance|humanize }}</td>
+			<td align="right"{{ item.balance_class }}>{{ item.balance|humanize }}</td>
+			<td align="right"{{ item.projected_class }}>{{ item.projected|humanize }}</td>
 		</tr>
 		{% endfor %}
 		{% endautoescape %}

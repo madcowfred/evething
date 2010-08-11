@@ -189,7 +189,14 @@ def finances_timeframe(request, timeframe):
 		item_data['average_profit_per'] = Decimal('%.1f' % (item_data['average_profit'] / item_data['buy_average'] * 100))
 		# Balance
 		item_data['balance'] = item_data['sell_total'] - item_data['buy_total']
-		item_data['class'] = rdi_balance_class(item_data['balance'])
+		item_data['balance_class'] = rdi_balance_class(item_data['balance'])
+		# Projected balance
+		diff = item_data['buy_quantity'] - item_data['sell_quantity']
+		if diff > 0:
+			item_data['projected'] = item_data['balance'] + (diff * item_data['sell_average'])
+		else:
+			item_data['projected'] = item_data['balance']
+		item_data['projected_class'] = rdi_balance_class(item_data['projected'])
 		
 		data['items'].append(item_data)
 	
