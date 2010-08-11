@@ -179,70 +179,66 @@ def main():
 			root, times = fetch_api(ORDERS_URL, params, character)
 			err = root.find('error')
 			if err is not None:
-				# Fuck it, the API flat out lies about cache times
-				#if err.attrib['code'] not in ('101', '103'):
 				show_error('corporders', err, times)
-				break
 			
-			rows = root.findall('result/rowset/row')
-			if not rows:
-				break
-			
-			for row in rows:
-				order_id = int(row.attrib['orderID'])
-				orders = Order.objects.filter(pk=order_id)
+			else:
+				rows = root.findall('result/rowset/row')
+				if not rows:
+					break
 				
-				# Hey, this transaction already exists
-				if orders:
-					order = orders[0]
+				for row in rows:
+					order_id = int(row.attrib['orderID'])
+					orders = Order.objects.filter(pk=order_id)
 					
-					# Order is active, update stuff I guess
-					if row.attrib['orderState'] == '0':
-						order.issued = parse_api_date(row.attrib['issued'])
-						order.volume_remaining = int(row.attrib['volRemaining'])
-						order.escrow = Decimal(row.attrib['escrow'])
-						order.price = Decimal(row.attrib['price'])
-						order.total_price = order.volume_remaining * order.price
-						order.save()
+					# Hey, this transaction already exists
+					if orders:
+						order = orders[0]
 						
-					# Not active, nuke it from orbit
-					else:
-						order.delete()
-				
-				# Doesn't exist and is active, make a new order
-				elif row.attrib['orderState'] == '0':
-					if row.attrib['bid'] == '0':
-						o_type = 'S'
-					else:
-						o_type = 'B'
+						# Order is active, update stuff I guess
+						if row.attrib['orderState'] == '0':
+							order.issued = parse_api_date(row.attrib['issued'])
+							order.volume_remaining = int(row.attrib['volRemaining'])
+							order.escrow = Decimal(row.attrib['escrow'])
+							order.price = Decimal(row.attrib['price'])
+							order.total_price = order.volume_remaining * order.price
+							order.save()
+							
+						# Not active, nuke it from orbit
+						else:
+							order.delete()
 					
-					chars = Character.objects.filter(eve_character_id=row.attrib['charID'])
-					if not chars:
-						print 'ERROR: no matching Character object for charID=%s' % (row.attrib['charID'])
-						continue
-					
-					remaining = int(row.attrib['volRemaining'])
-					price = Decimal(row.attrib['price'])
-					order = Order(
-						id=order_id,
-						corporation=corporation,
-						corp_wallet=CorpWallet.objects.filter(corporation=corporation, account_key=row.attrib['accountKey'])[0],
-						character=chars[0],
-						station=rdi_station(int(row.attrib['stationID']), 'UNKNOWN STATION'),
-						item=Item.objects.filter(pk=int(row.attrib['typeID']))[0],
-						issued=parse_api_date(row.attrib['issued']),
-						o_type=o_type,
-						volume_entered=int(row.attrib['volEntered']),
-						volume_remaining=remaining,
-						min_volume=int(row.attrib['minVolume']),
-						duration=int(row.attrib['duration']),
-						escrow=Decimal(row.attrib['escrow']),
-						price=price,
-						total_price=remaining*price,
-					)
-					order.save()
-					
-					#print t.id, t.date, t.t_type, t.item, t.quantity, t.price
+					# Doesn't exist and is active, make a new order
+					elif row.attrib['orderState'] == '0':
+						if row.attrib['bid'] == '0':
+							o_type = 'S'
+						else:
+							o_type = 'B'
+						
+						chars = Character.objects.filter(eve_character_id=row.attrib['charID'])
+						if not chars:
+							print 'ERROR: no matching Character object for charID=%s' % (row.attrib['charID'])
+							continue
+						
+						remaining = int(row.attrib['volRemaining'])
+						price = Decimal(row.attrib['price'])
+						order = Order(
+							id=order_id,
+							corporation=corporation,
+							corp_wallet=CorpWallet.objects.filter(corporation=corporation, account_key=row.attrib['accountKey'])[0],
+							character=chars[0],
+							station=rdi_station(int(row.attrib['stationID']), 'UNKNOWN STATION'),
+							item=Item.objects.filter(pk=int(row.attrib['typeID']))[0],
+							issued=parse_api_date(row.attrib['issued']),
+							o_type=o_type,
+							volume_entered=int(row.attrib['volEntered']),
+							volume_remaining=remaining,
+							min_volume=int(row.attrib['minVolume']),
+							duration=int(row.attrib['duration']),
+							escrow=Decimal(row.attrib['escrow']),
+							price=price,
+							total_price=remaining*price,
+						)
+						order.save()
 			
 			cache['corp'][corporation.name]['orders'] = _now() + times['delta'] + PADDING
 	
