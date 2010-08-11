@@ -165,25 +165,22 @@ def finances_timeframe(request, timeframe):
 		
 		# Buy data, urgh
 		item_data.update(t_buy.aggregate(
-			buy_quantity=Sum('quantity') or 0,
-			buy_minimum=Min('price') or 0,
-			buy_average=Avg('price') or 0,
-			buy_maximum=Max('price') or 0,
-			buy_total=Sum('total_price') or 0,
+			buy_quantity=Sum('quantity'),
+			buy_minimum=Min('price'),
+			buy_maximum=Max('price'),
+			buy_total=Sum('total_price'),
 		))
+		item_data['buy_average'] = (item_data['buy_total'] / item_data['buy_quantity']).quantize(Decimal('.01'), rounding=ROUND_UP)
 		
 		# Sell data, urgh
 		item_data.update(t_sell.aggregate(
 			sell_quantity=Sum('quantity'),
 			sell_minimum=Min('price'),
-			sell_average=Avg('price'),
 			sell_maximum=Max('price'),
 			sell_total=Sum('total_price'),
 		))
+		item_data['sell_average'] = (item_data['sell_total'] / item_data['sell_quantity']).quantize(Decimal('.01'), rounding=ROUND_UP)
 		
-		# Why are Avg results returned as floats with Decimal inputs? Who knows. Let us fix that.
-		item_data['buy_average'] = Decimal('%.2f' % (item_data['buy_average']))
-		item_data['sell_average'] = Decimal('%.2f' % (item_data['sell_average']))
 		# Average profit
 		item_data['average_profit'] = item_data['sell_average'] - item_data['buy_average']
 		item_data['average_profit_per'] = Decimal('%.1f' % (item_data['average_profit'] / item_data['buy_average'] * 100))
