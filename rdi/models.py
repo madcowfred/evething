@@ -76,7 +76,10 @@ class Item(models.Model):
 
 # Station
 STATION_NAME_SHORT = {
-	'Jita IV - Moon 4 - Caldari Navy Assembly Plant': 'Jita 4-4',
+	'Amarr VIII (Oris) - Emperor Family Academy': 'Amarr Hub',
+	'Jita IV - Moon 4 - Caldari Navy Assembly Plant': 'Jita Hub',
+	'Oursulaert III - Federation Navy Testing Facilities': 'Oursulaert Hub',
+	'Rens VI - Moon 8 - Brutor tribe Treasury': 'Rens Hub',
 }
 class Station(models.Model):
 	id = models.IntegerField(primary_key=True)
