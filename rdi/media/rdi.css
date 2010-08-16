@@ -17,6 +17,12 @@ th {
 	background: #BFBFCF;
 	padding: 4px 6px 4px 6px;
 }
+td.head {
+	text-align: center;
+	font-weight: bold;
+	background: #BFBFCF;
+	padding: 4px 6px 4px 6px;
+}
 tr.odd td {
 	background: #EFEFFF;
 }

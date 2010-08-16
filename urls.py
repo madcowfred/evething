@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.conf.urls.defaults import *
 from django.contrib.auth.views import login, logout
 
@@ -28,3 +29,8 @@ urlpatterns += patterns('everdi.rdi.views',
 	(r'^transactions/(?P<timeframe>day|week|month|all)/(?P<item_id>\d+)/$', 'transactions_item'),
 	#(r'^buyme/',       include('everdi.buyme.urls')),
 )
+
+if settings.DEBUG:
+	urlpatterns += patterns('',
+		(r'^rdi_media/(?P<path>.*)$', 'django.views.static.serve', {'document_root': settings.MEDIA_ROOT}),
+	)

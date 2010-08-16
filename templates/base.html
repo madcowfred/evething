@@ -2,7 +2,10 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 	<title>{% block title %}{% endblock %}</title>
-	<link rel="stylesheet" href="/media/css/rdi.css" type="text/css" />
+	<link rel="stylesheet" href="/rdi_media/rdi.css" type="text/css" />
+	<script type="text/javascript" src="/media/js/jquery.min.js"></script> 
+	<script type="text/javascript" src="/rdi_media/jquery.tablesorter.min.js"></script>
+	{% block extrahead %}{% endblock %}
 </head>
 <body>
 	{% block nav %}

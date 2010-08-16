@@ -3,15 +3,63 @@
 
 {% block title %}Rubber Ducky Space Industries: Finances{% endblock %}
 
+{% block extrahead %}
+	<script type="text/javascript">
+	$.tablesorter.addParser({
+		id: 'human',
+		is: function(s) { return false; },
+		format: function(s) {
+			var l = s.length - 1;
+			var c = s.charAt(l);
+			if (c == 'K') {
+				return s.substr(0, l) * 1000;
+			}
+			else if (c == 'M') {
+				return s.substr(0, l) * 1000000;
+			}
+			else if (c == 'B') {
+				return s.substr(0, l) * 1000000000;
+			}
+			else {
+				return s;
+			}
+		},
+		type: 'numeric'
+	})
+	
+	$(document).ready(function() {
+		// call the tablesorter plugin
+		$("table").tablesorter({
+			'headers': {
+				1: { sorter: 'human' },
+				2: { sorter: 'human' },
+				3: { sorter: 'human' },
+				4: { sorter: 'human' },
+				5: { sorter: 'human' },
+				6: { sorter: 'human' },
+				7: { sorter: 'human' },
+				8: { sorter: 'human' },
+				9: { sorter: 'human' },
+				10: { sorter: 'human' },
+				11: { sorter: 'human' },
+				13: { sorter: 'human' },
+				14: { sorter: 'human' },
+			},
+			'widgets': [ 'zebra' ],
+		});
+	});
+	</script>
+{% endblock %}
+
 {% block content %}
 <h1>Item Sales for last {{ timeframe }}</h1>
 <table class="tablesorter">
 	<thead>
 		<tr>
-			<th></th>
-			<th colspan="5">Buy</th>
-			<th colspan="5">Sell</th>
-			<th colspan="3"></th>
+			<td></th>
+			<td colspan="5" class="head">Buy</th>
+			<td colspan="5" class="head">Sell</th>
+			<td colspan="4"></th>
 		</tr>
 		<tr>
 			<th>Item</th>
@@ -25,7 +73,8 @@
 			<th>Avg</th>
 			<th>Max</th>
 			<th>Total</th>
-			<th colspan="2">Avg Profit</th>
+			<th>Profit</th>
+			<th>P%</th>
 			<th>Balance</th>
 			<th>Projected</th>
 		</tr>
@@ -33,7 +82,7 @@
 	<tbody>
 		{% autoescape off %}
 		{% for item in items %}
-		<tr class="{% cycle 'odd' 'even' %}">
+		<tr>
 			<td><a href="{% url everdi.rdi.views.transactions_item timeframe item.item.id %}">{{ item.item.shorter_name }}</a></td>
 			<td align="right" class="alt">{{ item.buy_quantity|humanize }}</td>
 			<td align="right" class="alt">{{ item.buy_minimum|humanize }}</td>
@@ -45,7 +94,7 @@
 			<td align="right">{{ item.sell_average|humanize }}</td>
 			<td align="right">{{ item.sell_maximum|humanize }}</td>
 			<td align="right">{{ item.sell_total|humanize }}</td>
-			<td align="right" class="alt">{{ item.average_profit|humanize }}
+			<td align="right" class="alt">{{ item.average_profit|humanize }}</td>
 			<td align="right" class="alt">{{ item.average_profit_per }}%</td>
 			<td align="right"{{ item.balance_class }}>{{ item.balance|humanize }}</td>
 			<td align="right"{{ item.projected_class }}>{{ item.projected|humanize }}</td>
