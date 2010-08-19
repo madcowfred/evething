@@ -81,6 +81,20 @@ STATION_NAME_SHORT = {
 	'Oursulaert III - Federation Navy Testing Facilities': 'Oursulaert Hub',
 	'Rens VI - Moon 8 - Brutor tribe Treasury': 'Rens Hub',
 }
+numeral_map = zip(
+	(1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1),
+	('M', 'CM', 'D', 'CD', 'C', 'XC', 'L', 'XL', 'X', 'IX', 'V', 'IV', 'I')
+)
+def roman_to_int(n):
+	n = unicode(n).upper()
+	
+	i = result = 0
+	for integer, numeral in numeral_map:
+		while n[i:i + len(numeral)] == numeral:
+			result += integer
+			i += len(numeral)
+	return result
+
 class Station(models.Model):
 	id = models.IntegerField(primary_key=True)
 	name = models.CharField(max_length=128)
@@ -89,7 +103,22 @@ class Station(models.Model):
 		return self.name
 	
 	def shorter_name(self):
-		return STATION_NAME_SHORT.get(self.name, self.name)
+		out = []
+		
+		parts = self.name.split(' - ')
+		
+		a_parts = parts[0].split()
+		# Change the roman annoyance to a proper digit
+		out.append('%s %s' % (a_parts[0], str(roman_to_int(a_parts[1]))))
+		
+		# Moooon
+		if parts[1].startswith('Moon'):
+			out[0] = '%s-%s' % (out[0], parts[1][5:])
+			out.append(''.join(s[0] for s in parts[2].split()))
+		else:
+			out.append(''.join(s[0] for s in parts[1].split()))
+		
+		return ' - '.join(out)
 
 # Wallet transactions
 class Transaction(models.Model):
