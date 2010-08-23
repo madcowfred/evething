@@ -75,12 +75,6 @@ class Item(models.Model):
 		return self.name
 
 # Station
-STATION_NAME_SHORT = {
-	'Amarr VIII (Oris) - Emperor Family Academy': 'Amarr Hub',
-	'Jita IV - Moon 4 - Caldari Navy Assembly Plant': 'Jita Hub',
-	'Oursulaert III - Federation Navy Testing Facilities': 'Oursulaert Hub',
-	'Rens VI - Moon 8 - Brutor tribe Treasury': 'Rens Hub',
-}
 numeral_map = zip(
 	(1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1),
 	('M', 'CM', 'D', 'CD', 'C', 'XC', 'L', 'XL', 'X', 'IX', 'V', 'IV', 'I')
@@ -119,6 +113,16 @@ class Station(models.Model):
 			out.append(''.join(s[0] for s in parts[1].split()))
 		
 		return ' - '.join(out)
+
+# Time frames
+class Timeframe(models.Model):
+	title = models.CharField(max_length=32)
+	slug = models.SlugField(max_length=32)
+	start_date = models.DateTimeField()
+	end_date = models.DateTimeField()
+	
+	def __unicode__(self):
+		return self.title
 
 # Wallet transactions
 class Transaction(models.Model):

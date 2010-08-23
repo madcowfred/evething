@@ -1,5 +1,5 @@
 from django.contrib import admin
-from everdi.rdi.models import BlueprintInstance, Character, Corporation
+from everdi.rdi.models import BlueprintInstance, Character, Corporation, Timeframe
 
 class CharacterAdmin(admin.ModelAdmin):
 	fieldsets = [
@@ -19,6 +19,10 @@ class CharacterAdmin(admin.ModelAdmin):
 		}),
 	]
 
+class TimeframeAdmin(admin.ModelAdmin):
+	prepopulated_fields = { 'slug': ( 'title', ) }
+
 admin.site.register(Character, CharacterAdmin)
 admin.site.register(BlueprintInstance)
 admin.site.register(Corporation)
+admin.site.register(Timeframe, TimeframeAdmin)
