@@ -241,7 +241,7 @@ def transactions(request):
 
 # Corp transaction details for last x days for specific item
 @login_required
-def transactions_item(request, timeframe, item_id):
+def transactions_item(request, item_id, year=None, month=None, period=None, slug=None):
 	# Check that they have a valid character
 	chars = Character.objects.filter(user=request.user)
 	if not chars:
@@ -251,21 +251,33 @@ def transactions_item(request, timeframe, item_id):
 	
 	corporation = chars[0].corporation
 	
-	# Sanity check
-	days = DAYS[timeframe]
-	item_id = int(item_id)
-	
 	# Make sure item_id is valid
+	item_id = int(item_id)
 	transactions = Transaction.objects.filter(corporation=corporation, item=item_id).order_by('date').reverse()
 	if not transactions:
-		return rdi_error("There are no transactions for that item_id.")
+		return rdi_error("There are no transactions for that corporation/item_id.")
 	
 	data = {
-		'days': days,
 		'item': transactions[0].item.name,
-		'transactions': transactions,
 	}
 	
+	# Year/Month
+	if year and month:
+		month = int(month)
+		data['transactions'] = transactions.filter(date__year=year, date__month=month)
+		data['timeframe'] = '%s %s' % (MONTHS[month], year)
+	# Timeframe slug
+	elif slug:
+		tf = Timeframe.objects.filter(corporation=corporation, slug=slug)
+		if not tf:
+			return rdi_error("Invalid timeframe slug.")
+		data['transactions'] = transactions.filter(date__range=(tf[0].start_date, tf[0].end_date))
+		data['timeframe'] = '%s (%s -> %s)' % (tf[0].title, tf[0].start_date, tf[0].end_date)
+	# All
+	elif period:
+		data['transactions'] = transactions
+		data['timeframe'] = 'all time'
+		
 	# Spit it out I guess
 	return render_to_response('rdi/transactions_item.html', data)
 
