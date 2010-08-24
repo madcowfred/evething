@@ -69,7 +69,7 @@ def blueprint_details(request, bpi_id):
 		}
 	)
 
-# Corp finances
+# Trade volume
 MONTHS = (None, 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec')
 @login_required
 def trade(request):
@@ -141,7 +141,7 @@ def trade(request):
 	
 	return render_to_response('rdi/trade.html', data)
 
-# Corp transaction overview for a variety of timeframe types
+# Trade overview for a variety of timeframe types
 @login_required
 def trade_timeframe(request, year=None, month=None, period=None, slug=None):
 	# Check that they have a valid character
@@ -155,7 +155,7 @@ def trade_timeframe(request, year=None, month=None, period=None, slug=None):
 	data = { 'corporation': corporation }
 	now = datetime.datetime.now()
 	
-	# Get a QuerySet of transactions for this corporationj
+	# Get a QuerySet of transactions for this corporation
 	transactions = Transaction.objects.filter(corporation=corporation)
 	
 	# Year/Month
@@ -229,10 +229,6 @@ def trade_timeframe(request, year=None, month=None, period=None, slug=None):
 		item_data['projected_class'] = rdi_balance_class(item_data['projected'])
 		
 		data['items'].append(item_data)
-	
-	# Ugh turn it into a sorted by balance list
-	data['items'].sort(key=lambda a: a['balance'])
-	data['items'].reverse()
 	
 	# GENERATE
 	return render_to_response('rdi/trade_timeframe.html', data)
