@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load rdi_extras %}
 
-{% block title %}Rubber Ducky Space Industries: Finances{% endblock %}
+{% block title %}RDSI: Trade: {{ timeframe }}{% endblock %}
 
 {% block extrahead %}
 	<script type="text/javascript">
@@ -52,7 +52,7 @@
 {% endblock %}
 
 {% block content %}
-<h1>Item Sales for last {{ timeframe }}</h1>
+<h1>Item Sales for {{ timeframe }}</h1>
 <table class="tablesorter">
 	<thead>
 		<tr>
@@ -83,7 +83,7 @@
 		{% autoescape off %}
 		{% for item in items %}
 		<tr>
-			<td><a href="{% url everdi.rdi.views.transactions_item timeframe item.item.id %}">{{ item.item.shorter_name }}</a></td>
+			<td><a href="{% url everdi.rdi.views.transactions_item item.item.id urlpart %}">{{ item.item.shorter_name }}</a></td>
 			<td align="right" class="alt">{{ item.buy_quantity|humanize }}</td>
 			<td align="right" class="alt">{{ item.buy_minimum|humanize }}</td>
 			<td align="right" class="alt">{{ item.buy_average|humanize }}</td>

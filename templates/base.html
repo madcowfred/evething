@@ -11,8 +11,8 @@
 	{% block nav %}
 	<ul id="nav">
 		<li>{% block nav-blueprints %}<a href="{% url everdi.rdi.views.blueprints %}">Blueprints</a>{% endblock %}</li>
-		<li>{% block nav-finances %}<a href="{% url everdi.rdi.views.finances %}">Finances</a>{% endblock %}</li>
 		<li>{% block nav-orders %}<a href="{% url everdi.rdi.views.orders %}">Orders</a>{% endblock %}</li>
+		<li>{% block nav-trade %}<a href="{% url everdi.rdi.views.trade %}">Trade</a>{% endblock %}</li>
 		<li>{% block nav-transactions %}<a href="{% url everdi.rdi.views.transactions %}">Transactions</a>{% endblock %}</li>
 	</ul>
 	{%endblock %}

@@ -116,10 +116,15 @@ class Station(models.Model):
 
 # Time frames
 class Timeframe(models.Model):
+	corporation = models.ForeignKey(Corporation)
+	
 	title = models.CharField(max_length=32)
 	slug = models.SlugField(max_length=32)
 	start_date = models.DateTimeField()
 	end_date = models.DateTimeField()
+	
+	class Meta:
+		ordering = ('title',)
 	
 	def __unicode__(self):
 		return self.title

@@ -8,6 +8,8 @@ from django.db.models import Avg, Count, Max, Min, Sum
 from everdi.rdi.models import *
 
 
+# List of blueprints we own
+@login_required
 def blueprints(request):
 	runs = request.GET.get('runs')
 	if runs and runs.isdigit():
@@ -67,82 +69,113 @@ def blueprint_details(request, bpi_id):
 		}
 	)
 
-# Corp main page
+# Corp finances
+MONTHS = (None, 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec')
 @login_required
-def finances(request):
+def trade(request):
 	# Check that they have a valid character
 	chars = Character.objects.filter(user=request.user)
 	if not chars:
-		return "You do not have a character defined."
+		return rdi_error("You do not have a character defined.")
 	if not chars[0].corporation:
-		return "Your character doesn't seem to be in a corporation."
+		return rdi_error("Your character doesn't seem to be in a corporation.")
 	
 	corporation = chars[0].corporation
 	data = { 'corporation': corporation }
 	now = datetime.datetime.now()
 	
 	# Wallets
-	wallets = CorpWallet.objects.filter(corporation=corporation)
-	if not wallets:
-		return rdi_error("'%s' has no corporation wallets in the database, run api_updater.py!" % (corporation.name))
-	
-	data['wallets'] = wallets
-	data['wallet_balance'] = wallets.aggregate(Sum('balance'))['balance__sum'] or 0
+	#wallets = CorpWallet.objects.filter(corporation=corporation)
+	#if not wallets:
+	#	return rdi_error("This corporation has no wallets in the database, run API updater!")
+	#
+	#data['wallets'] = wallets
+	#data['wallet_balance'] = wallets.aggregate(Sum('balance'))['balance__sum'] or 0
 	
 	# Order information
-	orders = Order.objects.filter(corporation=corporation)
-	data['sell_total'] = orders.filter(o_type='S').aggregate(Sum('total_price'))['total_price__sum'] or 0
-	buy_orders = orders.filter(o_type='B')
-	data['buy_total'] = buy_orders.aggregate(Sum('total_price'))['total_price__sum'] or 0
-	data['escrow_total'] = buy_orders.aggregate(Sum('escrow'))['escrow__sum'] or 0
-	data['net_asset_value'] = data['wallet_balance'] + data['sell_total'] + data['escrow_total']
+	#orders = Order.objects.filter(corporation=corporation)
+	#buy_orders = orders.filter(o_type='B')
+	#sell_orders = orders.filter(o_type='S')
+	#data['sell_total'] = orders.filter(o_type='S').aggregate(Sum('total_price'))['total_price__sum'] or 0
+	#buy_orders = orders.filter(o_type='B')
+	#data['buy_total'] = buy_orders.aggregate(Sum('total_price'))['total_price__sum'] or 0
+	#data['escrow_total'] = buy_orders.aggregate(Sum('escrow'))['escrow__sum'] or 0
+	#data['net_asset_value'] = data['wallet_balance'] + data['sell_total'] + data['escrow_total']
 	
-	# Transaction volume recently
-	for days in (1, 7, 30, 9999):
-		checkdate = now - datetime.timedelta(days)
-		transactions = Transaction.objects.filter(date__gt=checkdate)
+	# Transaction stuff oh god
+	transactions = Transaction.objects.filter(corporation=corporation)
+	
+	t_check = []
+	# All
+	t_check.append(('[All]', 'all', transactions))
+	#t_check.append('-')
+	# Timeframes
+	for tf in Timeframe.objects.filter(corporation=corporation):
+		title = '[%s]' % (tf.title)
+		t_check.append((title, tf.slug, transactions.filter(date__range=(tf.start_date, tf.end_date))))
+	#if len(t_check) > 2:
+	#	t_check.append('-')
+	# Months
+	for dt in transactions.dates('date', 'month', order='DESC'):
+		name = '%s %s' % (MONTHS[dt.month], dt.year)
+		urlpart = '%s-%02d' % (dt.year, dt.month)
+		t_check.append((name, urlpart, transactions.filter(date__month=dt.month)))
+	
+	# Get data and stuff
+	t_data = []
+	for name, urlpart, trans in t_check:
+		row = { 'name': name, 'urlpart': urlpart }
 		
-		buy_total = transactions.filter(t_type='B').aggregate(Sum('total_price'))['total_price__sum']
-		data['%sday_buy_total' % days] = buy_total
+		row['buy_total'] = trans.filter(t_type='B').aggregate(Sum('total_price'))['total_price__sum']
+		row['sell_total'] = trans.filter(t_type='S').aggregate(Sum('total_price'))['total_price__sum']
 		
-		sell_total = transactions.filter(t_type='S').aggregate(Sum('total_price'))['total_price__sum']
-		data['%sday_sell_total' % days] = sell_total
-		
-		if buy_total is None or sell_total is None:
-			balance = 0
+		if row['buy_total'] is None or row['sell_total'] is None:
+			row['balance'] = 0
 		else:
-			balance = sell_total - buy_total
+			row['balance'] = row['sell_total'] - row['buy_total']
+		row['class'] = rdi_balance_class(row['balance'])
 		
-		data['%sday_balance' % days] = balance
-		data['%sday_class' % days] = rdi_balance_class(balance)
+		t_data.append(row)
 	
+	data['transactions'] = t_data
 	
-	return render_to_response('rdi/finances.html', data)
+	return render_to_response('rdi/trade.html', data)
 
-# Corp transaction overview for last x days
-DAYS = {
-	'day': 1,
-	'week': 7,
-	'month': 30,
-	'all': 9999,
-}
+# Corp transaction overview for a variety of timeframe types
 @login_required
-def finances_timeframe(request, timeframe):
+def trade_timeframe(request, year=None, month=None, period=None, slug=None):
 	# Check that they have a valid character
 	chars = Character.objects.filter(user=request.user)
 	if not chars:
-		return "You do not have a character defined."
+		return rdi_error("You do not have a character defined.")
 	if not chars[0].corporation:
-		return "Your character doesn't seem to be in a corporation."
+		return rdi_error("Your character doesn't seem to be in a corporation.")
 	
-	days = DAYS[timeframe]
 	corporation = chars[0].corporation
-	data = { 'corporation': corporation, 'timeframe': timeframe }
+	data = { 'corporation': corporation }
 	now = datetime.datetime.now()
 	
-	# Get a QuerySet of transactions for those days
-	delta = now - datetime.timedelta(days)
-	transactions = Transaction.objects.filter(date__gt=delta)
+	# Get a QuerySet of transactions for this corporationj
+	transactions = Transaction.objects.filter(corporation=corporation)
+	
+	# Year/Month
+	if year and month:
+		month = int(month)
+		transactions = transactions.filter(date__year=year, date__month=month)
+		data['timeframe'] = '%s %s' % (MONTHS[month], year)
+		data['urlpart'] = '%s-%02d' % (year, month)
+	# Timeframe slug
+	elif slug:
+		tf = Timeframe.objects.filter(corporation=corporation, slug=slug)
+		if not tf:
+			return rdi_error("Invalid timeframe slug.")
+		transactions = transactions.filter(date__range=(tf[0].start_date, tf[0].end_date))
+		data['timeframe'] = '%s (%s -> %s)' % (tf[0].title, tf[0].start_date, tf[0].end_date)
+		data['urlpart'] = slug
+	# All
+	elif period:
+		data['timeframe'] = 'all time'
+		data['urlpart'] = 'all'
 	
 	# Get distinct item ids
 	item_ids = transactions.values_list('item').distinct()
@@ -202,7 +235,7 @@ def finances_timeframe(request, timeframe):
 	data['items'].reverse()
 	
 	# GENERATE
-	return render_to_response('rdi/finances_timeframe.html', data)
+	return render_to_response('rdi/trade_timeframe.html', data)
 
 
 # Corp transaction details
@@ -216,9 +249,9 @@ def transactions_item(request, timeframe, item_id):
 	# Check that they have a valid character
 	chars = Character.objects.filter(user=request.user)
 	if not chars:
-		return "You do not have a character defined."
+		return rdi_error("You do not have a character defined.")
 	if not chars[0].corporation:
-		return "Your character doesn't seem to be in a corporation."
+		return rdi_error("Your character doesn't seem to be in a corporation.")
 	
 	corporation = chars[0].corporation
 	
@@ -246,13 +279,13 @@ def orders(request):
 	# Check that they have a valid character
 	chars = Character.objects.filter(user=request.user)
 	if not chars:
-		return "You do not have a character defined."
+		return rdi_error("You do not have a character defined.")
 	if not chars[0].corporation:
-		return "Your character doesn't seem to be in a corporation."
+		return rdi_error("Your character doesn't seem to be in a corporation.")
 	
 	corporation = chars[0].corporation
 	
-	# Retriever orders
+	# Retrieve orders
 	orders = Order.objects.filter(corporation=corporation)
 	
 	return render_to_response('rdi/orders.html', { 'orders': orders })

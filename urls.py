@@ -22,12 +22,23 @@ urlpatterns = patterns('',
 
 urlpatterns += patterns('everdi.rdi.views',
 	(r'^blueprints/$', 'blueprints'),
-	(r'^finances/$', 'finances'),
-	(r'^finances/(?P<timeframe>day|week|month|all)/$', 'finances_timeframe'),
+	
 	(r'^orders/$', 'orders'),
+	
+	#(r'^status/$', 'status'),
+	
+	(r'^trade/$', 'trade'),
+	(r'^trade/(?P<year>\d{4})-(?P<month>\d{2})/$', 'trade_timeframe'),
+	(r'^trade/(?P<period>all)/$', 'trade_timeframe'),
+	(r'^trade/(?P<slug>[-\w]+)/$', 'trade_timeframe'),
+	
 	(r'^transactions/$', 'transactions'),
-	(r'^transactions/(?P<timeframe>day|week|month|all)/(?P<item_id>\d+)/$', 'transactions_item'),
-	#(r'^buyme/',       include('everdi.buyme.urls')),
+	(r'^transactions/(?P<item_id>all|\d+)/$', 'transactions_item'),
+	(r'^transactions/(?P<item_id>all|\d+)/(?P<year>\d{4})-(?P<month>\d{2})/$', 'transactions_item'),
+	(r'^transactions/(?P<item_id>all|\d+)/(?P<period>all)/$', 'transactions_item'),
+	(r'^transactions/(?P<item_id>all|\d+)/(?P<slug>[-\w]+)/$', 'transactions_item'),
+	
+	#(r'^transactions/(?P<timeframe>day|week|month|all)/(?P<item_id>\d+)/$', 'transactions_item'),
 )
 
 if settings.DEBUG:
