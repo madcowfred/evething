@@ -54,6 +54,21 @@
 
 {% block content %}
 <h1>Item Sales for {{ timeframe }}</h1>
+<table>
+	<tr>
+		<th>Total Buys</th>
+		<th>Total Sells</th>
+		<th>Balance</th>
+		<th>Projected</th>
+	</tr>
+	<tr class="odd">
+		<td align="right">{{ total_buys|humanize }}</td>
+		<td align="right">{{ total_sells|humanize }}</td>
+		<td align="right"{{ total_balance_class|safe }}>{{ total_balance|humanize }}</td>
+		<td align="right"{{ total_projected_class|safe }}>{{ total_projected|humanize }}</td>
+	</tr>
+</table>
+<br />
 <table class="tablesorter">
 	<thead>
 		<tr>
@@ -81,7 +96,6 @@
 		</tr>
 	</thead>
 	<tbody>
-		{% autoescape off %}
 		{% for item in items %}
 		<tr>
 			<td><a href="{% url everdi.rdi.views.transactions_item item.item.id urlpart %}">{{ item.item.shorter_name }}</a></td>
@@ -97,11 +111,10 @@
 			<td align="right">{{ item.sell_total|humanize }}</td>
 			<td align="right" class="alt">{{ item.average_profit|humanize }}</td>
 			<td align="right" class="alt">{{ item.average_profit_per }}%</td>
-			<td align="right"{{ item.balance_class }}>{{ item.balance|humanize }}</td>
-			<td align="right"{{ item.projected_class }}>{{ item.projected|humanize }}</td>
+			<td align="right"{{ item.balance_class|safe }}>{{ item.balance|humanize }}</td>
+			<td align="right"{{ item.projected_class|safe }}>{{ item.projected|humanize }}</td>
 		</tr>
 		{% endfor %}
-		{% endautoescape %}
 	</tbody>
 </table>
 {% endblock %}

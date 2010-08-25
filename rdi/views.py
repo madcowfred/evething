@@ -230,6 +230,14 @@ def trade_timeframe(request, year=None, month=None, period=None, slug=None):
 		
 		data['items'].append(item_data)
 	
+	# Totals
+	data['total_buys'] = sum(item['buy_total'] for item in data['items'])
+	data['total_sells'] = sum(item['sell_total'] for item in data['items'])
+	data['total_balance'] = data['total_sells'] - data['total_buys']
+	data['total_balance_class'] = rdi_balance_class(data['total_balance'])
+	data['total_projected'] = sum(item['projected'] for item in data['items'])
+	data['total_projected_class'] = rdi_balance_class(data['total_projected'])
+	
 	# GENERATE
 	return render_to_response('rdi/trade_timeframe.html', data)
 
