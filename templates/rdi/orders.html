@@ -23,7 +23,6 @@
 		</tr>
 	</thead>
 	<tbody>
-		{% autoescape off %}
 		{% for order in orders %}
 		<tr class="{% cycle 'odd' 'even' %}">
 			<td class="{{ order.o_type }}">{{ order.get_expiry_date|date:"Y-m-d H:i" }}</td>
@@ -39,7 +38,6 @@
 			<td class="{{ order.o_type }}" align="right">{{ order.item.sell_price|humanize }}</td>
 		</tr>
 		{% endfor %}
-		{% endautoescape %}
 	</tbody>
 </table>
 {% endblock %}

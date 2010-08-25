@@ -7,7 +7,6 @@
 
 {% block content %}
 <h1>{{ corporation.name }}</h1>
-{% autoescape off %}
 <table>
 	<tr>
 		<th>Name</th>
@@ -20,9 +19,8 @@
 		<td><a href="{% url everdi.rdi.views.trade_timeframe transaction.urlpart %}">{{ transaction.name }}</a></td>
 		<td align="right">{{ transaction.buy_total|commas }}</td>
 		<td align="right">{{ transaction.sell_total|commas }}</td>
-		<td align="right"{{ transaction.class }}>{{ transaction.balance|commas }}</td>
+		<td align="right"{{ transaction.class|safe }}>{{ transaction.balance|commas }}</td>
 	</tr>
 	{% endfor %}
 </table>
-{% endautoescape %}
 {% endblock %}

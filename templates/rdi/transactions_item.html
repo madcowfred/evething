@@ -17,7 +17,6 @@
 		</tr>
 	</thead>
 	<tbody>
-		{% autoescape off %}
 		{% for transaction in transactions %}
 		<tr class="{% cycle 'odd' 'even' %}">
 			<td class="{{ transaction.t_type }}">{{ transaction.date|date:"Y-m-d H:i" }}</td>
@@ -28,7 +27,6 @@
 			<td class="{{ transaction.t_type }}" align="right">{{ transaction.total_price|humanize }}</td>
 		</tr>
 		{% endfor %}
-		{% endautoescape %}
 	</tbody>
 </table>
 {% endblock %}
