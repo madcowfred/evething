@@ -136,6 +136,13 @@ def main():
 					if Transaction.objects.filter(pk=transaction_id):
 						continue
 					
+					# Make sure the item exists (??)
+					items = Item.objects.filter(pk=row.attrib['typeID'])
+					if items.count() == 0:
+						print "ERROR: item with typeID '%s' does not exist, what the fuck?" % (row.attrib['typeID'])
+						print '>> attrib = %r' % (row.attrib)
+						continue
+					
 					# Make the station object if it doesn't already exist
 					station = rdi_station(int(row.attrib['stationID']), row.attrib['stationName'])
 					
