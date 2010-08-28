@@ -136,7 +136,7 @@ def main():
 					if Transaction.objects.filter(pk=transaction_id):
 						continue
 					
-					# Make sure the item exists (??)
+					# Make sure the item typeID is valid
 					items = Item.objects.filter(pk=row.attrib['typeID'])
 					if items.count() == 0:
 						print "ERROR: item with typeID '%s' does not exist, what the fuck?" % (row.attrib['typeID'])
@@ -156,7 +156,7 @@ def main():
 						date=transaction_time,
 						t_type=row.attrib['transactionType'][0].upper(),
 						station=station,
-						item=Item.objects.filter(pk=row.attrib['typeID'])[0],
+						item=items[0],
 						quantity=quantity,
 						price=price,
 						total_price=quantity * price,
@@ -221,9 +221,17 @@ def main():
 						else:
 							o_type = 'B'
 						
+						# Make sure the character charID is valid
 						chars = Character.objects.filter(eve_character_id=row.attrib['charID'])
 						if not chars:
 							print 'ERROR: no matching Character object for charID=%s' % (row.attrib['charID'])
+							continue
+						
+						# Make sure the item typeID is valid
+						items = Item.objects.filter(pk=row.attrib['typeID'])
+						if items.count() == 0:
+							print "ERROR: item with typeID '%s' does not exist, what the fuck?" % (row.attrib['typeID'])
+							print '>> attrib = %r' % (row.attrib)
 							continue
 						
 						remaining = int(row.attrib['volRemaining'])
@@ -234,7 +242,7 @@ def main():
 							corp_wallet=CorpWallet.objects.filter(corporation=corporation, account_key=row.attrib['accountKey'])[0],
 							character=chars[0],
 							station=rdi_station(int(row.attrib['stationID']), 'UNKNOWN STATION'),
-							item=Item.objects.filter(pk=int(row.attrib['typeID']))[0],
+							item=items[0],
 							issued=parse_api_date(row.attrib['issued']),
 							o_type=o_type,
 							volume_entered=int(row.attrib['volEntered']),
