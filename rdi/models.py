@@ -260,7 +260,7 @@ class BlueprintInstance(models.Model):
 		
 		comps = []
 		
-		component_queryset = BlueprintComponent.objects.filter(blueprint=self.blueprint)
+		component_queryset = BlueprintComponent.objects.filter(blueprint=self.blueprint).select_related()
 		for component in component_queryset:
 			if component.needs_waste:
 				amt = round(component.count * (1 + ((WF / 100.0) / (ML + 1)) + (0.25 - (0.05 * PES))))

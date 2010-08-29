@@ -18,7 +18,7 @@ def blueprints(request):
 		runs = 1
 	
 	bpis = []
-	for bpi in BlueprintInstance.objects.all():
+	for bpi in BlueprintInstance.objects.all().select_related():
 		bpis.append({
 			'character': bpi.character,
 			'id': bpi.id,
@@ -304,7 +304,7 @@ def orders(request):
 	corporation = chars[0].corporation
 	
 	# Retrieve orders
-	orders = Order.objects.filter(corporation=corporation)
+	orders = Order.objects.filter(corporation=corporation).select_related()
 	
 	return render_to_response('rdi/orders.html', { 'orders': orders })
 
