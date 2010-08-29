@@ -177,62 +177,64 @@ def trade_timeframe(request, year=None, month=None, period=None, slug=None):
 		data['timeframe'] = 'all time'
 		data['urlpart'] = 'all'
 	
-	# Get distinct item ids
-	item_ids = transactions.values_list('item').distinct()
-	if not item_ids:
-		return rdi_error("There are no transactions or something, idk.")
+	# Do aggregate queries now instead of doing 2 per item type
+	item_buy_data = transactions.filter(t_type='B').values('item').annotate(
+		buy_quantity=Sum('quantity'),
+		buy_minimum=Min('price'),
+		buy_maximum=Max('price'),
+		buy_total=Sum('total_price'),
+	)
+	item_sell_data = transactions.filter(t_type='S').values('item').annotate(
+		sell_quantity=Sum('quantity'),
+		sell_minimum=Min('price'),
+		sell_maximum=Max('price'),
+		sell_total=Sum('total_price'),
+	)
+	
+	# And uhh combine them
+	item_data = {}
+	for row in item_buy_data:
+		item_data[row['item']] = row
+	for row in item_sell_data:
+		item_data.setdefault(row['item'], {}).update(row)
+	
+	# Get the shorter names - yuck!
+	for item_id, item in Item.objects.in_bulk([row['item'] for row in item_data.values()]).items():
+		item_data[item_id]['shorter_name'] = item.shorter_name()
 	
 	# Start gathering data
 	data['items'] = []
-	for item_id in item_ids:
-		iid = item_id[0]
-		item_data = { 'item': Item.objects.filter(pk=iid)[0] }
-		
-		t = transactions.filter(item=iid)
-		t_buy = t.filter(t_type='B')
-		if not t_buy:
-			continue
-		t_sell = t.filter(t_type='S')
-		if not t_sell:
-			continue
-		
-		# Buy data, urgh
-		item_data.update(t_buy.aggregate(
-			buy_quantity=Sum('quantity'),
-			buy_minimum=Min('price'),
-			buy_maximum=Max('price'),
-			buy_total=Sum('total_price'),
-		))
-		item_data['buy_average'] = (item_data['buy_total'] / item_data['buy_quantity']).quantize(Decimal('.01'), rounding=ROUND_UP)
-		
-		# Sell data, urgh
-		item_data.update(t_sell.aggregate(
-			sell_quantity=Sum('quantity'),
-			sell_minimum=Min('price'),
-			sell_maximum=Max('price'),
-			sell_total=Sum('total_price'),
-		))
-		item_data['sell_average'] = (item_data['sell_total'] / item_data['sell_quantity']).quantize(Decimal('.01'), rounding=ROUND_UP)
+	for item_row in item_data.values():
+		# Averages
+		if 'buy_quantity' in item_row:
+			item_row['buy_average'] = (item_row['buy_total'] / item_row['buy_quantity']).quantize(Decimal('.01'), rounding=ROUND_UP)
+		else:
+			item_row['buy_average'] = 0
+		if 'sell_quantity' in item_row:
+			item_row['sell_average'] = (item_row['sell_total'] / item_row['sell_quantity']).quantize(Decimal('.01'), rounding=ROUND_UP)
+		else:
+			item_row['sell_average'] = 0
 		
 		# Average profit
-		item_data['average_profit'] = item_data['sell_average'] - item_data['buy_average']
-		item_data['average_profit_per'] = Decimal('%.1f' % (item_data['average_profit'] / item_data['buy_average'] * 100))
+		if item_row['buy_average'] and item_row['sell_average']:
+			item_row['average_profit'] = item_row['sell_average'] - item_row['buy_average']
+			item_row['average_profit_per'] = Decimal('%.1f' % (item_row['average_profit'] / item_row['buy_average'] * 100))
 		# Balance
-		item_data['balance'] = item_data['sell_total'] - item_data['buy_total']
-		item_data['balance_class'] = rdi_balance_class(item_data['balance'])
+		item_row['balance'] = item_row.get('sell_total', 0) - item_row.get('buy_total', 0)
+		item_row['balance_class'] = rdi_balance_class(item_row['balance'])
 		# Projected balance
-		diff = item_data['buy_quantity'] - item_data['sell_quantity']
+		diff = item_row.get('buy_quantity', 0) - item_row.get('sell_quantity', 0)
 		if diff > 0:
-			item_data['projected'] = item_data['balance'] + (diff * item_data['sell_average'])
+			item_row['projected'] = item_row['balance'] + (diff * item_row['sell_average'])
 		else:
-			item_data['projected'] = item_data['balance']
-		item_data['projected_class'] = rdi_balance_class(item_data['projected'])
+			item_row['projected'] = item_row['balance']
+		item_row['projected_class'] = rdi_balance_class(item_row['projected'])
 		
-		data['items'].append(item_data)
+		data['items'].append(item_row)
 	
 	# Totals
-	data['total_buys'] = sum(item['buy_total'] for item in data['items'])
-	data['total_sells'] = sum(item['sell_total'] for item in data['items'])
+	data['total_buys'] = sum(item.get('buy_total', 0) for item in data['items'])
+	data['total_sells'] = sum(item.get('sell_total', 0) for item in data['items'])
 	data['total_balance'] = data['total_sells'] - data['total_buys']
 	data['total_balance_class'] = rdi_balance_class(data['total_balance'])
 	data['total_projected'] = sum(item['projected'] for item in data['items'])

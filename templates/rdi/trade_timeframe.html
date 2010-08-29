@@ -4,7 +4,7 @@
 {% block title %}RDSI: Trade: {{ timeframe }}{% endblock %}
 
 {% block extrahead %}
-	<script type="text/javascript">
+	<!--<script type="text/javascript">
 	$.tablesorter.addParser({
 		id: 'human',
 		is: function(s) { return false; },
@@ -49,7 +49,7 @@
 			'widgets': [ 'zebra' ],
 		});
 	});
-	</script>
+	</script>-->
 {% endblock %}
 
 {% block content %}
@@ -98,7 +98,7 @@
 	<tbody>
 		{% for item in items %}
 		<tr>
-			<td><a href="{% url everdi.rdi.views.transactions_item item.item.id urlpart %}">{{ item.item.shorter_name }}</a></td>
+			<td><a href="{% url everdi.rdi.views.transactions_item item.item urlpart %}">{{ item.shorter_name }}</a></td>
 			<td align="right" class="alt">{{ item.buy_quantity|humanize }}</td>
 			<td align="right" class="alt">{{ item.buy_minimum|humanize }}</td>
 			<td align="right" class="alt">{{ item.buy_average|humanize }}</td>
