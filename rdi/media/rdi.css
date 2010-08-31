@@ -13,7 +13,7 @@ td {
 	padding: 4px 6px 4px 6px;
 }
 
-th {
+th, tfoot tr td {
 	background: #BFBFCF;
 	padding: 4px 6px 4px 6px;
 }

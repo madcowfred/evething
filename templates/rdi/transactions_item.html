@@ -17,7 +17,7 @@
 		</tr>
 	</thead>
 	<tbody>
-		{% for transaction in transactions %}
+		{% for transaction in transactions.object_list %}
 		<tr class="{% cycle 'odd' 'even' %}">
 			<td class="{{ transaction.t_type }}">{{ transaction.date|date:"Y-m-d H:i" }}</td>
 			<td class="{{ transaction.t_type }}">{{ transaction.station.shorter_name }}</td>
@@ -28,5 +28,15 @@
 		</tr>
 		{% endfor %}
 	</tbody>
+	<tfoot>
+		<tr>
+			<td colspan="6" align="center">
+				{% if transactions.has_previous %}<a href="?page={{ transactions.previous_page_number }}">Previous</a> |{% endif %}
+				Page {{ transactions.number }} of {{ transactions.paginator.num_pages }}
+				{% if transactions.has_next %}| <a href="?page={{ transactions.next_page_number }}">Next</a>{% endif %}
+			</td>
+		</tr>
+	</tfoot>
+</div>
 </table>
 {% endblock %}

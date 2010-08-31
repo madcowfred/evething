@@ -2,8 +2,9 @@
 import datetime
 
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import render_to_response, get_object_or_404
+from django.core.paginator import Paginator, InvalidPage, EmptyPage
 from django.db.models import Avg, Count, Max, Min, Sum
+from django.shortcuts import render_to_response, get_object_or_404
 
 from everdi.rdi.models import *
 
@@ -247,7 +248,7 @@ def trade_timeframe(request, year=None, month=None, period=None, slug=None):
 # Corp transaction details
 @login_required
 def transactions(request):
-	return rdi_error('Not yet implemented.')
+	return transactions_item(request, 'all')
 
 # Corp transaction details for last x days for specific item
 @login_required
@@ -262,14 +263,19 @@ def transactions_item(request, item_id, year=None, month=None, period=None, slug
 	corporation = chars[0].corporation
 	
 	# Make sure item_id is valid
-	item_id = int(item_id)
-	transactions = Transaction.objects.filter(corporation=corporation, item=item_id).order_by('date').reverse()
-	if not transactions:
-		return rdi_error("There are no transactions for that corporation/item_id.")
+	data = {}
 	
-	data = {
-		'item': transactions[0].item.name,
-	}
+	if item_id.isdigit():
+		transactions = Transaction.objects.filter(corporation=corporation, item=item_id).order_by('date').reverse()
+	else:
+		transactions = Transaction.objects.order_by('date').reverse()
+		data['item'] = 'all items'
+	
+	if transactions.count() == 0:
+		return rdi_error("There are no transactions matching those criteria.")
+	
+	if 'item' not in data:
+		data['item'] = transactions[0].item.name
 	
 	# Year/Month
 	if year and month:
@@ -279,15 +285,33 @@ def transactions_item(request, item_id, year=None, month=None, period=None, slug
 	# Timeframe slug
 	elif slug:
 		tf = Timeframe.objects.filter(corporation=corporation, slug=slug)
-		if not tf:
+		if tf.count() == 0:
 			return rdi_error("Invalid timeframe slug.")
-		data['transactions'] = transactions.filter(date__range=(tf[0].start_date, tf[0].end_date))
+		transactions = transactions.filter(date__range=(tf[0].start_date, tf[0].end_date))
 		data['timeframe'] = '%s (%s -> %s)' % (tf[0].title, tf[0].start_date, tf[0].end_date)
 	# All
 	elif period:
-		data['transactions'] = transactions
 		data['timeframe'] = 'all time'
-		
+	else:
+		data['timeframe'] = 'all time'
+	
+	# Paginator stuff
+	paginator = Paginator(transactions, 100)
+	
+	# Make sure page request is an int. If not, deliver first page.
+	try:
+		page = int(request.GET.get('page', '1'))
+	except ValueError:
+		page = 1
+	
+	# If page request (9999) is out of range, deliver last page of results.
+	try:
+		transactions = paginator.page(page)
+	except (EmptyPage, InvalidPage):
+		transactions = paginator.page(paginator.num_pages)
+	
+	data['transactions'] = transactions
+	
 	# Spit it out I guess
 	return render_to_response('rdi/transactions_item.html', data)
 
