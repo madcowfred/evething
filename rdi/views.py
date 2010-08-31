@@ -13,10 +13,9 @@ from everdi.rdi.models import *
 # List of blueprints we own
 @login_required
 def blueprints(request):
-	runs = request.GET.get('runs')
-	if runs and runs.isdigit():
-		runs = int(runs)
-	else:
+	try:
+		runs = int(request.GET.get('runs', '1'))
+	except ValueError:
 		runs = 1
 	
 	bpis = []
@@ -46,8 +45,6 @@ def blueprint_details(request, bpi_id):
 	bpi = get_object_or_404(BlueprintInstance, pk=bpi_id)
 	components = BlueprintComponent.objects.filter(blueprint=bpi.blueprint)
 	
-	buy_total = 0
-	sell_total = 0
 	comps = []
 	for component in components:
 		comps.append({
@@ -58,8 +55,9 @@ def blueprint_details(request, bpi_id):
 			'sell_price': component.item.sell_price,
 			'sell_total': component.count * component.item.sell_price,
 		})
-		buy_total += comps[-1]['buy_total']
-		sell_total += comps[-1]['sell_total']
+	
+	buy_total = sum(comp['buy_total'] for comp in comps)
+	sell_total = sum(comp['sell_total'] for comp in comps)
 	
 	return render_to_response(
 		'rdi/blueprint_details.html',
@@ -257,9 +255,28 @@ def transactions(request):
 	if not char.corporation:
 		return rdi_error("Your character doesn't seem to be in a corporation.")
 	
-	corporation = char.corporation
+	# See if this corp has any transactions
+	transactions = Transaction.objects.filter(corporation=char.corporation).order_by('date').reverse()
+	if transactions.count() == 0:
+		return rdi_error("There are no transactions for your corporation.")
 	
-	#return transactions_item(request, 'all')
+	# Paginator stuff
+	paginator = Paginator(transactions, 100)
+	
+	# Make sure page request is an int. If not, deliver first page.
+	try:
+		page = int(request.GET.get('page', '1'))
+	except ValueError:
+		page = 1
+	
+	# If page request (9999) is out of range, deliver last page of results.
+	try:
+		transactions = paginator.page(page)
+	except (EmptyPage, InvalidPage):
+		transactions = paginator.page(paginator.num_pages)
+	
+	# Spit it out I guess
+	return render_to_response('rdi/transactions.html', { 'transactions': transactions })
 
 # Corp transaction details for last x days for specific item
 @login_required

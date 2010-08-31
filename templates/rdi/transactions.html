@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% load rdi_extras %}
+
+{% block title %}RDSI: Transactions{% endblock %}
+
+{% block nav-transactions %}<strong class="nav-active">Transactions</strong>{% endblock %}
+
+{% block content %}
+<h1>Item Sales</h1>
+<table>
+	<thead>
+		<tr>
+			<th>Date</th>
+			<th>Station</th>
+			<th>Item</th>
+			<th>Type</th>
+			<th>Quantity</th>
+			<th>Unit Price</th>
+			<th>Total Price</th>
+		</tr>
+	</thead>
+	<tbody>
+		{% for transaction in transactions.object_list %}
+		<tr class="{% cycle 'odd' 'even' %}">
+			<td class="{{ transaction.t_type }}">{{ transaction.date|date:"Y-m-d H:i" }}</td>
+			<td class="{{ transaction.t_type }}">{{ transaction.station.shorter_name }}</td>
+			<td class="{{ transaction.t_type }}"><a href="{% url transactions-all transaction.item.id 'all' %}">{{ transaction.item.shorter_name }}</a></td>
+			<td class="{{ transaction.t_type }}">{{ transaction.get_t_type_display }}</td>
+			<td class="{{ transaction.t_type }}" align="right">{{ transaction.quantity|humanize }}</td>
+			<td class="{{ transaction.t_type }}" align="right">{{ transaction.price|humanize }}</td>
+			<td class="{{ transaction.t_type }}" align="right">{{ transaction.total_price|humanize }}</td>
+		</tr>
+		{% endfor %}
+	</tbody>
+	<tfoot>
+		<tr>
+			<td colspan="7" align="center">
+				{% if transactions.has_previous %}<a href="?page={{ transactions.previous_page_number }}">Previous</a> |{% endif %}
+				Page {{ transactions.number }} of {{ transactions.paginator.num_pages }}
+				{% if transactions.has_next %}| <a href="?page={{ transactions.next_page_number }}">Next</a>{% endif %}
+			</td>
+		</tr>
+	</tfoot>
+</div>
+</table>
+{% endblock %}

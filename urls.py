@@ -34,14 +34,14 @@ urlpatterns += patterns('everdi.rdi.views',
 	
 	(r'^transactions/$', 'transactions'),
 	(r'^transactions/(?P<item_id>all|\d+)/(?P<year>\d{4})-(?P<month>\d{2})/$', 'transactions_item'),
-	(r'^transactions/(?P<item_id>all|\d+)/(?P<period>all)/$', 'transactions_item'),
+	url(r'^transactions/(?P<item_id>all|\d+)/(?P<period>all)/$', 'transactions_item', name='transactions-all'),
 	(r'^transactions/(?P<item_id>all|\d+)/(?P<slug>[-\w]+)/$', 'transactions_item'),
 )
 
 # Redirects
-#urlpatterns += patterns('django.views.generic.simple',
-#	('^transactions/$', 'redirect_to', { 'url': '/transactions/all/all/', 'permanent': False }),
-#)
+urlpatterns += patterns('django.views.generic.simple',
+	('^transactions/(?P<item_id>all|\d+)/$', 'redirect_to', { 'url': '/transactions/%(item_id)s/all/', 'permanent': False }),
+)
 
 
 if settings.DEBUG:
