@@ -2,6 +2,7 @@
 import datetime
 
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import Paginator, InvalidPage, EmptyPage
 from django.db.models import Avg, Count, Max, Min, Sum
 from django.shortcuts import render_to_response, get_object_or_404
@@ -75,14 +76,14 @@ MONTHS = (None, 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', '
 @login_required
 def trade(request):
 	# Check that they have a valid character
-	chars = Character.objects.filter(user=request.user)
-	if not chars:
-		return rdi_error("You do not have a character defined.")
-	if not chars[0].corporation:
+	try:
+		char = Character.objects.select_related().get(user=request.user)
+	except ObjectDoesNotExist:
+		return rdi_error("Your account does not have an associated character.")
+	if not char.corporation:
 		return rdi_error("Your character doesn't seem to be in a corporation.")
 	
-	corporation = chars[0].corporation
-	data = { 'corporation': corporation }
+	data = { 'corporation': char.corporation }
 	now = datetime.datetime.now()
 	
 	# Wallets
@@ -104,14 +105,14 @@ def trade(request):
 	#data['net_asset_value'] = data['wallet_balance'] + data['sell_total'] + data['escrow_total']
 	
 	# Transaction stuff oh god
-	transactions = Transaction.objects.filter(corporation=corporation)
+	transactions = Transaction.objects.filter(corporation=data['corporation'])
 	
 	t_check = []
 	# All
 	t_check.append(('[All]', 'all', transactions))
 	#t_check.append('-')
 	# Timeframes
-	for tf in Timeframe.objects.filter(corporation=corporation):
+	for tf in Timeframe.objects.filter(corporation=data['corporation']):
 		title = '[%s]' % (tf.title)
 		t_check.append((title, tf.slug, transactions.filter(date__range=(tf.start_date, tf.end_date))))
 	#if len(t_check) > 2:
@@ -146,18 +147,18 @@ def trade(request):
 @login_required
 def trade_timeframe(request, year=None, month=None, period=None, slug=None):
 	# Check that they have a valid character
-	chars = Character.objects.filter(user=request.user)
-	if not chars:
-		return rdi_error("You do not have a character defined.")
-	if not chars[0].corporation:
+	try:
+		char = Character.objects.select_related().get(user=request.user)
+	except ObjectDoesNotExist:
+		return rdi_error("Your account does not have an associated character.")
+	if not char.corporation:
 		return rdi_error("Your character doesn't seem to be in a corporation.")
 	
-	corporation = chars[0].corporation
-	data = { 'corporation': corporation }
+	data = { 'corporation': char.corporation }
 	now = datetime.datetime.now()
 	
 	# Get a QuerySet of transactions for this corporation
-	transactions = Transaction.objects.filter(corporation=corporation)
+	transactions = Transaction.objects.filter(corporation=data['corporation'])
 	
 	# Year/Month
 	if year and month:
@@ -167,7 +168,7 @@ def trade_timeframe(request, year=None, month=None, period=None, slug=None):
 		data['urlpart'] = '%s-%02d' % (year, month)
 	# Timeframe slug
 	elif slug:
-		tf = Timeframe.objects.filter(corporation=corporation, slug=slug)
+		tf = Timeframe.objects.filter(corporation=data['corporation'], slug=slug)
 		if not tf:
 			return rdi_error("Invalid timeframe slug.")
 		transactions = transactions.filter(date__range=(tf[0].start_date, tf[0].end_date))
@@ -248,25 +249,34 @@ def trade_timeframe(request, year=None, month=None, period=None, slug=None):
 # Corp transaction details
 @login_required
 def transactions(request):
-	return transactions_item(request, 'all')
+	# Check that they have a valid character
+	try:
+		char = Character.objects.select_related().get(user=request.user)
+	except ObjectDoesNotExist:
+		return rdi_error("Your account does not have an associated character.")
+	if not char.corporation:
+		return rdi_error("Your character doesn't seem to be in a corporation.")
+	
+	corporation = char.corporation
+	
+	#return transactions_item(request, 'all')
 
 # Corp transaction details for last x days for specific item
 @login_required
 def transactions_item(request, item_id, year=None, month=None, period=None, slug=None):
 	# Check that they have a valid character
-	chars = Character.objects.filter(user=request.user)
-	if not chars:
-		return rdi_error("You do not have a character defined.")
-	if not chars[0].corporation:
+	try:
+		char = Character.objects.select_related().get(user=request.user)
+	except ObjectDoesNotExist:
+		return rdi_error("Your account does not have an associated character.")
+	if not char.corporation:
 		return rdi_error("Your character doesn't seem to be in a corporation.")
-	
-	corporation = chars[0].corporation
 	
 	# Make sure item_id is valid
 	data = {}
 	
 	if item_id.isdigit():
-		transactions = Transaction.objects.filter(corporation=corporation, item=item_id).order_by('date').reverse()
+		transactions = Transaction.objects.filter(corporation=char.corporation, item=item_id).order_by('date').reverse()
 	else:
 		transactions = Transaction.objects.order_by('date').reverse()
 		data['item'] = 'all items'
@@ -284,7 +294,7 @@ def transactions_item(request, item_id, year=None, month=None, period=None, slug
 		data['timeframe'] = '%s %s' % (MONTHS[month], year)
 	# Timeframe slug
 	elif slug:
-		tf = Timeframe.objects.filter(corporation=corporation, slug=slug)
+		tf = Timeframe.objects.filter(corporation=char.corporation, slug=slug)
 		if tf.count() == 0:
 			return rdi_error("Invalid timeframe slug.")
 		transactions = transactions.filter(date__range=(tf[0].start_date, tf[0].end_date))
@@ -319,16 +329,15 @@ def transactions_item(request, item_id, year=None, month=None, period=None, slug
 @login_required
 def orders(request):
 	# Check that they have a valid character
-	chars = Character.objects.filter(user=request.user)
-	if not chars:
-		return rdi_error("You do not have a character defined.")
-	if not chars[0].corporation:
+	try:
+		char = Character.objects.select_related().get(user=request.user)
+	except ObjectDoesNotExist:
+		return rdi_error("Your account does not have an associated character.")
+	if not char.corporation:
 		return rdi_error("Your character doesn't seem to be in a corporation.")
 	
-	corporation = chars[0].corporation
-	
 	# Retrieve orders
-	orders = Order.objects.filter(corporation=corporation).select_related()
+	orders = Order.objects.filter(corporation=char.corporation).select_related()
 	
 	return render_to_response('rdi/orders.html', { 'orders': orders })
 
