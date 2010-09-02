@@ -45,7 +45,10 @@ def humanize(value):
 		return '%sB' % (v.quantize(Decimal('.01'), rounding=ROUND_UP))
 	elif value >= MILLION or value <= -MILLION:
 		v = Decimal(value) / MILLION
-		return '%sM' % (v.quantize(Decimal('.01'), rounding=ROUND_UP))
+		if v >= 10:
+			return '%sM' % (v.quantize(Decimal('.1'), rounding=ROUND_UP))
+		else:
+			return '%sM' % (v.quantize(Decimal('.01'), rounding=ROUND_UP))
 	elif value >= THOUSAND or value <= -THOUSAND:
 		v = Decimal(value) / THOUSAND
 		return '%sK' % (v.quantize(Decimal('.1'), rounding=ROUND_UP))
