@@ -24,6 +24,7 @@ def blueprints(request):
 			'character': bpi.character,
 			'id': bpi.id,
 			'blueprint': bpi.blueprint,
+			'type': bpi.get_bp_type_display(),
 			'material_level': bpi.material_level,
 			'productivity_level': bpi.productivity_level,
 			'count': bpi.blueprint.item.portion_size * runs,

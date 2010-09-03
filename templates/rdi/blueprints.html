@@ -3,6 +3,19 @@
 
 {% block title %}RDSI: Blueprints{% endblock %}
 
+{% block extrahead %}
+<script type="text/javascript">
+$(document).ready(function() {
+	$.ajaxSetup ({
+		cache: false  
+	});
+	$("#load_basic").click(function(){
+		$("#result").html(ajax_load).load(loadUrl);
+	});
+};
+</script>
+{% endblock %}
+
 {% block nav-blueprints %}<strong class="nav-active">Blueprints</strong>{% endblock %}
 
 {% block content %}
@@ -21,19 +34,21 @@
 		<tr>
 			<th>Owner</th>
 			<th>Blueprint</th>
+			<th>Type</th>
 			<th>ML</th>
 			<th>PL</th>
 			<th>#</th>
 			<th>Time</th>
 			<th>Unit (Buy)</th>
 			<th>Unit (Sell)</th>
-			<th>Market Price</th>
-			<th>Jita</th>
+			<th>Market</th>
+			<th>Links</th>
 		</tr>
 		{% for bpi in bpis %}
 		<tr class="{% cycle 'odd' 'even' %}">
 			<td>{{ bpi.character }}</td>
 			<td><a href="{{ bpi.id }}">{{ bpi.blueprint }}</a></td>
+			<td>{{ bpi.type }}</td>
 			<td align="center">{{ bpi.material_level }}</td>
 			<td align="center">{{ bpi.productivity_level }}</td>
 			<td align="right">{{ bpi.count }}</td>
@@ -41,7 +56,7 @@
 			<td align="right">{{ bpi.unit_cost_buy|humanize }}</td>
 			<td align="right">{{ bpi.unit_cost_sell|humanize }}</td>
 			<td align="right">{{ bpi.market_price|humanize }}</td>
-			<td><a href="http://www.eve-central.com/home/quicklook.html?typeid={{ bpi.blueprint.item.id }}&usesystem=30000142">EC</a></td>
+			<td><a href="http://www.eve-central.com/home/quicklook.html?typeid={{ bpi.blueprint.item.id }}">EC</a></td>
 		</tr>
 		{% endfor %}
 	</table>

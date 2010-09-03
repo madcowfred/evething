@@ -197,21 +197,22 @@ class BlueprintComponent(models.Model):
 class BlueprintInstance(models.Model):
 	character = models.ForeignKey(Character)
 	blueprint = models.ForeignKey(Blueprint)
+	bp_type = models.CharField(max_length=1, choices=((u'C', u'Copy'), (u'O', u'Original')))
 	material_level = models.IntegerField(default=0)
 	productivity_level = models.IntegerField(default=0)
 	
 	class Meta:
-		ordering = ('character', 'blueprint')
+		ordering = ('-bp_type', 'blueprint')
 	
 	def __unicode__(self):
-		return "%s's %s" % (self.character.name, self.blueprint.name)
+		return "%s's %s (%s)" % (self.character.name, self.blueprint.name, self.get_bp_type_display())
 	
 	# Calculate production time, taking PL and skills into account
 	def calc_production_time(self, runs=1):
 		# PTM = ProductionTimeModifier = (1 - (0.04 * IndustrySkill)) * ImplantModifier * ProductionSlotModifier
 		# ProductionTime (PL>=0) = BaseProductionTime * (1 - (ProductivityModifier / BaseProductionTime) * (PL / (1 + PL)) * PTM
 		# ProductionTime (PL<0)  = BaseProductionTime * (1 - (ProductivityModifier / BaseProductionTime) * (PL - 1)) * PTM
-		PTM = (1 - (Decimal('0.04') * self.character.industry_skill)) # implement implants/production slots
+		PTM = (1 - (Decimal('0.04') * self.character.industry_skill)) # FIXME:implement implants/production slot modifiers
 		BPT = Decimal(self.blueprint.production_time)
 		BPM = self.blueprint.productivity_modifier
 		PL = Decimal(self.productivity_level)
