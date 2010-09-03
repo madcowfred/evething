@@ -50,10 +50,10 @@
 			<td align="right">{{ bpi.production_time|duration }}</td>
 			<td align="right">{{ bpi.market_price|humanize }}</td>
 			<td align="right">{{ bpi.unit_cost_buy|humanize }}</td>
-			<td align="right">{{ bpi.unit_profit_buy|humanize }}</td>
+			<td align="right"{{ bpi.upb_class|safe }}>{{ bpi.unit_profit_buy|humanize }}</td>
 			<td align="right">{{ bpi.unit_cost_sell|humanize }}</td>
-			<td align="right">{{ bpi.unit_profit_sell|humanize }}</td>
-			<td><a href="http://www.eve-central.com/home/quicklook.html?typeid={{ bpi.blueprint.item.id }}">EC</a></td>
+			<td align="right"{{ bpi.ups_class|safe }}>{{ bpi.unit_profit_sell|humanize }}</td>
+			<td align="center"><a href="http://www.eve-central.com/home/quicklook.html?typeid={{ bpi.blueprint.item.id }}">EC</a></td>
 		</tr>
 		{% endfor %}
 	</table>

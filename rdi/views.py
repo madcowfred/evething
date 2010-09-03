@@ -34,7 +34,9 @@ def blueprints(request):
 			'market_price': bpi.blueprint.item.sell_price,
 		})
 		bpis[-1]['unit_profit_buy'] = bpis[-1]['market_price'] - bpis[-1]['unit_cost_buy']
+		bpis[-1]['upb_class'] = rdi_balance_class(bpis[-1]['unit_profit_buy'])
 		bpis[-1]['unit_profit_sell'] = bpis[-1]['market_price'] - bpis[-1]['unit_cost_sell']
+		bpis[-1]['ups_class'] = rdi_balance_class(bpis[-1]['unit_profit_sell'])
 	
 	return render_to_response(
 		'rdi/blueprints.html',
