@@ -202,7 +202,7 @@ class BlueprintInstance(models.Model):
 	productivity_level = models.IntegerField(default=0)
 	
 	class Meta:
-		ordering = ('-bp_type', 'blueprint')
+		ordering = ('bp_type', 'blueprint')
 	
 	def __unicode__(self):
 		return "%s's %s (%s)" % (self.character.name, self.blueprint.name, self.get_bp_type_display())
