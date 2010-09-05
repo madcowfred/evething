@@ -3,6 +3,18 @@
 
 {% block title %}RDSI: Blueprints{% endblock %}
 
+{% block extrahead %}
+	<script type="text/javascript">
+	$(document).ready(function() {
+		$("#blueprints tbody tr.hiding").hide();
+		$("#blueprints tbody tr:first-child").show();
+		$("#blueprints tbody tr:not(.hiding)").click(function(){
+			$(this).next("tr").toggle();
+		}); 
+	});
+	</script>
+{% endblock %}
+
 {% block nav-blueprints %}<strong class="nav-active">Blueprints</strong>{% endblock %}
 
 {% block content %}
@@ -17,45 +29,62 @@
 	</table>
 	</form>
 	
-	<table>
-		<tr>
-			<td colspan="8"></td>
-			<td colspan="2" class="head">Buy</td>
-			<td colspan="2" class="head">Sell</td>
-			<td></td>
-		</tr>
-		<tr>
-			<th>Owner</th>
-			<th>Blueprint</th>
-			<th>Type</th>
-			<th>ML</th>
-			<th>PL</th>
-			<th>#</th>
-			<th>Time</th>
-			<th>Market</th>
-			<th>Make</th>
-			<th>Profit</th>
-			<th>Make</th>
-			<th>Profit</th>
-			<th>Links</th>
-		</tr>
-		{% for bpi in bpis %}
-		<tr class="{% cycle 'odd' 'even' %}">
-			<td>{{ bpi.character }}</td>
-			<td><a href="{{ bpi.id }}">{{ bpi.blueprint.item }}</a></td>
-			<td>{{ bpi.type }}</td>
-			<td align="center">{{ bpi.material_level }}</td>
-			<td align="center">{{ bpi.productivity_level }}</td>
-			<td align="right">{{ bpi.count }}</td>
-			<td align="right">{{ bpi.production_time|duration }}</td>
-			<td align="right">{{ bpi.market_price|humanize }}</td>
-			<td align="right">{{ bpi.unit_cost_buy|humanize }}</td>
-			<td align="right"{{ bpi.upb_class|safe }}>{{ bpi.unit_profit_buy|humanize }}</td>
-			<td align="right">{{ bpi.unit_cost_sell|humanize }}</td>
-			<td align="right"{{ bpi.ups_class|safe }}>{{ bpi.unit_profit_sell|humanize }}</td>
-			<td align="center"><a href="http://www.eve-central.com/home/quicklook.html?typeid={{ bpi.blueprint.item.id }}">EC</a></td>
-		</tr>
-		{% endfor %}
+	<table id="blueprints">
+		<thead>
+			<tr>
+				<td colspan="8"></td>
+				<td colspan="2" class="head">Buy</td>
+				<td colspan="2" class="head">Sell</td>
+				<td></td>
+			</tr>
+			<tr>
+				<th>Owner</th>
+				<th>Blueprint</th>
+				<th>Type</th>
+				<th>ML</th>
+				<th>PL</th>
+				<th>#</th>
+				<th>Time</th>
+				<th>Market</th>
+				<th>Make</th>
+				<th>Profit</th>
+				<th>Make</th>
+				<th>Profit</th>
+				<th>Links</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for bpi in bpis %}
+			<tr class="{% cycle 'odd' 'even' %}">
+				<td>{{ bpi.character }}</td>
+				<td><a href="{{ bpi.id }}">{{ bpi.blueprint.item }}</a></td>
+				<td>{{ bpi.type }}</td>
+				<td align="center">{{ bpi.material_level }}</td>
+				<td align="center">{{ bpi.productivity_level }}</td>
+				<td align="right">{{ bpi.count }}</td>
+				<td align="right">{{ bpi.production_time|duration }}</td>
+				<td align="right">{{ bpi.market_price|humanize }}</td>
+				<td align="right">{{ bpi.unit_cost_buy|humanize }}</td>
+				<td align="right"{{ bpi.upb_class|safe }}>{{ bpi.unit_profit_buy|humanize }}</td>
+				<td align="right">{{ bpi.unit_cost_sell|humanize }}</td>
+				<td align="right"{{ bpi.ups_class|safe }}>{{ bpi.unit_profit_sell|humanize }}</td>
+				<td align="center"><a href="http://www.eve-central.com/home/quicklook.html?typeid={{ bpi.blueprint.item.id }}">EC</a></td>
+			</tr>
+			<tr class="hiding">
+				<td></td>
+				<td colspan="12">
+					<table>
+						{% for item in bpi.components %}
+						<tr class="{% cycle 'odd' 'even' %}">
+							<td class="alt">{{ item.0 }}</td>
+							<td class="alt" align="right">{{ item.1|commas }}</td>
+						</tr>
+						{% endfor %}
+					</table>
+				</td>
+			</tr>
+			{% endfor %}
+		</tbody>
 	</table>
 {% else %}
 	<p>No blueprint instances are available.</p>

@@ -32,6 +32,7 @@ def blueprints(request):
 			'unit_cost_buy': bpi.calc_production_cost(runs=runs),
 			'unit_cost_sell': bpi.calc_production_cost(runs=runs, use_sell=True),
 			'market_price': bpi.blueprint.item.sell_price,
+			'components': bpi._get_components(runs=runs),
 		})
 		bpis[-1]['unit_profit_buy'] = bpis[-1]['market_price'] - bpis[-1]['unit_cost_buy']
 		bpis[-1]['upb_class'] = rdi_balance_class(bpis[-1]['unit_profit_buy'])
