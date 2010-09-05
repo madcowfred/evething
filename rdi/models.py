@@ -239,10 +239,7 @@ class BlueprintInstance(models.Model):
 		
 		# Factory costs
 		total_cost += self.character.factory_cost
-		
-		PT = self.calc_production_time(runs=runs)
-		total_cost += (self.character.factory_per_hour * (PT / 3600))
-		
+		total_cost += (self.character.factory_per_hour * (self.calc_production_time(runs=runs) / 3600))
 		# Sales tax
 		total_cost *= (1 + (self.character.sales_tax / 100))
 		# Broker's fee
