@@ -74,6 +74,22 @@ class Item(models.Model):
 				return self.name.replace(orig, rep, 1)
 		return self.name
 
+# Historical item price data
+class ItemPriceHistory(models.Model):
+	item = models.ForeignKey(Item)
+	date = models.DateField()
+	average = models.DecimalField(max_digits=15, decimal_places=2)
+	maximum = models.DecimalField(max_digits=15, decimal_places=2)
+	minimum = models.DecimalField(max_digits=15, decimal_places=2)
+	movement = models.BigIntegerField()
+	orders = models.IntegerField()
+	
+	class Meta:
+		ordering = ('-date',)
+	
+	def __unicode__(self):
+		return '%s (%s)' % (self.item, self.date)
+
 # Station
 numeral_map = zip(
 	(1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1),
