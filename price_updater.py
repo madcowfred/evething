@@ -4,7 +4,6 @@ import os
 import time
 import urllib2
 import xml.etree.ElementTree as ET
-from decimal import *
 
 # Aurgh
 from django.core.management import setup_environ
@@ -14,7 +13,7 @@ setup_environ(settings)
 from rdi.models import *
 
 
-QUICKLOOK_URL = 'http://api.eve-central.com/api/quicklook?typeid=%s&usesystem=30000142'
+PRICE_URL = 'http://www.eve-metrics.com/api/item.xml?type_ids=%s&region_ids=10000002'
 
 
 def main():
@@ -29,35 +28,23 @@ def main():
 	# Get a list of items in active orders
 	for item_id in Order.objects.values_list('item').distinct():
 		item_ids.update(item_id)
+	item_ids = [str(item_id) for item_id in item_ids]
 	
 	# Fetch market data and write to the database
-	for item_id in item_ids:
-		item = Item.objects.filter(pk=item_id)[0]
-		
-		# Retrieve quicklook data and parse the XML
-		url = QUICKLOOK_URL % (item_id)
+	for i in range(0, len(item_ids), 25):
+		url = PRICE_URL % (','.join(item_ids[i:i+25]))
 		f = urllib2.urlopen(url)
 		data = f.read()
 		f.close()
 		root = ET.fromstring(data)
 		
-		# Find a not quite bottom sell order
-		sell_orders = root.findall('quicklook/sell_orders/order')
-		if not sell_orders:
-			continue
-		n = min(2, len(sell_orders) - 1)
-		item.sell_price = Decimal(sell_orders[n].find('price').text)
-		
-		# Find a not quite bottom buy order
-		buy_orders = root.findall('quicklook/buy_orders/order')
-		if not buy_orders:
-			continue
-		n = min(2, len(buy_orders) - 1)
-		item.buy_price = Decimal(buy_orders[n].find('price').text)
-		
-		item.save()
-		
-		time.sleep(1)
+		# Items ho
+		for t in root.findall('type'):
+			item = Item.objects.get(pk=t.attrib['id'])
+			item.buy_price = t.find('region/buy/simulated').text
+			item.sell_price = t.find('region/sell/simulated').text
+			item.save()
+
 
 if __name__ == '__main__':
 	main()
