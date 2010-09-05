@@ -281,6 +281,6 @@ class BlueprintInstance(models.Model):
 			else:
 				amt = component.count
 			
-			comps.append((component.item, amt * runs))
+			comps.append((component.item, int(amt * runs)))
 		
 		return comps
