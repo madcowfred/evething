@@ -1,5 +1,5 @@
 from django.contrib import admin
-from everdi.rdi.models import BlueprintInstance, Character, Corporation, Timeframe
+from evething.thing.models import BlueprintInstance, Character, Corporation, Timeframe
 
 class CharacterAdmin(admin.ModelAdmin):
 	fieldsets = [

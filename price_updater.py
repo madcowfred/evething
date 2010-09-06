@@ -10,7 +10,7 @@ from django.core.management import setup_environ
 import settings
 setup_environ(settings)
 
-from rdi.models import *
+from thing.models import *
 
 
 PRICE_URL = 'http://www.eve-metrics.com/api/item.xml?type_ids=%s&region_ids=10000002'

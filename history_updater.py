@@ -10,7 +10,7 @@ from django.core.management import setup_environ
 import settings
 setup_environ(settings)
 
-from rdi.models import *
+from thing.models import *
 
 
 HISTORY_URL = 'http://eve-metrics.com/api/history.xml?type_ids=%s&days=90'

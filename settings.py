@@ -1,4 +1,4 @@
-# Django settings for everdi project.
+# Django settings for evething project.
 
 DEBUG = False
 TEMPLATE_DEBUG = DEBUG
@@ -13,7 +13,7 @@ MANAGERS = ADMINS
 #DATABASES = {
 #    'default': {
 #        'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-#        'NAME': '/home/freddie/git/everdi/everdi.db',                      # Or path to database file if using sqlite3.
+#        'NAME': '/home/freddie/git/evething/evething.db',                      # Or path to database file if using sqlite3.
 #        'USER': '',                      # Not used with sqlite3.
 #        'PASSWORD': '',                  # Not used with sqlite3.
 #        'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
@@ -51,7 +51,7 @@ MEDIA_ROOT = ''
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash if there is a path component (optional in other cases).
 # Examples: "http://media.lawrence.com", "http://example.com/media/"
-MEDIA_URL = '/rdi_media/'
+MEDIA_URL = '/thing_media/'
 
 # URL prefix for admin media -- CSS, JavaScript and images. Make sure to use a
 # trailing slash.
@@ -77,13 +77,13 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
 )
 
-ROOT_URLCONF = 'everdi.urls'
+ROOT_URLCONF = 'evething.urls'
 
 TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
-	'/home/freddie/git/everdi/templates',
+	'/home/freddie/git/evething/templates',
 )
 
 INSTALLED_APPS = (
@@ -95,7 +95,7 @@ INSTALLED_APPS = (
     # Uncomment the next line to enable the admin:
     'django.contrib.admin',
     'django.contrib.admindocs',
-    'everdi.rdi',
+    'evething.thing',
 )
 
 INTERNAL_IPS = (

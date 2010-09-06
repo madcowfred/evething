@@ -7,7 +7,7 @@ from django.core.paginator import Paginator, InvalidPage, EmptyPage
 from django.db.models import Avg, Count, Max, Min, Sum
 from django.shortcuts import render_to_response, get_object_or_404
 
-from everdi.rdi.models import *
+from evething.thing.models import *
 
 
 # List of blueprints we own
@@ -35,12 +35,12 @@ def blueprints(request):
 			'components': bpi._get_components(runs=runs),
 		})
 		bpis[-1]['unit_profit_buy'] = bpis[-1]['market_price'] - bpis[-1]['unit_cost_buy']
-		bpis[-1]['upb_class'] = rdi_balance_class(bpis[-1]['unit_profit_buy'])
+		bpis[-1]['upb_class'] = get_balance_class(bpis[-1]['unit_profit_buy'])
 		bpis[-1]['unit_profit_sell'] = bpis[-1]['market_price'] - bpis[-1]['unit_cost_sell']
-		bpis[-1]['ups_class'] = rdi_balance_class(bpis[-1]['unit_profit_sell'])
+		bpis[-1]['ups_class'] = get_balance_class(bpis[-1]['unit_profit_sell'])
 	
 	return render_to_response(
-		'rdi/blueprints.html',
+		'thing/blueprints.html',
 		{
 			'bpis': bpis,
 			'runs': runs,
@@ -66,7 +66,7 @@ def blueprint_details(request, bpi_id):
 	sell_total = sum(comp['sell_total'] for comp in comps)
 	
 	return render_to_response(
-		'rdi/blueprint_details.html',
+		'thing/blueprint_details.html',
 		{
 			'blueprint_name': bpi.blueprint.name,
 			'components': comps,
@@ -83,9 +83,9 @@ def trade(request):
 	try:
 		char = Character.objects.select_related().get(user=request.user)
 	except ObjectDoesNotExist:
-		return rdi_error("Your account does not have an associated character.")
+		return show_error("Your account does not have an associated character.")
 	if not char.corporation:
-		return rdi_error("Your character doesn't seem to be in a corporation.")
+		return show_error("Your character doesn't seem to be in a corporation.")
 	
 	data = { 'corporation': char.corporation }
 	now = datetime.datetime.now()
@@ -93,7 +93,7 @@ def trade(request):
 	# Wallets
 	#wallets = CorpWallet.objects.filter(corporation=corporation)
 	#if not wallets:
-	#	return rdi_error("This corporation has no wallets in the database, run API updater!")
+	#	return show_error("This corporation has no wallets in the database, run API updater!")
 	#
 	#data['wallets'] = wallets
 	#data['wallet_balance'] = wallets.aggregate(Sum('balance'))['balance__sum'] or 0
@@ -139,13 +139,13 @@ def trade(request):
 			row['balance'] = 0
 		else:
 			row['balance'] = row['sell_total'] - row['buy_total']
-		row['class'] = rdi_balance_class(row['balance'])
+		row['class'] = get_balance_class(row['balance'])
 		
 		t_data.append(row)
 	
 	data['transactions'] = t_data
 	
-	return render_to_response('rdi/trade.html', data)
+	return render_to_response('thing/trade.html', data)
 
 # Trade overview for a variety of timeframe types
 @login_required
@@ -154,9 +154,9 @@ def trade_timeframe(request, year=None, month=None, period=None, slug=None):
 	try:
 		char = Character.objects.select_related().get(user=request.user)
 	except ObjectDoesNotExist:
-		return rdi_error("Your account does not have an associated character.")
+		return show_error("Your account does not have an associated character.")
 	if not char.corporation:
-		return rdi_error("Your character doesn't seem to be in a corporation.")
+		return show_error("Your character doesn't seem to be in a corporation.")
 	
 	data = { 'corporation': char.corporation }
 	now = datetime.datetime.now()
@@ -174,7 +174,7 @@ def trade_timeframe(request, year=None, month=None, period=None, slug=None):
 	elif slug:
 		tf = Timeframe.objects.filter(corporation=data['corporation'], slug=slug)
 		if not tf:
-			return rdi_error("Invalid timeframe slug.")
+			return show_error("Invalid timeframe slug.")
 		transactions = transactions.filter(date__range=(tf[0].start_date, tf[0].end_date))
 		data['timeframe'] = '%s (%s -> %s)' % (tf[0].title, tf[0].start_date, tf[0].end_date)
 		data['urlpart'] = slug
@@ -227,14 +227,14 @@ def trade_timeframe(request, year=None, month=None, period=None, slug=None):
 			item_row['average_profit_per'] = Decimal('%.1f' % (item_row['average_profit'] / item_row['buy_average'] * 100))
 		# Balance
 		item_row['balance'] = item_row.get('sell_total', 0) - item_row.get('buy_total', 0)
-		item_row['balance_class'] = rdi_balance_class(item_row['balance'])
+		item_row['balance_class'] = get_balance_class(item_row['balance'])
 		# Projected balance
 		diff = item_row.get('buy_quantity', 0) - item_row.get('sell_quantity', 0)
 		if diff > 0:
 			item_row['projected'] = item_row['balance'] + (diff * item_row['sell_average'])
 		else:
 			item_row['projected'] = item_row['balance']
-		item_row['projected_class'] = rdi_balance_class(item_row['projected'])
+		item_row['projected_class'] = get_balance_class(item_row['projected'])
 		
 		data['items'].append(item_row)
 	
@@ -242,12 +242,12 @@ def trade_timeframe(request, year=None, month=None, period=None, slug=None):
 	data['total_buys'] = sum(item.get('buy_total', 0) for item in data['items'])
 	data['total_sells'] = sum(item.get('sell_total', 0) for item in data['items'])
 	data['total_balance'] = data['total_sells'] - data['total_buys']
-	data['total_balance_class'] = rdi_balance_class(data['total_balance'])
+	data['total_balance_class'] = get_balance_class(data['total_balance'])
 	data['total_projected'] = sum(item['projected'] for item in data['items'])
-	data['total_projected_class'] = rdi_balance_class(data['total_projected'])
+	data['total_projected_class'] = get_balance_class(data['total_projected'])
 	
 	# GENERATE
-	return render_to_response('rdi/trade_timeframe.html', data)
+	return render_to_response('thing/trade_timeframe.html', data)
 
 
 # Corp transaction details
@@ -257,14 +257,14 @@ def transactions(request):
 	try:
 		char = Character.objects.select_related().get(user=request.user)
 	except ObjectDoesNotExist:
-		return rdi_error("Your account does not have an associated character.")
+		return show_error("Your account does not have an associated character.")
 	if not char.corporation:
-		return rdi_error("Your character doesn't seem to be in a corporation.")
+		return show_error("Your character doesn't seem to be in a corporation.")
 	
 	# See if this corp has any transactions
 	transactions = Transaction.objects.filter(corporation=char.corporation).order_by('date').reverse()
 	if transactions.count() == 0:
-		return rdi_error("There are no transactions for your corporation.")
+		return show_error("There are no transactions for your corporation.")
 	
 	# Paginator stuff
 	paginator = Paginator(transactions, 100)
@@ -282,7 +282,7 @@ def transactions(request):
 		transactions = paginator.page(paginator.num_pages)
 	
 	# Spit it out I guess
-	return render_to_response('rdi/transactions.html', { 'transactions': transactions })
+	return render_to_response('thing/transactions.html', { 'transactions': transactions })
 
 # Corp transaction details for last x days for specific item
 @login_required
@@ -291,9 +291,9 @@ def transactions_item(request, item_id, year=None, month=None, period=None, slug
 	try:
 		char = Character.objects.select_related().get(user=request.user)
 	except ObjectDoesNotExist:
-		return rdi_error("Your account does not have an associated character.")
+		return show_error("Your account does not have an associated character.")
 	if not char.corporation:
-		return rdi_error("Your character doesn't seem to be in a corporation.")
+		return show_error("Your character doesn't seem to be in a corporation.")
 	
 	# Make sure item_id is valid
 	data = {}
@@ -305,7 +305,7 @@ def transactions_item(request, item_id, year=None, month=None, period=None, slug
 		data['item'] = 'all items'
 	
 	if transactions.count() == 0:
-		return rdi_error("There are no transactions matching those criteria.")
+		return show_error("There are no transactions matching those criteria.")
 	
 	if 'item' not in data:
 		data['item'] = transactions[0].item.name
@@ -319,7 +319,7 @@ def transactions_item(request, item_id, year=None, month=None, period=None, slug
 	elif slug:
 		tf = Timeframe.objects.filter(corporation=char.corporation, slug=slug)
 		if tf.count() == 0:
-			return rdi_error("Invalid timeframe slug.")
+			return show_error("Invalid timeframe slug.")
 		transactions = transactions.filter(date__range=(tf[0].start_date, tf[0].end_date))
 		data['timeframe'] = '%s (%s -> %s)' % (tf[0].title, tf[0].start_date, tf[0].end_date)
 	# All
@@ -346,7 +346,7 @@ def transactions_item(request, item_id, year=None, month=None, period=None, slug
 	data['transactions'] = transactions
 	
 	# Spit it out I guess
-	return render_to_response('rdi/transactions_item.html', data)
+	return render_to_response('thing/transactions_item.html', data)
 
 # Active orders
 @login_required
@@ -355,20 +355,20 @@ def orders(request):
 	try:
 		char = Character.objects.select_related().get(user=request.user)
 	except ObjectDoesNotExist:
-		return rdi_error("Your account does not have an associated character.")
+		return show_error("Your account does not have an associated character.")
 	if not char.corporation:
-		return rdi_error("Your character doesn't seem to be in a corporation.")
+		return show_error("Your character doesn't seem to be in a corporation.")
 	
 	# Retrieve orders
 	orders = Order.objects.filter(corporation=char.corporation).select_related()
 	
-	return render_to_response('rdi/orders.html', { 'orders': orders })
+	return render_to_response('thing/orders.html', { 'orders': orders })
 
 
-def rdi_error(error_msg):
-	return render_to_response('rdi/error.html', { 'error': error_msg })
+def show_error(error_msg):
+	return render_to_response('thing/error.html', { 'error': error_msg })
 
-def rdi_balance_class(balance):
+def get_balance_class(balance):
 	if balance > 0:
 		return ' class="g"'
 	elif balance < 0:

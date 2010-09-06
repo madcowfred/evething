@@ -1,7 +1,7 @@
 {% extends "base.html" %}
-{% load rdi_extras %}
+{% load thing_extras %}
 
-{% block title %}RDSI: Trade{% endblock %}
+{% block title %}Trade{% endblock %}
 
 {% block nav-trade %}<strong class="nav-active">Trade</strong>{% endblock %}
 
@@ -16,7 +16,7 @@
 	</tr>
 	{% for transaction in transactions %}
 	<tr class="{% cycle 'odd' 'even' %}">
-		<td><a href="{% url everdi.rdi.views.trade_timeframe transaction.urlpart %}">{{ transaction.name }}</a></td>
+		<td><a href="{% url evething.thing.views.trade_timeframe transaction.urlpart %}">{{ transaction.name }}</a></td>
 		<td align="right">{{ transaction.buy_total|commas }}</td>
 		<td align="right">{{ transaction.sell_total|commas }}</td>
 		<td align="right"{{ transaction.class|safe }}>{{ transaction.balance|commas }}</td>

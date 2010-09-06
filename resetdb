@@ -1,6 +1,6 @@
 #!/bin/sh
 
-dropdb everdi && createdb everdi && python manage.py syncdb
+dropdb evething && createdb evething && python manage.py syncdb
 
 python manage.py loaddata item.json
 python manage.py loaddata blueprint.json

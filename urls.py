@@ -20,7 +20,7 @@ urlpatterns = patterns('',
 	(r'^accounts/logout/$', logout),
 )
 
-urlpatterns += patterns('everdi.rdi.views',
+urlpatterns += patterns('evething.thing.views',
 	(r'^blueprints/$', 'blueprints'),
 	
 	(r'^orders/$', 'orders'),
@@ -46,5 +46,5 @@ urlpatterns += patterns('django.views.generic.simple',
 
 if settings.DEBUG:
 	urlpatterns += patterns('',
-		(r'^rdi_media/(?P<path>.*)$', 'django.views.static.serve', {'document_root': settings.MEDIA_ROOT}),
+		(r'^thing_media/(?P<path>.*)$', 'django.views.static.serve', {'document_root': settings.MEDIA_ROOT}),
 	)

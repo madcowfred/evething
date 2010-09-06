@@ -56,14 +56,14 @@ td.r {
 }
 
 table.tablesorter thead tr .header {
-	background-image: url(/rdi_media/bg.gif);
+	background-image: url(/thing_media/bg.gif);
 	background-repeat: no-repeat;
 	background-position: center right;
 	cursor: pointer;
 }
 table.tablesorter thead tr .headerSortUp {
-	background-image: url(/rdi_media/asc.gif);
+	background-image: url(/thing_media/asc.gif);
 }
 table.tablesorter thead tr .headerSortDown {
-	background-image: url(/rdi_media/desc.gif);
+	background-image: url(/thing_media/desc.gif);
 }

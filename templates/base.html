@@ -1,19 +1,19 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
-	<title>{% block title %}{% endblock %}</title>
-	<link rel="stylesheet" href="/rdi_media/rdi.css" type="text/css" />
+	<title>EVEThing: {% block title %}{% endblock %}</title>
+	<link rel="stylesheet" href="/thing_media/thing.css" type="text/css" />
 	<script type="text/javascript" src="/media/js/jquery.min.js"></script> 
-	<script type="text/javascript" src="/rdi_media/jquery.tablesorter.min.js"></script>
+	<script type="text/javascript" src="/thing_media/jquery.tablesorter.min.js"></script>
 	{% block extrahead %}{% endblock %}
 </head>
 <body>
 	{% block nav %}
 	<ul id="nav">
-		<li>{% block nav-blueprints %}<a href="{% url everdi.rdi.views.blueprints %}">Blueprints</a>{% endblock %}</li>
-		<li>{% block nav-orders %}<a href="{% url everdi.rdi.views.orders %}">Orders</a>{% endblock %}</li>
-		<li>{% block nav-trade %}<a href="{% url everdi.rdi.views.trade %}">Trade</a>{% endblock %}</li>
-		<li>{% block nav-transactions %}<a href="{% url everdi.rdi.views.transactions %}">Transactions</a>{% endblock %}</li>
+		<li>{% block nav-blueprints %}<a href="{% url evething.thing.views.blueprints %}">Blueprints</a>{% endblock %}</li>
+		<li>{% block nav-orders %}<a href="{% url evething.thing.views.orders %}">Orders</a>{% endblock %}</li>
+		<li>{% block nav-trade %}<a href="{% url evething.thing.views.trade %}">Trade</a>{% endblock %}</li>
+		<li>{% block nav-transactions %}<a href="{% url evething.thing.views.transactions %}">Transactions</a>{% endblock %}</li>
 	</ul>
 	{%endblock %}
 	{% block content %}{% endblock %}

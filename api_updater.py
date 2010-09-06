@@ -13,7 +13,7 @@ from django.core.management import setup_environ
 import settings
 setup_environ(settings)
 
-from rdi.models import *
+from thing.models import *
 
 
 BASE_URL = 'http://api.eve-online.com'
@@ -144,7 +144,7 @@ def main():
 						continue
 					
 					# Make the station object if it doesn't already exist
-					station = rdi_station(int(row.attrib['stationID']), row.attrib['stationName'])
+					station = get_station(int(row.attrib['stationID']), row.attrib['stationName'])
 					
 					# Make the transaction object
 					quantity = int(row.attrib['quantity'])
@@ -241,7 +241,7 @@ def main():
 							corporation=corporation,
 							corp_wallet=CorpWallet.objects.filter(corporation=corporation, account_key=row.attrib['accountKey'])[0],
 							character=chars[0],
-							station=rdi_station(int(row.attrib['stationID']), 'UNKNOWN STATION'),
+							station=get_station(int(row.attrib['stationID']), 'UNKNOWN STATION'),
 							item=items[0],
 							issued=parse_api_date(row.attrib['issued']),
 							o_type=o_type,
@@ -288,7 +288,7 @@ def parse_api_date(s):
 def show_error(text, err, times):
 	print '(%s) %s: %s | %s -> %s' % (text, err.attrib['code'], err.text, times['current'], times['until'])
 
-def rdi_station(station_id, station_name):
+def get_station(station_id, station_name):
 	station = Station.objects.filter(pk=station_id)
 	if station:
 		station = station[0]

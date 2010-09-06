@@ -1,7 +1,7 @@
 {% extends "base.html" %}
-{% load rdi_extras %}
+{% load thing_extras %}
 
-{% block title %}RDSI: Blueprints{% endblock %}
+{% block title %}Blueprints{% endblock %}
 
 {% block extrahead %}
 	<script type="text/javascript">
@@ -57,7 +57,7 @@
 			{% for bpi in bpis %}
 			<tr class="{% cycle 'odd' 'even' %}">
 				<td>{{ bpi.character }}</td>
-				<td><a href="{{ bpi.id }}">{{ bpi.blueprint.item }}</a></td>
+				<td>{{ bpi.blueprint.item }}</td>
 				<td>{{ bpi.type }}</td>
 				<td align="center">{{ bpi.material_level }}</td>
 				<td align="center">{{ bpi.productivity_level }}</td>
