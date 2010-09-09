@@ -108,6 +108,7 @@ def bpcalc(request):
 		components.append({
 			'item': item,
 			'amount': amt,
+			'volume': (amt * item.volume).quantize(Decimal('.1')),
 			'buy_total': amt * item.buy_price,
 			'sell_total': amt * item.sell_price,
 		})
@@ -121,6 +122,11 @@ def bpcalc(request):
 		'sell_build': sum(bpi['sell_build'] for bpi in bpis),
 		'sell_profit': sum(bpi['sell_profit'] for bpi in bpis),
 	}
+	comp_totals = {
+		'volume': sum(comp['volume'] for comp in components),
+		'buy_total': sum(comp['buy_total'] for comp in components),
+		'sell_total': sum(comp['sell_total'] for comp in components),
+	}
 	
 	return render_to_response(
 		'thing/bpcalc.html',
@@ -128,6 +134,7 @@ def bpcalc(request):
 			'bpis': bpis,
 			'bpi_totals': bpi_totals,
 			'components': components,
+			'comp_totals': comp_totals,
 		}
 	)
 

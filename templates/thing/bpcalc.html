@@ -56,9 +56,9 @@
 			<tr>
 				<th>Name</th>
 				<th>#</th>
+				<th>Size</th>
 				<th>Buy</th>
 				<th>Sell</th>
-				<th>Size</th>
 			</tr>
 		</thead>
 		<tbody>
@@ -66,14 +66,18 @@
 			<tr class="{% cycle 'odd' 'even' %}">
 				<td>{{ component.item.name }}</td>
 				<td align="right">{{ component.amount|commas }}</td>
+				<td align="right">{{ component.volume|commas }} m3</td>
 				<td align="right">{{ component.buy_total|humanize }}</td>
 				<td align="right">{{ component.sell_total|humanize }}</td>
-				<td align="right">??</td>
 			</tr>
 			{% endfor %}
 		</tbody>
 		<tfoot>
 			<tr>
+				<td colspan="2"></td>
+				<td align="right">{{ comp_totals.volume|commas }} m3</td>
+				<td align="right">{{ comp_totals.buy_total|humanize }}</td>
+				<td align="right">{{ comp_totals.sell_total|humanize }}</td>
 			</tr>
 		</tfoot>
 	</table>
