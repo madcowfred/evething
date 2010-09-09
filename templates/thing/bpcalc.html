@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% load thing_extras %}
+
+{% block title %}BPCalc{% endblock %}
+
+{% block content %}
+{% if bpis %}
+	<table id="blueprints">
+		<thead>
+			<tr>
+				<td colspan="5"></td>
+				<td colspan="2" class="head">Buy</td>
+				<td colspan="2" class="head">Sell</td>
+			</tr>
+			<tr>
+				<th>Name</th>
+				<th>Time</th>
+				<th>Runs</th>
+				<th>Built</th>
+				<th>Sell</th>
+				<th>Build</th>
+				<th>Profit</th>
+				<th>Build</th>
+				<th>Profit</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for bpi in bpis %}
+			<tr class="{% cycle 'odd' 'even' %}">
+				<td>{{ bpi.name }}</td>
+				<td align="right">{{ bpi.total_time|duration }}</td>
+				<td align="right">{{ bpi.runs|commas }}</td>
+				<td align="right">{{ bpi.built|commas }}</td>
+				<td align="right">{{ bpi.sell|humanize }}</td>
+				<td align="right">{{ bpi.buy_build|humanize }}</td>
+				<td align="right"{{ bpi.bp_class|safe }}>{{ bpi.buy_profit|humanize }}</td>
+				<td align="right">{{ bpi.sell_build|humanize }}</td>
+				<td align="right"{{ bpi.sp_class|safe }}>{{ bpi.sell_profit|humanize }}</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+		<tfoot>
+			<tr>
+				<td colspan="4"></td>
+				<td>{{ bpi_totals.sell|humanize }}</td>
+				<td>{{ bpi_totals.buy_build|humanize }}</td>
+				<td>{{ bpi_totals.buy_profit|humanize }}</td>
+				<td>{{ bpi_totals.sell_build|humanize }}</td>
+				<td>{{ bpi_totals.sell_profit|humanize }}</td>
+			</tr>
+		</tfoot>
+	</table>
+	<br />
+	<table>
+		<thead>
+			<tr>
+				<th>Name</th>
+				<th>#</th>
+				<th>Buy</th>
+				<th>Sell</th>
+				<th>Size</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for component in components %}
+			<tr class="{% cycle 'odd' 'even' %}">
+				<td>{{ component.item.name }}</td>
+				<td align="right">{{ component.amount|commas }}</td>
+				<td align="right">{{ component.buy_total|humanize }}</td>
+				<td align="right">{{ component.sell_total|humanize }}</td>
+				<td align="right">??</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+		<tfoot>
+			<tr>
+			</tr>
+		</tfoot>
+	</table>
+{% else %}
+	<p>No valid blueprint instances were provided.</p>
+{% endif %}
+{% endblock %}
