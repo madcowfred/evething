@@ -10,6 +10,14 @@
 		$("#blueprints tbody tr:not(.hiding) td:nth-child(2) a").click(function(){
 			$(this).parent().parent().next("tr").toggle();
 		});
+		$('#checkall').toggle(
+			function(){
+				$("input[type='checkbox']").attr("checked", "checked");
+			},
+			function(){
+				$("input[type='checkbox']").removeAttr("checked");
+			}
+		);
 	});
 	</script>
 {% endblock %}
@@ -51,7 +59,7 @@
 				<th>Make</th>
 				<th>Profit</th>
 				<th>Links</th>
-				<th></th>
+				<th><a href="#" id="checkall">all</a></th>
 			</tr>
 		</thead>
 		<tbody>
@@ -74,7 +82,7 @@
 			</tr>
 			<tr class="hiding">
 				<td></td>
-				<td colspan="13">
+				<td colspan="12">
 					<table>
 						{% for item in bpi.components %}
 						<tr class="{% cycle 'odd' 'even' %}">
