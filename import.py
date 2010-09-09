@@ -3,7 +3,7 @@ import sqlite3
 
 def main():
 	# Connect databases
-	inconn = sqlite3.connect('tyr10-sqlite3-v1.db')
+	inconn = sqlite3.connect('tyr101-sqlite3-v1.db')
 	incur = inconn.cursor()
 	
 	outconn = sqlite3.connect('evething.db')
@@ -19,9 +19,9 @@ def main():
 	# Items
 	# typeID,groupID,typeName,description,graphicID,radius,mass,volume,capacity,portionSize,raceID,basePrice,published,
 	#   marketGroupID,chanceOfDuplicating
-	incur.execute('SELECT typeID, typeName, portionSize FROM invTypes')
+	incur.execute('SELECT typeID, typeName, portionSize, volume FROM invTypes')
 	for row in incur:
-		outcur.execute("INSERT INTO thing_item (id, name, portion_size, sell_median, buy_median) VALUES (?, ?, ?, 0, 0)", row)
+		outcur.execute("INSERT INTO thing_item (id, name, portion_size, volume, sell_price, buy_price) VALUES (?, ?, ?, ?, 0, 0)", row)
 	outconn.commit()
 	
 	# Blueprints

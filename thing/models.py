@@ -63,6 +63,8 @@ class Item(models.Model):
 	id = models.IntegerField(primary_key=True)
 	name = models.CharField(max_length=128)
 	portion_size = models.IntegerField()
+	# 0.0025 -> 10,000,000,000
+	volume = models.DecimalField(max_digits=16, decimal_places=4, default=0)
 	
 	sell_price = models.DecimalField(max_digits=15, decimal_places=2, default=0)
 	buy_price = models.DecimalField(max_digits=15, decimal_places=2, default=0)
