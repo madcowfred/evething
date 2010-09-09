@@ -7,10 +7,9 @@
 	<script type="text/javascript">
 	$(document).ready(function() {
 		$("#blueprints tbody tr.hiding").hide();
-		$("#blueprints tbody tr:first-child").show();
-		$("#blueprints tbody tr:not(.hiding)").click(function(){
-			$(this).next("tr").toggle();
-		}); 
+		$("#blueprints tbody tr:not(.hiding) td:nth-child(2) a").click(function(){
+			$(this).parent().parent().next("tr").toggle();
+		});
 	});
 	</script>
 {% endblock %}
@@ -29,13 +28,14 @@
 	</table>
 	</form>
 	
+	<form action="/bpcalc/" method="GET">
 	<table id="blueprints">
 		<thead>
 			<tr>
 				<td colspan="8"></td>
 				<td colspan="2" class="head">Buy</td>
 				<td colspan="2" class="head">Sell</td>
-				<td></td>
+				<td colspan="2"></td>
 			</tr>
 			<tr>
 				<th>Owner</th>
@@ -51,13 +51,14 @@
 				<th>Make</th>
 				<th>Profit</th>
 				<th>Links</th>
+				<th></th>
 			</tr>
 		</thead>
 		<tbody>
 			{% for bpi in bpis %}
 			<tr class="{% cycle 'odd' 'even' %}">
 				<td>{{ bpi.character }}</td>
-				<td>{{ bpi.blueprint.item }}</td>
+				<td><a href="#">{{ bpi.blueprint.item }}</a></td>
 				<td>{{ bpi.type }}</td>
 				<td align="center">{{ bpi.material_level }}</td>
 				<td align="center">{{ bpi.productivity_level }}</td>
@@ -69,10 +70,11 @@
 				<td align="right">{{ bpi.unit_cost_sell|humanize }}</td>
 				<td align="right"{{ bpi.ups_class|safe }}>{{ bpi.unit_profit_sell|humanize }}</td>
 				<td align="center"><a href="http://www.eve-central.com/home/quicklook.html?typeid={{ bpi.blueprint.item.id }}">EC</a></td>
+				<td><input type="checkbox" name="bpi{{ bpi.id }}" value="1" /></td>
 			</tr>
 			<tr class="hiding">
 				<td></td>
-				<td colspan="12">
+				<td colspan="13">
 					<table>
 						{% for item in bpi.components %}
 						<tr class="{% cycle 'odd' 'even' %}">
@@ -85,6 +87,14 @@
 			</tr>
 			{% endfor %}
 		</tbody>
+		<tfoot>
+			<tr>
+				<td colspan="14" align="right">
+					Days: <input type="text" name="days" value="7" size="2" />
+					<input type="submit" value="Calc"></td>
+				</td>
+			</tr>
+		</tfoot>
 	</table>
 {% else %}
 	<p>No blueprint instances are available.</p>

@@ -1,7 +1,9 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.db.models import Sum
 
 import datetime
+import time
 from decimal import *
 
 # Corporation
@@ -73,6 +75,12 @@ class Item(models.Model):
 			if self.name.startswith(orig):
 				return self.name.replace(orig, rep, 1)
 		return self.name
+	
+	def recent_volume(self, days=7):
+		# This is yucky, but oh well
+		check_date = datetime.date(*time.gmtime()[0:3]) - datetime.timedelta(days)
+		iph = self.itempricehistory_set.filter(date__gte=check_date)
+		return iph.aggregate(Sum('movement'))['movement__sum'] / days
 
 # Historical item price data
 class ItemPriceHistory(models.Model):

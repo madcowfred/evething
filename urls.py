@@ -8,23 +8,19 @@ from django.contrib import admin
 admin.autodiscover()
 
 urlpatterns = patterns('',
-	# Uncomment the admin/doc line below and add 'django.contrib.admindocs' 
-	# to INSTALLED_APPS to enable admin documentation:
+	# Admin
 	(r'^admin/doc/', include('django.contrib.admindocs.urls')),
-	
-	# Uncomment the next line to enable the admin:
 	(r'^admin/', include(admin.site.urls)),
 	
-	# Login/logout crap
+	# Login/logout
 	(r'^accounts/login/$',  login),
 	(r'^accounts/logout/$', logout),
 )
 
 urlpatterns += patterns('evething.thing.views',
 	(r'^blueprints/$', 'blueprints'),
-	
+	(r'^bpcalc/$', 'bpcalc'),
 	(r'^orders/$', 'orders'),
-	
 	#(r'^status/$', 'status'),
 	
 	(r'^trade/$', 'trade'),
@@ -43,7 +39,7 @@ urlpatterns += patterns('django.views.generic.simple',
 	('^transactions/(?P<item_id>all|\d+)/$', 'redirect_to', { 'url': '/transactions/%(item_id)s/all/', 'permanent': False }),
 )
 
-
+# If we're running under DEBUG, serve static media files
 if settings.DEBUG:
 	urlpatterns += patterns('',
 		(r'^thing_media/(?P<path>.*)$', 'django.views.static.serve', {'document_root': settings.MEDIA_ROOT}),

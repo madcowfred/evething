@@ -1,4 +1,3 @@
-# Create your views here.
 import datetime
 
 from django.contrib.auth.decorators import login_required
@@ -47,31 +46,88 @@ def blueprints(request):
 		}
 	)
 
-def blueprint_details(request, bpi_id):
-	bpi = get_object_or_404(BlueprintInstance, pk=bpi_id)
-	components = BlueprintComponent.objects.filter(blueprint=bpi.blueprint)
+# Calculate blueprint production details for X number of days
+WEEK = 7 * 24 * 60 * 60
+@login_required
+def bpcalc(request):
+	try:
+		char = Character.objects.select_related().get(user=request.user)
+	except ObjectDoesNotExist:
+		return show_error("Your account does not have an associated character.")
+	if not char.corporation:
+		return show_error("Your character doesn't seem to be in a corporation.")
 	
-	comps = []
-	for component in components:
-		comps.append({
-			'name': component.item.name,
-			'count': component.count,
-			'buy_price': component.item.buy_price,
-			'buy_total': component.count * component.item.buy_price,
-			'sell_price': component.item.sell_price,
-			'sell_total': component.count * component.item.sell_price,
+	# Get a valid number of days
+	try:
+		days = int(request.GET.get('days', '7'))
+	except ValueError:
+		days = 7
+	
+	# Get provided BlueprintInstance ids
+	bpi_ids = []
+	for k in request.GET:
+		if k.startswith('bpi') and k[3:].isdigit():
+			bpi_ids.append(k[3:])
+	
+	# Fetch BlueprintInstance objects
+	bpis = []
+	comps = {}
+	for bpi in BlueprintInstance.objects.select_related().in_bulk(bpi_ids).values():
+		pt = bpi.calc_production_time()
+		runs = int(WEEK / pt)
+		# Skip really long production items
+		if runs == 0:
+			continue
+		built = runs * bpi.blueprint.item.portion_size
+		
+		bpc = bpi.calc_production_cost(runs=runs)
+		spc = bpi.calc_production_cost(runs=runs, use_sell=True)
+		
+		bpis.append({
+			'name': bpi.blueprint.name,
+			'total_time': pt * runs,
+			'runs': runs,
+			'built': built,
+			'sell': bpi.blueprint.item.sell_price * built,
+			'buy_build': bpc * built,
+			'sell_build': spc * built,
 		})
+		bpis[-1]['buy_profit'] = bpis[-1]['sell'] - bpis[-1]['buy_build']
+		bpis[-1]['bp_class'] = get_balance_class(bpis[-1]['buy_profit'])
+		bpis[-1]['sell_profit'] = bpis[-1]['sell'] - bpis[-1]['sell_build']
+		bpis[-1]['sp_class'] = get_balance_class(bpis[-1]['sell_profit'])
+		
+		# Add the components
+		for item, amt in bpi._get_components(runs=runs):
+			comps[item] = comps.get(item, 0) + amt
+	bpis.sort(key=lambda b: b['name'])
 	
-	buy_total = sum(comp['buy_total'] for comp in comps)
-	sell_total = sum(comp['sell_total'] for comp in comps)
+	# Components
+	components = []
+	for item, amt in comps.items():
+		components.append({
+			'item': item,
+			'amount': amt,
+			'buy_total': amt * item.buy_price,
+			'sell_total': amt * item.sell_price,
+		})
+	components.sort(key=lambda c: c['item'].name)
+	
+	# Do some sums
+	bpi_totals = {
+		'sell': sum(bpi['sell'] for bpi in bpis),
+		'buy_build': sum(bpi['buy_build'] for bpi in bpis),
+		'buy_profit': sum(bpi['buy_profit'] for bpi in bpis),
+		'sell_build': sum(bpi['sell_build'] for bpi in bpis),
+		'sell_profit': sum(bpi['sell_profit'] for bpi in bpis),
+	}
 	
 	return render_to_response(
-		'thing/blueprint_details.html',
+		'thing/bpcalc.html',
 		{
-			'blueprint_name': bpi.blueprint.name,
-			'components': comps,
-			'buy_total': buy_total,
-			'sell_total': sell_total,
+			'bpis': bpis,
+			'bpi_totals': bpi_totals,
+			'components': components,
 		}
 	)
 
