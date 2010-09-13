@@ -231,7 +231,7 @@ class BlueprintInstance(models.Model):
 		ordering = ('bp_type', 'blueprint')
 	
 	def __unicode__(self):
-		return "%s's %s (%s, ML%s PL%S)" % (self.character.name, self.blueprint.name, self.get_bp_type_display(),
+		return "%s's %s (%s, ML%s PL%s)" % (self.character.name, self.blueprint.name, self.get_bp_type_display(),
 			self.material_level, self.productivity_level)
 	
 	# Calculate production time, taking PL and skills into account
