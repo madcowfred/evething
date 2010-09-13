@@ -3,9 +3,53 @@
 
 {% block title %}BPCalc{% endblock %}
 
+{% block extrahead %}
+	<script type="text/javascript">
+	$.tablesorter.addParser({
+		id: 'human',
+		is: function(s) { return false; },
+		format: function(s) {
+			var l = s.length - 1;
+			var c = s.charAt(l);
+			if (c == 'K') {
+				return s.substr(0, l) * 1000;
+			}
+			else if (c == 'M') {
+				return s.substr(0, l) * 1000000;
+			}
+			else if (c == 'B') {
+				return s.substr(0, l) * 1000000000;
+			}
+			else {
+				return s;
+			}
+		},
+		type: 'numeric'
+	})
+	
+	$(document).ready(function() {
+		// call the tablesorter plugin
+		$("table").tablesorter({
+			'headers': {
+				1: { sorter: false },
+				2: { sorter: false },
+				3: { sorter: false },
+				4: { sorter: 'human' },
+				5: { sorter: 'human' },
+				6: { sorter: 'human' },
+				7: { sorter: 'human' },
+				8: { sorter: false },
+				9: { sorter: 'human' },
+			},
+			'widgets': [ 'zebra' ],
+		});
+	});
+	</script>
+{% endblock %}
+
 {% block content %}
 {% if bpis %}
-	<table id="blueprints">
+	<table class="tablesorter">
 		<thead>
 			<tr>
 				<td colspan="5"></td>
@@ -29,7 +73,7 @@
 		</thead>
 		<tbody>
 			{% for bpi in bpis %}
-			<tr class="{% cycle 'odd' 'even' %}">
+			<tr>
 				<td>{{ bpi.name }}</td>
 				<td align="right">{{ bpi.total_time|duration }}</td>
 				<td align="right">{{ bpi.runs|commas }}</td>
