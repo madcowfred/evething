@@ -89,6 +89,7 @@ def bpcalc(request):
 		
 		bpc = bpi.calc_production_cost(runs=runs)
 		spc = bpi.calc_production_cost(runs=runs, use_sell=True)
+		#rv = bpi.blueprint.item.recent_volume()
 		
 		bpis.append({
 			'name': bpi.blueprint.name,
@@ -98,11 +99,17 @@ def bpcalc(request):
 			'sell': bpi.blueprint.item.sell_price * built,
 			'buy_build': bpc * built,
 			'sell_build': spc * built,
+			'volume_week': bpi.blueprint.item.get_volume(),
 		})
-		bpis[-1]['buy_profit'] = bpis[-1]['sell'] - bpis[-1]['buy_build']
-		bpis[-1]['bp_class'] = get_balance_class(bpis[-1]['buy_profit'])
-		bpis[-1]['sell_profit'] = bpis[-1]['sell'] - bpis[-1]['sell_build']
-		bpis[-1]['sp_class'] = get_balance_class(bpis[-1]['sell_profit'])
+		row = bpis[-1]
+		row['buy_profit'] = row['sell'] - row['buy_build']
+		row['bp_class'] = get_balance_class(row['buy_profit'])
+		row['sell_profit'] = row['sell'] - row['sell_build']
+		row['sp_class'] = get_balance_class(row['sell_profit'])
+		if row['volume_week']:
+			row['volume_percent'] = (row['built'] / row['volume_week'] * 100).quantize(Decimal('.1'))
+			if row['volume_percent'] > 10:
+				row['vp_class'] = get_balance_class(-1)
 		
 		# Add the components
 		for item, amt in bpi._get_components(runs=runs):

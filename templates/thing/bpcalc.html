@@ -11,6 +11,7 @@
 				<td colspan="5"></td>
 				<td colspan="2" class="head">Buy</td>
 				<td colspan="2" class="head">Sell</td>
+				<td colspan="2" class="head">Volume</td>
 			</tr>
 			<tr>
 				<th>Name</th>
@@ -22,6 +23,8 @@
 				<th>Profit</th>
 				<th>Build</th>
 				<th>Profit</th>
+				<th>Weekly</th>
+				<th>Build %</th>
 			</tr>
 		</thead>
 		<tbody>
@@ -36,6 +39,8 @@
 				<td align="right"{{ bpi.bp_class|safe }}>{{ bpi.buy_profit|humanize }}</td>
 				<td align="right">{{ bpi.sell_build|humanize }}</td>
 				<td align="right"{{ bpi.sp_class|safe }}>{{ bpi.sell_profit|humanize }}</td>
+				<td align="right">{{ bpi.volume_week|humanize }}</td>
+				<td align="right"{{ bpi.vp_class|safe }}>{{ bpi.volume_percent }}%</td>
 			</tr>
 			{% endfor %}
 		</tbody>
@@ -47,6 +52,7 @@
 				<td align="right">{{ bpi_totals.buy_profit|humanize }}</td>
 				<td align="right">{{ bpi_totals.sell_build|humanize }}</td>
 				<td align="right">{{ bpi_totals.sell_profit|humanize }}</td>
+				<td colspan="2"></td>
 			</tr>
 		</tfoot>
 	</table>

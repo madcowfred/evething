@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
-from django.db.models import Sum
+from django.db.models import Avg, Sum
 
 import datetime
 import time
@@ -78,11 +78,13 @@ class Item(models.Model):
 				return self.name.replace(orig, rep, 1)
 		return self.name
 	
-	def recent_volume(self, days=7):
-		# This is yucky, but oh well
-		check_date = datetime.date(*time.gmtime()[0:3]) - datetime.timedelta(days)
-		iph = self.itempricehistory_set.filter(date__gte=check_date)
-		return iph.aggregate(Sum('movement'))['movement__sum'] / days
+	def get_volume(self, days=7):
+		iph_days = self.itempricehistory_set.all()[:days]
+		agg = self.itempricehistory_set.filter(pk__in=iph_days).aggregate(Sum('movement'))
+		if agg['movement__sum'] is None:
+			return Decimal('0')
+		else:
+			return Decimal(str(agg['movement__sum']))
 
 # Historical item price data
 class ItemPriceHistory(models.Model):
