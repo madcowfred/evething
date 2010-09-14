@@ -42,8 +42,8 @@
 	<tr class="odd">
 		<td align="right">{{ total_buys|humanize }}</td>
 		<td align="right">{{ total_sells|humanize }}</td>
-		<td align="right"{{ total_balance_class|safe }}>{{ total_balance|humanize }}</td>
-		<td align="right"{{ total_projected_class|safe }}>{{ total_projected|humanize }}</td>
+		<td align="right">{{ total_balance|humanize|balance }}</td>
+		<td align="right">{{ total_projected|humanize|balance }}</td>
 	</tr>
 </table>
 <br />
@@ -89,8 +89,8 @@
 			<td align="right">{{ item.sell_total|humanize }}</td>
 			<td align="right" class="alt">{{ item.average_profit|humanize }}</td>
 			<td align="right" class="alt">{{ item.average_profit_per }}%</td>
-			<td align="right"{{ item.balance_class|safe }}>{{ item.balance|humanize }}</td>
-			<td align="right"{{ item.projected_class|safe }}>{{ item.projected|humanize }}</td>
+			<td align="right">{{ item.balance|humanize|balance }}</td>
+			<td align="right">{{ item.projected|humanize|balance }}</td>
 		</tr>
 		{% endfor %}
 	</tbody>

@@ -3,14 +3,14 @@ from decimal import *
 
 from django import template
 from django.template.defaultfilters import stringfilter
-
-re_digits_nondigits = re.compile(r'\d+|\D+')
+from django.utils.safestring import mark_safe
 
 register = template.Library()
 
-
 # Put commas in things
 # http://code.activestate.com/recipes/498181-add-thousands-separator-commas-to-formatted-number/
+re_digits_nondigits = re.compile(r'\d+|\D+')
+
 @register.filter
 @stringfilter
 def commas(value):
@@ -74,3 +74,15 @@ def duration(s):
 		parts.append('%ds' % (s))
 	
 	return ' '.join(parts)
+
+
+# Do balance colouring (red for negative, green for positive)
+@register.filter
+@stringfilter
+def balance(s):
+	if s == '0':
+		return s
+	elif s.startswith('-'):
+		return mark_safe('<span class="neg">%s</span>' % (s))
+	else:
+		return mark_safe('<span class="pos">%s</span>' % (s))

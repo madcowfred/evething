@@ -48,12 +48,8 @@ tr.even td.S {
 	background: #7FDF7F;
 }
 
-td.g {
-	color: #009800;
-}
-td.r {
-	color: #FF0000;
-}
+span.pos { color: #009800; }
+span.neg { color: #FF0000; }
 
 table.tablesorter thead tr .header {
 	background-image: url(/thing_media/bg.gif);
