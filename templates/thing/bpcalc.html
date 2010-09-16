@@ -19,6 +19,7 @@
 				8: { sorter: 'human' },
 				9: { sorter: false },
 			},
+			'sortList': [[8,1]],
 			'widgets': [ 'zebra' ],
 		});
 	});
@@ -62,7 +63,7 @@
 				<td align="right">{{ bpi.sell_build|humanize }}</td>
 				<td align="right">{{ bpi.sell_profit|humanize|balance }}</td>
 				<td align="right">{{ bpi.volume_week|humanize }}</td>
-				<td align="right"{{ bpi.vp_class|safe }}>{{ bpi.volume_percent }}%</td>
+				<td align="right"{{ bpi.vp_class|safe }}>{{ bpi.volume_percent|spanif:"neg > 10" }}%</td>
 			</tr>
 			{% endfor %}
 		</tbody>
