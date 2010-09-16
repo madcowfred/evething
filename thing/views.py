@@ -41,9 +41,7 @@ def blueprints(request):
 			'components': bpi._get_components(runs=runs),
 		})
 		bpis[-1]['unit_profit_buy'] = bpis[-1]['market_price'] - bpis[-1]['unit_cost_buy']
-		bpis[-1]['upb_class'] = get_balance_class(bpis[-1]['unit_profit_buy'])
 		bpis[-1]['unit_profit_sell'] = bpis[-1]['market_price'] - bpis[-1]['unit_cost_sell']
-		bpis[-1]['ups_class'] = get_balance_class(bpis[-1]['unit_profit_sell'])
 	
 	return render_to_response(
 		'thing/blueprints.html',
@@ -103,13 +101,9 @@ def bpcalc(request):
 		})
 		row = bpis[-1]
 		row['buy_profit'] = row['sell'] - row['buy_build']
-		row['bp_class'] = get_balance_class(row['buy_profit'])
 		row['sell_profit'] = row['sell'] - row['sell_build']
-		row['sp_class'] = get_balance_class(row['sell_profit'])
 		if row['volume_week']:
 			row['volume_percent'] = (row['built'] / row['volume_week'] * 100).quantize(Decimal('.1'))
-			if row['volume_percent'] > 10:
-				row['vp_class'] = get_balance_class(-1)
 		
 		# Add the components
 		for item, amt in bpi._get_components(runs=runs):
@@ -215,7 +209,6 @@ def trade(request):
 			row['balance'] = 0
 		else:
 			row['balance'] = row['sell_total'] - row['buy_total']
-		row['class'] = get_balance_class(row['balance'])
 		
 		t_data.append(row)
 	
@@ -302,14 +295,12 @@ def trade_timeframe(request, year=None, month=None, period=None, slug=None):
 			item_row['average_profit_per'] = Decimal('%.1f' % (item_row['average_profit'] / item_row['buy_average'] * 100))
 		# Balance
 		item_row['balance'] = item_row.get('sell_total', 0) - item_row.get('buy_total', 0)
-		item_row['balance_class'] = get_balance_class(item_row['balance'])
 		# Projected balance
 		diff = item_row.get('buy_quantity', 0) - item_row.get('sell_quantity', 0)
 		if diff > 0:
 			item_row['projected'] = item_row['balance'] + (diff * item_row['sell_average'])
 		else:
 			item_row['projected'] = item_row['balance']
-		item_row['projected_class'] = get_balance_class(item_row['projected'])
 		
 		data['items'].append(item_row)
 	
@@ -317,9 +308,7 @@ def trade_timeframe(request, year=None, month=None, period=None, slug=None):
 	data['total_buys'] = sum(item.get('buy_total', 0) for item in data['items'])
 	data['total_sells'] = sum(item.get('sell_total', 0) for item in data['items'])
 	data['total_balance'] = data['total_sells'] - data['total_buys']
-	data['total_balance_class'] = get_balance_class(data['total_balance'])
 	data['total_projected'] = sum(item['projected'] for item in data['items'])
-	data['total_projected_class'] = get_balance_class(data['total_projected'])
 	
 	# GENERATE
 	return render_to_response('thing/trade_timeframe.html', data)
@@ -432,7 +421,7 @@ def orders(request):
 		return show_error("Your first character doesn't seem to be in a corporation, what the hell?")
 	
 	# Retrieve orders
-	orders = Order.objects.filter(corporation=chars[0].corporation).select_related()
+	orders = Order.objects.select_related().filter(corporation=chars[0].corporation)
 	
 	return render_to_response('thing/orders.html', { 'orders': orders })
 
