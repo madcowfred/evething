@@ -3,6 +3,7 @@ import datetime
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import Paginator, InvalidPage, EmptyPage
+from django.db import connection
 from django.db.models import Avg, Count, Max, Min, Sum
 from django.shortcuts import render_to_response, get_object_or_404
 
@@ -77,6 +78,7 @@ def bpcalc(request):
 	# Fetch BlueprintInstance objects
 	bpis = []
 	comps = {}
+	final_items = []
 	for bpi in BlueprintInstance.objects.select_related().filter(character__corporation=chars[0].corporation).in_bulk(bpi_ids).values():
 		pt = bpi.calc_production_time()
 		runs = int(WEEK / pt)
@@ -85,11 +87,18 @@ def bpcalc(request):
 			continue
 		built = runs * bpi.blueprint.item.portion_size
 		
-		bpc = bpi.calc_production_cost(runs=runs)
-		spc = bpi.calc_production_cost(runs=runs, use_sell=True)
-		#rv = bpi.blueprint.item.recent_volume()
+		# Add the components
+		components = bpi._get_components(runs=runs)
+		for item, amt in components:
+			comps[item] = comps.get(item, 0) + amt
+		# And the final item
+		final_items.append(bpi.blueprint.item.id)
+		
+		bpc = bpi.calc_production_cost(runs=runs, components=components)
+		spc = bpi.calc_production_cost(runs=runs, use_sell=True, components=components)
 		
 		bpis.append({
+			'item': bpi.blueprint.item,
 			'name': bpi.blueprint.name,
 			'total_time': pt * runs,
 			'runs': runs,
@@ -105,10 +114,20 @@ def bpcalc(request):
 		if row['volume_week']:
 			row['volume_percent'] = (row['built'] / row['volume_week'] * 100).quantize(Decimal('.1'))
 		
-		# Add the components
-		for item, amt in bpi._get_components(runs=runs):
-			comps[item] = comps.get(item, 0) + amt
 	bpis.sort(key=lambda b: b['name'])
+	
+	# Yeah this is awful, but better than using 95000 queries... right? :|
+	# FIXME:this might work, but adding the data to the bpis list will be awfully slow. Think on it.
+	#filler = []
+	#for fi in final_items:
+	#	filler.append('(SELECT item_id, movement FROM thing_itempricehistory WHERE item_id = %s ORDER BY date DESC LIMIT 7)' % (fi))
+	#
+	#query = """SELECT item_id, SUM(movement) FROM
+	#(%s) AS blah
+	#GROUP BY item_id""" % (' UNION ALL '.join(filler))
+	#cursor = connection.cursor()
+	#cursor.execute(query)
+	#for k,v in cursor.fetchall():
 	
 	# Components
 	components = []
