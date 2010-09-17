@@ -256,11 +256,13 @@ class BlueprintInstance(models.Model):
 		return pt.quantize(Decimal('0'), rounding=ROUND_UP)
 	
 	# Calculate production cost, taking ML and skills into account
-	def calc_production_cost(self, runs=1, use_sell=False, ):
+	def calc_production_cost(self, runs=1, use_sell=False, components=None):
 		total_cost = Decimal(0)
 		
 		# Component costs
-		for item, amt in self._get_components(runs=runs):
+		if components is None:
+			components = self._get_components(runs=runs)
+		for item, amt in components:
 			if use_sell is True:
 				total_cost += (Decimal(str(amt)) * item.sell_price)
 			else:
