@@ -120,11 +120,17 @@ def roman_to_int(n):
 class Station(models.Model):
 	id = models.IntegerField(primary_key=True)
 	name = models.CharField(max_length=128)
+	short_name = models.CharField(max_length=64, blank=True, null=True)
 	
 	def __unicode__(self):
 		return self.name
 	
-	def shorter_name(self):
+	# Build the short name when this object is saved
+	def save(self, *args, **kwargs):
+		self._make_shorter_name()
+		super(Station, self).save(*args, **kwargs)
+	
+	def _make_shorter_name(self):
 		out = []
 		
 		parts = self.name.split(' - ')
@@ -140,7 +146,7 @@ class Station(models.Model):
 		else:
 			out.append(''.join(s[0] for s in parts[1].split()))
 		
-		return ' - '.join(out)
+		self.short_name = ' - '.join(out)
 
 # Time frames
 class Timeframe(models.Model):
