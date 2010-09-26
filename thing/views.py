@@ -1,4 +1,5 @@
 import datetime
+#import time
 
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
@@ -8,6 +9,32 @@ from django.db.models import Avg, Count, Max, Min, Sum
 from django.shortcuts import render_to_response, get_object_or_404
 
 from evething.thing.models import *
+
+
+# I hope one day I can do this sanely via Django ORM :p
+TRADE_TIMEFRAME_JOIN = """
+SELECT
+  COALESCE(t1.item_id, t2.item_id) AS id,
+  i.name as name,
+  t1.buy_maximum, t1.buy_quantity, t1.buy_total, t1.buy_minimum,
+  t2.sell_maximum, t2.sell_quantity, t2.sell_total, t2.sell_minimum,
+  t1.buy_total / t1.buy_quantity AS buy_average,
+  t2.sell_total / t2.sell_quantity AS sell_average,
+  COALESCE(t2.sell_total, 0) - COALESCE(t1.buy_total, 0) AS balance,
+  t1.buy_quantity - t2.sell_quantity AS diff
+FROM
+(
+  %s
+) t1
+FULL OUTER JOIN
+(
+  %s
+) t2
+ON t1.item_id = t2.item_id
+INNER JOIN thing_item i
+ON i.id = COALESCE(t1.item_id, t2.item_id)
+ORDER BY balance DESC
+"""
 
 
 # List of blueprints we own
@@ -238,6 +265,9 @@ def trade(request):
 # Trade overview for a variety of timeframe types
 @login_required
 def trade_timeframe(request, year=None, month=None, period=None, slug=None):
+	#times = []
+	#times.append((time.time(), 'start'))
+	
 	# Check that they have a valid character
 	chars = Character.objects.select_related().filter(user=request.user)
 	if chars.count() == 0:
@@ -247,6 +277,8 @@ def trade_timeframe(request, year=None, month=None, period=None, slug=None):
 	
 	data = { 'corporation': chars[0].corporation }
 	now = datetime.datetime.now()
+	
+	#times.append((time.time(), 'charcheck'))
 	
 	# Get a QuerySet of transactions for this corporation
 	transactions = Transaction.objects.filter(corporation=data['corporation'])
@@ -270,7 +302,9 @@ def trade_timeframe(request, year=None, month=None, period=None, slug=None):
 		data['timeframe'] = 'all time'
 		data['urlpart'] = 'all'
 	
-	# Do aggregate queries now instead of doing 2 per item type
+	#times.append((time.time(), 'yearmonth'))
+	
+	# Build aggregate queries to use in our nasty FULL OUTER JOIN
 	item_buy_data = transactions.filter(t_type='B').values('item').annotate(
 		buy_quantity=Sum('quantity'),
 		buy_minimum=Min('price'),
@@ -284,50 +318,46 @@ def trade_timeframe(request, year=None, month=None, period=None, slug=None):
 		sell_total=Sum('total_price'),
 	)
 	
-	# And uhh combine them
-	item_data = {}
-	for row in item_buy_data:
-		item_data[row['item']] = row
-	for row in item_sell_data:
-		item_data.setdefault(row['item'], {}).update(row)
+	# Build a nasty SQL query
+	buy_sql = item_buy_data._as_sql(connection)
+	sell_sql = item_sell_data._as_sql(connection)
 	
-	# Get the shorter names - yuck!
-	for item_id, item in Item.objects.in_bulk([row['item'] for row in item_data.values()]).items():
-		item_data[item_id]['shorter_name'] = item.shorter_name()
+	query = TRADE_TIMEFRAME_JOIN % (buy_sql[0], sell_sql[0])
+	params = buy_sql[1] + sell_sql[1]
+	
+	# And make Item objects out of it
+	item_data = Item.objects.raw(query, params)
+	
+	#times.append((time.time(), 'combine'))
 	
 	# Start gathering data
 	data['items'] = []
-	for item_row in item_data.values():
-		# Averages
-		if 'buy_quantity' in item_row:
-			item_row['buy_average'] = (item_row['buy_total'] / item_row['buy_quantity']).quantize(Decimal('.01'), rounding=ROUND_UP)
-		else:
-			item_row['buy_average'] = 0
-		if 'sell_quantity' in item_row:
-			item_row['sell_average'] = (item_row['sell_total'] / item_row['sell_quantity']).quantize(Decimal('.01'), rounding=ROUND_UP)
-		else:
-			item_row['sell_average'] = 0
+	for item in item_data:
+		item_row = { 'item': item }
 		
 		# Average profit
-		if item_row['buy_average'] and item_row['sell_average']:
-			item_row['average_profit'] = item_row['sell_average'] - item_row['buy_average']
-			item_row['average_profit_per'] = Decimal('%.1f' % (item_row['average_profit'] / item_row['buy_average'] * 100))
-		# Balance
-		item_row['balance'] = item_row.get('sell_total', 0) - item_row.get('buy_total', 0)
+		if item.buy_average and item.sell_average:
+			item_row['average_profit'] = item.sell_average - item.buy_average
+			item_row['average_profit_per'] = Decimal('%.1f' % (item_row['average_profit'] / item.buy_average * 100))
 		# Projected balance
-		diff = item_row.get('buy_quantity', 0) - item_row.get('sell_quantity', 0)
-		if diff > 0:
-			item_row['projected'] = item_row['balance'] + (diff * item_row['sell_average'])
+		if item.diff > 0:
+			item_row['projected'] = item.balance + (item.diff * item.sell_average)
 		else:
-			item_row['projected'] = item_row['balance']
+			item_row['projected'] = item.balance
 		
 		data['items'].append(item_row)
 	
+	#times.append((time.time(), 'gather'))
+	
 	# Totals
-	data['total_buys'] = sum(item.get('buy_total', 0) for item in data['items'])
-	data['total_sells'] = sum(item.get('sell_total', 0) for item in data['items'])
+	data['total_buys'] = sum(item_row['item'].buy_total for item_row in data['items'] if item_row['item'].buy_total)
+	data['total_sells'] = sum(item_row['item'].sell_total for item_row in data['items'] if item_row['item'].sell_total)
 	data['total_balance'] = data['total_sells'] - data['total_buys']
-	data['total_projected'] = sum(item['projected'] for item in data['items'])
+	data['total_projected'] = sum(item_row['projected'] for item_row in data['items'])
+	
+	#times.append((time.time(), 'totals'))
+	#for i in range(len(times) - 1):
+	#	print '%s: %.5f' % (times[i+1][1], times[i+1][0] - times[i][0])
 	
 	# GENERATE
 	return render_to_response('thing/trade_timeframe.html', data)

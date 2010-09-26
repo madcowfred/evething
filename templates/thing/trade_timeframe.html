@@ -6,7 +6,6 @@
 {% block extrahead %}
 	<script type="text/javascript">
 	$(document).ready(function() {
-		// call the tablesorter plugin
 		$("table").tablesorter({
 			'headers': {
 				1: { sorter: 'human' },
@@ -23,7 +22,6 @@
 				13: { sorter: 'human' },
 				14: { sorter: 'human' },
 			},
-			'sortList': [[13,1]],
 			'widgets': [ 'zebra' ],
 		});
 	});
@@ -76,20 +74,20 @@
 	<tbody>
 		{% for item in items %}
 		<tr>
-			<td><a href="{% url evething.thing.views.transactions_item item.item urlpart %}">{{ item.shorter_name }}</a></td>
-			<td align="right" class="alt">{{ item.buy_quantity|humanize }}</td>
-			<td align="right" class="alt">{{ item.buy_minimum|humanize }}</td>
-			<td align="right" class="alt">{{ item.buy_average|humanize }}</td>
-			<td align="right" class="alt">{{ item.buy_maximum|humanize }}</td>
-			<td align="right" class="alt">{{ item.buy_total|humanize }}</td>
-			<td align="right">{{ item.sell_quantity|humanize }}</td>
-			<td align="right">{{ item.sell_minimum|humanize }}</td>
-			<td align="right">{{ item.sell_average|humanize }}</td>
-			<td align="right">{{ item.sell_maximum|humanize }}</td>
-			<td align="right">{{ item.sell_total|humanize }}</td>
+			<td><a href="{% url evething.thing.views.transactions_item item.item.id urlpart %}">{{ item.item.name }}</a></td>
+			<td align="right" class="alt">{{ item.item.buy_quantity|humanize }}</td>
+			<td align="right" class="alt">{{ item.item.buy_minimum|humanize }}</td>
+			<td align="right" class="alt">{{ item.item.buy_average|humanize }}</td>
+			<td align="right" class="alt">{{ item.item.buy_maximum|humanize }}</td>
+			<td align="right" class="alt">{{ item.item.buy_total|humanize }}</td>
+			<td align="right">{{ item.item.sell_quantity|humanize }}</td>
+			<td align="right">{{ item.item.sell_minimum|humanize }}</td>
+			<td align="right">{{ item.item.sell_average|humanize }}</td>
+			<td align="right">{{ item.item.sell_maximum|humanize }}</td>
+			<td align="right">{{ item.item.sell_total|humanize }}</td>
 			<td align="right" class="alt">{{ item.average_profit|humanize }}</td>
 			<td align="right" class="alt">{{ item.average_profit_per }}%</td>
-			<td align="right">{{ item.balance|humanize|balance }}</td>
+			<td align="right">{{ item.item.balance|humanize|balance }}</td>
 			<td align="right">{{ item.projected|humanize|balance }}</td>
 		</tr>
 		{% endfor %}
