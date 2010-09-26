@@ -54,11 +54,6 @@ class Character(models.Model):
 		return self.name
 
 # Items
-ITEM_NAME_SHORT = (
-	('Beta Reactor Control', 'BRC'),
-	('Local Hull Conversion', 'LHC'),
-	('Local Power Plant Manager', 'LPPM'),
-)
 class Item(models.Model):
 	id = models.IntegerField(primary_key=True)
 	name = models.CharField(max_length=128)
@@ -70,12 +65,6 @@ class Item(models.Model):
 	buy_price = models.DecimalField(max_digits=15, decimal_places=2, default=0)
 	
 	def __unicode__(self):
-		return self.name
-	
-	def shorter_name(self):
-		for orig, rep in ITEM_NAME_SHORT:
-			if self.name.startswith(orig):
-				return self.name.replace(orig, rep, 1)
 		return self.name
 	
 	def get_volume(self, days=7):
