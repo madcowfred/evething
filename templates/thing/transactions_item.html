@@ -20,7 +20,7 @@
 		{% for transaction in transactions.object_list %}
 		<tr class="{% cycle 'odd' 'even' %}">
 			<td class="{{ transaction.t_type }}">{{ transaction.date|date:"Y-m-d H:i" }}</td>
-			<td class="{{ transaction.t_type }}">{{ transaction.station.shorter_name }}</td>
+			<td class="{{ transaction.t_type }}">{{ transaction.station.short_name }}</td>
 			<td class="{{ transaction.t_type }}">{{ transaction.get_t_type_display }}</td>
 			<td class="{{ transaction.t_type }}" align="right">{{ transaction.quantity|humanize }}</td>
 			<td class="{{ transaction.t_type }}" align="right">{{ transaction.price|humanize }}</td>

@@ -26,7 +26,7 @@
 		{% for order in orders %}
 		<tr class="{% cycle 'odd' 'even' %}">
 			<td class="{{ order.o_type }}">{{ order.get_expiry_date|date:"Y-m-d H:i" }}</td>
-			<td class="{{ order.o_type }}">{{ order.station.shorter_name }}</td>
+			<td class="{{ order.o_type }}">{{ order.station.short_name }}</td>
 			<td class="{{ order.o_type }}">{{ order.get_o_type_display }}</td>
 			<td class="{{ order.o_type }}"><a href="{% url transactions-all order.item.id 'all' %}">{{ order.item.name }}</a></td>
 			<td class="{{ order.o_type }}" align="right">{{ order.volume_remaining|humanize }}</td>
