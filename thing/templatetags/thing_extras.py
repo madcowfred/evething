@@ -53,7 +53,10 @@ def humanize(value):
 		v = Decimal(value) / THOUSAND
 		return '%sK' % (v.quantize(Decimal('.1'), rounding=ROUND_UP))
 	else:
-		return value
+		if isinstance(value, Decimal):
+			return value.quantize(Decimal('.1'), rounding=ROUND_UP)
+		else:
+			return value
 
 
 # Turn a duration in seconds into a human readable string
