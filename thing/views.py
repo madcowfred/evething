@@ -15,7 +15,8 @@ from evething.thing.models import *
 TRADE_TIMEFRAME_JOIN = """
 SELECT
   COALESCE(t1.item_id, t2.item_id) AS id,
-  i.name as name,
+  i.name,
+  i.sell_price,
   t1.buy_maximum, t1.buy_quantity, t1.buy_total, t1.buy_minimum,
   t2.sell_maximum, t2.sell_quantity, t2.sell_total, t2.sell_minimum,
   t1.buy_total / t1.buy_quantity AS buy_average,
