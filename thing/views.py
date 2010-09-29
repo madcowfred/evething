@@ -341,9 +341,11 @@ def trade_timeframe(request, year=None, month=None, period=None, slug=None):
 			item_row['average_profit_per'] = Decimal('%.1f' % (item_row['average_profit'] / item.buy_average * 100))
 		# Projected balance
 		if item.diff > 0:
-			item_row['projected'] = item.balance + (item.diff * item.sell_average)
+			item_row['projected_average'] = item.balance + (item.diff * item.sell_average)
+			if item.sell_price:
+				item_row['projected_market'] = item.balance + (item.diff * item.sell_price)
 		else:
-			item_row['projected'] = item.balance
+			item_row['projected_average'] = item.balance
 		
 		data['items'].append(item_row)
 	
@@ -353,7 +355,8 @@ def trade_timeframe(request, year=None, month=None, period=None, slug=None):
 	data['total_buys'] = sum(item_row['item'].buy_total for item_row in data['items'] if item_row['item'].buy_total)
 	data['total_sells'] = sum(item_row['item'].sell_total for item_row in data['items'] if item_row['item'].sell_total)
 	data['total_balance'] = data['total_sells'] - data['total_buys']
-	data['total_projected'] = sum(item_row['projected'] for item_row in data['items'])
+	data['total_projected_average'] = sum(item_row['projected_average'] for item_row in data['items'])
+	data['total_projected_market'] = sum(item_row.get('projected_market', 0) for item_row in data['items'])
 	
 	#times.append((time.time(), 'totals'))
 	#for i in range(len(times) - 1):

@@ -21,6 +21,7 @@
 				11: { sorter: 'human' },
 				13: { sorter: 'human' },
 				14: { sorter: 'human' },
+				15: { sorter: 'human' },
 			},
 			'widgets': [ 'zebra' ],
 		});
@@ -32,26 +33,33 @@
 <h1>Item Sales for {{ timeframe }}</h1>
 <table>
 	<tr>
+		<td colspan="3"></td>
+		<td colspan="2" class="head">Projected</td>
+	</tr>
+	<tr>
 		<th>Total Buys</th>
 		<th>Total Sells</th>
 		<th>Balance</th>
-		<th>Projected</th>
+		<th>Average</th>
+		<th>Market</th>
 	</tr>
 	<tr class="odd">
 		<td align="right">{{ total_buys|humanize }}</td>
 		<td align="right">{{ total_sells|humanize }}</td>
 		<td align="right">{{ total_balance|humanize|balance }}</td>
-		<td align="right">{{ total_projected|humanize|balance }}</td>
+		<td align="right">{{ total_projected_average|humanize|balance }}</td>
+		<td align="right">{{ total_projected_market|humanize|balance }}</td>
 	</tr>
 </table>
 <br />
 <table class="tablesorter">
 	<thead>
 		<tr>
-			<td></th>
-			<td colspan="5" class="head">Buy</th>
-			<td colspan="5" class="head">Sell</th>
-			<td colspan="4"></th>
+			<td></td>
+			<td colspan="5" class="head">Buy</td>
+			<td colspan="5" class="head">Sell</td>
+			<td colspan="3"></td>
+			<td colspan="2" class="head">Projected</td>
 		</tr>
 		<tr>
 			<th>Item</th>
@@ -68,7 +76,8 @@
 			<th>Profit</th>
 			<th>P%</th>
 			<th>Balance</th>
-			<th>Projected</th>
+			<th>Average</th>
+			<th>Market</th>
 		</tr>
 	</thead>
 	<tbody>
@@ -88,7 +97,8 @@
 			<td align="right" class="alt">{{ item.average_profit|humanize }}</td>
 			<td align="right" class="alt">{{ item.average_profit_per }}%</td>
 			<td align="right">{{ item.item.balance|humanize|balance }}</td>
-			<td align="right">{{ item.projected|humanize|balance }}</td>
+			<td align="right" class="alt">{{ item.projected_average|humanize|balance }}</td>
+			<td align="right" class="alt">{{ item.projected_market|humanize|balance }}</td>
 		</tr>
 		{% endfor %}
 	</tbody>
