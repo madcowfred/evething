@@ -347,6 +347,7 @@ def trade_timeframe(request, year=None, month=None, period=None, slug=None):
 				item_row['projected_market'] = item.balance + (item.diff * item.sell_price)
 		else:
 			item_row['projected_average'] = item.balance
+			item_row['projected_market'] = item.balance
 		
 		data['items'].append(item_row)
 	
