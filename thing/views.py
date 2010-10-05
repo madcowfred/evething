@@ -138,11 +138,14 @@ def bpcalc(request):
 		})
 		row = bpis[-1]
 		row['buy_profit'] = row['sell'] - row['buy_build']
+		row['buy_profit_per'] = (row['buy_profit'] / row['buy_build'] * 100).quantize(Decimal('.1'))
 		row['sell_profit'] = row['sell'] - row['sell_build']
+		row['sell_profit_per'] = (row['sell_profit'] / row['sell_build'] * 100).quantize(Decimal('.1'))
 		if row['volume_week']:
 			row['volume_percent'] = (row['built'] / row['volume_week'] * 100).quantize(Decimal('.1'))
-		
-	bpis.sort(key=lambda b: b['name'])
+	
+	bpis.sort(key=lambda b: b['sell_profit'])
+	bpis.reverse()
 	
 	# Yeah this is awful, but better than using 95000 queries... right? :|
 	# FIXME:this might work, but adding the data to the bpis list will be awfully slow. Think on it.
@@ -177,6 +180,8 @@ def bpcalc(request):
 		'sell_build': sum(bpi['sell_build'] for bpi in bpis),
 		'sell_profit': sum(bpi['sell_profit'] for bpi in bpis),
 	}
+	bpi_totals['buy_profit_per'] = (bpi_totals['buy_profit'] / bpi_totals['buy_build'] * 100).quantize(Decimal('.1'))
+	bpi_totals['sell_profit_per'] = (bpi_totals['sell_profit'] / bpi_totals['sell_build'] * 100).quantize(Decimal('.1'))
 	comp_totals = {
 		'volume': sum(comp['volume'] for comp in components),
 		'buy_total': sum(comp['buy_total'] for comp in components),

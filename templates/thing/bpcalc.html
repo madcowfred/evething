@@ -15,11 +15,12 @@
 				4: { sorter: 'human' },
 				5: { sorter: 'human' },
 				6: { sorter: 'human' },
-				7: { sorter: 'human' },
 				8: { sorter: 'human' },
-				9: { sorter: false },
+				9: { sorter: 'human' },
+				11: { sorter: false },
+				12: { sorter: false },
 			},
-			'sortList': [[8,1]],
+			//'sortList': [[8,1]],
 			'widgets': [ 'zebra' ],
 		});
 	});
@@ -32,8 +33,8 @@
 		<thead>
 			<tr>
 				<td colspan="5"></td>
-				<td colspan="2" class="head">Buy</td>
-				<td colspan="2" class="head">Sell</td>
+				<td colspan="3" class="head">Buy</td>
+				<td colspan="3" class="head">Sell</td>
 				<td colspan="2" class="head">Volume</td>
 			</tr>
 			<tr>
@@ -44,8 +45,10 @@
 				<th>Sell</th>
 				<th>Build</th>
 				<th>Profit</th>
+				<th>P%</th>
 				<th>Build</th>
 				<th>Profit</th>
+				<th>P%</th>
 				<th>Weekly</th>
 				<th>Build %</th>
 			</tr>
@@ -58,12 +61,14 @@
 				<td align="right">{{ bpi.runs|commas }}</td>
 				<td align="right">{{ bpi.built|commas }}</td>
 				<td align="right">{{ bpi.sell|humanize }}</td>
-				<td align="right">{{ bpi.buy_build|humanize }}</td>
-				<td align="right">{{ bpi.buy_profit|humanize|balance }}</td>
+				<td align="right" class="alt">{{ bpi.buy_build|humanize }}</td>
+				<td align="right" class="alt">{{ bpi.buy_profit|humanize|balance }}</td>
+				<td align="right" class="alt">{{ bpi.buy_profit_per|spanif:"neg < 7" }}%</td>
 				<td align="right">{{ bpi.sell_build|humanize }}</td>
 				<td align="right">{{ bpi.sell_profit|humanize|balance }}</td>
-				<td align="right">{{ bpi.volume_week|humanize }}</td>
-				<td align="right">{{ bpi.volume_percent|spanif:"neg > 10" }}%</td>
+				<td align="right">{{ bpi.sell_profit_per|spanif:"neg < 7" }}%</td>
+				<td align="right" class="alt">{{ bpi.volume_week|humanize }}</td>
+				<td align="right" class="alt">{{ bpi.volume_percent|spanif:"neg > 10" }}%</td>
 			</tr>
 			{% endfor %}
 		</tbody>
@@ -73,8 +78,10 @@
 				<td align="right">{{ bpi_totals.sell|humanize }}</td>
 				<td align="right">{{ bpi_totals.buy_build|humanize }}</td>
 				<td align="right">{{ bpi_totals.buy_profit|humanize }}</td>
+				<td align="right">{{ bpi_totals.buy_profit_per|spanif:"neg < 7" }}%</td>
 				<td align="right">{{ bpi_totals.sell_build|humanize }}</td>
 				<td align="right">{{ bpi_totals.sell_profit|humanize }}</td>
+				<td align="right">{{ bpi_totals.sell_profit_per|spanif:"neg < 7" }}%</td>
 				<td colspan="2"></td>
 			</tr>
 		</tfoot>
