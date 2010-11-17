@@ -81,7 +81,7 @@ def blueprints(request):
 	)
 
 # Calculate blueprint production details for X number of days
-WEEK = 7 * 24 * 60 * 60
+DAY = 24 * 60 * 60
 @login_required
 def bpcalc(request):
 	# Check that they have a valid character
@@ -109,7 +109,7 @@ def bpcalc(request):
 	final_items = []
 	for bpi in BlueprintInstance.objects.select_related().filter(character__corporation=chars[0].corporation).in_bulk(bpi_ids).values():
 		pt = bpi.calc_production_time()
-		runs = int(WEEK / pt)
+		runs = int((DAY * days) / pt)
 		# Skip really long production items
 		if runs == 0:
 			continue
