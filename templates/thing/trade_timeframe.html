@@ -77,7 +77,7 @@
 			<th>P%</th>
 			<th>Balance</th>
 			<th>Average</th>
-			<th>Market</th>
+			<th>Outstanding</th>
 		</tr>
 	</thead>
 	<tbody>
@@ -98,7 +98,7 @@
 			<td align="right" class="alt">{{ item.average_profit_per }}%</td>
 			<td align="right">{{ item.item.balance|humanize|balance }}</td>
 			<td align="right" class="alt">{{ item.projected_average|humanize|balance }}</td>
-			<td align="right" class="alt">{{ item.projected_market|humanize|balance }}</td>
+			<td align="right" class="alt">{{ item.outstanding_average|humanize|balance }}</td>
 		</tr>
 		{% endfor %}
 	</tbody>
