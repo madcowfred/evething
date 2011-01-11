@@ -14,7 +14,7 @@ setup_environ(settings)
 from thing.models import *
 
 
-QUICKLOOK_URL = 'http://api.goonfleet.com:8080/api/quicklook?typeid=%s&usesystem=30000142'
+MARKETSTAT_URL = 'http://api.goonfleet.com:8080/api/marketstat?hours=48&regionlimit=10000002&%s'
 
 
 def main():
@@ -31,33 +31,28 @@ def main():
 		item_ids.update(item_id)
 	
 	# Fetch market data and write to the database
-	for item_id in item_ids:
-		item = Item.objects.filter(pk=item_id)[0]
-		
-		# Retrieve quicklook data and parse the XML
-		url = QUICKLOOK_URL % (item_id)
+	item_ids = list(item_ids)
+	item_ids.sort()
+	
+	for i in range(0, len(item_ids), 20):
+		# Retrieve market data and parse the XML
+		tstring = '&'.join('typeid=%s' % item_id for item_id in item_ids[i:i+20])
+		url = MARKETSTAT_URL % (tstring)
 		f = urllib2.urlopen(url)
 		data = f.read()
 		f.close()
 		root = ET.fromstring(data)
 		
-		# Find a not quite bottom sell order
-		sell_orders = root.findall('quicklook/sell_orders/order')
-		if not sell_orders:
-			continue
-		n = min(2, len(sell_orders) - 1)
-		item.sell_price = Decimal(sell_orders[n].find('price').text)
-		
-		# Find a not quite bottom buy order
-		buy_orders = root.findall('quicklook/buy_orders/order')
-		if not buy_orders:
-			continue
-		n = min(2, len(buy_orders) - 1)
-		item.buy_price = Decimal(buy_orders[n].find('price').text)
-		
-		item.save()
+		# Save market order shit
+		for t in root.findall('marketstat/type'):
+			item = Item.objects.get(pk=t.attrib['id'])
+			print item.id
+			item.buy_price = t.find('buy/median').text
+			item.sell_price = t.find('sell/median').text
+			item.save()
 		
 		time.sleep(1)
+
 
 if __name__ == '__main__':
 	main()
