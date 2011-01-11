@@ -46,7 +46,6 @@ def main():
 		# Save market order shit
 		for t in root.findall('marketstat/type'):
 			item = Item.objects.get(pk=t.attrib['id'])
-			print item.id
 			item.buy_price = t.find('buy/median').text
 			item.sell_price = t.find('sell/median').text
 			item.save()
