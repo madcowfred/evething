@@ -14,7 +14,7 @@ setup_environ(settings)
 from thing.models import *
 
 
-QUICKLOOK_URL = 'http://api.eve-central.com/api/quicklook?typeid=%s&usesystem=30000142'
+QUICKLOOK_URL = 'http://api.goonfleet.com:8080/api/quicklook?typeid=%s&usesystem=30000142'
 
 
 def main():
