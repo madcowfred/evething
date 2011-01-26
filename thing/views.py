@@ -492,11 +492,3 @@ def orders(request):
 
 def show_error(error_msg):
 	return render_to_response('thing/error.html', { 'error': error_msg })
-
-def get_balance_class(balance):
-	if balance > 0:
-		return ' class="g"'
-	elif balance < 0:
-		return ' class="r"'
-	else:
-		return ''
