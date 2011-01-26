@@ -411,19 +411,20 @@ def transactions(request):
 @login_required
 def transactions_item(request, item_id, year=None, month=None, period=None, slug=None):
 	# Check that they have a valid character
-	chars = Character.objects.select_related().filter(user=request.user)
-	if chars.count() == 0:
+	try:
+		char = Character.objects.select_related().get(user=request.user)
+	except Character.DoesNotExist:
 		return show_error("Your account does not have an associated character.")
-	if not chars[0].corporation:
+	if not char.corporation:
 		return show_error("Your first character doesn't seem to be in a corporation, what the hell?")
 	
 	# Make sure item_id is valid
 	data = {}
 	
 	if item_id.isdigit():
-		transactions = Transaction.objects.filter(corporation=chars[0].corporation, item=item_id).order_by('date').reverse()
+		transactions = Transaction.objects.filter(corporation=char.corporation, item=item_id).order_by('date').reverse()
 	else:
-		transactions = Transaction.objects.order_by('date').reverse()
+		transactions = Transaction.objects.filter(corporation=char.corporation).order_by('date').reverse()
 		data['item'] = 'all items'
 	
 	if transactions.count() == 0:
@@ -435,15 +436,16 @@ def transactions_item(request, item_id, year=None, month=None, period=None, slug
 	# Year/Month
 	if year and month:
 		month = int(month)
-		data['transactions'] = transactions.filter(date__year=year, date__month=month)
+		transactions = transactions.filter(date__year=year, date__month=month)
 		data['timeframe'] = '%s %s' % (MONTHS[month], year)
 	# Timeframe slug
 	elif slug:
-		tf = Timeframe.objects.filter(corporation=chars[0].corporation, slug=slug)
-		if tf.count() == 0:
+		try:
+			tf = Timeframe.objects.get(corporation=char.corporation, slug=slug)
+		except Timeframe.DoesNotExist:
 			return show_error("Invalid timeframe slug.")
-		transactions = transactions.filter(date__range=(tf[0].start_date, tf[0].end_date))
-		data['timeframe'] = '%s (%s -> %s)' % (tf[0].title, tf[0].start_date, tf[0].end_date)
+		transactions = transactions.filter(date__range=(tf.start_date, tf.end_date))
+		data['timeframe'] = '%s (%s -> %s)' % (tf.title, tf.start_date, tf.end_date)
 	# All
 	elif period:
 		data['timeframe'] = 'all time'
@@ -451,7 +453,7 @@ def transactions_item(request, item_id, year=None, month=None, period=None, slug
 		data['timeframe'] = 'all time'
 	
 	# Paginator stuff
-	paginator = Paginator(transactions, 100)
+	paginator = Paginator(transactions.select_related('item', 'station'), 100)
 	
 	# Make sure page request is an int. If not, deliver first page.
 	try:
