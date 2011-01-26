@@ -53,8 +53,10 @@ def blueprints(request):
 	except ValueError:
 		runs = 1
 	
+	# Assemble blueprint data
 	bpis = []
 	for bpi in BlueprintInstance.objects.select_related().filter(character__corporation=chars[0].corporation):
+		components = bpi._get_components(runs=runs)
 		bpis.append({
 			'character': bpi.character,
 			'id': bpi.id,
@@ -64,10 +66,10 @@ def blueprints(request):
 			'productivity_level': bpi.productivity_level,
 			'count': bpi.blueprint.item.portion_size * runs,
 			'production_time': bpi.calc_production_time(runs=runs),
-			'unit_cost_buy': bpi.calc_production_cost(runs=runs),
-			'unit_cost_sell': bpi.calc_production_cost(runs=runs, use_sell=True),
+			'unit_cost_buy': bpi.calc_production_cost(runs=runs, components=components),
+			'unit_cost_sell': bpi.calc_production_cost(runs=runs, use_sell=True, components=components),
 			'market_price': bpi.blueprint.item.sell_price,
-			'components': bpi._get_components(runs=runs),
+			'components': components,
 		})
 		bpis[-1]['unit_profit_buy'] = bpis[-1]['market_price'] - bpis[-1]['unit_cost_buy']
 		bpis[-1]['unit_profit_sell'] = bpis[-1]['market_price'] - bpis[-1]['unit_cost_sell']
