@@ -2,6 +2,8 @@
 
 dropdb evething && createdb evething && python manage.py syncdb
 
+python manage.py loaddata itemcategory.json
+python manage.py loaddata itemgroup.json
 python manage.py loaddata item.json
 python manage.py loaddata blueprint.json
 python manage.py loaddata blueprintcomponent.json

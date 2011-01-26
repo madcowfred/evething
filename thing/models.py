@@ -53,10 +53,23 @@ class Character(models.Model):
 	def __unicode__(self):
 		return self.name
 
+# Categories
+class ItemCategory(models.Model):
+	id = models.IntegerField(primary_key=True)
+	name = models.CharField(max_length=64)
+
+# Groups
+class ItemGroup(models.Model):
+	id = models.IntegerField(primary_key=True)
+	name = models.CharField(max_length=64)
+	category = models.ForeignKey(ItemCategory)
+
 # Items
 class Item(models.Model):
 	id = models.IntegerField(primary_key=True)
 	name = models.CharField(max_length=128)
+	group = models.ForeignKey(ItemGroup)
+	
 	portion_size = models.IntegerField()
 	# 0.0025 -> 10,000,000,000
 	volume = models.DecimalField(max_digits=16, decimal_places=4, default=0)
