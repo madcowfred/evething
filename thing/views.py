@@ -413,10 +413,10 @@ def transactions(request):
 @login_required
 def transactions_item(request, item_id, year=None, month=None, period=None, slug=None):
 	# Check that they have a valid character
-	try:
-		char = Character.objects.select_related().get(user=request.user)
-	except Character.DoesNotExist:
+	chars = Character.objects.select_related().filter(user=request.user)
+	if chars.count() == 0:
 		return show_error("Your account does not have an associated character.")
+	char = chars[0]
 	if not char.corporation:
 		return show_error("Your first character doesn't seem to be in a corporation, what the hell?")
 	
