@@ -429,7 +429,7 @@ def transactions_item(request, item_id, year=None, month=None, period=None, slug
 	data = {}
 	
 	if item_id.isdigit():
-		transactions = Transaction.objects.filter(corporation=char.corporation, item=item_id).order_by('date').reverse()
+		transactions = Transaction.objects.select_related('item').filter(corporation=char.corporation, item=item_id).order_by('date').reverse()
 	else:
 		transactions = Transaction.objects.filter(corporation=char.corporation).order_by('date').reverse()
 		data['item'] = 'all items'
