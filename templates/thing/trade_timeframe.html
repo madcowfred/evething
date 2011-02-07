@@ -8,7 +8,6 @@
 	$(document).ready(function() {
 		$("table").tablesorter({
 			'headers': {
-				1: { sorter: 'human' },
 				2: { sorter: 'human' },
 				3: { sorter: 'human' },
 				4: { sorter: 'human' },
@@ -19,9 +18,10 @@
 				9: { sorter: 'human' },
 				10: { sorter: 'human' },
 				11: { sorter: 'human' },
-				13: { sorter: 'human' },
+				12: { sorter: 'human' },
 				14: { sorter: 'human' },
 				15: { sorter: 'human' },
+				16: { sorter: 'human' },
 			},
 			'widgets': [ 'zebra' ],
 		});
@@ -55,7 +55,7 @@
 <table class="tablesorter">
 	<thead>
 		<tr>
-			<td></td>
+			<td colspan="2"></td>
 			<td colspan="5" class="head">Buy</td>
 			<td colspan="5" class="head">Sell</td>
 			<td colspan="3"></td>
@@ -63,6 +63,7 @@
 		</tr>
 		<tr>
 			<th>Item</th>
+			<th>Cat</th>
 			<th>#</th>
 			<th>Min</th>
 			<th>Avg</th>
@@ -84,6 +85,7 @@
 		{% for item in items %}
 		<tr>
 			<td><a href="{% url evething.thing.views.transactions_item item.item.id urlpart %}">{{ item.item.name }}</a></td>
+			<td>{{ item.item.cat_name }}</td>
 			<td align="right" class="alt">{{ item.item.buy_quantity|humanize }}</td>
 			<td align="right" class="alt">{{ item.item.buy_minimum|humanize }}</td>
 			<td align="right" class="alt">{{ item.item.buy_average|humanize }}</td>

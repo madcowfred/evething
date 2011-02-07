@@ -16,6 +16,7 @@ TRADE_TIMEFRAME_JOIN = """
 SELECT
   COALESCE(t1.item_id, t2.item_id) AS id,
   i.name,
+  ic.name AS cat_name,
   i.sell_price,
   t1.buy_maximum, t1.buy_quantity, t1.buy_total, t1.buy_minimum,
   t2.sell_maximum, t2.sell_quantity, t2.sell_total, t2.sell_minimum,
@@ -34,6 +35,10 @@ FULL OUTER JOIN
 ON t1.item_id = t2.item_id
 INNER JOIN thing_item i
 ON i.id = COALESCE(t1.item_id, t2.item_id)
+INNER JOIN thing_itemgroup ig
+ON i.group_id = ig.id
+INNER JOIN thing_itemcategory ic
+ON ig.category_id = ic.id
 ORDER BY balance DESC
 """
 
