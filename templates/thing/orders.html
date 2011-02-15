@@ -8,24 +8,27 @@
 {% block content %}
 <h1>Active Orders</h1>
 <table>
-	<thead>
-		<tr>
-			<th>Expires</th>
-			<th>Station</th>
-			<th>Type</th>
-			<th>Item</th>
-			<th colspan="2">Volume</th>
-			<th>Unit Price</th>
-			<th>Total Price</th>
-			<th>Escrow</th>
-			<th>Buy Price</th>
-			<th>Sell Price</th>
-		</tr>
-	</thead>
+	<tr>
+		<td colspan="3"></td>
+		<td colspan="2" class="head">Volume</td>
+		<td colspan="6"></td>
+	</tr>	
+	<tr>
+		<th>Station</th>
+		<th>Type</th>
+		<th>Item</th>
+		<th>Now</th>
+		<th>Total</th>
+		<th>Unit Price</th>
+		<th>Total Price</th>
+		<th>Escrow</th>
+		<th>Buy Price</th>
+		<th>Sell Price</th>
+		<th>Expires</th>
+	</tr>
 	<tbody>
 		{% for order in orders %}
 		<tr class="{% cycle 'odd' 'even' %}">
-			<td class="{{ order.o_type }}">{{ order.get_expiry_date|date:"Y-m-d H:i" }}</td>
 			<td class="{{ order.o_type }}">{{ order.station.short_name }}</td>
 			<td class="{{ order.o_type }}">{{ order.get_o_type_display }}</td>
 			<td class="{{ order.o_type }}"><a href="{% url transactions-all order.item.id 'all' %}">{{ order.item.name }}</a></td>
@@ -36,6 +39,7 @@
 			<td class="{{ order.o_type }}" align="right">{{ order.escrow|humanize }}</td>
 			<td class="{{ order.o_type }}" align="right">{{ order.item.buy_price|humanize }}</td>
 			<td class="{{ order.o_type }}" align="right">{{ order.item.sell_price|humanize }}</td>
+			<td class="{{ order.o_type }}">{{ order.get_expiry_date|date:"Y-m-d H:i" }}</td>
 		</tr>
 		{% endfor %}
 	</tbody>

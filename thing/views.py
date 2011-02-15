@@ -430,15 +430,13 @@ def transactions_item(request, item_id, year=None, month=None, period=None, slug
 	
 	if item_id.isdigit():
 		transactions = Transaction.objects.select_related('item').filter(corporation=char.corporation, item=item_id).order_by('date').reverse()
+		data['item'] = transactions[0].item.name
 	else:
 		transactions = Transaction.objects.filter(corporation=char.corporation).order_by('date').reverse()
 		data['item'] = 'all items'
 	
 	if transactions.count() == 0:
 		return show_error("There are no transactions matching those criteria.")
-	
-	if 'item' not in data:
-		data['item'] = transactions[0].item.name
 	
 	# Year/Month
 	if year and month:
@@ -486,11 +484,13 @@ def orders(request):
 	chars = Character.objects.select_related().filter(user=request.user)
 	if chars.count() == 0:
 		return show_error("Your account does not have an associated character.")
-	if not chars[0].corporation:
+	
+	corporation = chars[0].corporation
+	if not corporation:
 		return show_error("Your first character doesn't seem to be in a corporation, what the hell?")
 	
 	# Retrieve orders
-	orders = Order.objects.select_related().filter(corporation=chars[0].corporation)
+	orders = Order.objects.select_related('item', 'station').filter(corporation=corporation).order_by('-o_type', 'station__name', 'item__name')
 	
 	return render_to_response('thing/orders.html', { 'orders': orders })
 
