@@ -14,7 +14,7 @@ setup_environ(settings)
 from thing.models import *
 
 
-MARKETSTAT_URL = 'http://api.goonfleet.com:8080/api/marketstat?regionlimit=10000002&%s'
+MARKETSTAT_URL = 'http://api.goonfleet.com:8080/api/marketstat?regionlimit=10000002&usesystem=30000142&%s'
 
 
 def main():
