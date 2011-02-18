@@ -14,7 +14,7 @@ setup_environ(settings)
 from thing.models import *
 
 
-MARKETSTAT_URL = 'http://api.goonfleet.com:8080/api/marketstat?hours=48&regionlimit=10000002&%s'
+MARKETSTAT_URL = 'http://api.goonfleet.com:8080/api/marketstat?regionlimit=10000002&%s'
 
 
 def main():
@@ -46,8 +46,8 @@ def main():
 		# Save market order shit
 		for t in root.findall('marketstat/type'):
 			item = Item.objects.get(pk=t.attrib['id'])
-			item.buy_price = t.find('buy/median').text
-			item.sell_price = t.find('sell/median').text
+			item.buy_price = t.find('buy/max').text
+			item.sell_price = t.find('sell/min').text
 			item.save()
 		
 		time.sleep(1)
