@@ -133,7 +133,7 @@ def main():
 					
 					# Skip already seen transactions
 					transaction_id = int(row.attrib['transactionID'])
-					if Transaction.objects.filter(pk=transaction_id):
+					if Transaction.objects.filter(pk=transaction_id).count() > 0:
 						continue
 					
 					# Make sure the item typeID is valid
