@@ -100,7 +100,6 @@ INSTALLED_APPS = (
 
 INTERNAL_IPS = (
 	'127.0.0.1',
-	'192.168.1.1',
 )
 
 from local_settings import *
