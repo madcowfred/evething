@@ -45,6 +45,7 @@ class Character(models.Model):
 	
 	eve_user_id = models.IntegerField(verbose_name='User ID', default=0)
 	eve_api_key = models.CharField(max_length=64, verbose_name='API key', default='zzz')
+	eve_api_corp = models.BooleanField(verbose_name='Use API key for corp?', default=True)
 	eve_character_id = models.IntegerField(default=0)
 	
 	class Meta:
@@ -172,6 +173,7 @@ class Transaction(models.Model):
 	id = models.BigIntegerField(primary_key=True)
 	corporation = models.ForeignKey(Corporation)
 	corp_wallet = models.ForeignKey(CorpWallet)
+	character = models.ForeignKey(Character)
 	
 	date = models.DateTimeField(db_index=True)
 	t_type = models.CharField(max_length=1, choices=((u'B', u'Buy'), (u'S', u'Sell')))

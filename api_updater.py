@@ -19,7 +19,8 @@ from thing.models import *
 BASE_URL = 'http://api.eve-online.com'
 CHARACTERS_URL = '%s/account/Characters.xml.aspx' % (BASE_URL)
 ORDERS_URL = '%s/corp/MarketOrders.xml.aspx' % (BASE_URL)
-TRANSACTIONS_URL = '%s/corp/WalletTransactions.xml.aspx' % (BASE_URL)
+TRANSACTIONS_CHAR_URL = '%s/char/WalletTransactions.xml.aspx' % (BASE_URL)
+TRANSACTIONS_CORP_URL = '%s/corp/WalletTransactions.xml.aspx' % (BASE_URL)
 WALLET_URL = '%s/corp/AccountBalance.xml.aspx' % (BASE_URL)
 
 PADDING = datetime.timedelta(minutes=1)
@@ -40,6 +41,12 @@ def main():
 		}
 	
 	
+	# Make a character id map
+	char_id_map = {}
+	for character in Character.objects.all():
+		char_id_map[character.eve_character_id] = character
+	
+	
 	for character in Character.objects.all():
 		# Skip if they have no valid user_id/api_key
 		if not character.eve_user_id or len(character.eve_api_key) != 64:
@@ -47,7 +54,9 @@ def main():
 		
 		# Initialise cache
 		if character.name not in cache['char']:
-			cache['char'][character.name] = {}
+			cache['char'][character.name] = {
+				'transactions': datetime.datetime(1900, 1, 1),
+			}
 		
 		# Get their character ID if it has never been retrieved
 		if not character.eve_character_id:
@@ -64,59 +73,27 @@ def main():
 		
 		corporation = character.corporation
 		
-		# Initialise cache
-		if corporation.name not in cache['corp']:
-			cache['corp'][corporation.name] = {
-				'balances': datetime.datetime(1900, 1, 1),
-				'orders': datetime.datetime(1900, 1, 1),
-				'transactions': {},
-			}
 		
-		# Update corporation wallet information/balances
-		if _now() > cache['corp'][corporation.name]['balances']:
-			root, times = fetch_api(WALLET_URL, {'characterID': character.eve_character_id}, character)
-			err = root.find('error')
-			if err is not None:
-				show_error('corpwallet', err, times)
-				#print 'DEBUG: now: %s | bc: %s' % (_now(), cache['corp'][corporation.name]['balances'])
-			else:
-				for row in root.findall('result/rowset/row'):
-					accountID = int(row.attrib['accountID'])
-					accountKey = int(row.attrib['accountKey'])
-					balance = Decimal(row.attrib['balance'])
-					
-					wallet = CorpWallet.objects.filter(pk=accountID)
-					if wallet:
-						wallet[0].balance = balance
-						wallet[0].save()
-					else:
-						wallet = CorpWallet(account_id=accountID, corporation=corporation, account_key=accountKey, balance=balance)
-						wallet.save()
-			
-			cache['corp'][corporation.name]['balances'] = _now() + times['delta'] + PADDING
-		
-		
-		# Update corporation transactions
-		tcache = cache['corp'][corporation.name]['transactions']
+		# Character things
+		# Update character transactions
 		for wallet in CorpWallet.objects.filter(corporation=corporation):
-			wak = wallet.account_key
-			if wak in tcache and _now() < tcache[wak]:
+			if _now() < cache['char'][character.name]['transactions']:
 				continue
 			
 			params = {
 				'characterID': character.eve_character_id,
-				'accountKey': wak,
 			}
 			
+			wallet = CorpWallet.objects.get(corporation=character.corporation, account_key=1000)
 			one_week_ago = None
 			
-			while 1:
-				root, times = fetch_api(TRANSACTIONS_URL, params, character)
+			while True:
+				root, times = fetch_api(TRANSACTIONS_CHAR_URL, params, character)
 				err = root.find('error')
 				if err is not None:
 					# Fuck it, the API flat out lies about cache times
 					if err.attrib['code'] not in ('101', '103'):
-						show_error('corptrans', err, times)
+						show_error('chartrans', err, times)
 					break
 				
 				# We need to stop asking for data if the oldest transaction entry is older
@@ -153,6 +130,7 @@ def main():
 						id=transaction_id,
 						corporation=corporation,
 						corp_wallet=wallet,
+						character=character,
 						date=transaction_time,
 						t_type=row.attrib['transactionType'][0].upper(),
 						station=station,
@@ -172,59 +150,80 @@ def main():
 				else:
 					break
 			
-			#print 'DEBUG: tcw: %s' % (tcache.get(wak, 0))
-			tcache[wak] = _now() + times['delta'] + PADDING
-			#print 'DEBUG: wak: %s | now: %s | tcw: %s' % (wak, _now(), tcache[wak])
+			cache['char'][character.name]['transactions'] = _now() + times['delta'] + PADDING
 		
 		
-		# Update corporation orders
-		if _now() > cache['corp'][corporation.name]['orders']:
-			params = {
-				'characterID': character.eve_character_id,
-			}
+		# Corporation things
+		if character.eve_api_corp:
+			# Initialise cache
+			if corporation.name not in cache['corp']:
+				cache['corp'][corporation.name] = {
+					'balances': datetime.datetime(1900, 1, 1),
+					'orders': datetime.datetime(1900, 1, 1),
+					'transactions': {},
+				}
 			
-			root, times = fetch_api(ORDERS_URL, params, character)
-			err = root.find('error')
-			if err is not None:
-				show_error('corporders', err, times)
-			
-			else:
-				rows = root.findall('result/rowset/row')
-				if not rows:
-					break
+			# Update corporation wallet information/balances
+			if _now() > cache['corp'][corporation.name]['balances']:
+				root, times = fetch_api(WALLET_URL, {'characterID': character.eve_character_id}, character)
+				err = root.find('error')
+				if err is not None:
+					show_error('corpwallet', err, times)
+					#print 'DEBUG: now: %s | bc: %s' % (_now(), cache['corp'][corporation.name]['balances'])
+				else:
+					for row in root.findall('result/rowset/row'):
+						accountID = int(row.attrib['accountID'])
+						accountKey = int(row.attrib['accountKey'])
+						balance = Decimal(row.attrib['balance'])
+						
+						wallet = CorpWallet.objects.filter(pk=accountID)
+						if wallet:
+							wallet[0].balance = balance
+							wallet[0].save()
+						else:
+							wallet = CorpWallet(account_id=accountID, corporation=corporation, account_key=accountKey, balance=balance)
+							wallet.save()
 				
-				for row in rows:
-					order_id = int(row.attrib['orderID'])
-					orders = Order.objects.filter(pk=order_id)
+				cache['corp'][corporation.name]['balances'] = _now() + times['delta'] + PADDING
+			
+			# Update corporation transactions
+			tcache = cache['corp'][corporation.name]['transactions']
+			for wallet in CorpWallet.objects.filter(corporation=corporation):
+				wak = wallet.account_key
+				if wak in tcache and _now() < tcache[wak]:
+					continue
+				
+				params = {
+					'characterID': character.eve_character_id,
+					'accountKey': wak,
+				}
+				
+				one_week_ago = None
+				
+				while True:
+					root, times = fetch_api(TRANSACTIONS_CORP_URL, params, character)
+					err = root.find('error')
+					if err is not None:
+						# Fuck it, the API flat out lies about cache times
+						if err.attrib['code'] not in ('101', '103'):
+							show_error('corptrans', err, times)
+						break
 					
-					# Hey, this transaction already exists
-					if orders:
-						order = orders[0]
-						
-						# Order is active, update stuff I guess
-						if row.attrib['orderState'] == '0':
-							order.issued = parse_api_date(row.attrib['issued'])
-							order.volume_remaining = int(row.attrib['volRemaining'])
-							order.escrow = Decimal(row.attrib['escrow'])
-							order.price = Decimal(row.attrib['price'])
-							order.total_price = order.volume_remaining * order.price
-							order.save()
-							
-						# Not active, nuke it from orbit
-						else:
-							order.delete()
+					# We need to stop asking for data if the oldest transaction entry is older
+					# than one week
+					if one_week_ago is None:
+						one_week_ago = times['current'] - datetime.timedelta(7)
 					
-					# Doesn't exist and is active, make a new order
-					elif row.attrib['orderState'] == '0':
-						if row.attrib['bid'] == '0':
-							o_type = 'S'
-						else:
-							o_type = 'B'
+					rows = root.findall('result/rowset/row')
+					if not rows:
+						break
+					
+					for row in rows:
+						transaction_time = parse_api_date(row.attrib['transactionDateTime'])
 						
-						# Make sure the character charID is valid
-						chars = Character.objects.filter(eve_character_id=row.attrib['charID'])
-						if not chars:
-							print 'ERROR: no matching Character object for charID=%s' % (row.attrib['charID'])
+						# Skip already seen transactions
+						transaction_id = int(row.attrib['transactionID'])
+						if Transaction.objects.filter(pk=transaction_id).count() > 0:
 							continue
 						
 						# Make sure the item typeID is valid
@@ -234,29 +233,121 @@ def main():
 							print '>> attrib = %r' % (row.attrib)
 							continue
 						
-						remaining = int(row.attrib['volRemaining'])
+						# Make the station object if it doesn't already exist
+						station = get_station(int(row.attrib['stationID']), row.attrib['stationName'])
+						
+						# Make the transaction object
+						quantity = int(row.attrib['quantity'])
 						price = Decimal(row.attrib['price'])
-						order = Order(
-							id=order_id,
+						t = Transaction(
+							id=transaction_id,
 							corporation=corporation,
-							corp_wallet=CorpWallet.objects.filter(corporation=corporation, account_key=row.attrib['accountKey'])[0],
-							character=chars[0],
-							station=get_station(int(row.attrib['stationID']), 'UNKNOWN STATION'),
+							corp_wallet=wallet,
+							character=char_id_map[int(row.attrib['characterID'])],
+							date=transaction_time,
+							t_type=row.attrib['transactionType'][0].upper(),
+							station=station,
 							item=items[0],
-							issued=parse_api_date(row.attrib['issued']),
-							o_type=o_type,
-							volume_entered=int(row.attrib['volEntered']),
-							volume_remaining=remaining,
-							min_volume=int(row.attrib['minVolume']),
-							duration=int(row.attrib['duration']),
-							escrow=Decimal(row.attrib['escrow']),
+							quantity=quantity,
 							price=price,
-							total_price=remaining*price,
+							total_price=quantity * price,
 						)
-						order.save()
+						t.save()
+						
+						#print t.id, t.date, t.t_type, t.item, t.quantity, t.price
+					
+					# If we got 1000 rows we should retrieve some more
+					#print 'DEBUG: rows: %d | cur: %s | owa: %s | tt: %s' % (len(rows), times['current'], one_week_ago, transaction_time)
+					if len(rows) == 1000 and transaction_time > one_week_ago:
+						params['beforeTransID'] = transaction_id
+					else:
+						break
+				
+				#print 'DEBUG: tcw: %s' % (tcache.get(wak, 0))
+				tcache[wak] = _now() + times['delta'] + PADDING
+				#print 'DEBUG: wak: %s | now: %s | tcw: %s' % (wak, _now(), tcache[wak])
 			
-			cache['corp'][corporation.name]['orders'] = _now() + times['delta'] + PADDING
-	
+			
+			# Update corporation orders
+			if _now() > cache['corp'][corporation.name]['orders']:
+				params = {
+					'characterID': character.eve_character_id,
+				}
+				
+				root, times = fetch_api(ORDERS_URL, params, character)
+				err = root.find('error')
+				if err is not None:
+					show_error('corporders', err, times)
+				
+				else:
+					rows = root.findall('result/rowset/row')
+					if not rows:
+						break
+					
+					for row in rows:
+						order_id = int(row.attrib['orderID'])
+						orders = Order.objects.filter(pk=order_id)
+						
+						# Hey, this transaction already exists
+						if orders:
+							order = orders[0]
+							
+							# Order is active, update stuff I guess
+							if row.attrib['orderState'] == '0':
+								order.issued = parse_api_date(row.attrib['issued'])
+								order.volume_remaining = int(row.attrib['volRemaining'])
+								order.escrow = Decimal(row.attrib['escrow'])
+								order.price = Decimal(row.attrib['price'])
+								order.total_price = order.volume_remaining * order.price
+								order.save()
+								
+							# Not active, nuke it from orbit
+							else:
+								order.delete()
+						
+						# Doesn't exist and is active, make a new order
+						elif row.attrib['orderState'] == '0':
+							if row.attrib['bid'] == '0':
+								o_type = 'S'
+							else:
+								o_type = 'B'
+							
+							# Make sure the character charID is valid
+							chars = Character.objects.filter(eve_character_id=row.attrib['charID'])
+							if not chars:
+								print 'ERROR: no matching Character object for charID=%s' % (row.attrib['charID'])
+								continue
+							
+							# Make sure the item typeID is valid
+							items = Item.objects.filter(pk=row.attrib['typeID'])
+							if items.count() == 0:
+								print "ERROR: item with typeID '%s' does not exist, what the fuck?" % (row.attrib['typeID'])
+								print '>> attrib = %r' % (row.attrib)
+								continue
+							
+							remaining = int(row.attrib['volRemaining'])
+							price = Decimal(row.attrib['price'])
+							order = Order(
+								id=order_id,
+								corporation=corporation,
+								corp_wallet=CorpWallet.objects.filter(corporation=corporation, account_key=row.attrib['accountKey'])[0],
+								character=chars[0],
+								station=get_station(int(row.attrib['stationID']), 'UNKNOWN STATION'),
+								item=items[0],
+								issued=parse_api_date(row.attrib['issued']),
+								o_type=o_type,
+								volume_entered=int(row.attrib['volEntered']),
+								volume_remaining=remaining,
+								min_volume=int(row.attrib['minVolume']),
+								duration=int(row.attrib['duration']),
+								escrow=Decimal(row.attrib['escrow']),
+								price=price,
+								total_price=remaining*price,
+							)
+							order.save()
+				
+				cache['corp'][corporation.name]['orders'] = _now() + times['delta'] + PADDING
+		
 	
 	# Save cache
 	cPickle.dump(cache, open(pickle_filepath, 'wb'))

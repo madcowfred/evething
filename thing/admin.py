@@ -15,7 +15,7 @@ class CharacterAdmin(admin.ModelAdmin):
 		}),
 		('API information', {
 			'classes': ('collapse',),
-			'fields': ['eve_user_id', 'eve_api_key', 'eve_character_id']
+			'fields': ['eve_user_id', 'eve_api_key', 'eve_api_corp', 'eve_character_id']
 		}),
 	]
 
