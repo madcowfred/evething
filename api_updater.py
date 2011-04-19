@@ -76,10 +76,7 @@ def main():
 		
 		# Character things
 		# Update character transactions
-		for wallet in CorpWallet.objects.filter(corporation=corporation):
-			if _now() < cache['char'][character.name]['transactions']:
-				continue
-			
+		if _now() >= cache['char'][character.name]['transactions'] and not character.eve_api_corp:
 			params = {
 				'characterID': character.eve_character_id,
 			}
