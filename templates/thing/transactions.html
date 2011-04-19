@@ -12,6 +12,7 @@
 		<tr>
 			<th>Date</th>
 			<th>Station</th>
+			<th>Character</th>
 			<th>Item</th>
 			<th>Type</th>
 			<th>Quantity</th>
@@ -24,6 +25,7 @@
 		<tr class="{% cycle 'odd' 'even' %}">
 			<td class="{{ transaction.t_type }}">{{ transaction.date|date:"Y-m-d H:i" }}</td>
 			<td class="{{ transaction.t_type }}">{{ transaction.station.short_name }}</td>
+			<td class="{{ transaction.t_type }}">{{ transaction.character.name }}</td>
 			<td class="{{ transaction.t_type }}"><a href="{% url transactions-all transaction.item.id 'all' %}">{{ transaction.item }}</a></td>
 			<td class="{{ transaction.t_type }}">{{ transaction.get_t_type_display }}</td>
 			<td class="{{ transaction.t_type }}" align="right">{{ transaction.quantity|humanize }}</td>
@@ -34,7 +36,7 @@
 	</tbody>
 	<tfoot>
 		<tr>
-			<td colspan="7" align="center">
+			<td colspan="8" align="center">
 				{% if transactions.has_previous %}<a href="?page={{ transactions.previous_page_number }}">Previous</a> |{% endif %}
 				Page {{ transactions.number }} of {{ transactions.paginator.num_pages }}
 				{% if transactions.has_next %}| <a href="?page={{ transactions.next_page_number }}">Next</a>{% endif %}
