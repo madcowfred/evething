@@ -35,16 +35,16 @@ tr.odd td.alt {
 tr.even td.alt {
 	background: #CECEDE;
 }
-tr.odd td.B {
+tr.oddB td {
 	background: #EFAFAF;
 }
-tr.even td.B {
+tr.evenB td {
 	background: #DF9F9F;
 }
-tr.odd td.S {
+tr.oddS td {
 	background: #8FEF8F;
 }
-tr.even td.S {
+tr.evenS td {
 	background: #7FDF7F;
 }
 
