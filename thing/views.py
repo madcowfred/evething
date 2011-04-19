@@ -392,7 +392,7 @@ def transactions(request):
 		return show_error("Your first character doesn't seem to be in a corporation, what the hell?")
 	
 	# See if this corp has any transactions
-	transactions = Transaction.objects.select_related('item', 'station').filter(corporation=chars[0].corporation).order_by('date').reverse()
+	transactions = Transaction.objects.select_related('item', 'station', 'character').filter(corporation=chars[0].corporation).order_by('date').reverse()
 	if transactions.count() == 0:
 		return show_error("There are no transactions for your corporation.")
 	
