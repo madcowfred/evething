@@ -153,7 +153,7 @@ def bpcalc(request):
 	
 	bpis.sort(key=lambda b: b['sell_profit'])
 	bpis.reverse()
-	
+		
 	# Yeah this is awful, but better than using 95000 queries... right? :|
 	# FIXME:this might work, but adding the data to the bpis list will be awfully slow. Think on it.
 	#filler = []
