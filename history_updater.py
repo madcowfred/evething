@@ -67,8 +67,10 @@ def main():
 			#  <quantity>492281316</quantity>
 			#  <num_orders>1819</num_orders>
 			#</type>
-			item_id = int(t.find('type_id').text)
 			date = t.find('date').text
+			if date == '0000-00-00':
+				continue
+			item_id = int(t.find('type_id').text)
 			price_low = t.find('price_low').text
 			price_high = t.find('price_high').text
 			price_average = t.find('price_average').text
