@@ -1,8 +1,5 @@
 #!/usr/local/bin/python
 
-import bz2
-import csv
-import datetime
 import os
 import psycopg2
 import time
@@ -16,51 +13,15 @@ setup_environ(settings)
 
 from decimal import *
 
-#from local_settings import DATABASES
-#from thing.models import *
+from thing.models import *
 
 
-#HISTORY_URL = 'http://eve-metrics.com/api/history.xml?type_ids=%s&days=90'
-HISTORY_FILE = '10000002.csv.bz2'
-
+HISTORY_URL = 'http://eve-marketdata.com/api/item_history.xml?region_ids=10000002&type_ids=%s'
 
 
 def main():
 	conn = psycopg2.connect('dbname=%(NAME)s user=%(USER)s' % (settings.DATABASES['default'])) 
 	cur = conn.cursor()
-	
-	print time.time()
-	
-	histf = bz2.BZ2File(HISTORY_FILE)
-	reader = csv.reader(histf)
-	reader.next()
-	
-	current_id = None
-	history = []
-	for type_id, orders, movement, price_max, price_avg, price_min, date in csv.reader(histf):
-		if current_id == type_id:
-			history.append((int(type_id), date, int(orders), int(movement), Decimal(price_max), Decimal(price_avg), Decimal(price_min)))
-		else:
-			# Get the last history entry for this type_id
-			cur.execute('SELECT date FROM thing_itempricehistory WHERE item_id = %s ORDER BY date DESC LIMIT 1', (current_id,))
-			row = cur.fetchone()
-			# If there is a latest database entry, filter anything older from history list
-			if row is not None:
-				last_date = '%s-%02d-%02d' % (row[0].year, row[0].month, row[0].day)
-				history = [h for h in history if h[0] > last_date]
-			
-			print type_id, len(history)
-			history.sort()
-			cur.executemany('INSERT INTO thing_itempricehistory (item_id, date, orders, movement, maximum, average, minimum) VALUES (%s, %s, %s, %s, %s, %s, %s)',
-				history)
-			conn.commit()
-			
-			# Reset stuff
-			current_id = type_id
-			history = []
-	
-	print time.time()
-	return
 	
 	# Get a list of items required to construct blueprint instances - I apologise, this is horrible
 	item_ids = set()
@@ -70,58 +31,72 @@ def main():
 		
 		item_ids.update((Blueprint.objects.filter(pk=bp_id[0])[0].item.id,))
 	
-	# Get a list of items in active orders
-	for item_id in Order.objects.values_list('item').distinct():
+	# Get a list of items we've traded in
+	for item_id in Transaction.objects.values_list('item').distinct():
 		item_ids.update(item_id)
-	item_ids = [str(item_id) for item_id in item_ids]
 	
-	# Fetch gigantic history data and write to the database
+	item_ids = list(item_ids)
+	
 	for i in range(0, len(item_ids), 25):
-		url = HISTORY_URL % (','.join(item_ids[i:i+25]))
+		# Work out the last date we have in the database for each item_id
+		item_cache = {}
+		last_date = {}
+		for item_id in item_ids[i:i+25]:
+			item_cache[item_id] = Item.objects.get(pk=item_id)
+			
+			histories = ItemPriceHistory.objects.filter(item=item_id).order_by('-date')
+			if histories.count() > 0:
+				last_date[item_id] = '%s-%02d-%02d' % (histories[0].date.year, histories[0].date.month, histories[0].date.day)
+		
+		# Fetch the XML
+		url = HISTORY_URL % (','.join('%s' % z for z in item_ids[i:i+25]))
 		f = urllib2.urlopen(url)
 		data = f.read()
 		f.close()
 		root = ET.fromstring(data)
 		
-		# Tally ho
-		for t in root.findall('type'):
-			item_id = t.attrib['id']
+		# Do stuff
+		for t in root.iter('type'):
+			#<type>
+			#  <type_id>37</type_id>
+			#  <region_id>10000002</region_id>
+			#  <date>2011-04-17</date>
+			#  <price_low>83.43</price_low>
+			#  <price_high>88.61</price_high>
+			#  <price_average>87.2</price_average>
+			#  <quantity>492281316</quantity>
+			#  <num_orders>1819</num_orders>
+			#</type>
+			item_id = int(t.find('type_id').text)
+			date = t.find('date').text
+			price_low = t.find('price_low').text
+			price_high = t.find('price_high').text
+			price_average = t.find('price_average').text
+			quantity = t.find('quantity').text
+			num_orders = t.find('num_orders').text
 			
-			# If there is previous history we need to stop after we do the last one
-			histories = ItemPriceHistory.objects.filter(item=item_id)
-			if histories.count() != 0:
-				hdate = histories[0].date
-				last_date = '%s-%02d-%02d' % (hdate.year, hdate.month, hdate.day)
-			else:
-				last_date = None
+			# If it's last_date, update
+			#if last_date[item_id] and date == last_date[item_id]:
+			#	histories[0].average = day.attrib['average']
+			#	histories[0].maximum = day.attrib['maximum']
+			#	histories[0].minimum = day.attrib['minimum']
+			#	histories[0].movement = day.attrib['movement']
+			#	histories[0].orders = day.attrib['orders']
+			#	histories[0].save()
 			
-			# Blah blah blah
-			# <day average="2.46" maximum="2.49" minimum="2.43" movement="50169516131" orders="2818">2010-08-02</day>
-			for day in t.findall('global/history/day'):
-				date = day.text
-				
-				# If it's last_date, update and bail
-				if last_date and date == last_date:
-					histories[0].average = day.attrib['average']
-					histories[0].maximum = day.attrib['maximum']
-					histories[0].minimum = day.attrib['minimum']
-					histories[0].movement = day.attrib['movement']
-					histories[0].orders = day.attrib['orders']
-					histories[0].save()
-					break
-				
-				# New one
-				else:
-					iph = ItemPriceHistory(
-						item=Item.objects.get(pk=item_id),
-						date=date,
-						average=day.attrib['average'],
-						maximum=day.attrib['maximum'],
-						minimum=day.attrib['minimum'],
-						movement=day.attrib['movement'],
-						orders=day.attrib['orders'],
-					)
-					iph.save()
+			# New one
+			if (not item_id in last_date) or (item_id in last_date and date > last_date[item_id]):
+				iph = ItemPriceHistory(
+					item=item_cache[item_id],
+					date=date,
+					average=price_average,
+					maximum=price_high,
+					minimum=price_low,
+					movement=quantity,
+					orders=num_orders,
+				)
+				iph.save()
+
 
 if __name__ == '__main__':
 	main()
