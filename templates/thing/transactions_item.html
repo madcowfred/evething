@@ -10,6 +10,7 @@
 		<tr>
 			<th>Date</th>
 			<th>Station</th>
+			<th>Character</th>
 			<th>Type</th>
 			<th>Quantity</th>
 			<th>Unit Price</th>
@@ -21,6 +22,7 @@
 		<tr class="{% cycle 'odd' 'even' %}{{ transaction.t_type}}">
 			<td>{{ transaction.date|date:"Y-m-d H:i" }}</td>
 			<td>{{ transaction.station.short_name }}</td>
+			<td>{{ transaction.character.name }}</td>
 			<td>{{ transaction.get_t_type_display }}</td>
 			<td align="right">{{ transaction.quantity|humanize }}</td>
 			<td align="right">{{ transaction.price|humanize }}</td>
