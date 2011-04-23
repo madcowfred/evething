@@ -458,7 +458,7 @@ def transactions_item(request, item_id, year=None, month=None, period=None, slug
 		data['timeframe'] = 'all time'
 	
 	# Paginator stuff
-	paginator = Paginator(transactions.select_related('item', 'station'), 100)
+	paginator = Paginator(transactions.select_related('item', 'station', 'character'), 100)
 	
 	# Make sure page request is an int. If not, deliver first page.
 	try:
@@ -490,7 +490,7 @@ def orders(request):
 		return show_error("Your first character doesn't seem to be in a corporation, what the hell?")
 	
 	# Retrieve orders
-	orders = Order.objects.select_related('item', 'station').filter(corporation=corporation).order_by('-o_type', 'station__name', 'item__name')
+	orders = Order.objects.select_related('item', 'station', 'character').filter(corporation=corporation).order_by('-o_type', 'station__name', 'item__name')
 	
 	return render_to_response('thing/orders.html', { 'orders': orders })
 
