@@ -32,7 +32,7 @@
 	</tbody>
 	<tfoot>
 		<tr>
-			<td colspan="6" align="center">
+			<td colspan="7" align="center">
 				{% if transactions.has_previous %}<a href="?page={{ transactions.previous_page_number }}">Previous</a> |{% endif %}
 				Page {{ transactions.number }} of {{ transactions.paginator.num_pages }}
 				{% if transactions.has_next %}| <a href="?page={{ transactions.next_page_number }}">Next</a>{% endif %}
