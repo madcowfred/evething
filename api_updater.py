@@ -262,7 +262,6 @@ class APIUpdater:
 
 
 def fetch_api(url, params, character):
-	print 'url: %r' % (url)
 	params['userID'] = character.eve_user_id
 	params['apiKey'] = character.eve_api_key
 	
