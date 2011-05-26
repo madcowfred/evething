@@ -138,15 +138,16 @@ def bpcalc(request):
 			'total_time': pt * runs,
 			'runs': runs,
 			'built': built,
-			'sell': bpi.blueprint.item.sell_price * built,
+			'item_sell': bpi.blueprint.item.sell_price,
+			'total_sell': bpi.blueprint.item.sell_price * built,
 			'buy_build': bpc * built,
 			'sell_build': spc * built,
 			'volume_week': bpi.blueprint.item.get_volume(),
 		})
 		row = bpis[-1]
-		row['buy_profit'] = row['sell'] - row['buy_build']
+		row['buy_profit'] = row['total_sell'] - row['buy_build']
 		row['buy_profit_per'] = (row['buy_profit'] / row['buy_build'] * 100).quantize(Decimal('.1'))
-		row['sell_profit'] = row['sell'] - row['sell_build']
+		row['sell_profit'] = row['total_sell'] - row['sell_build']
 		row['sell_profit_per'] = (row['sell_profit'] / row['sell_build'] * 100).quantize(Decimal('.1'))
 		if row['volume_week']:
 			row['volume_percent'] = (row['built'] / row['volume_week'] * 100).quantize(Decimal('.1'))
@@ -181,7 +182,7 @@ def bpcalc(request):
 	
 	# Do some sums
 	bpi_totals = {
-		'sell': sum(bpi['sell'] for bpi in bpis),
+		'total_sell': sum(bpi['total_sell'] for bpi in bpis),
 		'buy_build': sum(bpi['buy_build'] for bpi in bpis),
 		'buy_profit': sum(bpi['buy_profit'] for bpi in bpis),
 		'sell_build': sum(bpi['sell_build'] for bpi in bpis),

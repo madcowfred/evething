@@ -32,23 +32,25 @@
 	<table class="tablesorter">
 		<thead>
 			<tr>
-				<td colspan="5"></td>
-				<td colspan="3" class="head">Buy</td>
+				<td colspan="3"></td>
+				<td colspan="3" class="head">From Buys</td>
+				<td colspan="3" class="head">From Sells</td>
 				<td colspan="3" class="head">Sell</td>
 				<td colspan="2" class="head">Volume</td>
 			</tr>
 			<tr>
 				<th>Name</th>
-				<th>Time</th>
 				<th>Runs</th>
+				<th>Time</th>
+				<th>Build</th>
+				<th>Profit</th>
+				<th>P%</th>
+				<th>Build</th>
+				<th>Profit</th>
+				<th>P%</th>
 				<th>Built</th>
 				<th>Sell</th>
-				<th>Build</th>
-				<th>Profit</th>
-				<th>P%</th>
-				<th>Build</th>
-				<th>Profit</th>
-				<th>P%</th>
+				<th>Total</th>
 				<th>Weekly</th>
 				<th>Build %</th>
 			</tr>
@@ -57,18 +59,19 @@
 			{% for bpi in bpis %}
 			<tr>
 				<td>{{ bpi.name }}</td>
-				<td align="right">{{ bpi.total_time|duration }}</td>
 				<td align="right">{{ bpi.runs|commas }}</td>
-				<td align="right">{{ bpi.built|commas }}</td>
-				<td align="right">{{ bpi.sell|humanize }}</td>
+				<td align="right">{{ bpi.total_time|duration }}</td>
 				<td align="right" class="alt">{{ bpi.buy_build|humanize }}</td>
 				<td align="right" class="alt">{{ bpi.buy_profit|humanize|balance }}</td>
 				<td align="right" class="alt">{{ bpi.buy_profit_per|spanif:"neg < 7" }}%</td>
 				<td align="right">{{ bpi.sell_build|humanize }}</td>
 				<td align="right">{{ bpi.sell_profit|humanize|balance }}</td>
 				<td align="right">{{ bpi.sell_profit_per|spanif:"neg < 7" }}%</td>
-				<td align="right" class="alt">{{ bpi.volume_week|humanize }}</td>
-				<td align="right" class="alt">{{ bpi.volume_percent|spanif:"neg > 10" }}%</td>
+				<td align="right" class="alt">{{ bpi.built|commas }}</td>
+				<td align="right" class="alt">{{ bpi.item_sell|humanize }}</td>
+				<td align="right" class="alt">{{ bpi.total_sell|humanize }}</td>
+				<td align="right">{{ bpi.volume_week|humanize }}</td>
+				<td align="right">{{ bpi.volume_percent|spanif:"neg > 10" }}%</td>
 			</tr>
 			{% endfor %}
 		</tbody>
