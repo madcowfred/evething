@@ -262,8 +262,8 @@ class APIUpdater:
 
 
 def fetch_api(url, params, character):
-	params['userID'] = character.eve_user_id
-	params['apiKey'] = character.eve_api_key
+	params['keyID'] = character.eve_user_id
+	params['vCode'] = character.eve_api_key
 	
 	f = urllib2.urlopen(url, urlencode(params))
 	data = f.read()
