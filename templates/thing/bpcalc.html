@@ -77,14 +77,15 @@
 		</tbody>
 		<tfoot>
 			<tr>
-				<td colspan="4"></td>
-				<td align="right">{{ bpi_totals.sell|humanize }}</td>
+				<td colspan="3"></td>
 				<td align="right">{{ bpi_totals.buy_build|humanize }}</td>
 				<td align="right">{{ bpi_totals.buy_profit|humanize }}</td>
 				<td align="right">{{ bpi_totals.buy_profit_per|spanif:"neg < 7" }}%</td>
 				<td align="right">{{ bpi_totals.sell_build|humanize }}</td>
 				<td align="right">{{ bpi_totals.sell_profit|humanize }}</td>
 				<td align="right">{{ bpi_totals.sell_profit_per|spanif:"neg < 7" }}%</td>
+				<td colspan="2"></td>
+				<td align="right">{{ bpi_totals.sell|humanize }}</td>
 				<td colspan="2"></td>
 			</tr>
 		</tfoot>
