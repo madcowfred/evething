@@ -244,18 +244,17 @@ def trade(request):
 	t_check = []
 	# All
 	t_check.append(('[All]', 'all', transactions))
-	#t_check.append('-')
-	# Timeframes
+	
+    # Timeframes
 	for tf in Timeframe.objects.filter(corporation=data['corporation']):
 		title = '[%s]' % (tf.title)
 		t_check.append((title, tf.slug, transactions.filter(date__range=(tf.start_date, tf.end_date))))
-	#if len(t_check) > 2:
-	#	t_check.append('-')
-	# Months
+	
+    # Months
 	for dt in transactions.dates('date', 'month', order='DESC'):
 		name = '%s %s' % (MONTHS[dt.month], dt.year)
 		urlpart = '%s-%02d' % (dt.year, dt.month)
-		t_check.append((name, urlpart, transactions.filter(date__month=dt.month)))
+		t_check.append((name, urlpart, transactions.filter(date__month=dt.month, date__year=dt.year)))
 	
 	# Get data and stuff
 	t_data = []
