@@ -1,6 +1,9 @@
 from django.contrib import admin
 from evething.thing.models import BlueprintInstance, Character, Corporation, Timeframe
 
+class BlueprintInstanceAdmin(admin.ModelAdmin):
+    list_display = ('blueprint', 'bp_type', 'material_level', 'productivity_level')
+
 class CharacterAdmin(admin.ModelAdmin):
 	fieldsets = [
 		(None, {'fields': ['user']}),
@@ -23,6 +26,6 @@ class TimeframeAdmin(admin.ModelAdmin):
 	prepopulated_fields = { 'slug': ( 'title', ) }
 
 admin.site.register(Character, CharacterAdmin)
-admin.site.register(BlueprintInstance)
+admin.site.register(BlueprintInstance, BlueprintInstanceAdmin)
 admin.site.register(Corporation)
 admin.site.register(Timeframe, TimeframeAdmin)
