@@ -33,6 +33,7 @@ def _commafy(s):
 
 # Shorten numbers to a human readable version
 THOUSAND = 10**3
+TEN_THOUSAND = 10**4
 MILLION = 10**6
 BILLION = 10**9
 @register.filter
@@ -49,9 +50,13 @@ def humanize(value):
 			return '%sM' % (v.quantize(Decimal('.1'), rounding=ROUND_UP))
 		else:
 			return '%sM' % (v.quantize(Decimal('.01'), rounding=ROUND_UP))
-	elif value >= THOUSAND or value <= -THOUSAND:
+	elif value >= TEN_THOUSAND or value <= -TEN_THOUSAND:
 		v = Decimal(value) / THOUSAND
 		return '%sK' % (v.quantize(Decimal('.1'), rounding=ROUND_UP))
+	elif value >= THOUSAND or value <= -THOUSAND:
+		v = Decimal(value) / THOUSAND
+		return '%s' % (commas(v.quantize(Decimal('1.'), rounding=ROUND_UP)))
+		#return '%sK' % (v.quantize(Decimal('.1'), rounding=ROUND_UP))
 	else:
 		if isinstance(value, Decimal):
 			return value.quantize(Decimal('.1'), rounding=ROUND_UP)
