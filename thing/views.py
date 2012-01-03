@@ -250,7 +250,7 @@ def trade(request):
     
     # Timeframes
     #for tf in Timeframe.objects.filter(corporation=data['corporation']):
-    for tf in Timeframe.objects:
+    for tf in Timeframe.objects.all():
         title = '[%s]' % (tf.title)
         t_check.append((title, tf.slug, transactions.filter(date__range=(tf.start_date, tf.end_date))))
     
