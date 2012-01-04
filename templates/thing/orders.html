@@ -1,44 +1,53 @@
 {% extends "base.html" %}
 {% load thing_extras %}
 
-{% block title %}Orders{% endblock %}
-
-{% block nav-orders %}<strong class="nav-active">Orders</strong>{% endblock %}
+{% block title %}EVEthing: Orders{% endblock %}
+{% block nav_orders_class %} class="active"{% endblock %}
 
 {% block content %}
-<h1>Active Orders</h1>
-<table>
-	<tr>
-		<th>Station</th>
-		<th>Character</th>
-		<th>Type</th>
-		<th>Item</th>
-		<th>Now</th>
-		<th>Total</th>
-		<th>Unit Price</th>
-		<th>Total Price</th>
-		<th>Escrow</th>
-		<th>Buy Price</th>
-		<th>Sell Price</th>
-		<th>Expires</th>
-	</tr>
-	<tbody>
-		{% for order in orders %}
-		<tr class="{% cycle 'odd' 'even' %}{{ order.o_type }}">
-			<td>{{ order.station.short_name }}</td>
-			<td>{{ order.character.name }}</td>
-			<td align="center">{{ order.get_o_type_display }}</td>
-			<td><a href="{% url transactions-all order.item.id 'all' %}">{{ order.item.name }}</a></td>
-			<td align="right">{{ order.volume_remaining|humanize }}</td>
-			<td align="right">{{ order.volume_entered|humanize }}</td>
-			<td align="right">{{ order.price|humanize }}</td>
-			<td align="right">{{ order.total_price|humanize }}</td>
-			<td align="right">{{ order.escrow|humanize }}</td>
-			<td align="right">{{ order.item.buy_price|humanize }}</td>
-			<td align="right">{{ order.item.sell_price|humanize }}</td>
-			<td>{{ order.get_expiry_date|date:"Y-m-d H:i" }}</td>
-		</tr>
-		{% endfor %}
-	</tbody>
-</table>
+    <div class="row">
+      <div class="span16">
+        <h1>Active Orders</h1>
+        <table class="condensed-table bordered-table zebra-striped">
+          <thead>
+            <tr>
+              <th>Station</th>
+              <th>Character</th>
+              <th>Type</th>
+              <th>Item</th>
+              <th>Now</th>
+              <th>Total</th>
+              <th>Unit Price</th>
+              <th>Total Price</th>
+              <th>Escrow</th>
+              <th>Buy Price</th>
+              <th>Sell Price</th>
+              <th>Expires</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for order in orders %}
+            <tr class="{{ order.o_type }}">
+              <td>{{ order.station.short_name }}</td>
+              <td>{{ order.character.name }}</td>
+              <td align="center">{{ order.get_o_type_display }}</td>
+              <td><a href="{% url transactions-all order.item.id 'all' %}">{{ order.item.name }}</a></td>
+              <td align="right">{{ order.volume_remaining|humanize }}</td>
+              <td align="right">{{ order.volume_entered|humanize }}</td>
+              <td align="right">{{ order.price|humanize }}</td>
+              <td align="right">{{ order.total_price|humanize }}</td>
+              <td align="right">{{ order.escrow|humanize }}</td>
+              <td align="right">{{ order.item.buy_price|humanize }}</td>
+              <td align="right">{{ order.item.sell_price|humanize }}</td>
+              <td>{{ order.get_expiry_date|date:"Y-m-d H:i" }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td>No orders are currently active.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
 {% endblock %}

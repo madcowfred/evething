@@ -1,22 +1,40 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
-	<title>EVEThing: {% block title %}{% endblock %}</title>
-	<link rel="stylesheet" href="/thing_media/thing.css" type="text/css" />
-	<script type="text/javascript" src="/media/js/jquery.min.js"></script> 
-	<script type="text/javascript" src="/thing_media/jquery.tablesorter.min.js"></script>
-	<script type="text/javascript" src="/thing_media/thing.js"></script>
-	{% block extrahead %}{% endblock %}
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.0/jquery.min.js"></script>
+  <script src="{{ STATIC_URL }}jquery.tablesorter.min.js"></script>
+  <script src="{{ STATIC_URL }}evething.js"></script>
+  <link rel="stylesheet" href="{{ STATIC_URL }}bootstrap.min.css">
+  <link rel="stylesheet" href="{{ STATIC_URL }}evething.css" />
+  {% block extra_head %}{% endblock %}
+  <title>{% block title %}EVEthing{% endblock %}</title>
 </head>
+
 <body>
-	{% block nav %}
-	<ul id="nav">
-		<li>{% block nav-blueprints %}<a href="{% url evething.thing.views.blueprints %}">Blueprints</a>{% endblock %}</li>
-		<li>{% block nav-orders %}<a href="{% url evething.thing.views.orders %}">Orders</a>{% endblock %}</li>
-		<li>{% block nav-trade %}<a href="{% url evething.thing.views.trade %}">Trade</a>{% endblock %}</li>
-		<li>{% block nav-transactions %}<a href="{% url evething.thing.views.transactions %}">Transactions</a>{% endblock %}</li>
-	</ul>
-	{%endblock %}
-	{% block content %}{% endblock %}
+  <div class="topbar">
+    <div class="topbar-inner">
+      <div class="container-fluid">
+        <a class="brand" href="#">EVEthing</a>
+        <ul class="nav">
+          <li{% block nav_home_class %}{% endblock %}><a href="{% url index %}">Home</a></li>
+          <li{% block nav_blueprints_class %}{% endblock %}><a href="{% url evething.thing.views.blueprints %}">Blueprints</a></li>
+          <li{% block nav_orders_class %}{% endblock %}><a href="{% url evething.thing.views.orders %}">Orders</a></li>
+          <li{% block nav_trade_class %}{% endblock %}><a href="{% url evething.thing.views.trade %}">Trade</a></li>
+          <li{% block nav_transactions_class %}{% endblock %}><a href="{% url evething.thing.views.transactions %}">Transactions</a></li>
+        </ul>
+        <p class="pull-right auth-text">
+          {% if user.is_authenticated %}
+          Logged in as {{ user.username }} | <a href="{% url auth_logout %}">Logout</a>
+          {% else %}
+          You are not logged in. | <a href="{% url auth_login %}">Login</a>
+          {% endif %}
+        </p>
+      </div>
+    </div>
+  </div>
+  
+  <div class="container" id="container">
+    {% block content %}{% endblock %}
+  </div>
 </body>
 </html>

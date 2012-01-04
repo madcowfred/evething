@@ -1,26 +1,33 @@
 {% extends "base.html" %}
 {% load thing_extras %}
 
-{% block title %}Trade{% endblock %}
-
-{% block nav-trade %}<strong class="nav-active">Trade</strong>{% endblock %}
+{% block title %}EVEthing: Trade{% endblock %}
+{% block nav_trade_class %} class="active"{% endblock %}
 
 {% block content %}
-<h1>{{ corporation.name }}</h1>
-<table>
-	<tr>
-		<th>Time Period</th>
-		<th>Buy Total</th>
-		<th>Sell Total</th>
-		<th>Balance</th>
-	</tr>
-	{% for transaction in transactions %}
-	<tr class="{% cycle 'odd' 'even' %}">
-		<td><a href="{% url evething.thing.views.trade_timeframe transaction.urlpart %}">{{ transaction.name }}</a></td>
-		<td align="right">{{ transaction.buy_total|commas }}</td>
-		<td align="right">{{ transaction.sell_total|commas }}</td>
-		<td align="right">{{ transaction.balance|commas|balance }}</td>
-	</tr>
-	{% endfor %}
-</table>
+    <div class="row">
+      <div class="span10 offset3">
+        <h1>Trade Results</h1>
+        <table class="condensed-table bordered-table zebra-striped">
+          <thead>
+            <tr>
+              <th>Time Period</th>
+              <th>Buy Total</th>
+              <th>Sell Total</th>
+              <th>Balance</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for transaction in transactions %}
+            <tr>
+              <td><a href="{% url evething.thing.views.trade_timeframe transaction.urlpart %}">{{ transaction.name }}</a></td>
+              <td class="r">{{ transaction.buy_total|commas }}</td>
+              <td class="r">{{ transaction.sell_total|commas }}</td>
+              <td class="r">{{ transaction.balance|commas|balance }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
 {% endblock %}

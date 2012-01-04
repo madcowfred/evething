@@ -1,48 +1,56 @@
 {% extends "base.html" %}
 {% load thing_extras %}
 
-{% block title %}Transactions{% endblock %}
-
-{% block nav-transactions %}<strong class="nav-active">Transactions</strong>{% endblock %}
+{% block title %}EVEthing: Transactions{% endblock %}
+{% block nav_transactions_class %} class="active"{% endblock %}
 
 {% block content %}
-<h1>Transactions</h1>
-<table>
-	<thead>
-		<tr>
-			<th>Date</th>
-			<th>Station</th>
-			<th>Character</th>
-			<th>Item</th>
-			<th>Type</th>
-			<th>Quantity</th>
-			<th>Unit Price</th>
-			<th>Total Price</th>
-		</tr>
-	</thead>
-	<tbody>
-		{% for transaction in transactions.object_list %}
-		<tr class="{% cycle 'odd' 'even' %}{{ transaction.t_type}}">
-			<td>{{ transaction.date|date:"Y-m-d H:i" }}</td>
-			<td>{{ transaction.station.short_name }}</td>
-			<td>{{ transaction.character.name }}</td>
-			<td><a href="{% url transactions-all transaction.item.id 'all' %}">{{ transaction.item }}</a></td>
-			<td>{{ transaction.get_t_type_display }}</td>
-			<td align="right">{{ transaction.quantity|humanize }}</td>
-			<td align="right">{{ transaction.price|humanize }}</td>
-			<td align="right">{{ transaction.total_price|humanize }}</td>
-		</tr>
-		{% endfor %}
-	</tbody>
-	<tfoot>
-		<tr>
-			<td colspan="8" align="center">
-				{% if transactions.has_previous %}<a href="?page={{ transactions.previous_page_number }}">Previous</a> |{% endif %}
-				Page {{ transactions.number }} of {{ transactions.paginator.num_pages }}
-				{% if transactions.has_next %}| <a href="?page={{ transactions.next_page_number }}">Next</a>{% endif %}
-			</td>
-		</tr>
-	</tfoot>
-</div>
-</table>
+    <div class="row">
+      <div class="span16">
+        <h1>Transactions</h1>
+        <table class="condensed-table zebra-striped">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Station</th>
+              <th>Character</th>
+              <th>Item</th>
+              <th>Type</th>
+              <th>Quantity</th>
+              <th>Unit Price</th>
+              <th>Total Price</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for transaction in transactions.object_list %}
+            <tr class="{{ transaction.t_type}}">
+              <td>{{ transaction.date|date:"Y-m-d H:i" }}</td>
+              <td>{{ transaction.station.short_name }}</td>
+              <td>{{ transaction.character.name }}</td>
+              <td><a href="{% url transactions-all transaction.item.id 'all' %}">{{ transaction.item }}</a></td>
+              <td>{{ transaction.get_t_type_display }}</td>
+              <td class="r">{{ transaction.quantity|humanize }}</td>
+              {% if transaction.t_type == 'S' %}
+              <td class="r"><span class="pos">{{ transaction.price|humanize }}</span></td>
+              <td class="r"><span class="pos">{{ transaction.total_price|humanize }}</span></td>
+              {% else %}
+              <td class="r"><span class="neg">{{ transaction.price|humanize }}</span></td>
+              <td class="r"><span class="neg">{{ transaction.total_price|humanize }}</span></td>
+              {% endif %}
+            </tr>
+            {% endfor %}
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="8" class="c">
+                {% if transactions.has_previous %}<a href="?page={{ transactions.previous_page_number }}">Previous</a> |{% endif %}
+                Page {{ transactions.number }} of {{ transactions.paginator.num_pages }}
+                {% if transactions.has_next %}| <a href="?page={{ transactions.next_page_number }}">Next</a>{% endif %}
+              </td>
+            </tr>
+          </tfoot>
+        </div>
+        </table>
+      </div>
+    </div>
 {% endblock %}

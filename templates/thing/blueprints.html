@@ -1,110 +1,96 @@
 {% extends "base.html" %}
 {% load thing_extras %}
 
-{% block title %}Blueprints{% endblock %}
+{% block title %}EVEthing: Blueprints{% endblock %}
+{% block nav_blueprints_class %} class="active"{% endblock %}
 
-{% block extrahead %}
-	<script type="text/javascript">
-	$(document).ready(function() {
-		$("#blueprints tbody tr.hiding").hide();
-		$("#blueprints tbody tr:not(.hiding) td:nth-child(2) a").click(function(){
-			$(this).parent().parent().next("tr").toggle();
-		});
-		$('#checkall').toggle(
-			function(){
-				$("input[type='checkbox']").attr("checked", "checked");
-			},
-			function(){
-				$("input[type='checkbox']").removeAttr("checked");
-			}
-		);
-	});
-	</script>
+{% block extra_head %}
+<script type="text/javascript">
+$(document).ready(function() {
+  $('#checkall').toggle(
+    function() {
+      $('#blueprints-table input:checkbox').attr('checked', 'checked');
+    },
+    function() {
+      $('#blueprints-table input:checkbox').removeAttr("checked");
+    }
+  );
+});
+</script>
 {% endblock %}
 
-{% block nav-blueprints %}<strong class="nav-active">Blueprints</strong>{% endblock %}
-
 {% block content %}
-{% if bpis %}
-	<form action="/blueprints/" method="GET">
-	<table>
-		<tr>
-			<td>Runs :</td>
-			<td><input type="text" name="runs" value="{{ runs }}"></td>
-			<td><input type="submit" value="Go"></td>
-		</tr>
-	</table>
-	</form>
-	
-	<form action="/bpcalc/" method="GET">
-	<table id="blueprints">
-		<thead>
-			<tr>
-				<td colspan="8"></td>
-				<td colspan="2" class="head">Buy</td>
-				<td colspan="2" class="head">Sell</td>
-				<td colspan="2"></td>
-			</tr>
-			<tr>
-				<th>Owner</th>
-				<th>Blueprint</th>
-				<th>Type</th>
-				<th>ML</th>
-				<th>PL</th>
-				<th>#</th>
-				<th>Time</th>
-				<th>Market</th>
-				<th>Make</th>
-				<th>Profit</th>
-				<th>Make</th>
-				<th>Profit</th>
-				<th>Links</th>
-				<th><a href="#" id="checkall">all</a></th>
-			</tr>
-		</thead>
-		<tbody>
-			{% for bpi in bpis %}
-			<tr class="{% cycle 'odd' 'even' %}">
-				<td>{{ bpi.character }}</td>
-				<td><a href="javascript:void(0);">{{ bpi.blueprint.item }}</a></td>
-				<td>{{ bpi.type }}</td>
-				<td align="center">{{ bpi.material_level }}</td>
-				<td align="center">{{ bpi.productivity_level }}</td>
-				<td align="right">{{ bpi.count }}</td>
-				<td align="right">{{ bpi.production_time|duration }}</td>
-				<td align="right">{{ bpi.market_price|humanize }}</td>
-				<td align="right">{{ bpi.unit_cost_buy|humanize }}</td>
-				<td align="right">{{ bpi.unit_profit_buy|humanize|balance }}</td>
-				<td align="right">{{ bpi.unit_cost_sell|humanize }}</td>
-				<td align="right">{{ bpi.unit_profit_sell|humanize|balance }}</td>
-				<td align="center"><a href="http://www.eve-central.com/home/quicklook.html?typeid={{ bpi.blueprint.item.id }}">EC</a></td>
-				<td><input type="checkbox" name="bpi{{ bpi.id }}" value="1" /></td>
-			</tr>
-			<tr class="hiding">
-				<td></td>
-				<td colspan="12">
-					<table>
-						{% for item in bpi.components %}
-						<tr class="{% cycle 'odd' 'even' %}">
-							<td class="alt">{{ item.0 }}</td>
-							<td class="alt" align="right">{{ item.1|commas }}</td>
-						</tr>
-						{% endfor %}
-					</table>
-				</td>
-			</tr>
-			{% endfor %}
-		</tbody>
-		<tfoot>
-			<tr>
-				<td colspan="14" align="right">
-					Days: <input type="text" name="days" value="7" size="2" />
-					<input type="submit" value="Calc"></td>
-				</td>
-			</tr>
-		</tfoot>
-	</table>
-{% else %}
-	<p>No blueprint instances are available.</p>
-{% endif %}
+    <div class="row">
+      <div class="span16">
+        <h1>Blueprints</h1>
+        
+        <form action="/blueprints/" method="GET">
+        <table>
+          <tr>
+            <td>Runs :</td>
+            <td><input type="text" name="runs" value="{{ runs }}"></td>
+            <td><input type="submit" value="Go"></td>
+          </tr>
+        </table>
+        </form>
+        
+        <form action="/bpcalc/" method="GET">
+        <table id="blueprints-table" class="condensed-table bordered-table zebra-striped">
+          <thead>
+            <tr>
+              <td colspan="8"></td>
+              <td colspan="2" class="head">Buy</td>
+              <td colspan="2" class="head">Sell</td>
+              <td colspan="2"></td>
+            </tr>
+            <tr>
+              <th>Blueprint</th>
+              <th>Type</th>
+              <th class="c">ML</th>
+              <th class="c">PL</th>
+              <th class="c">#</th>
+              <th class="c">Time</th>
+              <th class="c">Market</th>
+              <th class="c">Make</th>
+              <th class="c">Profit</th>
+              <th class="c">Make</th>
+              <th class="c">Profit</th>
+              <th class="c">Links</th>
+              <th class="c"><a href="#" id="checkall">all</a></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for bpi in bpis %}
+            <tr>
+              <td><a href="javascript:void(0);">{{ bpi.blueprint.item }}</a></td>
+              <td>{{ bpi.type }}</td>
+              <td class="r">{{ bpi.material_level }}</td>
+              <td class="r">{{ bpi.productivity_level }}</td>
+              <td class="r">{{ bpi.count }}</td>
+              <td class="r">{{ bpi.production_time|duration }}</td>
+              <td class="r">{{ bpi.market_price|humanize }}</td>
+              <td class="r">{{ bpi.unit_cost_buy|humanize }}</td>
+              <td class="r">{{ bpi.unit_profit_buy|humanize|balance }}</td>
+              <td class="r">{{ bpi.unit_cost_sell|humanize }}</td>
+              <td class="r">{{ bpi.unit_profit_sell|humanize|balance }}</td>
+              <td class="c"><a href="http://www.eve-central.com/home/quicklook.html?typeid={{ bpi.blueprint.item.id }}">EC</a></td>
+              <td><input type="checkbox" name="bpi{{ bpi.id }}" value="1" /></td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="13">No blueprints defined.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="14" class="r">
+                Days: <input type="text" name="days" value="7" size="2" />
+                <input type="submit" value="Calc"></td>
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
 {% endblock %}

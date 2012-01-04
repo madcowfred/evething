@@ -1,0 +1,82 @@
+body {
+    margin-top: 60px;
+}
+.auth-text {
+    color: #E0FFFF;
+}
+
+span.pos { color: #009800; }
+span.neg { color: #FF0000; }
+
+.c { text-align: center; }
+.r { text-align: right; }
+
+thead td.head {
+    text-align: center;
+    font-weight: bold;
+}
+
+/*
+a {
+	color: #0000FF;
+}
+
+table {
+	empty-cells: hide;
+	border-spacing: 1px;
+}
+td {
+	padding: 4px 6px 4px 6px;
+}
+
+th, tfoot tr td {
+	background: #BFBFCF;
+	padding: 4px 6px 4px 6px;
+}
+td.head {
+	text-align: center;
+	font-weight: bold;
+	background: #BFBFCF;
+	padding: 4px 6px 4px 6px;
+}
+tr.odd td {
+	background: #EFEFFF;
+}
+tr.even td {
+	background: #DFDFEF;
+}
+tr.odd td.alt {
+	background: #DFDFEF;
+}
+tr.even td.alt {
+	background: #CECEDE;
+}
+tr.oddB td {
+	background: #EFAFAF;
+}
+tr.evenB td {
+	background: #DF9F9F;
+}
+tr.oddS td {
+	background: #8FEF8F;
+}
+tr.evenS td {
+	background: #7FDF7F;
+}
+
+span.pos { color: #009800; }
+span.neg { color: #FF0000; }
+
+table.tablesorter thead tr .header {
+	background-image: url(/thing_media/bg.gif);
+	background-repeat: no-repeat;
+	background-position: center right;
+	cursor: pointer;
+}
+table.tablesorter thead tr .headerSortUp {
+	background-image: url(/thing_media/asc.gif);
+}
+table.tablesorter thead tr .headerSortDown {
+	background-image: url(/thing_media/desc.gif);
+}
+*/

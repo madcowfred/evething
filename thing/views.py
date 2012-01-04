@@ -7,11 +7,13 @@ from django.core.paginator import Paginator, InvalidPage, EmptyPage
 from django.db import connection
 from django.db.models import Avg, Count, Max, Min, Sum
 from django.shortcuts import render_to_response, get_object_or_404
+from django.template import RequestContext
 
 from evething.thing.models import *
 
 
-# I hope one day I can do this sanely via Django ORM :p
+# This is the nasty trade timeframe thing. Be afraid.
+# I hope one day I can do this via the Django ORM :p
 TRADE_TIMEFRAME_JOIN = """
 SELECT
   COALESCE(t1.item_id, t2.item_id) AS id,
@@ -43,13 +45,16 @@ ORDER BY balance DESC
 """
 
 
+def index(request):
+    pass
+
 # List of blueprints we own
 @login_required
 def blueprints(request):
     # Check that they have a valid character
     chars = Character.objects.select_related().filter(user=request.user)
-    if chars.count() == 0:
-        return show_error("Your account does not have any associated characters.")
+    #if chars.count() == 0:
+    #    return show_error("Your account does not have any associated characters.")
     #if not chars[0].corporation:
     #    return show_error("Your first character doesn't seem to be in a corporation, what the hell?")
     
@@ -85,7 +90,8 @@ def blueprints(request):
         {
             'bpis': bpis,
             'runs': runs,
-        }
+        },
+        context_instance=RequestContext(request)
     )
 
 # Calculate blueprint production details for X number of days
@@ -94,8 +100,8 @@ DAY = 24 * 60 * 60
 def bpcalc(request):
     # Check that they have a valid character
     chars = Character.objects.select_related().filter(user=request.user)
-    if chars.count() == 0:
-        return show_error("Your account does not have any associated characters.")
+    #if chars.count() == 0:
+    #    return show_error("Your account does not have any associated characters.")
     #if not chars[0].corporation:
     #    return show_error("Your first character doesn't seem to be in a corporation, what the hell?")
     
@@ -205,7 +211,8 @@ def bpcalc(request):
             'bpi_totals': bpi_totals,
             'components': components,
             'comp_totals': comp_totals,
-        }
+        },
+        context_instance=RequestContext(request)
     )
 
 # Trade volume
@@ -214,12 +221,12 @@ MONTHS = (None, 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', '
 def trade(request):
     # Check that they have a valid character
     chars = Character.objects.select_related().filter(user=request.user)
-    if chars.count() == 0:
-        return show_error("Your account does not have any associated characters.")
+    #if chars.count() == 0:
+    #    return show_error("Your account does not have any associated characters.")
     #if not chars[0].corporation:
     #    return show_error("Your first character doesn't seem to be in a corporation, what the hell?")
     
-    data = { 'corporation': chars[0].corporation }
+    data = { }# 'corporation': chars[0].corporation }
     now = datetime.datetime.now()
     
     # Wallets
@@ -277,7 +284,7 @@ def trade(request):
     
     data['transactions'] = t_data
     
-    return render_to_response('thing/trade.html', data)
+    return render_to_response('thing/trade.html', data, context_instance=RequestContext(request))
 
 # Trade overview for a variety of timeframe types
 @login_required
@@ -287,8 +294,8 @@ def trade_timeframe(request, year=None, month=None, period=None, slug=None):
     
     # Check that they have a valid character
     chars = Character.objects.select_related().filter(user=request.user)
-    if chars.count() == 0:
-        return show_error("Your account does not have any associated characters.")
+    #if chars.count() == 0:
+    #    return show_error("Your account does not have any associated characters.")
     #if not chars[0].corporation:
     #    return show_error("Your first character doesn't seem to be in a corporation, what the hell?")
     
@@ -311,8 +318,8 @@ def trade_timeframe(request, year=None, month=None, period=None, slug=None):
     elif slug:
         #tf = Timeframe.objects.filter(corporation=data['corporation'], slug=slug)
         tf = Timeframe.objects.filter(slug=slug)
-        if not tf:
-            return show_error("Invalid timeframe slug.")
+        #if not tf:
+        #    return show_error("Invalid timeframe slug.")
         transactions = transactions.filter(date__range=(tf[0].start_date, tf[0].end_date))
         data['timeframe'] = '%s (%s -> %s)' % (tf[0].title, tf[0].start_date, tf[0].end_date)
         data['urlpart'] = slug
@@ -384,7 +391,7 @@ def trade_timeframe(request, year=None, month=None, period=None, slug=None):
     #    print '%s: %.5f' % (times[i+1][1], times[i+1][0] - times[i][0])
     
     # GENERATE
-    return render_to_response('thing/trade_timeframe.html', data)
+    return render_to_response('thing/trade_timeframe.html', data, context_instance=RequestContext(request))
 
 
 # Corp transaction details
@@ -392,16 +399,16 @@ def trade_timeframe(request, year=None, month=None, period=None, slug=None):
 def transactions(request):
     # Check that they have a valid character
     chars = Character.objects.select_related().filter(user=request.user)
-    if chars.count() == 0:
-        return show_error("Your account does not have any associated characters.")
+    #if chars.count() == 0:
+    #    return show_error("Your account does not have any associated characters.")
     #if not chars[0].corporation:
     #    return show_error("Your first character doesn't seem to be in a corporation, what the hell?")
     
     # See if this corp has any transactions
     #transactions = Transaction.objects.select_related('item', 'station', 'character').filter(corporation=chars[0].corporation).order_by('date').reverse()
     transactions = Transaction.objects.select_related('item', 'station', 'character').order_by('date').reverse()
-    if transactions.count() == 0:
-        return show_error("There are no transactions in the database.")
+    #if transactions.count() == 0:
+    #    return show_error("There are no transactions in the database.")
     
     # Paginator stuff
     paginator = Paginator(transactions, 100)
@@ -419,7 +426,7 @@ def transactions(request):
         transactions = paginator.page(paginator.num_pages)
     
     # Spit it out I guess
-    return render_to_response('thing/transactions.html', { 'transactions': transactions })
+    return render_to_response('thing/transactions.html', { 'transactions': transactions }, context_instance=RequestContext(request))
 
 # Corp transaction details for last x days for specific item
 @login_required
@@ -427,7 +434,7 @@ def transactions_item(request, item_id, year=None, month=None, period=None, slug
     # Check that they have a valid character
     chars = Character.objects.select_related().filter(user=request.user)
     if chars.count() == 0:
-        return show_error("Your account does not have any associated characters.")
+        return ("Your account does not have any associated characters.")
     char = chars[0]
     #if not char.corporation:
     #    return show_error("Your first character doesn't seem to be in a corporation, what the hell?")
@@ -444,8 +451,8 @@ def transactions_item(request, item_id, year=None, month=None, period=None, slug
         transactions = Transaction.objects.order_by('-date')
         data['item'] = 'all items'
     
-    if transactions.count() == 0:
-        return show_error("There are no transactions matching those criteria.")
+    #if transactions.count() == 0:
+    #    return show_error("There are no transactions matching those criteria.")
     
     # Year/Month
     if year and month:
@@ -454,11 +461,11 @@ def transactions_item(request, item_id, year=None, month=None, period=None, slug
         data['timeframe'] = '%s %s' % (MONTHS[month], year)
     # Timeframe slug
     elif slug:
-        try:
-            #tf = Timeframe.objects.get(corporation=char.corporation, slug=slug)
-            tf = Timeframe.objects.get(slug=slug)
-        except Timeframe.DoesNotExist:
-            return show_error("Invalid timeframe slug.")
+        #try:
+        #tf = Timeframe.objects.get(corporation=char.corporation, slug=slug)
+        tf = Timeframe.objects.get(slug=slug)
+        #except Timeframe.DoesNotExist:
+        #    return show_error("Invalid timeframe slug.")
         transactions = transactions.filter(date__range=(tf.start_date, tf.end_date))
         data['timeframe'] = '%s (%s -> %s)' % (tf.title, tf.start_date, tf.end_date)
     # All
@@ -485,15 +492,15 @@ def transactions_item(request, item_id, year=None, month=None, period=None, slug
     data['transactions'] = transactions
     
     # Spit it out I guess
-    return render_to_response('thing/transactions_item.html', data)
+    return render_to_response('thing/transactions_item.html', data, context_instance=RequestContext(request))
 
 # Active orders
 @login_required
 def orders(request):
     # Check that they have a valid character
     chars = Character.objects.select_related().filter(user=request.user)
-    if chars.count() == 0:
-        return show_error("Your account does not have any associated characters.")
+    #if chars.count() == 0:
+    #    return show_error("Your account does not have any associated characters.")
     
     #corporation = chars[0].corporation
     #if not corporation:
@@ -503,7 +510,7 @@ def orders(request):
     #orders = Order.objects.select_related('item', 'station', 'character').filter(corporation=corporation).order_by('-o_type', 'station__name', 'item__name')
     orders = Order.objects.select_related('item', 'station', 'character').order_by('-o_type', 'station__name', 'item__name')
     
-    return render_to_response('thing/orders.html', { 'orders': orders })
+    return render_to_response('thing/orders.html', { 'orders': orders }, context_instance=RequestContext(request))
 
 
 def show_error(error_msg):

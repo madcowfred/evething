@@ -237,7 +237,7 @@ class BlueprintComponent(models.Model):
 class BlueprintInstance(models.Model):
 	character = models.ForeignKey(Character)
 	blueprint = models.ForeignKey(Blueprint)
-	bp_type = models.CharField(max_length=1, choices=((u'C', u'Copy'), (u'O', u'Original')))
+	bp_type = models.CharField(max_length=1, choices=((u'C', u'BPC'), (u'O', u'BPO')))
 	material_level = models.IntegerField(default=0)
 	productivity_level = models.IntegerField(default=0)
 	

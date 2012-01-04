@@ -1,127 +1,137 @@
 {% extends "base.html" %}
 {% load thing_extras %}
 
-{% block title %}BPCalc{% endblock %}
+{% block title %}EVEthing: Blueprints: BPCalc{% endblock %}
 
-{% block extrahead %}
-	<script type="text/javascript">
-	$(document).ready(function() {
-		// call the tablesorter plugin
-		$("table").tablesorter({
-			'headers': {
-				1: { sorter: false },
-				2: { sorter: false },
-				3: { sorter: false },
-				4: { sorter: 'human' },
-				5: { sorter: 'human' },
-				6: { sorter: 'human' },
-				8: { sorter: 'human' },
-				9: { sorter: 'human' },
-				11: { sorter: false },
-				12: { sorter: false },
-			},
-			//'sortList': [[8,1]],
-			'widgets': [ 'zebra' ],
-		});
-	});
-	</script>
+{% block extra_head %}
+  <script type="text/javascript">
+  $(document).ready(function() {
+    // call the tablesorter plugin
+    $("#build-table").tablesorter({
+      'headers': {
+        1: { sorter: false },
+        2: { sorter: false },
+        3: { sorter: false },
+        4: { sorter: 'human' },
+        5: { sorter: 'human' },
+        6: { sorter: 'human' },
+        8: { sorter: 'human' },
+        9: { sorter: 'human' },
+        11: { sorter: false },
+        12: { sorter: false },
+      },
+      //'sortList': [[8,1]],
+      'widgets': [ 'zebra' ],
+    });
+  });
+  </script>
 {% endblock %}
 
 {% block content %}
-{% if bpis %}
-	<table class="tablesorter">
-		<thead>
-			<tr>
-				<td colspan="3"></td>
-				<td colspan="3" class="head">From Buys</td>
-				<td colspan="3" class="head">From Sells</td>
-				<td colspan="3" class="head">Sell</td>
-				<td colspan="2" class="head">Volume</td>
-			</tr>
-			<tr>
-				<th>Name</th>
-				<th>Runs</th>
-				<th>Time</th>
-				<th>Build</th>
-				<th>Profit</th>
-				<th>P%</th>
-				<th>Build</th>
-				<th>Profit</th>
-				<th>P%</th>
-				<th>Built</th>
-				<th>Sell</th>
-				<th>Total</th>
-				<th>Weekly</th>
-				<th>Build %</th>
-			</tr>
-		</thead>
-		<tbody>
-			{% for bpi in bpis %}
-			<tr>
-				<td>{{ bpi.name }}</td>
-				<td align="right">{{ bpi.runs|commas }}</td>
-				<td align="right">{{ bpi.total_time|duration }}</td>
-				<td align="right" class="alt">{{ bpi.buy_build|humanize }}</td>
-				<td align="right" class="alt">{{ bpi.buy_profit|humanize|balance }}</td>
-				<td align="right" class="alt">{{ bpi.buy_profit_per|spanif:"neg < 7" }}%</td>
-				<td align="right">{{ bpi.sell_build|humanize }}</td>
-				<td align="right">{{ bpi.sell_profit|humanize|balance }}</td>
-				<td align="right">{{ bpi.sell_profit_per|spanif:"neg < 7" }}%</td>
-				<td align="right" class="alt">{{ bpi.built|commas }}</td>
-				<td align="right" class="alt">{{ bpi.item_sell|humanize }}</td>
-				<td align="right" class="alt">{{ bpi.total_sell|humanize }}</td>
-				<td align="right">{{ bpi.volume_week|humanize }}</td>
-				<td align="right">{{ bpi.volume_percent|spanif:"neg > 10" }}%</td>
-			</tr>
-			{% endfor %}
-		</tbody>
-		<tfoot>
-			<tr>
-				<td colspan="3"></td>
-				<td align="right">{{ bpi_totals.buy_build|humanize }}</td>
-				<td align="right">{{ bpi_totals.buy_profit|humanize }}</td>
-				<td align="right">{{ bpi_totals.buy_profit_per|spanif:"neg < 7" }}%</td>
-				<td align="right">{{ bpi_totals.sell_build|humanize }}</td>
-				<td align="right">{{ bpi_totals.sell_profit|humanize }}</td>
-				<td align="right">{{ bpi_totals.sell_profit_per|spanif:"neg < 7" }}%</td>
-				<td colspan="2"></td>
-				<td align="right">{{ bpi_totals.total_sell|humanize }}</td>
-				<td colspan="2"></td>
-			</tr>
-		</tfoot>
-	</table>
-	<br />
-	<table>
-		<thead>
-			<tr>
-				<th>Name</th>
-				<th>#</th>
-				<th>Size</th>
-				<th>Buy</th>
-				<th>Sell</th>
-			</tr>
-		</thead>
-		<tbody>
-			{% for component in components %}
-			<tr class="{% cycle 'odd' 'even' %}">
-				<td>{{ component.item.name }}</td>
-				<td align="right">{{ component.amount|commas }}</td>
-				<td align="right">{{ component.volume|commas }} m3</td>
-				<td align="right">{{ component.buy_total|humanize }}</td>
-				<td align="right">{{ component.sell_total|humanize }}</td>
-			</tr>
-			{% endfor %}
-		</tbody>
-		<tfoot>
-			<tr>
-				<td colspan="2"></td>
-				<td align="right">{{ comp_totals.volume|commas }} m3</td>
-				<td align="right">{{ comp_totals.buy_total|humanize }}</td>
-				<td align="right">{{ comp_totals.sell_total|humanize }}</td>
-			</tr>
-		</tfoot>
-	</table>
-{% else %}
-	<p>No valid blueprint instances were provided.</p>
-{% endif %}
+    <div class="row">
+      <div class="span16">
+        {% if bpis %}
+        <h1>Building</h1>
+        <table id="build-table" class="condensed-table bordered-table zebra-striped">
+          <thead>
+            <tr>
+              <td colspan="3"></td>
+              <td colspan="3" class="head">From Buys</td>
+              <td colspan="3" class="head">From Sells</td>
+              <td colspan="3" class="head">Sell</td>
+              <td colspan="2" class="head">Volume</td>
+            </tr>
+            <tr>
+              <th>Name</th>
+              <th class="c">Runs</th>
+              <th class="c">Time</th>
+              <th class="c">Build</th>
+              <th class="c">Profit</th>
+              <th class="c">P%</th>
+              <th class="c">Build</th>
+              <th class="c">Profit</th>
+              <th class="c">P%</th>
+              <th class="c">Built</th>
+              <th class="c">Sell</th>
+              <th class="c">Total</th>
+              <th class="c">Weekly</th>
+              <th class="c">%</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for bpi in bpis %}
+            <tr>
+              <td>{{ bpi.item }}</td>
+              <td class="r">{{ bpi.runs|commas }}</td>
+              <td class="r">{{ bpi.total_time|duration }}</td>
+              <td class="r" class="alt">{{ bpi.buy_build|humanize }}</td>
+              <td class="r" class="alt">{{ bpi.buy_profit|humanize|balance }}</td>
+              <td class="r" class="alt">{{ bpi.buy_profit_per|spanif:"neg < 7" }}%</td>
+              <td class="r">{{ bpi.sell_build|humanize }}</td>
+              <td class="r">{{ bpi.sell_profit|humanize|balance }}</td>
+              <td class="r">{{ bpi.sell_profit_per|spanif:"neg < 7" }}%</td>
+              <td class="r" class="alt">{{ bpi.built|commas }}</td>
+              <td class="r" class="alt">{{ bpi.item_sell|humanize }}</td>
+              <td class="r" class="alt">{{ bpi.total_sell|humanize }}</td>
+              <td class="r">{{ bpi.volume_week|humanize }}</td>
+              <td class="r">{{ bpi.volume_percent|spanif:"neg > 10" }}%</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="3"></td>
+              <td class="r">{{ bpi_totals.buy_build|humanize }}</td>
+              <td class="r">{{ bpi_totals.buy_profit|humanize }}</td>
+              <td class="r">{{ bpi_totals.buy_profit_per|spanif:"neg < 7" }}%</td>
+              <td class="r">{{ bpi_totals.sell_build|humanize }}</td>
+              <td class="r">{{ bpi_totals.sell_profit|humanize }}</td>
+              <td class="r">{{ bpi_totals.sell_profit_per|spanif:"neg < 7" }}%</td>
+              <td colspan="2"></td>
+              <td class="r">{{ bpi_totals.total_sell|humanize }}</td>
+              <td colspan="2"></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+    
+    <div class="row">
+      <div class="span9">
+        <h1>Components</h1>
+        <table class="condensed-table bordered-table zebra-striped">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th class="c">#</th>
+              <th class="c">Size</th>
+              <th class="c">Buy</th>
+              <th class="c">Sell</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for component in components %}
+            <tr class="{% cycle 'odd' 'even' %}">
+              <td>{{ component.item.name }}</td>
+              <td class="r">{{ component.amount|commas }}</td>
+              <td class="r">{{ component.volume|commas }} m3</td>
+              <td class="r">{{ component.buy_total|humanize }}</td>
+              <td class="r">{{ component.sell_total|humanize }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="2"></td>
+              <td class="r">{{ comp_totals.volume|commas }} m3</td>
+              <td class="r">{{ comp_totals.buy_total|humanize }}</td>
+              <td class="r">{{ comp_totals.sell_total|humanize }}</td>
+            </tr>
+          </tfoot>
+        </table>
+        {% else %}
+        <p>No valid blueprint instances were provided.</p>
+        {% endif %}
+      </div>
+    </div>
 {% endblock %}

@@ -1,28 +1,35 @@
 {% extends "base.html" %}
+{% load url from future %}
 
-{% block title %}Login{% endblock %}
+{% block title %}EVEthing: Login{% endblock %}
 
 {% block content %}
-{% if form.errors %}
-<p class="error">Sorry, that's not a valid username or password</p>
-{% endif %}
-
-<form action='.' method='post'>
-{% csrf_token %}
-<table>
-	<tr class="odd">
-		<td>Username:</td>
-		<td><input type="text" name="username" value=""></td>
-	</tr>
-	<tr class="even">
-		<td>Password:</td>
-		<td><input type="password" name="password" value=""></td>
-	</tr>
-	<tr>
-		<td colspan="2" align="right"><input type="submit" value="login"></td>
-	</tr>
-</table>
-<input type="hidden" name="next" value="{{ next|escape }}" />
-</form>
-
+    <div class="row">
+      <div class="span8">
+        {% if form.errors %}
+        <div class="alert-message error">
+          <p>Your username and password didn't match, please try again.</p>
+        </div>
+        {% endif %}
+        
+        <form method="post" action="{% url 'django.contrib.auth.views.login' %}" class="form-stacked">
+          <fieldset>
+            <legend>EVEthing Login</legend>
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ next }}" />
+            <div class="clearfix">
+              {{ form.username.label_tag }}
+              <div class="input">
+                {{ form.username }}
+              </div>
+              {{ form.password.label_tag }}
+              <div class="input">
+                {{ form.password }}
+              </div>
+            </div>
+          </fieldset>
+          <input type="submit" value="login" class="btn large primary" />
+        </form>
+      </div>
+    </div>
 {% endblock %}
