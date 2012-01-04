@@ -124,11 +124,6 @@ INSTALLED_APPS = (
     'evething.thing',
 )
 
-INTERNAL_IPS = (
-    '127.0.0.1',
-    '192.168.1.20',
-)
-
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to
 # the site admins on every HTTP 500 error.
