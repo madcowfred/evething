@@ -1,3 +1,4 @@
+import calendar
 import datetime
 #import time
 
@@ -265,7 +266,8 @@ def trade(request):
     for dt in transactions.dates('date', 'month', order='DESC'):
         name = '%s %s' % (MONTHS[dt.month], dt.year)
         urlpart = '%s-%02d' % (dt.year, dt.month)
-        t_check.append((name, urlpart, transactions.filter(date__month=dt.month, date__year=dt.year)))
+        month_end = datetime.datetime(dt.year, dt.month, calendar.monthrange(dt.year, dt.month)[1])
+        t_check.append((name, urlpart, transactions.filter(date__range=(dt, month_end))))
     
     # Get data and stuff
     t_data = []
