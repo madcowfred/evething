@@ -3,7 +3,7 @@
 
 {% block title %}EVEthing: Trade: {{ timeframe }}{% endblock %}
 
-{% block extrahead %}
+{% block extra_head %}
 <script type="text/javascript">
 $(document).ready(function() {
   $("#trade-table").tablesorter({
@@ -23,7 +23,6 @@ $(document).ready(function() {
       15: { sorter: 'human' },
       16: { sorter: 'human' },
     },
-    'widgets': [ 'zebra' ],
   });
 });
 </script>
