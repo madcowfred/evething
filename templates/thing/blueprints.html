@@ -63,16 +63,16 @@ $(document).ready(function() {
             {% for bpi in bpis %}
             <tr>
               <td><a href="javascript:void(0);">{{ bpi.blueprint.item }}</a></td>
-              <td>{{ bpi.type }}</td>
+              <td>{{ bpi.get_type_display }}</td>
               <td class="r">{{ bpi.material_level }}</td>
               <td class="r">{{ bpi.productivity_level }}</td>
-              <td class="r">{{ bpi.count }}</td>
-              <td class="r">{{ bpi.production_time|duration }}</td>
-              <td class="r">{{ bpi.market_price|humanize }}</td>
-              <td class="r">{{ bpi.unit_cost_buy|humanize }}</td>
-              <td class="r">{{ bpi.unit_profit_buy|humanize|balance }}</td>
-              <td class="r">{{ bpi.unit_cost_sell|humanize }}</td>
-              <td class="r">{{ bpi.unit_profit_sell|humanize|balance }}</td>
+              <td class="r">{{ bpi.z_count }}</td>
+              <td class="r">{{ bpi.z_production_time|duration }}</td>
+              <td class="r">{{ bpi.blueprint.item.sell_price|humanize }}</td>
+              <td class="r">{{ bpi.z_unit_cost_buy|humanize }}</td>
+              <td class="r">{{ bpi.z_unit_profit_buy|humanize|balance }}</td>
+              <td class="r">{{ bpi.z_unit_cost_sell|humanize }}</td>
+              <td class="r">{{ bpi.z_unit_profit_sell|humanize|balance }}</td>
               <td class="c"><a href="http://www.eve-central.com/home/quicklook.html?typeid={{ bpi.blueprint.item.id }}">EC</a></td>
               <td><input type="checkbox" name="bpi{{ bpi.id }}" value="1" /></td>
             </tr>

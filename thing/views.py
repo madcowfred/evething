@@ -53,7 +53,7 @@ def index(request):
 @login_required
 def blueprints(request):
     # Check that they have a valid character
-    chars = Character.objects.select_related().filter(user=request.user)
+    #chars = Character.objects.select_related().filter(user=request.user)
     #if chars.count() == 0:
     #    return show_error("Your account does not have any associated characters.")
     #if not chars[0].corporation:
@@ -66,25 +66,19 @@ def blueprints(request):
     
     # Assemble blueprint data
     bpis = []
-    #for bpi in BlueprintInstance.objects.select_related().filter(character__corporation=chars[0].corporation):
     for bpi in BlueprintInstance.objects.select_related():
+        # cache components so we don't have to retrieve them multiple times
         components = bpi._get_components(runs=runs)
-        bpis.append({
-            'character': bpi.character,
-            'id': bpi.id,
-            'blueprint': bpi.blueprint,
-            'type': bpi.get_bp_type_display(),
-            'material_level': bpi.material_level,
-            'productivity_level': bpi.productivity_level,
-            'count': bpi.blueprint.item.portion_size * runs,
-            'production_time': bpi.calc_production_time(runs=runs),
-            'unit_cost_buy': bpi.calc_production_cost(runs=runs, components=components),
-            'unit_cost_sell': bpi.calc_production_cost(runs=runs, use_sell=True, components=components),
-            'market_price': bpi.blueprint.item.sell_price,
-            'components': components,
-        })
-        bpis[-1]['unit_profit_buy'] = bpis[-1]['market_price'] - bpis[-1]['unit_cost_buy']
-        bpis[-1]['unit_profit_sell'] = bpis[-1]['market_price'] - bpis[-1]['unit_cost_sell']
+        
+        # calculate a bunch of stuff
+        bpi.z_count = bpi.blueprint.item.portion_size * runs
+        bpi.z_production_time = bpi.calc_production_time(runs=runs)
+        bpi.z_unit_cost_buy = bpi.calc_production_cost(runs=runs, components=components)
+        bpi.z_unit_profit_buy = bpi.blueprint.item.sell_price - bpi.z_unit_cost_buy
+        bpi.z_unit_cost_sell = bpi.calc_production_cost(runs=runs, use_sell=True, components=components)
+        bpi.z_unit_profit_sell = bpi.blueprint.item.sell_price - bpi.z_unit_cost_sell
+        
+        bpis.append(bpi)
     
     return render_to_response(
         'thing/blueprints.html',

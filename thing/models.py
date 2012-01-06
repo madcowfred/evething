@@ -26,6 +26,9 @@ class CorpWallet(models.Model):
     corporation = models.ForeignKey(Corporation)
     account_key = models.IntegerField()
     balance = models.DecimalField(max_digits=18, decimal_places=2)
+    
+    class Meta:
+        ordering = ('corporation', 'account_id')
 
 # Character
 class Character(models.Model):
@@ -242,7 +245,7 @@ class BlueprintInstance(models.Model):
     productivity_level = models.IntegerField(default=0)
     
     class Meta:
-        ordering = ('bp_type', 'blueprint')
+        ordering = ('blueprint',)
     
     def __unicode__(self):
         return "%s's %s (%s, ML%s PL%s)" % (self.character.name, self.blueprint.name, self.get_bp_type_display(),
@@ -274,6 +277,7 @@ class BlueprintInstance(models.Model):
         # Component costs
         if components is None:
             components = self._get_components(runs=runs)
+        
         for item, amt in components:
             if use_sell is True:
                 total_cost += (Decimal(str(amt)) * item.sell_price)
@@ -301,7 +305,7 @@ class BlueprintInstance(models.Model):
         
         comps = []
         
-        component_queryset = BlueprintComponent.objects.filter(blueprint=self.blueprint).select_related()
+        component_queryset = BlueprintComponent.objects.filter(blueprint=self.blueprint).select_related(depth=1)
         for component in component_queryset:
             if component.needs_waste:
                 amt = round(component.count * (1 + ((WF / 100.0) / (ML + 1)) + (0.25 - (0.05 * PES))))
