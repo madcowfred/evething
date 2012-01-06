@@ -266,7 +266,7 @@ def trade(request):
     for dt in transactions.dates('date', 'month', order='DESC'):
         name = '%s %s' % (MONTHS[dt.month], dt.year)
         urlpart = '%s-%02d' % (dt.year, dt.month)
-        month_end = datetime.datetime(dt.year, dt.month, calendar.monthrange(dt.year, dt.month)[1])
+        month_end = datetime.datetime(dt.year, dt.month, calendar.monthrange(dt.year, dt.month)[1], 23, 59, 59)
         t_check.append((name, urlpart, transactions.filter(date__range=(dt, month_end))))
     
     # Get data and stuff
