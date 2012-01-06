@@ -13,14 +13,15 @@
         2: { sorter: false },
         3: { sorter: false },
         4: { sorter: 'human' },
-        5: { sorter: 'human' },
-        6: { sorter: 'human' },
-        8: { sorter: 'human' },
-        9: { sorter: 'human' },
-        11: { sorter: false },
+        6: { sorter: false },
+        7: { sorter: 'human' },
+        9: { sorter: false },
+        10: { sorter: false },
+        11: { sorter: 'human' },
         12: { sorter: false },
+        13: { sorter: false },
       },
-      //'sortList': [[8,1]],
+      'sortList': [[7, 1]],
     });
   });
   </script>
@@ -53,27 +54,27 @@
               <th class="c">Built</th>
               <th class="c">Sell</th>
               <th class="c">Total</th>
-              <th class="c">Weekly</th>
+              <th class="c">Week</th>
               <th class="c">%</th>
             </tr>
           </thead>
           <tbody>
             {% for bpi in bpis %}
             <tr>
-              <td>{{ bpi.item }}</td>
-              <td class="r">{{ bpi.runs|commas }}</td>
-              <td class="r">{{ bpi.total_time|duration }}</td>
-              <td class="r" class="alt">{{ bpi.buy_build|humanize }}</td>
-              <td class="r" class="alt">{{ bpi.buy_profit|humanize|balance }}</td>
-              <td class="r" class="alt">{{ bpi.buy_profit_per|spanif:"neg < 7" }}%</td>
-              <td class="r">{{ bpi.sell_build|humanize }}</td>
-              <td class="r">{{ bpi.sell_profit|humanize|balance }}</td>
-              <td class="r">{{ bpi.sell_profit_per|spanif:"neg < 7" }}%</td>
-              <td class="r" class="alt">{{ bpi.built|commas }}</td>
-              <td class="r" class="alt">{{ bpi.item_sell|humanize }}</td>
-              <td class="r" class="alt">{{ bpi.total_sell|humanize }}</td>
-              <td class="r">{{ bpi.volume_week|humanize }}</td>
-              <td class="r">{{ bpi.volume_percent|spanif:"neg > 10" }}%</td>
+              <td>{{ bpi.blueprint.item }}</td>
+              <td class="r">{{ bpi.z_runs|commas }}</td>
+              <td class="r">{{ bpi.z_total_time|duration }}</td>
+              <td class="r" class="alt">{{ bpi.z_buy_build|humanize }}</td>
+              <td class="r" class="alt">{{ bpi.z_buy_profit|humanize|balance }}</td>
+              <td class="r" class="alt">{{ bpi.z_buy_profit_per|spanif:"neg < 7" }}%</td>
+              <td class="r">{{ bpi.z_sell_build|humanize }}</td>
+              <td class="r">{{ bpi.z_sell_profit|humanize|balance }}</td>
+              <td class="r">{{ bpi.z_sell_profit_per|spanif:"neg < 7" }}%</td>
+              <td class="r" class="alt">{{ bpi.z_built|commas }}</td>
+              <td class="r" class="alt">{{ bpi.blueprint.item.sell_price|humanize }}</td>
+              <td class="r" class="alt">{{ bpi.z_total_sell|humanize }}</td>
+              <td class="r">{{ bpi.z_volume_week|humanize }}</td>
+              <td class="r">{{ bpi.z_volume_percent|spanif:"neg > 10" }}%</td>
             </tr>
             {% endfor %}
           </tbody>

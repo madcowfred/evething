@@ -67,10 +67,10 @@ def blueprints(request):
     # Assemble blueprint data
     bpis = []
     for bpi in BlueprintInstance.objects.select_related():
-        # cache components so we don't have to retrieve them multiple times
+        # Cache component list so we don't have to retrieve it multiple times
         components = bpi._get_components(runs=runs)
         
-        # calculate a bunch of stuff
+        # Calculate a bunch of things we can't easily do via SQL
         bpi.z_count = bpi.blueprint.item.portion_size * runs
         bpi.z_production_time = bpi.calc_production_time(runs=runs)
         bpi.z_unit_cost_buy = bpi.calc_production_cost(runs=runs, components=components)
@@ -106,18 +106,27 @@ def bpcalc(request):
     except ValueError:
         days = 7
     
-    # Get provided BlueprintInstance ids
-    bpi_ids = []
-    for k in request.GET:
-        if k.startswith('bpi') and k[3:].isdigit():
-            bpi_ids.append(k[3:])
+    # Initialise totals stuff
+    bpi_totals = {
+        'total_sell': Decimal('0.0'),
+        'buy_build': Decimal('0.0'),
+        'buy_profit': Decimal('0.0'),
+        'sell_build': Decimal('0.0'),
+        'sell_profit': Decimal('0.0'),
+    }
+    
+    #items = Item.objects.filter(pk__in=map(int, request.GET.getlist('items')))
+    #bpi_ids = []
+    #for k in request.GET:
+    #    if k.startswith('bpi') and k[3:].isdigit():
+    #        bpi_ids.append(k[3:])
     
     # Fetch BlueprintInstance objects
     bpis = []
     comps = {}
-    final_items = []
     #for bpi in BlueprintInstance.objects.select_related().filter(character__corporation=chars[0].corporation).in_bulk(bpi_ids).values():
-    for bpi in BlueprintInstance.objects.select_related().in_bulk(bpi_ids).values():
+    #for bpi in BlueprintInstance.objects.select_related().in_bulk(bpi_ids).values():
+    for bpi in BlueprintInstance.objects.select_related().filter(pk__in=map(int, request.GET.getlist('blueprints'))):
         pt = bpi.calc_production_time()
         runs = int((DAY * days) / pt)
         # Skip really long production items
@@ -129,47 +138,34 @@ def bpcalc(request):
         components = bpi._get_components(runs=runs)
         for item, amt in components:
             comps[item] = comps.get(item, 0) + amt
-        # And the final item
-        final_items.append(bpi.blueprint.item.id)
         
-        bpc = bpi.calc_production_cost(runs=runs, components=components)
-        spc = bpi.calc_production_cost(runs=runs, use_sell=True, components=components)
+        # Calculate a bunch of things we can't easily do via SQL
+        bpi.z_total_time = pt * runs
+        bpi.z_runs = runs
+        bpi.z_built = built
+        bpi.z_total_sell = bpi.blueprint.item.sell_price * built
+        bpi.z_buy_build = bpi.calc_production_cost(runs=runs, components=components) * built
+        bpi.z_sell_build = bpi.calc_production_cost(runs=runs, use_sell=True, components=components) * built
+        bpi.z_volume_week = bpi.blueprint.item.get_volume()
+        if bpi.z_volume_week:
+            bpi.z_volume_percent = (bpi.z_built / bpi.z_volume_week * 100).quantize(Decimal('.1'))
         
-        bpis.append({
-            'item': bpi.blueprint.item,
-            'name': bpi.blueprint.name,
-            'total_time': pt * runs,
-            'runs': runs,
-            'built': built,
-            'item_sell': bpi.blueprint.item.sell_price,
-            'total_sell': bpi.blueprint.item.sell_price * built,
-            'buy_build': bpc * built,
-            'sell_build': spc * built,
-            'volume_week': bpi.blueprint.item.get_volume(),
-        })
-        row = bpis[-1]
-        row['buy_profit'] = row['total_sell'] - row['buy_build']
-        row['buy_profit_per'] = (row['buy_profit'] / row['buy_build'] * 100).quantize(Decimal('.1'))
-        row['sell_profit'] = row['total_sell'] - row['sell_build']
-        row['sell_profit_per'] = (row['sell_profit'] / row['sell_build'] * 100).quantize(Decimal('.1'))
-        if row['volume_week']:
-            row['volume_percent'] = (row['built'] / row['volume_week'] * 100).quantize(Decimal('.1'))
+        bpi.z_buy_profit = bpi.z_total_sell - bpi.z_buy_build
+        bpi.z_buy_profit_per = (bpi.z_buy_profit / bpi.z_buy_build * 100).quantize(Decimal('.1'))
+        bpi.z_sell_profit = bpi.z_total_sell - bpi.z_sell_build
+        bpi.z_sell_profit_per = (bpi.z_sell_profit / bpi.z_sell_build * 100).quantize(Decimal('.1'))
+        
+        # Update totals
+        bpi_totals['total_sell'] += bpi.z_total_sell
+        bpi_totals['buy_build'] += bpi.z_buy_build
+        bpi_totals['buy_profit'] += bpi.z_buy_profit
+        bpi_totals['sell_build'] += bpi.z_sell_build
+        bpi_totals['sell_profit'] += bpi.z_sell_profit
+        
+        bpis.append(bpi)
     
-    bpis.sort(key=lambda b: b['sell_profit'])
-    bpis.reverse()
-        
-    # Yeah this is awful, but better than using 95000 queries... right? :|
-    # FIXME:this might work, but adding the data to the bpis list will be awfully slow. Think on it.
-    #filler = []
-    #for fi in final_items:
-    #    filler.append('(SELECT item_id, movement FROM thing_itempricehistory WHERE item_id = %s ORDER BY date DESC LIMIT 7)' % (fi))
-    #
-    #query = """SELECT item_id, SUM(movement) FROM
-    #(%s) AS blah
-    #GROUP BY item_id""" % (' UNION ALL '.join(filler))
-    #cursor = connection.cursor()
-    #cursor.execute(query)
-    #for k,v in cursor.fetchall():
+    #bpis.sort(key=lambda b: b['sell_profit'])
+    #bpis.reverse()
     
     # Components
     components = []
@@ -184,21 +180,16 @@ def bpcalc(request):
     components.sort(key=lambda c: c['item'].name)
     
     # Do some sums
-    bpi_totals = {
-        'total_sell': sum(bpi['total_sell'] for bpi in bpis),
-        'buy_build': sum(bpi['buy_build'] for bpi in bpis),
-        'buy_profit': sum(bpi['buy_profit'] for bpi in bpis),
-        'sell_build': sum(bpi['sell_build'] for bpi in bpis),
-        'sell_profit': sum(bpi['sell_profit'] for bpi in bpis),
-    }
     bpi_totals['buy_profit_per'] = (bpi_totals['buy_profit'] / bpi_totals['buy_build'] * 100).quantize(Decimal('.1'))
     bpi_totals['sell_profit_per'] = (bpi_totals['sell_profit'] / bpi_totals['sell_build'] * 100).quantize(Decimal('.1'))
+    
     comp_totals = {
         'volume': sum(comp['volume'] for comp in components),
         'buy_total': sum(comp['buy_total'] for comp in components),
         'sell_total': sum(comp['sell_total'] for comp in components),
     }
     
+    # Render the template
     return render_to_response(
         'thing/bpcalc.html',
         {
