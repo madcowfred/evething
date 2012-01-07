@@ -293,6 +293,10 @@ def get_station(station_id, station_name):
 		stations = Station.objects.filter(pk=station_id)
 		if stations.count() > 0:
 			station = stations[0]
+			# Update the station name if it has changed recently
+			if station.name != station_name:
+				station.name = station_name
+				station.save()
 		else:
 			station = Station(id=station_id, name=station_name)
 			station.save()
