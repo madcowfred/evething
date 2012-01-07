@@ -30,7 +30,6 @@
 {% block content %}
     <div class="row">
       <div class="span16">
-        {% if bpis %}
         <h1>Building</h1>
         <table id="build-table" class="condensed-table bordered-table zebra-striped">
           <thead>
@@ -76,6 +75,10 @@
               <td class="r">{{ bpi.z_volume_week|humanize }}</td>
               <td class="r">{{ bpi.z_volume_percent|spanif:"neg > 10" }}%</td>
             </tr>
+            {% empty %}
+            <tr>
+              <td colspan="14">No valid blueprint IDs were provided.</td>
+            </tr>
             {% endfor %}
           </tbody>
           <tfoot>
@@ -118,6 +121,10 @@
               <td class="r">{{ component.buy_total|humanize }}</td>
               <td class="r">{{ component.sell_total|humanize }}</td>
             </tr>
+            {% empty %}
+            <tr>
+              <td colspan="5">No valid blueprint IDs were provided.</td>
+            </tr>
             {% endfor %}
           </tbody>
           <tfoot>
@@ -129,9 +136,6 @@
             </tr>
           </tfoot>
         </table>
-        {% else %}
-        <p>No valid blueprint instances were provided.</p>
-        {% endif %}
       </div>
     </div>
 {% endblock %}

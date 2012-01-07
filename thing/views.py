@@ -7,7 +7,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import Paginator, InvalidPage, EmptyPage
 from django.db import connection
 from django.db.models import Avg, Count, Max, Min, Sum
-from django.shortcuts import render_to_response, get_object_or_404
+from django.shortcuts import *
 from django.template import RequestContext
 
 from evething.thing.models import *
@@ -51,13 +51,7 @@ def index(request):
 # List of blueprints we own
 @login_required
 def blueprints(request):
-    # Check that they have a valid character
-    #chars = Character.objects.select_related().filter(user=request.user)
-    #if chars.count() == 0:
-    #    return show_error("Your account does not have any associated characters.")
-    #if not chars[0].corporation:
-    #    return show_error("Your first character doesn't seem to be in a corporation, what the hell?")
-    
+    # Get a valid number of runs
     try:
         runs = int(request.GET.get('runs', '1'))
     except ValueError:
@@ -65,7 +59,7 @@ def blueprints(request):
     
     # Assemble blueprint data
     bpis = []
-    for bpi in BlueprintInstance.objects.select_related():
+    for bpi in BlueprintInstance.objects.select_related().filter(character__user=request.user.id):
         # Cache component list so we don't have to retrieve it multiple times
         components = bpi._get_components(runs=runs)
         
@@ -79,6 +73,7 @@ def blueprints(request):
         
         bpis.append(bpi)
     
+    # Render template
     return render_to_response(
         'thing/blueprints.html',
         {
@@ -92,20 +87,14 @@ def blueprints(request):
 DAY = 24 * 60 * 60
 @login_required
 def bpcalc(request):
-    # Check that they have a valid character
-    chars = Character.objects.select_related().filter(user=request.user)
-    #if chars.count() == 0:
-    #    return show_error("Your account does not have any associated characters.")
-    #if not chars[0].corporation:
-    #    return show_error("Your first character doesn't seem to be in a corporation, what the hell?")
-    
     # Get a valid number of days
     try:
         days = int(request.GET.get('days', '7'))
     except ValueError:
         days = 7
     
-    # Initialise totals stuff
+    # Initialise variabls
+    bpis = []
     bpi_totals = {
         'total_sell': Decimal('0.0'),
         'buy_build': Decimal('0.0'),
@@ -113,85 +102,82 @@ def bpcalc(request):
         'sell_build': Decimal('0.0'),
         'sell_profit': Decimal('0.0'),
     }
-    
-    #items = Item.objects.filter(pk__in=map(int, request.GET.getlist('items')))
-    #bpi_ids = []
-    #for k in request.GET:
-    #    if k.startswith('bpi') and k[3:].isdigit():
-    #        bpi_ids.append(k[3:])
-    
-    # Fetch BlueprintInstance objects
-    bpis = []
-    comps = {}
-    #for bpi in BlueprintInstance.objects.select_related().filter(character__corporation=chars[0].corporation).in_bulk(bpi_ids).values():
-    #for bpi in BlueprintInstance.objects.select_related().in_bulk(bpi_ids).values():
-    for bpi in BlueprintInstance.objects.select_related().filter(pk__in=map(int, request.GET.getlist('blueprints'))):
-        pt = bpi.calc_production_time()
-        runs = int((DAY * days) / pt)
-        # Skip really long production items
-        if runs == 0:
-            continue
-        built = runs * bpi.blueprint.item.portion_size
-        
-        # Add the components
-        components = bpi._get_components(runs=runs)
-        for item, amt in components:
-            comps[item] = comps.get(item, 0) + amt
-        
-        # Calculate a bunch of things we can't easily do via SQL
-        bpi.z_total_time = pt * runs
-        bpi.z_runs = runs
-        bpi.z_built = built
-        bpi.z_total_sell = bpi.blueprint.item.sell_price * built
-        bpi.z_buy_build = bpi.calc_production_cost(runs=runs, components=components) * built
-        bpi.z_sell_build = bpi.calc_production_cost(runs=runs, use_sell=True, components=components) * built
-        bpi.z_volume_week = bpi.blueprint.item.get_volume()
-        if bpi.z_volume_week:
-            bpi.z_volume_percent = (bpi.z_built / bpi.z_volume_week * 100).quantize(Decimal('.1'))
-        
-        bpi.z_buy_profit = bpi.z_total_sell - bpi.z_buy_build
-        bpi.z_buy_profit_per = (bpi.z_buy_profit / bpi.z_buy_build * 100).quantize(Decimal('.1'))
-        bpi.z_sell_profit = bpi.z_total_sell - bpi.z_sell_build
-        bpi.z_sell_profit_per = (bpi.z_sell_profit / bpi.z_sell_build * 100).quantize(Decimal('.1'))
-        
-        # Update totals
-        bpi_totals['total_sell'] += bpi.z_total_sell
-        bpi_totals['buy_build'] += bpi.z_buy_build
-        bpi_totals['buy_profit'] += bpi.z_buy_profit
-        bpi_totals['sell_build'] += bpi.z_sell_build
-        bpi_totals['sell_profit'] += bpi.z_sell_profit
-        
-        bpis.append(bpi)
-    
-    # Components
-    components = []
-    for item, amt in comps.items():
-        components.append({
-            'item': item,
-            'amount': amt,
-            'volume': (amt * item.volume).quantize(Decimal('.1')),
-            'buy_total': amt * item.buy_price,
-            'sell_total': amt * item.sell_price,
-        })
-    components.sort(key=lambda c: c['item'].name)
-    
-    # Do some sums
-    bpi_totals['buy_profit_per'] = (bpi_totals['buy_profit'] / bpi_totals['buy_build'] * 100).quantize(Decimal('.1'))
-    bpi_totals['sell_profit_per'] = (bpi_totals['sell_profit'] / bpi_totals['sell_build'] * 100).quantize(Decimal('.1'))
-    
+    component_list = []
     comp_totals = {
-        'volume': sum(comp['volume'] for comp in components),
-        'buy_total': sum(comp['buy_total'] for comp in components),
-        'sell_total': sum(comp['sell_total'] for comp in components),
+        'volume': 0,
+        'buy_total': 0,
+        'sell_total': 0,
     }
     
-    # Render the template
+    # Get the list of BPIs from GET vars
+    bpi_list = map(int, request.GET.getlist('bpi'))
+    if bpi_list:
+        comps = {}
+        # Fetch BlueprintInstance objects
+        for bpi in BlueprintInstance.objects.select_related().filter(character__user=request.user.id, pk__in=bpi_list):
+            pt = bpi.calc_production_time()
+            runs = int((DAY * days) / pt)
+            # Skip really long production items
+            if runs == 0:
+                continue
+            built = runs * bpi.blueprint.item.portion_size
+            
+            # Add the components
+            components = bpi._get_components(runs=runs)
+            for item, amt in components:
+                comps[item] = comps.get(item, 0) + amt
+            
+            # Calculate a bunch of things we can't easily do via SQL
+            bpi.z_total_time = pt * runs
+            bpi.z_runs = runs
+            bpi.z_built = built
+            bpi.z_total_sell = bpi.blueprint.item.sell_price * built
+            bpi.z_buy_build = bpi.calc_production_cost(runs=runs, components=components) * built
+            bpi.z_sell_build = bpi.calc_production_cost(runs=runs, use_sell=True, components=components) * built
+            bpi.z_volume_week = bpi.blueprint.item.get_volume()
+            if bpi.z_volume_week:
+                bpi.z_volume_percent = (bpi.z_built / bpi.z_volume_week * 100).quantize(Decimal('.1'))
+            
+            bpi.z_buy_profit = bpi.z_total_sell - bpi.z_buy_build
+            bpi.z_buy_profit_per = (bpi.z_buy_profit / bpi.z_buy_build * 100).quantize(Decimal('.1'))
+            bpi.z_sell_profit = bpi.z_total_sell - bpi.z_sell_build
+            bpi.z_sell_profit_per = (bpi.z_sell_profit / bpi.z_sell_build * 100).quantize(Decimal('.1'))
+            
+            # Update totals
+            bpi_totals['total_sell'] += bpi.z_total_sell
+            bpi_totals['buy_build'] += bpi.z_buy_build
+            bpi_totals['buy_profit'] += bpi.z_buy_profit
+            bpi_totals['sell_build'] += bpi.z_sell_build
+            bpi_totals['sell_profit'] += bpi.z_sell_profit
+            
+            bpis.append(bpi)
+        
+        # Components
+        for item, amt in comps.items():
+            component_list.append({
+                'item': item,
+                'amount': amt,
+                'volume': (amt * item.volume).quantize(Decimal('.1')),
+                'buy_total': amt * item.buy_price,
+                'sell_total': amt * item.sell_price,
+            })
+        component_list.sort(key=lambda c: c['item'].name)
+        
+        # Do some sums
+        bpi_totals['buy_profit_per'] = (bpi_totals['buy_profit'] / bpi_totals['buy_build'] * 100).quantize(Decimal('.1'))
+        bpi_totals['sell_profit_per'] = (bpi_totals['sell_profit'] / bpi_totals['sell_build'] * 100).quantize(Decimal('.1'))
+        
+        comp_totals['volume'] = sum(comp['volume'] for comp in component_list)
+        comp_totals['buy_total'] = sum(comp['buy_total'] for comp in component_list)
+        comp_totals['sell_total'] = sum(comp['sell_total'] for comp in component_list)
+    
+    # Render template
     return render_to_response(
         'thing/bpcalc.html',
         {
             'bpis': bpis,
             'bpi_totals': bpi_totals,
-            'components': components,
+            'components': component_list,
             'comp_totals': comp_totals,
         },
         context_instance=RequestContext(request)
@@ -201,14 +187,7 @@ def bpcalc(request):
 MONTHS = (None, 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec')
 @login_required
 def trade(request):
-    # Check that they have a valid character
-    chars = Character.objects.select_related().filter(user=request.user)
-    #if chars.count() == 0:
-    #    return show_error("Your account does not have any associated characters.")
-    #if not chars[0].corporation:
-    #    return show_error("Your first character doesn't seem to be in a corporation, what the hell?")
-    
-    data = { }# 'corporation': chars[0].corporation }
+    data = {}
     now = datetime.datetime.now()
     
     # Wallets
@@ -230,14 +209,14 @@ def trade(request):
     #data['net_asset_value'] = data['wallet_balance'] + data['sell_total'] + data['escrow_total']
     
     # Transaction stuff oh god
-    #transactions = Transaction.objects.filter(corporation=data['corporation'])
-    transactions = Transaction.objects
+    transactions = Transaction.objects.filter(character__user=request.user.id)
     
     t_check = []
     # All
     t_check.append(('[All]', 'all', transactions))
     
     # Timeframes
+    # FIXME: Timeframe objects need to reference a User
     #for tf in Timeframe.objects.filter(corporation=data['corporation']):
     for tf in Timeframe.objects.all():
         title = '[%s]' % (tf.title)
@@ -247,8 +226,7 @@ def trade(request):
     for dt in transactions.dates('date', 'month', order='DESC'):
         name = '%s %s' % (MONTHS[dt.month], dt.year)
         urlpart = '%s-%02d' % (dt.year, dt.month)
-        month_end = datetime.datetime(dt.year, dt.month, calendar.monthrange(dt.year, dt.month)[1], 23, 59, 59)
-        t_check.append((name, urlpart, transactions.filter(date__range=(dt, month_end))))
+        t_check.append((name, urlpart, transactions.filter(date__range=_month_range(dt.year, dt.month))))
     
     # Get data and stuff
     t_data = []
@@ -267,21 +245,17 @@ def trade(request):
     
     data['transactions'] = t_data
     
-    return render_to_response('thing/trade.html', data, context_instance=RequestContext(request))
+    # Render template
+    return render_to_response(
+        'thing/trade.html',
+        data,
+        context_instance=RequestContext(request)
+    )
 
 # Trade overview for a variety of timeframe types
 @login_required
 def trade_timeframe(request, year=None, month=None, period=None, slug=None):
-    times = []
-    times.append((time.time(), 'start'))
-    
-    # Check that they have a valid character
-    chars = Character.objects.select_related().filter(user=request.user)
-    #if chars.count() == 0:
-    #    return show_error("Your account does not have any associated characters.")
-    #if not chars[0].corporation:
-    #    return show_error("Your first character doesn't seem to be in a corporation, what the hell?")
-    
+    # Initialise data
     data = {
         'total_buys': 0,
         'total_sells': 0,
@@ -289,36 +263,27 @@ def trade_timeframe(request, year=None, month=None, period=None, slug=None):
         'total_projected_average': 0,
         'total_projected_market': 0,
     }
-    #'corporation': chars[0].corporation }
-    now = datetime.datetime.now()
     
-    times.append((time.time(), 'charcheck'))
-    
-    # Get a QuerySet of transactions for this corporation
-    #transactions = Transaction.objects.filter(corporation=data['corporation'])
-    transactions = Transaction.objects
+    # Get a QuerySet of transactions by this user
+    transactions = Transaction.objects.filter(character__user=request.user.id)
     
     # Year/Month
     if year and month:
+        year = int(year)
         month = int(month)
-        transactions = transactions.filter(date__year=year, date__month=month)
+        transactions = transactions.filter(date__range=_month_range(year, month))
         data['timeframe'] = '%s %s' % (MONTHS[month], year)
         data['urlpart'] = '%s-%02d' % (year, month)
     # Timeframe slug
     elif slug:
-        #tf = Timeframe.objects.filter(corporation=data['corporation'], slug=slug)
-        tf = Timeframe.objects.filter(slug=slug)
-        #if not tf:
-        #    return show_error("Invalid timeframe slug.")
-        transactions = transactions.filter(date__range=(tf[0].start_date, tf[0].end_date))
-        data['timeframe'] = '%s (%s -> %s)' % (tf[0].title, tf[0].start_date, tf[0].end_date)
+        tf = get_object_or_404(Timeframe, slug=slug)
+        transactions = transactions.filter(date__range=(tf.start_date, tf.end_date))
+        data['timeframe'] = '%s (%s -> %s)' % (tf.title, tf.start_date, tf.end_date)
         data['urlpart'] = slug
     # All
     elif period:
         data['timeframe'] = 'all time'
         data['urlpart'] = 'all'
-    
-    times.append((time.time(), 'yearmonth'))
     
     # Build aggregate queries to use in our nasty FULL OUTER JOIN
     item_buy_data = transactions.filter(t_type='B').values('item').annotate(
@@ -340,8 +305,6 @@ def trade_timeframe(request, year=None, month=None, period=None, slug=None):
     
     query = TRADE_TIMEFRAME_JOIN % (buy_sql[0], sell_sql[0])
     params = buy_sql[1] + sell_sql[1]
-    
-    times.append((time.time(), 'combine'))
     
     # Make Item objects out of the nasty query
     data['items'] = []
@@ -369,52 +332,39 @@ def trade_timeframe(request, year=None, month=None, period=None, slug=None):
         data['total_projected_average'] += item.z_projected_average
         data['total_projected_market'] += item.z_projected_market
     
-    times.append((time.time(), 'gather'))
-    
     # Totals
     data['total_balance'] = data['total_sells'] - data['total_buys']
     
-    times.append((time.time(), 'totals'))
-    for i in range(1, len(times)):
-        print '%s: %.5f' % (times[i][1], times[i][0] - times[i-1][0])
-    
-    # GENERATE
-    # 2118 (2271)
-    return render_to_response('thing/trade_timeframe.html', data, context_instance=RequestContext(request))
+    # Render template
+    return render_to_response(
+        'thing/trade_timeframe.html',
+        data,
+        context_instance=RequestContext(request)
+    )
 
 
 # Corp transaction details
 @login_required
 def transactions(request):
-    # Check that they have a valid character
-    chars = Character.objects.select_related().filter(user=request.user)
-    #if chars.count() == 0:
-    #    return show_error("Your account does not have any associated characters.")
-    #if not chars[0].corporation:
-    #    return show_error("Your first character doesn't seem to be in a corporation, what the hell?")
+    # Get a QuerySet of transactions by this user
+    transactions = Transaction.objects.select_related('item', 'station', 'character').filter(character__user=request.user.id).order_by('-date')
     
-    # See if this corp has any transactions
-    #transactions = Transaction.objects.select_related('item', 'station', 'character').filter(corporation=chars[0].corporation).order_by('date').reverse()
-    transactions = Transaction.objects.select_related('item', 'station', 'character').order_by('-date')
-    #if transactions.count() == 0:
-    #    return show_error("There are no transactions in the database.")
-    
-    # Paginator stuff
+    # Create a new paginator
     paginator = Paginator(transactions, 100)
     
-    # Make sure page request is an int. If not, deliver first page.
+    # Make sure page request is an int, default to 1st page
     try:
         page = int(request.GET.get('page', '1'))
     except ValueError:
         page = 1
     
-    # If page request (9999) is out of range, deliver last page of results.
+    # If page request is out of range, deliver last page of results
     try:
         transactions = paginator.page(page)
     except (EmptyPage, InvalidPage):
         transactions = paginator.page(paginator.num_pages)
     
-    # Spit it out I guess
+    # Render template
     return render_to_response(
         'thing/transactions.html',
         {
@@ -426,28 +376,17 @@ def transactions(request):
 # Corp transaction details for last x days for specific item
 @login_required
 def transactions_item(request, item_id, year=None, month=None, period=None, slug=None):
-    # Check that they have a valid character
-    chars = Character.objects.select_related().filter(user=request.user)
-    if chars.count() == 0:
-        return ("Your account does not have any associated characters.")
-    char = chars[0]
-    #if not char.corporation:
-    #    return show_error("Your first character doesn't seem to be in a corporation, what the hell?")
-    
-    # Make sure item_id is valid
     data = {}
     
-    if item_id.isdigit():
-        #transactions = Transaction.objects.select_related('item').filter(corporation=char.corporation, item=item_id).order_by('date').reverse()
-        transactions = Transaction.objects.select_related('item').filter(item=item_id).order_by('-date')
-        data['item'] = transactions[0].item.name
-    else:
-        #transactions = Transaction.objects.filter(corporation=char.corporation).order_by('date').reverse()
-        transactions = Transaction.objects.order_by('-date')
-        data['item'] = 'all items'
+    # Get a QuerySet of transactions by this user
+    transactions = Transaction.objects.filter(character__user=request.user.id).order_by('-date')
     
-    #if transactions.count() == 0:
-    #    return show_error("There are no transactions matching those criteria.")
+    # If item_id is an integer we should filter on that item_id
+    if item_id.isdigit():
+        transactions = transactions.filter(item=item_id)
+        data['item'] = Item.objects.get(pk=item_id).name
+    else:
+        data['item'] = 'all items'
     
     # Year/Month
     if year and month:
@@ -456,29 +395,23 @@ def transactions_item(request, item_id, year=None, month=None, period=None, slug
         data['timeframe'] = '%s %s' % (MONTHS[month], year)
     # Timeframe slug
     elif slug:
-        #try:
-        #tf = Timeframe.objects.get(corporation=char.corporation, slug=slug)
-        tf = Timeframe.objects.get(slug=slug)
-        #except Timeframe.DoesNotExist:
-        #    return show_error("Invalid timeframe slug.")
+        tf = get_object_or_404(Timeframe, slug=slug)
         transactions = transactions.filter(date__range=(tf.start_date, tf.end_date))
         data['timeframe'] = '%s (%s -> %s)' % (tf.title, tf.start_date, tf.end_date)
     # All
-    elif period:
-        data['timeframe'] = 'all time'
     else:
         data['timeframe'] = 'all time'
     
-    # Paginator stuff
+    # Create a new paginator
     paginator = Paginator(transactions.select_related('item', 'station', 'character'), 100)
     
-    # Make sure page request is an int. If not, deliver first page.
+    # Make sure page request is an int, default to 1st page
     try:
         page = int(request.GET.get('page', '1'))
     except ValueError:
         page = 1
     
-    # If page request (9999) is out of range, deliver last page of results.
+    # If page request is out of range, deliver last page of results
     try:
         transactions = paginator.page(page)
     except (EmptyPage, InvalidPage):
@@ -486,27 +419,20 @@ def transactions_item(request, item_id, year=None, month=None, period=None, slug
     
     data['transactions'] = transactions
     
-    # Spit it out I guess
+    # Render template
     return render_to_response('thing/transactions_item.html', data, context_instance=RequestContext(request))
 
 # Active orders
 @login_required
 def orders(request):
-    # Check that they have a valid character
-    chars = Character.objects.select_related().filter(user=request.user)
-    #if chars.count() == 0:
-    #    return show_error("Your account does not have any associated characters.")
-    
-    #corporation = chars[0].corporation
-    #if not corporation:
-    #    return show_error("Your first character doesn't seem to be in a corporation, what the hell?")
-    
     # Retrieve orders
-    #orders = Order.objects.select_related('item', 'station', 'character').filter(corporation=corporation).order_by('-o_type', 'station__name', 'item__name')
-    orders = Order.objects.select_related('item', 'station', 'character').order_by('-o_type', 'station__name', 'item__name')
+    orders = Order.objects.select_related('item', 'station', 'character').filter(character__user=request.user.id).order_by('-o_type', 'station__name', 'item__name')
     
+    # Render template
     return render_to_response('thing/orders.html', { 'orders': orders }, context_instance=RequestContext(request))
 
 
-def show_error(error_msg):
-    return render_to_response('thing/error.html', { 'error': error_msg })
+def _month_range(year, month):
+    start = datetime.datetime(year, month, 1)
+    end = datetime.datetime(year, month, calendar.monthrange(year, month)[1], 23, 59, 59)
+    return (start, end)

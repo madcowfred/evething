@@ -74,7 +74,7 @@ $(document).ready(function() {
               <td class="r">{{ bpi.z_unit_cost_sell|humanize }}</td>
               <td class="r">{{ bpi.z_unit_profit_sell|humanize|balance }}</td>
               <td class="c"><a href="http://www.eve-central.com/home/quicklook.html?typeid={{ bpi.blueprint.item.id }}">EC</a></td>
-              <td><input type="checkbox" name="blueprints" value="{{ bpi.pk }}" /></td>
+              <td><input type="checkbox" name="bpi" value="{{ bpi.pk }}" /></td>
             </tr>
             {% empty %}
             <tr>
