@@ -83,25 +83,25 @@ $(document).ready(function() {
           <tbody>
             {% for item in items %}
             <tr>
-              <td><a href="{% url evething.thing.views.transactions_item item.item.id urlpart %}">{{ item.item.name }}</a></td>
-              <td>{{ item.item.cat_name }}</td>
+              <td><a href="{% url evething.thing.views.transactions_item item.pk urlpart %}">{{ item.name }}</a></td>
+              <td>{{ item.cat_name }}</td>
               <td class="r">
-                <a href="#" rel="twipsy" title="Min: {{ item.item.buy_minimum|humanize }} | Avg: {{ item.item.buy_average|humanize }} | Max: {{ item.item.buy_maximum|humanize }}">
-                  {{ item.item.buy_quantity|humanize }}
+                <a href="#" rel="twipsy" title="Min: {{ item.buy_minimum|humanize }} | Avg: {{ item.buy_average|humanize }} | Max: {{ item.buy_maximum|humanize }}">
+                  {{ item.buy_quantity|humanize }}
                 </a>
               </td>
-              <td class="r">{{ item.item.buy_total|humanize }}</td>
+              <td class="r">{{ item.buy_total|humanize }}</td>
               <td class="r">
-                <a href="#" rel="twipsy" title="Min: {{ item.item.sell_minimum|humanize }} | Avg: {{ item.item.sell_average|humanize }} | Max: {{ item.item.sell_maximum|humanize }}">
-                  {{ item.item.sell_quantity|humanize }}
+                <a href="#" rel="twipsy" title="Min: {{ item.sell_minimum|humanize }} | Avg: {{ item.sell_average|humanize }} | Max: {{ item.sell_maximum|humanize }}">
+                  {{ item.sell_quantity|humanize }}
                 </a>
               </td>
-              <td class="r">{{ item.item.sell_total|humanize }}</td>
-              <td class="r">{{ item.average_profit|humanize }}</td>
-              <td class="r">{{ item.average_profit_per }}%</td>
-              <td class="r">{{ item.item.balance|humanize|balance }}</td>
-              <td class="r">{{ item.projected_average|humanize|balance }}</td>
-              <td class="r">{{ item.outstanding_average|humanize|balance }}</td>
+              <td class="r">{{ item.sell_total|humanize }}</td>
+              <td class="r">{{ item.z_average_profit|humanize }}</td>
+              <td class="r">{{ item.z_average_profit_per }}%</td>
+              <td class="r">{{ item.balance|humanize|balance }}</td>
+              <td class="r">{{ item.z_projected_average|humanize|balance }}</td>
+              <td class="r">{{ item.z_outstanding_average|humanize|balance }}</td>
             </tr>
             {% endfor %}
           </tbody>

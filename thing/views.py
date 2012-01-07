@@ -42,7 +42,6 @@ INNER JOIN thing_itemgroup ig
 ON i.group_id = ig.id
 INNER JOIN thing_itemcategory ic
 ON ig.category_id = ic.id
-ORDER BY balance DESC
 """
 
 
@@ -164,9 +163,6 @@ def bpcalc(request):
         
         bpis.append(bpi)
     
-    #bpis.sort(key=lambda b: b['sell_profit'])
-    #bpis.reverse()
-    
     # Components
     components = []
     for item, amt in comps.items():
@@ -276,8 +272,8 @@ def trade(request):
 # Trade overview for a variety of timeframe types
 @login_required
 def trade_timeframe(request, year=None, month=None, period=None, slug=None):
-    #times = []
-    #times.append((time.time(), 'start'))
+    times = []
+    times.append((time.time(), 'start'))
     
     # Check that they have a valid character
     chars = Character.objects.select_related().filter(user=request.user)
@@ -286,10 +282,17 @@ def trade_timeframe(request, year=None, month=None, period=None, slug=None):
     #if not chars[0].corporation:
     #    return show_error("Your first character doesn't seem to be in a corporation, what the hell?")
     
-    data = { 'corporation': chars[0].corporation }
+    data = {
+        'total_buys': 0,
+        'total_sells': 0,
+        'total_balance': 0,
+        'total_projected_average': 0,
+        'total_projected_market': 0,
+    }
+    #'corporation': chars[0].corporation }
     now = datetime.datetime.now()
     
-    #times.append((time.time(), 'charcheck'))
+    times.append((time.time(), 'charcheck'))
     
     # Get a QuerySet of transactions for this corporation
     #transactions = Transaction.objects.filter(corporation=data['corporation'])
@@ -315,7 +318,7 @@ def trade_timeframe(request, year=None, month=None, period=None, slug=None):
         data['timeframe'] = 'all time'
         data['urlpart'] = 'all'
     
-    #times.append((time.time(), 'yearmonth'))
+    times.append((time.time(), 'yearmonth'))
     
     # Build aggregate queries to use in our nasty FULL OUTER JOIN
     item_buy_data = transactions.filter(t_type='B').values('item').annotate(
@@ -338,46 +341,45 @@ def trade_timeframe(request, year=None, month=None, period=None, slug=None):
     query = TRADE_TIMEFRAME_JOIN % (buy_sql[0], sell_sql[0])
     params = buy_sql[1] + sell_sql[1]
     
-    # And make Item objects out of it
-    item_data = Item.objects.raw(query, params)
+    times.append((time.time(), 'combine'))
     
-    #times.append((time.time(), 'combine'))
-    
-    # Start gathering data
+    # Make Item objects out of the nasty query
     data['items'] = []
-    for item in item_data:
-        item_row = { 'item': item }
-        
+    for item in Item.objects.raw(query, params):
         # Average profit
         if item.buy_average and item.sell_average:
-            item_row['average_profit'] = item.sell_average - item.buy_average
-            item_row['average_profit_per'] = Decimal('%.1f' % (item_row['average_profit'] / item.buy_average * 100))
+            item.z_average_profit = item.sell_average - item.buy_average
+            item.z_average_profit_per = '%.1f' % (item.z_average_profit / item.buy_average * 100)
+        
         # Projected balance
         if item.diff > 0:
-            item_row['projected_average'] = item.balance + (item.diff * item.sell_average)
-            item_row['outstanding_average'] = (item_row['projected_average'] - item.balance) * -1
-            if item.sell_price:
-                item_row['projected_market'] = item.balance + (item.diff * item.sell_price)
+            item.z_projected_average = item.balance + (item.diff * item.sell_average)
+            item.z_outstanding_average = (item.z_projected_average - item.balance) * -1
+            item.z_projected_market = item.balance + (item.diff * item.sell_price)
         else:
-            item_row['projected_average'] = item.balance
-            item_row['projected_market'] = item.balance
+            item.z_projected_average = item.balance
+            item.z_projected_market = item.balance
         
-        data['items'].append(item_row)
+        data['items'].append(item)
+        
+        if item.buy_total is not None:
+            data['total_buys'] += item.buy_total
+        if item.sell_total is not None:
+            data['total_sells'] += item.sell_total
+        data['total_projected_average'] += item.z_projected_average
+        data['total_projected_market'] += item.z_projected_market
     
-    #times.append((time.time(), 'gather'))
+    times.append((time.time(), 'gather'))
     
     # Totals
-    data['total_buys'] = sum(item_row['item'].buy_total for item_row in data['items'] if item_row['item'].buy_total)
-    data['total_sells'] = sum(item_row['item'].sell_total for item_row in data['items'] if item_row['item'].sell_total)
     data['total_balance'] = data['total_sells'] - data['total_buys']
-    data['total_projected_average'] = sum(item_row['projected_average'] for item_row in data['items'])
-    data['total_projected_market'] = sum(item_row.get('projected_market', 0) for item_row in data['items'])
     
-    #times.append((time.time(), 'totals'))
-    #for i in range(len(times) - 1):
-    #    print '%s: %.5f' % (times[i+1][1], times[i+1][0] - times[i][0])
+    times.append((time.time(), 'totals'))
+    for i in range(1, len(times)):
+        print '%s: %.5f' % (times[i][1], times[i][0] - times[i-1][0])
     
     # GENERATE
+    # 2118 (2271)
     return render_to_response('thing/trade_timeframe.html', data, context_instance=RequestContext(request))
 
 
@@ -393,7 +395,7 @@ def transactions(request):
     
     # See if this corp has any transactions
     #transactions = Transaction.objects.select_related('item', 'station', 'character').filter(corporation=chars[0].corporation).order_by('date').reverse()
-    transactions = Transaction.objects.select_related('item', 'station', 'character').order_by('date').reverse()
+    transactions = Transaction.objects.select_related('item', 'station', 'character').order_by('-date')
     #if transactions.count() == 0:
     #    return show_error("There are no transactions in the database.")
     
@@ -413,7 +415,13 @@ def transactions(request):
         transactions = paginator.page(paginator.num_pages)
     
     # Spit it out I guess
-    return render_to_response('thing/transactions.html', { 'transactions': transactions }, context_instance=RequestContext(request))
+    return render_to_response(
+        'thing/transactions.html',
+        {
+            'transactions': transactions,
+        },
+        context_instance=RequestContext(request)
+    )
 
 # Corp transaction details for last x days for specific item
 @login_required
