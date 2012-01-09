@@ -5,19 +5,19 @@ majorly rewriting code, a lot of this stuff needs improvements.
 -------------
 Local Install
 -------------
-This is for messing about with EVEthing and seeing what the hell it does, do not use this
-as a production site.
+This is for messing about with EVEthing and seeing what the hell it does, do not
+use this as a production site.
 
  1. Make sure you have Python 2.7.x and Django whatever-is-stable installed.
  2. Extract the EVEthing stuff somewhere.
- 3. Copy local_settings.example to local_settings.py, then open local_settings.py in some
-    sort of text editor and edit stuff. 'sqlite' is included with Python and will work, use
-    that for the database setup.
+ 3. Copy local_settings.example to local_settings.py, then open local_settings.py
+    in some sort of text editor and edit stuff. 'sqlite' is included with Python
+    and will work, use that for the database setup.
  4. Run "python manage.py syncdb", say yes when it asks if you want an admin user.
  5. Run "python manage.py runserver".
  6. Navigate to http://127.0.0.1:8000/admin/ in whatever browser you use.
  7. Log in, then click '+Add' next to 'Api keys'.
- 8. Set the user to the user you just made and keyid/vcode are the CCP API info. Don't fill
-   in any of the rest of the fields, they're automatically populated.
+ 8. Set the user to the user you just made and keyid/vcode are the CCP API info.
+    Don't fill in any of the rest of the fields, they're automatically populated.
  9. Run 'python api_updater.py'.
 10. Navigate to http://127.0.0.1:8000/trade/ or something and marvel at... stuff.
