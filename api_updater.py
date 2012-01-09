@@ -61,60 +61,22 @@ class APIUpdater:
             
             # Corporation key
             elif apikey.key_type == APIKey.CORPORATION_TYPE:
+                character = apikey.corp_character
+                corporation = character.corporation
+                
                 # Update wallet information first
                 self.fetch_corp_wallets(apikey)
                 
                 # Update corporate sheet information (wallet division names)
                 self.fetch_corp_sheet(apikey)
                 
-                corporation = apikey.corp_character.corporation
+                # Update things for each corp wallet
                 for corpwallet in CorpWallet.objects.filter(corporation=corporation):
                     # Fetch wallet transactions
                     self.fetch_transactions(apikey, character, corp_wallet=corpwallet)
-        
-        return
-        
-        #for character in Character.objects.all():
-        #    # Skip if they have no valid user_id/api_key
-        #    
-        #    # If their character id is not in the database, retrive and save it
-        #    
-        #    
-        #    # Character things
-        #
-        #    # Corporation things
-        #        corporation = character.corporation
-        #        
-        #        # Update corporation wallet information/balances
-        #        params = { 'characterID': character.eve_character_id }
-        #        
-        #        root, times = fetch_api(WALLET_URL, params, character)
-        #        err = root.find('error')
-        #        if err is not None:
-        #            show_error('corpwallet', err, times)
-        #            #print 'DEBUG: now: %s | bc: %s' % (datetime.datetime.now(), cache['corp'][corporation.name]['balances'])
-        #        else:
-        #            for row in root.findall('result/rowset/row'):
-        #                accountID = int(row.attrib['accountID'])
-        #                accountKey = int(row.attrib['accountKey'])
-        #                balance = Decimal(row.attrib['balance'])
-        #                
-        #                wallets = CorpWallet.objects.filter(pk=accountID)
-        #                # If the wallet exists, update the balance
-        #                if wallets:
-        #                    wallets[0].balance = balance
-        #                    wallets[0].save()
-        #                # Otherwise just make a new one
-        #                else:
-        #                    wallet = CorpWallet(account_id=accountID, corporation=corporation, account_key=accountKey, balance=balance)
-        #                    wallet.save()
-        #        
-        #        # Update corporation transactions for each wallet
-        #        for wallet in CorpWallet.objects.filter(corporation=corporation):
-        #            self.fetch_transactions(character, wallet)
-        #        
-        #        # Update corporation orders
-        #        self.fetch_orders(character)
+                
+                # Fetch market orders
+                self.fetch_orders(apikey, character)
     
     # -----------------------------------------------------------------------
     # Do various API key things
@@ -277,7 +239,7 @@ class APIUpdater:
     # Fetch and add/update orders
     def fetch_orders(self, apikey, character):
         # Initalise stuff
-        if apikey.corp_character is True:
+        if apikey.corp_character:
             mask = 4096
             url = ORDERS_CORP_URL
         else:
@@ -342,8 +304,6 @@ class APIUpdater:
                 price = Decimal(row.attrib['price'])
                 order = Order(
                     order_id=order_id,
-                    #corporation=character.corporation,
-                    #corp_wallet=CorpWallet.objects.filter(corporation=character.corporation, account_key=row.attrib['accountKey'])[0],
                     character=chars[0],
                     station=get_station(int(row.attrib['stationID']), 'UNKNOWN STATION'),
                     item=items[0],
@@ -357,8 +317,9 @@ class APIUpdater:
                     price=price,
                     total_price=remaining * price,
                 )
-                #if for_corp is True:
-                #    order.corp_wallet = ??
+                # Set the corp_wallet for corporation API requests
+                if apikey.corp_character:
+                    order.corp_wallet = CorpWallet.objects.get(corporation=character.corporation, account_key=row.attrib['accountKey'])
                 order.save()
     
     # -----------------------------------------------------------------------
@@ -452,6 +413,7 @@ class APIUpdater:
                     price=price,
                     total_price=quantity * price,
                 )
+                # Set the corp_character for corporation API requests
                 if apikey.corp_character:
                     t.corp_wallet = corp_wallet
                 t.save()
