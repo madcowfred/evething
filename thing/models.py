@@ -6,7 +6,8 @@ import datetime
 import time
 from decimal import *
 
-# API key
+# ---------------------------------------------------------------------------
+# API keys
 class APIKey(models.Model):
     ACCOUNT_TYPE = 'Account'
     CHARACTER_TYPE = 'Character'
@@ -31,7 +32,8 @@ class APIKey(models.Model):
     def __unicode__(self):
         return '#%s (%s)' % (self.id, self.key_type)
 
-# Corporation
+# ---------------------------------------------------------------------------
+# Corporations
 class Corporation(models.Model):
     id = models.IntegerField(primary_key=True)
     name = models.CharField(max_length=64)
@@ -45,6 +47,7 @@ class Corporation(models.Model):
     def get_total_balance(self):
         return self.corpwallet_set.aggregate(Sum('balance'))['balance_sum']
 
+# ---------------------------------------------------------------------------
 # Corporation wallets
 class CorpWallet(models.Model):
     account_id = models.IntegerField(primary_key=True)
@@ -56,7 +59,8 @@ class CorpWallet(models.Model):
     class Meta:
         ordering = ('corporation', 'account_id')
 
-# Character
+# ---------------------------------------------------------------------------
+# Characters
 class Character(models.Model):
     apikey = models.ForeignKey(APIKey, null=True, blank=True)
     
@@ -80,17 +84,20 @@ class Character(models.Model):
 # Character skills
 #class CharacterSkill(models.Model):
 
-# Categories
+# ---------------------------------------------------------------------------
+# Item categories
 class ItemCategory(models.Model):
     id = models.IntegerField(primary_key=True)
     name = models.CharField(max_length=64)
 
-# Groups
+# ---------------------------------------------------------------------------
+# Item groups
 class ItemGroup(models.Model):
     id = models.IntegerField(primary_key=True)
     name = models.CharField(max_length=64)
     category = models.ForeignKey(ItemCategory)
 
+# ---------------------------------------------------------------------------
 # Items
 class Item(models.Model):
     id = models.IntegerField(primary_key=True)
@@ -115,6 +122,7 @@ class Item(models.Model):
         else:
             return Decimal(str(agg['movement__sum']))
 
+# ---------------------------------------------------------------------------
 # Historical item price data
 class ItemPriceHistory(models.Model):
     item = models.ForeignKey(Item)
@@ -131,7 +139,8 @@ class ItemPriceHistory(models.Model):
     def __unicode__(self):
         return '%s (%s)' % (self.item, self.date)
 
-# Station
+# ---------------------------------------------------------------------------
+# Stations
 numeral_map = zip(
     (1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1),
     ('M', 'CM', 'D', 'CD', 'C', 'XC', 'L', 'XL', 'X', 'IX', 'V', 'IV', 'I')
@@ -179,7 +188,9 @@ class Station(models.Model):
             
             self.short_name = ' - '.join(out)
 
+# ---------------------------------------------------------------------------
 # Time frames
+# TODO: rename this and implement (character, corp_wallet) assignment somehow
 class Timeframe(models.Model):
     corporation = models.ForeignKey(Corporation)
     
@@ -194,6 +205,7 @@ class Timeframe(models.Model):
     def __unicode__(self):
         return self.title
 
+# ---------------------------------------------------------------------------
 # Wallet transactions
 class Transaction(models.Model):
     transaction_id = models.BigIntegerField()
@@ -210,8 +222,8 @@ class Transaction(models.Model):
     price = models.DecimalField(max_digits=14, decimal_places=2)
     total_price = models.DecimalField(max_digits=17, decimal_places=2)
 
+# ---------------------------------------------------------------------------
 # Market orders
-# http://wiki.eve-id.net/APIv2_Corp_MarketOrders_XML
 class Order(models.Model):
     order_id = models.BigIntegerField()
     
@@ -237,6 +249,7 @@ class Order(models.Model):
     def get_expiry_date(self):
         return self.issued + datetime.timedelta(self.duration)
 
+# ---------------------------------------------------------------------------
 # Blueprints
 class Blueprint(models.Model):
     id = models.IntegerField(primary_key=True)
@@ -254,12 +267,16 @@ class Blueprint(models.Model):
     def __unicode__(self):
         return self.name
 
+# ---------------------------------------------------------------------------
+# Blueprint components
 class BlueprintComponent(models.Model):
     blueprint = models.ForeignKey(Blueprint)
     item = models.ForeignKey(Item)
     count = models.IntegerField()
     needs_waste = models.BooleanField(default=True)
 
+# ---------------------------------------------------------------------------
+# Blueprint instances - an owned blueprint
 class BlueprintInstance(models.Model):
     character = models.ForeignKey(Character)
     blueprint = models.ForeignKey(Blueprint)
@@ -275,6 +292,8 @@ class BlueprintInstance(models.Model):
             self.material_level, self.productivity_level)
     
     # Calculate production time, taking PL and skills into account
+    # TODO: fix this, skills not available
+    # TODO: take implants into account
     def calc_production_time(self, runs=1):
         # PTM = ProductionTimeModifier = (1 - (0.04 * IndustrySkill)) * ImplantModifier * ProductionSlotModifier
         # ProductionTime (PL>=0) = BaseProductionTime * (1 - (ProductivityModifier / BaseProductionTime) * (PL / (1 + PL)) * PTM
@@ -294,6 +313,8 @@ class BlueprintInstance(models.Model):
         return pt.quantize(Decimal('0'), rounding=ROUND_UP)
     
     # Calculate production cost, taking ML and skills into account
+    # TODO: fix this, skills not available
+    # TODO: move factory cost/etc to a model attached to the User table
     def calc_production_cost(self, runs=1, use_sell=False, components=None):
         total_cost = Decimal(0)
         
@@ -321,6 +342,7 @@ class BlueprintInstance(models.Model):
         return total_cost.quantize(Decimal('.01'), rounding=ROUND_UP)
     
     # Get all components required for this item, adjusted for ML and relevant skills
+    # TODO: fix this, skills aren't currently available
     def _get_components(self, runs=1):
         PES = self.character.production_efficiency_skill
         ML = self.material_level
