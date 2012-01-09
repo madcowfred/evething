@@ -6,6 +6,31 @@ import datetime
 import time
 from decimal import *
 
+# API key
+class APIKey(models.Model):
+    ACCOUNT_TYPE = 'Account'
+    CHARACTER_TYPE = 'Character'
+    CORPORATION_TYPE = 'Corporation'
+    
+    user = models.ForeignKey(User)
+    
+    id = models.IntegerField(primary_key=True, verbose_name='Key ID')
+    vcode = models.CharField(max_length=64, verbose_name='Verification code')
+    
+    access_mask = models.BigIntegerField(null=True, blank=True)
+    key_type = models.CharField(max_length=16, null=True, blank=True)
+    expires = models.DateTimeField(null=True, blank=True)
+    valid = models.BooleanField(default=True)
+    
+    # this is only used for corporate keys, ugh
+    corp_character = models.ForeignKey('Character', null=True, blank=True, related_name='corporate_apikey')
+    
+    class Meta:
+        ordering = ('user', 'id')
+    
+    def __unicode__(self):
+        return '#%s (%s)' % (self.id, self.key_type)
+
 # Corporation
 class Corporation(models.Model):
     id = models.IntegerField(primary_key=True)
@@ -25,6 +50,7 @@ class CorpWallet(models.Model):
     account_id = models.IntegerField(primary_key=True)
     corporation = models.ForeignKey(Corporation)
     account_key = models.IntegerField()
+    description = models.CharField(max_length=64)
     balance = models.DecimalField(max_digits=18, decimal_places=2)
     
     class Meta:
@@ -32,30 +58,27 @@ class CorpWallet(models.Model):
 
 # Character
 class Character(models.Model):
-    user = models.ForeignKey(User)
+    apikey = models.ForeignKey(APIKey, null=True, blank=True)
     
-    name = models.CharField(max_length=30)
+    eve_character_id = models.IntegerField(primary_key=True)
+    
+    name = models.CharField(max_length=64)
     corporation = models.ForeignKey(Corporation)
     
-    industry_skill = models.IntegerField(default=0)
-    production_efficiency_skill = models.IntegerField(default=0)
+    factory_cost = models.DecimalField(max_digits=8, decimal_places=2, default=0.0)
+    factory_per_hour = models.DecimalField(max_digits=8, decimal_places=2, default=0.0)
     
-    factory_cost = models.DecimalField(max_digits=8, decimal_places=2)
-    factory_per_hour = models.DecimalField(max_digits=8, decimal_places=2)
-    
-    sales_tax = models.DecimalField(max_digits=3, decimal_places=2)
-    brokers_fee = models.DecimalField(max_digits=3, decimal_places=2)
-    
-    eve_user_id = models.IntegerField(verbose_name='User ID', default=0)
-    eve_api_key = models.CharField(max_length=64, verbose_name='API key', default='zzz')
-    eve_api_corp = models.BooleanField(verbose_name='Use API key for corp?', default=True)
-    eve_character_id = models.IntegerField(default=0)
+    sales_tax = models.DecimalField(max_digits=3, decimal_places=2, default=1.0)
+    brokers_fee = models.DecimalField(max_digits=3, decimal_places=2, default=1.0)
     
     class Meta:
         ordering = ('name',)
     
     def __unicode__(self):
         return self.name
+
+# Character skills
+#class CharacterSkill(models.Model):
 
 # Categories
 class ItemCategory(models.Model):
@@ -173,10 +196,11 @@ class Timeframe(models.Model):
 
 # Wallet transactions
 class Transaction(models.Model):
-    id = models.BigIntegerField(primary_key=True)
-    corporation = models.ForeignKey(Corporation)
-    corp_wallet = models.ForeignKey(CorpWallet)
+    transaction_id = models.BigIntegerField()
     character = models.ForeignKey(Character)
+    # Luckily this doesn't seem neccessary any more
+    #corporation = models.ForeignKey(Corporation, null=True, blank=True)
+    corp_wallet = models.ForeignKey(CorpWallet, null=True, blank=True)
     
     date = models.DateTimeField(db_index=True)
     t_type = models.CharField(max_length=1, choices=((u'B', u'Buy'), (u'S', u'Sell')))
@@ -189,10 +213,10 @@ class Transaction(models.Model):
 # Market orders
 # http://wiki.eve-id.net/APIv2_Corp_MarketOrders_XML
 class Order(models.Model):
-    id = models.BigIntegerField(primary_key=True)
+    order_id = models.BigIntegerField()
     
-    corporation = models.ForeignKey(Corporation)
-    corp_wallet = models.ForeignKey(CorpWallet)
+    #corporation = models.ForeignKey(Corporation)
+    corp_wallet = models.ForeignKey(CorpWallet, null=True, blank=True)
     character = models.ForeignKey(Character)
     station = models.ForeignKey(Station)
     item = models.ForeignKey(Item)
@@ -218,7 +242,6 @@ class Blueprint(models.Model):
     id = models.IntegerField(primary_key=True)
     name = models.CharField(max_length=128)
     item = models.ForeignKey(Item)
-    #components = models.ManyToManyField(Item, through='BlueprintComponent', related_name='components')
     
     production_time = models.IntegerField()
     productivity_modifier = models.IntegerField()

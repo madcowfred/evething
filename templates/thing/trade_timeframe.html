@@ -103,6 +103,10 @@ $(document).ready(function() {
               <td class="r">{{ item.z_projected_average|humanize|balance }}</td>
               <td class="r">{{ item.z_outstanding_average|humanize|balance }}</td>
             </tr>
+            {% empty %}
+            <tr>
+              <td colspan="11">No items have yet been traded.</td>
+            </tr>
             {% endfor %}
           </tbody>
         </table>

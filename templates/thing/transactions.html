@@ -8,7 +8,7 @@
     <div class="row">
       <div class="span16">
         <h1>Transactions</h1>
-        <table class="condensed-table zebra-striped">
+        <table class="condensed-table bordered-table zebra-striped">
           <thead>
             <tr>
               <th>Date</th>
@@ -23,10 +23,14 @@
           </thead>
           <tbody>
             {% for transaction in transactions.object_list %}
-            <tr class="{{ transaction.t_type}}">
+            <tr>
               <td>{{ transaction.date|date:"Y-m-d H:i" }}</td>
               <td>{{ transaction.station.short_name }}</td>
+              {% if transaction.corp_wallet %}
+              <td><a href="#" rel="twipsy" title="On behalf of {{ transaction.corp_wallet.corporation }}">{{ transaction.character.name }}</a></td>
+              {% else %}
               <td>{{ transaction.character.name }}</td>
+              {% endif %}
               <td><a href="{% url transactions-all transaction.item.id 'all' %}">{{ transaction.item }}</a></td>
               <td>{{ transaction.get_t_type_display }}</td>
               <td class="r">{{ transaction.quantity|humanize }}</td>
@@ -37,6 +41,10 @@
               <td class="r"><span class="neg">{{ transaction.price|humanize }}</span></td>
               <td class="r"><span class="neg">{{ transaction.total_price|humanize }}</span></td>
               {% endif %}
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="8">No matching transactions.</td>
             </tr>
             {% endfor %}
           </tbody>

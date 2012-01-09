@@ -45,6 +45,7 @@ ON ig.category_id = ic.id
 """
 
 
+@login_required
 def index(request):
     pass
 
@@ -59,7 +60,7 @@ def blueprints(request):
     
     # Assemble blueprint data
     bpis = []
-    for bpi in BlueprintInstance.objects.select_related().filter(character__user=request.user.id):
+    for bpi in BlueprintInstance.objects.select_related().filter(character__apikey__user=request.user.id):
         # Cache component list so we don't have to retrieve it multiple times
         components = bpi._get_components(runs=runs)
         
@@ -114,12 +115,19 @@ def bpcalc(request):
     if bpi_list:
         comps = {}
         # Fetch BlueprintInstance objects
-        for bpi in BlueprintInstance.objects.select_related().filter(character__user=request.user.id, pk__in=bpi_list):
+        for bpi in BlueprintInstance.objects.select_related().filter(character__apikey__user=request.user.id, pk__in=bpi_list):
+            # Skip BPIs with no current price information
+            if bpi.blueprint.item.sell_price == 0 and bpi.blueprint.item.buy_price == 0:
+                continue
+            
+            # Work out how many runs fit into the number of days provided
             pt = bpi.calc_production_time()
             runs = int((DAY * days) / pt)
+            
             # Skip really long production items
             if runs == 0:
                 continue
+            
             built = runs * bpi.blueprint.item.portion_size
             
             # Add the components
@@ -164,8 +172,10 @@ def bpcalc(request):
         component_list.sort(key=lambda c: c['item'].name)
         
         # Do some sums
-        bpi_totals['buy_profit_per'] = (bpi_totals['buy_profit'] / bpi_totals['buy_build'] * 100).quantize(Decimal('.1'))
-        bpi_totals['sell_profit_per'] = (bpi_totals['sell_profit'] / bpi_totals['sell_build'] * 100).quantize(Decimal('.1'))
+        if bpi_totals['buy_profit'] and bpi_totals['buy_build']:
+            bpi_totals['buy_profit_per'] = (bpi_totals['buy_profit'] / bpi_totals['buy_build'] * 100).quantize(Decimal('.1'))
+        if bpi_totals['sell_profit'] and bpi_totals['sell_build']:
+            bpi_totals['sell_profit_per'] = (bpi_totals['sell_profit'] / bpi_totals['sell_build'] * 100).quantize(Decimal('.1'))
         
         comp_totals['volume'] = sum(comp['volume'] for comp in component_list)
         comp_totals['buy_total'] = sum(comp['buy_total'] for comp in component_list)
@@ -209,7 +219,7 @@ def trade(request):
     #data['net_asset_value'] = data['wallet_balance'] + data['sell_total'] + data['escrow_total']
     
     # Transaction stuff oh god
-    transactions = Transaction.objects.filter(character__user=request.user.id)
+    transactions = Transaction.objects.filter(character__apikey__user=request.user.id)
     
     t_check = []
     # All
@@ -265,7 +275,7 @@ def trade_timeframe(request, year=None, month=None, period=None, slug=None):
     }
     
     # Get a QuerySet of transactions by this user
-    transactions = Transaction.objects.filter(character__user=request.user.id)
+    transactions = Transaction.objects.filter(character__apikey__user=request.user.id)
     
     # Year/Month
     if year and month:
@@ -325,6 +335,7 @@ def trade_timeframe(request, year=None, month=None, period=None, slug=None):
         
         data['items'].append(item)
         
+        # Update totals
         if item.buy_total is not None:
             data['total_buys'] += item.buy_total
         if item.sell_total is not None:
@@ -347,7 +358,9 @@ def trade_timeframe(request, year=None, month=None, period=None, slug=None):
 @login_required
 def transactions(request):
     # Get a QuerySet of transactions by this user
-    transactions = Transaction.objects.select_related('item', 'station', 'character').filter(character__user=request.user.id).order_by('-date')
+    #transactions = Transaction.objects.select_related('corp_wallet', 'item', 'station', 'character').filter(character__apikey__user=request.user.id).order_by('-date')
+    #transactions = Transaction.objects.select_related(depth=2).filter(character__apikey__user=request.user.id).order_by('-date')
+    transactions = Transaction.objects.select_related('corp_wallet__corporation', 'item', 'station', 'character').filter(character__apikey__user=request.user.id).order_by('-date')
     
     # Create a new paginator
     paginator = Paginator(transactions, 100)
@@ -379,7 +392,7 @@ def transactions_item(request, item_id, year=None, month=None, period=None, slug
     data = {}
     
     # Get a QuerySet of transactions by this user
-    transactions = Transaction.objects.filter(character__user=request.user.id).order_by('-date')
+    transactions = Transaction.objects.filter(character__apikey__user=request.user.id).order_by('-date')
     
     # If item_id is an integer we should filter on that item_id
     if item_id.isdigit():
@@ -420,16 +433,26 @@ def transactions_item(request, item_id, year=None, month=None, period=None, slug
     data['transactions'] = transactions
     
     # Render template
-    return render_to_response('thing/transactions_item.html', data, context_instance=RequestContext(request))
+    return render_to_response(
+        'thing/transactions_item.html',
+        data,
+        context_instance=RequestContext(request)
+    )
 
 # Active orders
 @login_required
 def orders(request):
     # Retrieve orders
-    orders = Order.objects.select_related('item', 'station', 'character').filter(character__user=request.user.id).order_by('-o_type', 'station__name', 'item__name')
+    orders = Order.objects.select_related('item', 'station', 'character').filter(character__apikey__user=request.user.id).order_by('-o_type', 'station__name', 'item__name')
     
     # Render template
-    return render_to_response('thing/orders.html', { 'orders': orders }, context_instance=RequestContext(request))
+    return render_to_response(
+        'thing/orders.html',
+        {
+            'orders': orders
+        },
+        context_instance=RequestContext(request)
+    )
 
 
 def _month_range(year, month):
