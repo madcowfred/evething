@@ -51,7 +51,6 @@ class APIUpdater:
         for apikey in APIKey.objects.filter(valid=True):
             # Account/Character key are basically the same thing
             if apikey.key_type in (APIKey.ACCOUNT_TYPE, APIKey.CHARACTER_TYPE):
-                continue
                 for character in apikey.character_set.all():
                     # Fetch wallet transactions
                     self.fetch_transactions(apikey, character)
@@ -292,7 +291,7 @@ class APIUpdater:
                 
                 # Make sure the character charID is valid
                 chars = Character.objects.filter(eve_character_id=row.attrib['charID'])
-                if not chars:
+                if chars.count() == 0:
                     print 'ERROR: no matching Character object for charID=%s' % (row.attrib['charID'])
                     continue
                 
@@ -456,7 +455,7 @@ class APIUpdater:
         # Data is not cached, fetch new data
         else:
             if self.debug:
-                print 'API: %s' % (url),
+                print 'API: %s...' % (url),
                 sys.stdout.flush()
             
             # Fetch the URL
@@ -483,10 +482,6 @@ class APIUpdater:
                 text = data,
             )
             apicache.save()
-        
-        #times['delta'] = times['until'] - times['current']
-        
-        #print '%s | currentTime: %s | cachedUntil: %s | delta: %s' % (url, times['current'], times['until'], times['delta'])
         
         return (root, times)
 
