@@ -32,6 +32,13 @@ class APIKey(models.Model):
     def __unicode__(self):
         return '#%s (%s)' % (self.id, self.key_type)
 
+# API cache entries
+class APICache(models.Model):
+    url = models.URLField()
+    parameters = models.CharField(max_length=1024)
+    cached_until = models.DateTimeField()
+    text = models.TextField()
+
 # ---------------------------------------------------------------------------
 # Corporations
 class Corporation(models.Model):

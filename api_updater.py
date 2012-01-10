@@ -77,6 +77,10 @@ class APIUpdater:
                 
                 # Fetch market orders
                 self.fetch_orders(apikey, character)
+        
+        # All done, clean up any out-of-date cached API requests
+        now = datetime.datetime.utcnow()
+        APICache.objects.filter(cached_until__lt=now).delete()
     
     # -----------------------------------------------------------------------
     # Do various API key things
@@ -427,28 +431,52 @@ class APIUpdater:
 
     # ---------------------------------------------------------------------------
     # Perform an API request and parse the returned XML via ElementTree
-    def fetch_api(self, url, params, apikey):
+    def fetch_api(self, url, params, apikey, cache_time=None):
+        # Add the API key information
         params['keyID'] = apikey.id
         params['vCode'] = apikey.vcode
         
-        if self.debug:
-            now = time.time()
-            print 'API: %s' % (url),
-            sys.stdout.flush()
+        # Check the API cache for this URL/params combo
+        now = datetime.datetime.utcnow()
+        params_repr = repr(sorted(params.items()))
+        apicaches = APICache.objects.filter(url=url, parameters=params_repr, cached_until__gt=now)
+        # Data is cached, use that
+        if apicaches.count() > 0:
+            if self.debug:
+                print 'API: %s CACHED' % (url)
+            data = apicaches[0].text
+        # Data is not cached, fetch new data
+        else:
+            if self.debug:
+                print 'API: %s' % (url),
+                sys.stdout.flush()
+            
+            # Fetch the URL
+            f = urllib2.urlopen(url, urlencode(params))
+            data = f.read()
+            f.close()
+            
+            if self.debug:
+                print '%s' % (datetime.datetime.utcnow() - now)
         
-        f = urllib2.urlopen(url, urlencode(params))
-        data = f.read()
-        f.close()
-        
-        if self.debug:
-            print '%.1fs' % (time.time() - now)
-        
+        # Parse the XML
         root = ET.fromstring(data)
         times = {
             'current': parse_api_date(root.find('currentTime').text),
             'until': parse_api_date(root.find('cachedUntil').text),
         }
-        times['delta'] = times['until'] - times['current']
+        
+        # If the data wasn't cached, cache it now
+        if apicaches.count() == 0:
+            apicache = APICache(
+                url=url,
+                parameters=params_repr,
+                cached_until = times['until'],
+                text = data,
+            )
+            apicache.save()
+        
+        #times['delta'] = times['until'] - times['current']
         
         #print '%s | currentTime: %s | cachedUntil: %s | delta: %s' % (url, times['current'], times['until'], times['delta'])
         
