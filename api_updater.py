@@ -297,11 +297,11 @@ class APIUpdater:
                     continue
                 
                 # Make sure the item typeID is valid
-                items = Item.objects.filter(pk=row.attrib['typeID'])
-                if items.count() == 0:
-                    print "ERROR: item with typeID '%s' does not exist, what the fuck?" % (row.attrib['typeID'])
-                    print '>> attrib = %r' % (row.attrib)
-                    continue
+                #items = Item.objects.filter(pk=row.attrib['typeID'])
+                #if items.count() == 0:
+                #    print "ERROR: item with typeID '%s' does not exist, what the fuck?" % (row.attrib['typeID'])
+                #    print '>> attrib = %r' % (row.attrib)
+                #    continue
                 
                 # Create a new order and save it
                 remaining = int(row.attrib['volRemaining'])
@@ -310,7 +310,7 @@ class APIUpdater:
                     order_id=order_id,
                     character=chars[0],
                     station=get_station(int(row.attrib['stationID']), 'UNKNOWN STATION'),
-                    item=items[0],
+                    item=get_item(row.attrib['typeID']),
                     issued=parse_api_date(row.attrib['issued']),
                     o_type=o_type,
                     volume_entered=int(row.attrib['volEntered']),
@@ -343,6 +343,16 @@ class APIUpdater:
         if (apikey.access_mask & mask) == 0:
             return
         
+        # Aaaaa
+        if self.debug:
+            start = time.time()
+            
+        # Set up the transactions filter
+        if apikey.corp_character:
+            transactions = Transaction.objects.filter(corp_wallet=corp_wallet)
+        else:
+            transactions = Transaction.objects.filter(character=character)
+        
         # Loop until we run out of transactions
         one_week_ago = None
         while True:
@@ -373,21 +383,16 @@ class APIUpdater:
                 if not apikey.corp_character and row.attrib['transactionFor'] == 'corporation':
                     continue
                 
-                # Skip already seen transactions
-                if apikey.corp_character:
-                    t = Transaction.objects.filter(corp_wallet=corp_wallet, transaction_id=transaction_id)
-                else:
-                    t = Transaction.objects.filter(character=character, transaction_id=transaction_id)
-                
-                if t.count() > 0:
+                # Check to see if this transaction already exists
+                if transactions.filter(transaction_id=transaction_id, date=transaction_time).count():
                     continue
                 
                 # Make sure the item typeID is valid
-                items = Item.objects.filter(pk=row.attrib['typeID'])
-                if items.count() == 0:
-                    print "ERROR: item with typeID '%s' does not exist, what the fuck?" % (row.attrib['typeID'])
-                    print '>> attrib = %r' % (row.attrib)
-                    continue
+                #items = Item.objects.filter(pk=row.attrib['typeID'])
+                #if items.count() == 0:
+                #    print "ERROR: item with typeID '%s' does not exist, what the fuck?" % (row.attrib['typeID'])
+                #    print '>> attrib = %r' % (row.attrib)
+                #    continue
                 
                 # Make the station object if it doesn't already exist
                 station = get_station(int(row.attrib['stationID']), row.attrib['stationName'])
@@ -412,7 +417,7 @@ class APIUpdater:
                     date=transaction_time,
                     t_type=row.attrib['transactionType'][0].upper(),
                     station=station,
-                    item=items[0],
+                    item=get_item(row.attrib['typeID']),
                     quantity=quantity,
                     price=price,
                     total_price=quantity * price,
@@ -428,10 +433,13 @@ class APIUpdater:
                 params['beforeTransID'] = transaction_id
             else:
                 break
+        
+        if self.debug:
+            print 'transactions took %.2fs' % (time.time() - start)
 
     # ---------------------------------------------------------------------------
     # Perform an API request and parse the returned XML via ElementTree
-    def fetch_api(self, url, params, apikey, cache_time=None):
+    def fetch_api(self, url, params, apikey):
         # Add the API key information
         params['keyID'] = apikey.id
         params['vCode'] = apikey.vcode
@@ -482,14 +490,43 @@ class APIUpdater:
         
         return (root, times)
 
+# ---------------------------------------------------------------------------
 # Turn an API date into a datetime object
 def parse_api_date(s):
     return datetime.datetime.strptime(s, '%Y-%m-%d %H:%M:%S')
 
+# ---------------------------------------------------------------------------
 # Spit out an error message
 def show_error(text, err, times):
     print '(%s) %s: %s | %s -> %s' % (text, err.attrib['code'], err.text, times['current'], times['until'])
 
+# ---------------------------------------------------------------------------
+# Caching item fetcher
+_item_cache = {}
+def get_item(item_id):
+    if item_id not in _item_cache:
+        _item_cache[item_id] = Item.objects.get(pk=item_id)
+    return _item_cache[item_id]
+
+# ---------------------------------------------------------------------------
+# Caching corporation fetcher, adds new corporations to the database
+_corp_cache = {}
+def get_corporation(corp_id, corp_name):
+    if corp_id not in _corp_cache:
+        corps = Corporation.objects.filter(pk=corp_id)
+        # Corporation already exists
+        if corps.count() > 0:
+            corp = corps[0]
+        # Corporation doesn't exist, make a new object and save it
+        else:
+            corp = Corporation(id=corp_id, name=corp_name)
+            corp.save()
+        
+        _corp_cache[corp_id] = corp
+    
+    return _corp_cache[corp_id]
+
+# ---------------------------------------------------------------------------
 # Caching station fetcher, adds unknown stations to the database
 _station_cache = {}
 def get_station(station_id, station_name):
@@ -512,27 +549,8 @@ def get_station(station_id, station_name):
     
     return _station_cache[station_id]
 
-# Caching corporation fetcher, adds new corporations to the database
-_corp_cache = {}
-def get_corporation(corp_id, corp_name):
-    if corp_id not in _corp_cache:
-        corps = Corporation.objects.filter(pk=corp_id)
-        # Corporation already exists
-        if corps.count() > 0:
-            corp = corps[0]
-        # Corporation doesn't exist, make a new object and save it
-        else:
-            corp = Corporation(id=corp_id, name=corp_name)
-            corp.save()
-        
-        _corp_cache[corp_id] = corp
-    
-    return _corp_cache[corp_id]
-
-def main():
-    updater = APIUpdater(True)
-    updater.go()
-
+# ---------------------------------------------------------------------------
 
 if __name__ == '__main__':
-    main()
+    updater = APIUpdater(True)
+    updater.go()
