@@ -63,7 +63,7 @@ def blueprints(request):
     
     # Assemble blueprint data
     bpis = []
-    for bpi in BlueprintInstance.objects.select_related().filter(character__apikey__user=request.user.id):
+    for bpi in BlueprintInstance.objects.select_related().filter(user=request.user.id):
         # Cache component list so we don't have to retrieve it multiple times
         components = bpi._get_components(runs=runs)
         
@@ -118,7 +118,7 @@ def bpcalc(request):
     if bpi_list:
         comps = {}
         # Fetch BlueprintInstance objects
-        for bpi in BlueprintInstance.objects.select_related().filter(character__apikey__user=request.user.id, pk__in=bpi_list):
+        for bpi in BlueprintInstance.objects.select_related().filter(user=request.user.id, pk__in=bpi_list):
             # Skip BPIs with no current price information
             if bpi.blueprint.item.sell_price == 0 and bpi.blueprint.item.buy_price == 0:
                 continue

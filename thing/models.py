@@ -229,13 +229,13 @@ class Item(models.Model):
     def __unicode__(self):
         return self.name
     
-    #def get_volume(self, days=7):
-    #    iph_days = self.itempricehistory_set.all()[:days]
-    #    agg = self.itempricehistory_set.filter(pk__in=iph_days).aggregate(Sum('movement'))
-    #    if agg['movement__sum'] is None:
-    #        return Decimal('0')
-    #    else:
-    #        return Decimal(str(agg['movement__sum']))
+    def get_volume(self, days=7):
+        iph_days = self.pricehistory_set.all()[:days]
+        agg = self.pricehistory_set.filter(pk__in=iph_days).aggregate(Sum('movement'))
+        if agg['movement__sum'] is None:
+            return Decimal('0')
+        else:
+            return Decimal(str(agg['movement__sum']))
 
 # ---------------------------------------------------------------------------
 # Historical item price data
@@ -386,7 +386,7 @@ class BlueprintInstance(models.Model):
     # Calculate production cost, taking ML and skills into account
     # TODO: fix this, skills not available
     # TODO: move factory cost/etc to a model attached to the User table
-    def calc_production_cost(self, runs=1, use_sell=False, components=None):
+    def calc_production_cost(self, runs=1, use_sell=False, components=None, character=None):
         total_cost = Decimal(0)
         
         # Component costs
@@ -400,12 +400,13 @@ class BlueprintInstance(models.Model):
                 total_cost += (Decimal(str(amt)) * item.buy_price)
         
         # Factory costs
-        total_cost += self.character.factory_cost
-        total_cost += (self.character.factory_per_hour * (self.calc_production_time(runs=runs) / 3600))
-        # Sales tax
-        total_cost *= (1 + (self.character.sales_tax / 100))
-        # Broker's fee
-        total_cost *= (1 + (self.character.brokers_fee / 100))
+        if character is not None:
+            total_cost += character.factory_cost
+            total_cost += (character.factory_per_hour * (self.calc_production_time(runs=runs) / 3600))
+            # Sales tax
+            total_cost *= (1 + (character.sales_tax / 100))
+            # Broker's fee
+            total_cost *= (1 + (character.brokers_fee / 100))
         
         # Run count
         total_cost /= (self.blueprint.item.portion_size * runs)
@@ -422,6 +423,7 @@ class BlueprintInstance(models.Model):
         comps = []
         
         component_queryset = BlueprintComponent.objects.filter(blueprint=self.blueprint).select_related(depth=1)
+        #for component in self.blueprint.components.select_related(depth=1):
         for component in component_queryset:
             if component.needs_waste:
                 amt = round(component.count * (1 + ((WF / 100.0) / (ML + 1)) + (0.25 - (0.05 * PES))))
