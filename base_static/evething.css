@@ -45,7 +45,7 @@ td.r { text-align: right; }
 
 /* override bootstrap settings */
 .table-condensed th, .table-condensed td {
-  padding: 3px 3px;
+  padding: 3px 4px;
 }
 
 /* tablesorter styles */
