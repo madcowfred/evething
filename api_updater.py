@@ -245,9 +245,11 @@ class APIUpdater:
         if apikey.corp_character:
             mask = 4096
             url = ORDERS_CORP_URL
+            o_filter = MarketOrder.objects.filter(corp_wallet__corporation=character.corporation)
         else:
             mask = 4096
             url = ORDERS_CHAR_URL
+            o_filter = MarketOrder.objects.filter(corp_wallet=None, character=character)
         
         # Make sure the access mask matches
         if (apikey.access_mask & mask) == 0:
@@ -262,9 +264,10 @@ class APIUpdater:
             return
         
         # Iterate over the returned result set
+        seen = []
         for row in root.findall('result/rowset/row'):
             order_id = int(row.attrib['orderID'])
-            orders = Order.objects.filter(order_id=order_id, character=character)
+            orders = MarketOrder.objects.filter(order_id=order_id, character=character)
             
             # Order exists
             if orders.count() > 0:
@@ -278,6 +281,8 @@ class APIUpdater:
                     order.price = Decimal(row.attrib['price'])
                     order.total_price = order.volume_remaining * order.price
                     order.save()
+                    
+                    seen.append(order_id)
                 # Not active, nuke it from orbit
                 else:
                     order.delete()
@@ -285,9 +290,9 @@ class APIUpdater:
             # Doesn't exist and is active, make a new order
             elif row.attrib['orderState'] == '0':
                 if row.attrib['bid'] == '0':
-                    o_type = 'S'
+                    buy_order = False
                 else:
-                    o_type = 'B'
+                    buy_order = True
                 
                 # Make sure the character charID is valid
                 chars = Character.objects.filter(eve_character_id=row.attrib['charID'])
@@ -305,25 +310,31 @@ class APIUpdater:
                 # Create a new order and save it
                 remaining = int(row.attrib['volRemaining'])
                 price = Decimal(row.attrib['price'])
-                order = Order(
+                issued = parse_api_date(row.attrib['issued'])
+                order = MarketOrder(
                     order_id=order_id,
-                    character=chars[0],
                     station=get_station(int(row.attrib['stationID']), 'UNKNOWN STATION'),
                     item=get_item(row.attrib['typeID']),
-                    issued=parse_api_date(row.attrib['issued']),
-                    o_type=o_type,
-                    volume_entered=int(row.attrib['volEntered']),
-                    volume_remaining=remaining,
-                    min_volume=int(row.attrib['minVolume']),
-                    duration=int(row.attrib['duration']),
+                    character=chars[0],
                     escrow=Decimal(row.attrib['escrow']),
                     price=price,
                     total_price=remaining * price,
+                    buy_order=buy_order,
+                    volume_entered=int(row.attrib['volEntered']),
+                    volume_remaining=remaining,
+                    minimum_volume=int(row.attrib['minVolume']),
+                    issued=issued,
+                    expires=issued + datetime.timedelta(int(row.attrib['duration'])),
                 )
                 # Set the corp_wallet for corporation API requests
                 if apikey.corp_character:
                     order.corp_wallet = CorpWallet.objects.get(corporation=character.corporation, account_key=row.attrib['accountKey'])
                 order.save()
+                
+                seen.append(order_id)
+        
+        # Delete orders we didn't see, they're gooone
+        o_filter.exclude(pk__in=seen).delete()
     
     # -----------------------------------------------------------------------
     # Fetch transactions and update the database
@@ -409,14 +420,18 @@ class APIUpdater:
                 # Create a new transaction object and save it
                 quantity = int(row.attrib['quantity'])
                 price = Decimal(row.attrib['price'])
+                if row.attrib['transactionType'] == 'buy':
+                    buy_transaction = True
+                else:
+                    buy_transaction = False
                 
                 t = Transaction(
-                    transaction_id=transaction_id,
-                    character=char,
-                    date=transaction_time,
-                    t_type=row.attrib['transactionType'][0].upper(),
                     station=station,
+                    character=char,
                     item=get_item(row.attrib['typeID']),
+                    transaction_id=transaction_id,
+                    date=transaction_time,
+                    buy_transaction=buy_transaction,
                     quantity=quantity,
                     price=price,
                     total_price=quantity * price,

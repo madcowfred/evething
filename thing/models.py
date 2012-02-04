@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.db.models import Avg, Sum
+from mptt.models import MPTTModel, TreeForeignKey
 
 import datetime
 import time
@@ -17,6 +18,7 @@ class APIKey(models.Model):
     
     id = models.IntegerField(primary_key=True, verbose_name='Key ID')
     vcode = models.CharField(max_length=64, verbose_name='Verification code')
+    name = models.CharField(max_length=64)
     
     access_mask = models.BigIntegerField(null=True, blank=True)
     key_type = models.CharField(max_length=16, null=True, blank=True)
@@ -92,59 +94,42 @@ class Character(models.Model):
 #class CharacterSkill(models.Model):
 
 # ---------------------------------------------------------------------------
-# Item categories
-class ItemCategory(models.Model):
+# Regions
+class Region(models.Model):
     id = models.IntegerField(primary_key=True)
     name = models.CharField(max_length=64)
-
-# ---------------------------------------------------------------------------
-# Item groups
-class ItemGroup(models.Model):
-    id = models.IntegerField(primary_key=True)
-    name = models.CharField(max_length=64)
-    category = models.ForeignKey(ItemCategory)
-
-# ---------------------------------------------------------------------------
-# Items
-class Item(models.Model):
-    id = models.IntegerField(primary_key=True)
-    name = models.CharField(max_length=128)
-    group = models.ForeignKey(ItemGroup)
-    
-    portion_size = models.IntegerField()
-    # 0.0025 -> 10,000,000,000
-    volume = models.DecimalField(max_digits=16, decimal_places=4, default=0)
-    
-    sell_price = models.DecimalField(max_digits=15, decimal_places=2, default=0)
-    buy_price = models.DecimalField(max_digits=15, decimal_places=2, default=0)
     
     def __unicode__(self):
         return self.name
     
-    def get_volume(self, days=7):
-        iph_days = self.itempricehistory_set.all()[:days]
-        agg = self.itempricehistory_set.filter(pk__in=iph_days).aggregate(Sum('movement'))
-        if agg['movement__sum'] is None:
-            return Decimal('0')
-        else:
-            return Decimal(str(agg['movement__sum']))
-
-# ---------------------------------------------------------------------------
-# Historical item price data
-class ItemPriceHistory(models.Model):
-    item = models.ForeignKey(Item)
-    date = models.DateField()
-    average = models.DecimalField(max_digits=15, decimal_places=2)
-    maximum = models.DecimalField(max_digits=15, decimal_places=2)
-    minimum = models.DecimalField(max_digits=15, decimal_places=2)
-    movement = models.BigIntegerField()
-    orders = models.IntegerField()
-    
     class Meta:
-        ordering = ('-date',)
+        ordering = ('name'),
+
+# Constellations
+class Constellation(models.Model):
+    id = models.IntegerField(primary_key=True)
+    name = models.CharField(max_length=64)
+    
+    region = models.ForeignKey(Region)
     
     def __unicode__(self):
-        return '%s (%s)' % (self.item, self.date)
+        return self.name
+    
+    class Meta:
+        ordering = ('name'),
+
+# Systems
+class System(models.Model):
+    id = models.IntegerField(primary_key=True)
+    name = models.CharField(max_length=32)
+    
+    constellation = models.ForeignKey(Constellation)
+    
+    def __unicode__(self):
+        return self.name
+    
+    class Meta:
+        ordering = ('name'),
 
 # ---------------------------------------------------------------------------
 # Stations
@@ -166,6 +151,8 @@ class Station(models.Model):
     id = models.IntegerField(primary_key=True)
     name = models.CharField(max_length=128)
     short_name = models.CharField(max_length=64, blank=True, null=True)
+    
+    system = models.ForeignKey(System)
     
     def __unicode__(self):
         return self.name
@@ -196,10 +183,84 @@ class Station(models.Model):
             self.short_name = ' - '.join(out)
 
 # ---------------------------------------------------------------------------
+# Market groups
+class MarketGroup(MPTTModel):
+    id = models.IntegerField(primary_key=True)
+    name = models.CharField(max_length=100)
+    
+    parent = TreeForeignKey('self', blank=True, null=True, related_name='children')
+    
+    def __unicode__(self):
+        return '%s' % (self.name)
+    
+    class MPTTMeta:
+        order_insertion_by = ['name']
+
+# ---------------------------------------------------------------------------
+# Item categories
+class ItemCategory(models.Model):
+    id = models.IntegerField(primary_key=True)
+    name = models.CharField(max_length=64)
+
+# ---------------------------------------------------------------------------
+# Item groups
+class ItemGroup(models.Model):
+    id = models.IntegerField(primary_key=True)
+    name = models.CharField(max_length=64)
+    category = models.ForeignKey(ItemCategory)
+
+# ---------------------------------------------------------------------------
+# Items
+class Item(models.Model):
+    id = models.IntegerField(primary_key=True)
+    name = models.CharField(max_length=128)
+    
+    item_group = models.ForeignKey(ItemGroup)
+    market_group = models.ForeignKey(MarketGroup, blank=True, null=True)
+    
+    portion_size = models.IntegerField()
+    # 0.0025 -> 10,000,000,000
+    volume = models.DecimalField(max_digits=16, decimal_places=4, default=0)
+    
+    sell_price = models.DecimalField(max_digits=15, decimal_places=2, default=0)
+    buy_price = models.DecimalField(max_digits=15, decimal_places=2, default=0)
+    
+    def __unicode__(self):
+        return self.name
+    
+    #def get_volume(self, days=7):
+    #    iph_days = self.itempricehistory_set.all()[:days]
+    #    agg = self.itempricehistory_set.filter(pk__in=iph_days).aggregate(Sum('movement'))
+    #    if agg['movement__sum'] is None:
+    #        return Decimal('0')
+    #    else:
+    #        return Decimal(str(agg['movement__sum']))
+
+# ---------------------------------------------------------------------------
+# Historical item price data
+class PriceHistory(models.Model):
+    region = models.ForeignKey(Region)
+    item = models.ForeignKey(Item)
+    
+    date = models.DateField()
+    minimum = models.DecimalField(max_digits=18, decimal_places=2)
+    maximum = models.DecimalField(max_digits=18, decimal_places=2)
+    average = models.DecimalField(max_digits=18, decimal_places=2)
+    movement = models.BigIntegerField()
+    orders = models.IntegerField()
+    
+    class Meta:
+        ordering = ('-date',)
+        unique_together = ('region', 'item', 'date')
+    
+    def __unicode__(self):
+        return '%s (%s)' % (self.item, self.date)
+
+# ---------------------------------------------------------------------------
 # Time frames
 # TODO: rename this and implement (character, corp_wallet) assignment somehow
-class Timeframe(models.Model):
-    corporation = models.ForeignKey(Corporation)
+class Campaign(models.Model):
+    user = models.ForeignKey(User)
     
     title = models.CharField(max_length=32)
     slug = models.SlugField(max_length=32)
@@ -215,46 +276,42 @@ class Timeframe(models.Model):
 # ---------------------------------------------------------------------------
 # Wallet transactions
 class Transaction(models.Model):
-    transaction_id = models.BigIntegerField()
+    station = models.ForeignKey(Station)
     character = models.ForeignKey(Character)
-    # Luckily this doesn't seem neccessary any more
-    #corporation = models.ForeignKey(Corporation, null=True, blank=True)
+    item = models.ForeignKey(Item)
+    
     corp_wallet = models.ForeignKey(CorpWallet, null=True, blank=True)
     
+    transaction_id = models.BigIntegerField()
     date = models.DateTimeField(db_index=True)
-    t_type = models.CharField(max_length=1, choices=((u'B', u'Buy'), (u'S', u'Sell')))
-    station = models.ForeignKey(Station)
-    item = models.ForeignKey(Item)
+    buy_transaction = models.BooleanField()
     quantity = models.IntegerField()
     price = models.DecimalField(max_digits=14, decimal_places=2)
     total_price = models.DecimalField(max_digits=17, decimal_places=2)
 
 # ---------------------------------------------------------------------------
 # Market orders
-class Order(models.Model):
-    order_id = models.BigIntegerField()
+class MarketOrder(models.Model):
+    order_id = models.BigIntegerField(primary_key=True)
     
-    #corporation = models.ForeignKey(Corporation)
-    corp_wallet = models.ForeignKey(CorpWallet, null=True, blank=True)
-    character = models.ForeignKey(Character)
     station = models.ForeignKey(Station)
     item = models.ForeignKey(Item)
+    character = models.ForeignKey(Character)
+    corp_wallet = models.ForeignKey(CorpWallet, null=True, blank=True)
     
-    issued = models.DateTimeField()
-    o_type = models.CharField(max_length=1, choices=((u'B', u'Buy'), (u'S', u'Sell')))
-    volume_entered = models.IntegerField()
-    volume_remaining = models.IntegerField()
-    min_volume = models.IntegerField()
-    duration = models.IntegerField()
-    escrow = models.DecimalField(max_digits=17, decimal_places=2)
+    escrow = models.DecimalField(max_digits=14, decimal_places=2)
     price = models.DecimalField(max_digits=14, decimal_places=2)
     total_price = models.DecimalField(max_digits=17, decimal_places=2)
     
-    class Meta:
-        ordering = ('-o_type', 'item__name')
+    buy_order = models.BooleanField()
+    volume_entered = models.IntegerField()
+    volume_remaining = models.IntegerField()
+    minimum_volume = models.IntegerField()
+    issued = models.DateTimeField(db_index=True)
+    expires = models.DateTimeField(db_index=True)
     
-    def get_expiry_date(self):
-        return self.issued + datetime.timedelta(self.duration)
+    class Meta:
+        ordering = ('buy_order', 'item__name')
 
 # ---------------------------------------------------------------------------
 # Blueprints
@@ -268,6 +325,8 @@ class Blueprint(models.Model):
     material_modifier = models.IntegerField()
     waste_factor = models.IntegerField()
     
+    components = models.ManyToManyField(Item, related_name='component_of', through='BlueprintComponent')
+    
     class Meta:
         ordering = ('name',)
     
@@ -279,24 +338,28 @@ class Blueprint(models.Model):
 class BlueprintComponent(models.Model):
     blueprint = models.ForeignKey(Blueprint)
     item = models.ForeignKey(Item)
+    
     count = models.IntegerField()
     needs_waste = models.BooleanField(default=True)
 
 # ---------------------------------------------------------------------------
 # Blueprint instances - an owned blueprint
 class BlueprintInstance(models.Model):
-    character = models.ForeignKey(Character)
+    user = models.ForeignKey(User)
     blueprint = models.ForeignKey(Blueprint)
-    bp_type = models.CharField(max_length=1, choices=((u'C', u'BPC'), (u'O', u'BPO')))
+    
+    original = models.BooleanField()
     material_level = models.IntegerField(default=0)
     productivity_level = models.IntegerField(default=0)
     
     class Meta:
-        ordering = ('blueprint',)
+        ordering = ('blueprint',)#.item',)
     
     def __unicode__(self):
-        return "%s's %s (%s, ML%s PL%s)" % (self.character.name, self.blueprint.name, self.get_bp_type_display(),
-            self.material_level, self.productivity_level)
+        if self.original:
+            return "%s (BPO, ML%s PL%s)" % (self.blueprint.name, self.material_level, self.productivity_level)
+        else:
+            return "%s (BPC, ML%s PL%s)" % (self.blueprint.name, self.material_level, self.productivity_level)
     
     # Calculate production time, taking PL and skills into account
     # TODO: fix this, skills not available
@@ -305,7 +368,7 @@ class BlueprintInstance(models.Model):
         # PTM = ProductionTimeModifier = (1 - (0.04 * IndustrySkill)) * ImplantModifier * ProductionSlotModifier
         # ProductionTime (PL>=0) = BaseProductionTime * (1 - (ProductivityModifier / BaseProductionTime) * (PL / (1 + PL)) * PTM
         # ProductionTime (PL<0)  = BaseProductionTime * (1 - (ProductivityModifier / BaseProductionTime) * (PL - 1)) * PTM
-        PTM = (1 - (Decimal('0.04') * self.character.industry_skill)) # FIXME:implement implants/production slot modifiers
+        PTM = (1 - (Decimal('0.04') * 5))#self.character.industry_skill)) # FIXME:implement implants/production slot modifiers
         BPT = Decimal(self.blueprint.production_time)
         BPM = self.blueprint.productivity_modifier
         PL = Decimal(self.productivity_level)
@@ -351,7 +414,7 @@ class BlueprintInstance(models.Model):
     # Get all components required for this item, adjusted for ML and relevant skills
     # TODO: fix this, skills aren't currently available
     def _get_components(self, runs=1):
-        PES = self.character.production_efficiency_skill
+        PES = 5#fixme: self.character.production_efficiency_skill
         ML = self.material_level
         WF = self.blueprint.waste_factor
         
