@@ -5,29 +5,30 @@
 {% block nav_trade_class %} class="active"{% endblock %}
 
 {% block content %}
-    <div class="row">
-      <div class="span10 offset3">
-        <h1>Trade Results</h1>
-        <table class="condensed-table bordered-table zebra-striped">
-          <thead>
-            <tr>
-              <th>Time Period</th>
-              <th class="c">Buy Total</th>
-              <th class="c">Sell Total</th>
-              <th class="c">Balance</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for transaction in transactions %}
-            <tr>
-              <td><a href="{% url evething.thing.views.trade_timeframe transaction.urlpart %}">{{ transaction.name }}</a></td>
-              <td class="r">{{ transaction.buy_total|commas }}</td>
-              <td class="r">{{ transaction.sell_total|commas }}</td>
-              <td class="r">{{ transaction.balance|commas|balance }}</td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
+      <div class="row-fluid">
+        <div class="span3">&nbsp;</div>
+        <div class="span6">
+          <h2>Trade Results</h2>
+          <table class="table table-striped table-bordered table-condensed">
+            <thead>
+              <tr class="c">
+                <th class="l">Time Period</th>
+                <th>Buy Total</th>
+                <th>Sell Total</th>
+                <th>Balance</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for transaction in transactions %}
+              <tr class="r">
+                <td class="l"><a href="{% url evething.thing.views.trade_timeframe transaction.urlpart %}">{{ transaction.name }}</a></td>
+                <td>{{ transaction.buy_total|commas }}</td>
+                <td>{{ transaction.sell_total|commas }}</td>
+                <td>{{ transaction.balance|commas|balance }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
 {% endblock %}

@@ -39,7 +39,7 @@ ON t1.item_id = t2.item_id
 INNER JOIN thing_item i
 ON i.id = COALESCE(t1.item_id, t2.item_id)
 INNER JOIN thing_itemgroup ig
-ON i.group_id = ig.id
+ON i.item_group_id = ig.id
 INNER JOIN thing_itemcategory ic
 ON ig.category_id = ic.id
 """
@@ -228,12 +228,10 @@ def trade(request):
     # All
     t_check.append(('[All]', 'all', transactions))
     
-    # Timeframes
-    # FIXME: Timeframe objects need to reference a User
-    #for tf in Timeframe.objects.filter(corporation=data['corporation']):
-    for tf in Timeframe.objects.all():
-        title = '[%s]' % (tf.title)
-        t_check.append((title, tf.slug, transactions.filter(date__range=(tf.start_date, tf.end_date))))
+    # Campaigns
+    for camp in Campaign.objects.filter(user=request.user.id):
+        title = '[%s]' % (camp.title)
+        t_check.append((title, camp.slug, transactions.filter(date__range=(camp.start_date, camp.end_date))))
     
     # Months
     for dt in transactions.dates('date', 'month', order='DESC'):
@@ -246,8 +244,8 @@ def trade(request):
     for name, urlpart, trans in t_check:
         row = { 'name': name, 'urlpart': urlpart }
         
-        row['buy_total'] = trans.filter(t_type='B').aggregate(Sum('total_price'))['total_price__sum']
-        row['sell_total'] = trans.filter(t_type='S').aggregate(Sum('total_price'))['total_price__sum']
+        row['buy_total'] = trans.filter(buy_transaction=True).aggregate(Sum('total_price'))['total_price__sum']
+        row['sell_total'] = trans.filter(buy_transaction=False).aggregate(Sum('total_price'))['total_price__sum']
         
         if row['buy_total'] is None or row['sell_total'] is None:
             row['balance'] = 0
@@ -289,9 +287,9 @@ def trade_timeframe(request, year=None, month=None, period=None, slug=None):
         data['urlpart'] = '%s-%02d' % (year, month)
     # Timeframe slug
     elif slug:
-        tf = get_object_or_404(Timeframe, slug=slug)
-        transactions = transactions.filter(date__range=(tf.start_date, tf.end_date))
-        data['timeframe'] = '%s (%s -> %s)' % (tf.title, tf.start_date, tf.end_date)
+        camp = get_object_or_404(Campaign, slug=slug)
+        transactions = transactions.filter(date__range=(camp.start_date, camp.end_date))
+        data['timeframe'] = '%s (%s -> %s)' % (camp.title, camp.start_date, camp.end_date)
         data['urlpart'] = slug
     # All
     elif period:
@@ -299,13 +297,13 @@ def trade_timeframe(request, year=None, month=None, period=None, slug=None):
         data['urlpart'] = 'all'
     
     # Build aggregate queries to use in our nasty FULL OUTER JOIN
-    item_buy_data = transactions.filter(t_type='B').values('item').annotate(
+    item_buy_data = transactions.filter(buy_transaction=True).values('item').annotate(
         buy_quantity=Sum('quantity'),
         buy_minimum=Min('price'),
         buy_maximum=Max('price'),
         buy_total=Sum('total_price'),
     )
-    item_sell_data = transactions.filter(t_type='S').values('item').annotate(
+    item_sell_data = transactions.filter(buy_transaction=False).values('item').annotate(
         sell_quantity=Sum('quantity'),
         sell_minimum=Min('price'),
         sell_maximum=Max('price'),

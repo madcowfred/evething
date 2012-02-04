@@ -25,91 +25,63 @@ $(document).ready(function() {
 {% endblock %}
 
 {% block content %}
-    <div class="row">
-      <div class="span10">
-        <h1>Item Sales for {{ timeframe }}</h1>
-        <table class="condensed-table bordered-table zebra-striped">
-          <thead>
-            <tr>
-              <td colspan="3"></td>
-              <td colspan="2" class="head">Projected</td>
-            </tr>
-            <tr>
-              <th>Total Buys</th>
-              <th>Total Sells</th>
-              <th>Balance</th>
-              <th>Average</th>
-              <th>Market</th>
-            </tr>
-          </head>
-          <tbody>
-            <tr class="odd">
-              <td align="right">{{ total_buys|humanize }}</td>
-              <td align="right">{{ total_sells|humanize }}</td>
-              <td align="right">{{ total_balance|humanize|balance }}</td>
-              <td align="right">{{ total_projected_average|humanize|balance }}</td>
-              <td align="right">{{ total_projected_market|humanize|balance }}</td>
-            </tr>
-          </tbody>
-        </table>
+      <div class="row-fluid">
+        <div class="span1">&nbsp;</div>
+        <div class="span10">
+          <h2>Item Sales for {{ timeframe }}</h2>
+          <table id="trade-table" class="table table-striped table-bordered table-condensed">
+            <thead>
+              <tr>
+                <td colspan="2"></td>
+                <td colspan="2" class="head">Buy</td>
+                <td colspan="2" class="head">Sell</td>
+                <td colspan="3"></td>
+                <td colspan="2" class="head">Projected</td>
+              </tr>
+              <tr class="c">
+                <th class="l">Item</th>
+                <th class="l">Cat</th>
+                <th>#</th>
+                <th>Total</th>
+                <th>#</th>
+                <th>Total</th>
+                <th>Profit</th>
+                <th>P%</th>
+                <th>Balance</th>
+                <th>Avg</th>
+                <th>Diff</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in items %}
+              <tr class="r">
+                <td class="l"><a href="{% url evething.thing.views.transactions_item item.pk urlpart %}">{{ item.name }}</a></td>
+                <td class="l">{{ item.cat_name }}</td>
+                <td>
+                  <a href="#" title="Min: {{ item.buy_minimum|humanize }} | Avg: {{ item.buy_average|humanize }} | Max: {{ item.buy_maximum|humanize }}">
+                    {{ item.buy_quantity|humanize }}
+                  </a>
+                </td>
+                <td>{{ item.buy_total|humanize }}</td>
+                <td>
+                  <a href="#" title="Min: {{ item.sell_minimum|humanize }} | Avg: {{ item.sell_average|humanize }} | Max: {{ item.sell_maximum|humanize }}">
+                    {{ item.sell_quantity|humanize }}
+                  </a>
+                </td>
+                <td>{{ item.sell_total|humanize }}</td>
+                <td>{{ item.z_average_profit|humanize }}</td>
+                <td>{{ item.z_average_profit_per }}%</td>
+                <td>{{ item.balance|humanize|balance }}</td>
+                <td>{{ item.z_projected_average|humanize|balance }}</td>
+                <td>{{ item.z_outstanding_average|humanize|balance }}</td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="11">No items have yet been traded.</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
-    
-    <div class="row">
-      <div class="span16">
-        <table id="trade-table" class="condensed-table bordered-table zebra-striped">
-          <thead>
-            <tr>
-              <td colspan="2"></td>
-              <td colspan="2" class="head">Buy</td>
-              <td colspan="2" class="head">Sell</td>
-              <td colspan="3"></td>
-              <td colspan="2" class="head">Projected</td>
-            </tr>
-            <tr>
-              <th>Item</th>
-              <th>Cat</th>
-              <th class="c">#</th>
-              <th class="c">Total</th>
-              <th class="c">#</th>
-              <th class="c">Total</th>
-              <th class="c">Profit</th>
-              <th class="c">P%</th>
-              <th class="c">Balance</th>
-              <th class="c">Avg</th>
-              <th class="c">Diff</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for item in items %}
-            <tr>
-              <td><a href="{% url evething.thing.views.transactions_item item.pk urlpart %}">{{ item.name }}</a></td>
-              <td>{{ item.cat_name }}</td>
-              <td class="r">
-                <a href="#" rel="twipsy" title="Min: {{ item.buy_minimum|humanize }} | Avg: {{ item.buy_average|humanize }} | Max: {{ item.buy_maximum|humanize }}">
-                  {{ item.buy_quantity|humanize }}
-                </a>
-              </td>
-              <td class="r">{{ item.buy_total|humanize }}</td>
-              <td class="r">
-                <a href="#" rel="twipsy" title="Min: {{ item.sell_minimum|humanize }} | Avg: {{ item.sell_average|humanize }} | Max: {{ item.sell_maximum|humanize }}">
-                  {{ item.sell_quantity|humanize }}
-                </a>
-              </td>
-              <td class="r">{{ item.sell_total|humanize }}</td>
-              <td class="r">{{ item.z_average_profit|humanize }}</td>
-              <td class="r">{{ item.z_average_profit_per }}%</td>
-              <td class="r">{{ item.balance|humanize|balance }}</td>
-              <td class="r">{{ item.z_projected_average|humanize|balance }}</td>
-              <td class="r">{{ item.z_outstanding_average|humanize|balance }}</td>
-            </tr>
-            {% empty %}
-            <tr>
-              <td colspan="11">No items have yet been traded.</td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    </div>
 {% endblock %}
