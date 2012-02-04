@@ -16,6 +16,8 @@ thead td.head {
     font-weight: bold;
 }
 
+tr.bold td { font-weight: bold; }
+
 /* table alignment, urgh */
 tr.c th,
 tr.c td { text-align: center; }
