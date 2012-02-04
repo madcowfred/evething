@@ -225,6 +225,10 @@ class APIUpdater:
         
         corporation = apikey.corp_character.corporation
         
+        ticker = root.find('result/ticker')
+        corporation.ticker = ticker.text
+        corporation.save()
+        
         for rowset in root.findall('result/rowset'):
             if rowset.attrib['name'] == 'walletDivisions':
                 for row in rowset.findall('row'):

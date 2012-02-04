@@ -29,7 +29,7 @@ class APIKey(models.Model):
     corp_character = models.ForeignKey('Character', null=True, blank=True, related_name='corporate_apikey')
     
     class Meta:
-        ordering = ('user', 'id')
+        ordering = ('id',)
     
     def __unicode__(self):
         return '#%s (%s)' % (self.id, self.key_type)
@@ -46,12 +46,13 @@ class APICache(models.Model):
 class Corporation(models.Model):
     id = models.IntegerField(primary_key=True)
     name = models.CharField(max_length=64)
+    ticker = models.CharField(max_length=5, blank=True, null=True)
     
     class Meta:
         ordering = ('name',)
     
     def __unicode__(self):
-        return self.name
+        return '%s [%s]' % (self.name, self.ticker)
     
     def get_total_balance(self):
         return self.corpwallet_set.aggregate(Sum('balance'))['balance_sum']
