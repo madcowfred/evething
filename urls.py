@@ -18,7 +18,7 @@ urlpatterns = patterns('',
 )
 
 urlpatterns += patterns('evething.thing.views',
-    url(r'^$', 'index', name='index'),
+    url(r'^$', 'home', name='home'),
     
     (r'^blueprints/$', 'blueprints'),
     (r'^bpcalc/$', 'bpcalc'),

@@ -46,8 +46,11 @@ ON ig.category_id = ic.id
 
 
 @login_required
-def index(request):
-    pass
+def home(request):
+    return render_to_response(
+        'thing/home.html',
+        context_instance=RequestContext(request)
+    )
 
 # List of blueprints we own
 @login_required
