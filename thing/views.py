@@ -419,7 +419,7 @@ def transactions_item(request, item_id, year=None, month=None, period=None, slug
         data['timeframe'] = 'all time'
     
     # Create a new paginator
-    paginator = Paginator(transactions.select_related('item', 'station', 'character'), 100)
+    paginator = Paginator(transactions.select_related('item', 'station', 'character', 'corp_wallet__corporation'), 100)
     
     # Make sure page request is an int, default to 1st page
     try:
@@ -446,7 +446,7 @@ def transactions_item(request, item_id, year=None, month=None, period=None, slug
 @login_required
 def orders(request):
     # Retrieve orders
-    orders = Order.objects.select_related('item', 'station', 'character').filter(character__apikey__user=request.user.id).order_by('-o_type', 'station__name', 'item__name')
+    orders = MarketOrder.objects.select_related('item', 'station', 'character', 'corp_wallet__corporation').filter(character__apikey__user=request.user.id).order_by('buy_order', 'station__name', 'item__name')
     
     # Render template
     return render_to_response(
