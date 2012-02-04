@@ -16,67 +16,74 @@ thead td.head {
     font-weight: bold;
 }
 
-/*
-a {
-	color: #0000FF;
+/* table alignment, urgh */
+tr.c th,
+tr.c td { text-align: center; }
+
+tr.r th,
+tr.r td { text-align: right; }
+
+tr.r th.l,
+tr.r td.l,
+tr.c th.l,
+tr.c td.l,
+td.l { text-align: left; }
+
+tr.l th.c,
+tr.l td.c,
+tr.r th.c,
+tr.r td.c,
+td.c { text-align: center; }
+
+tr.l th.r,
+tr.l td.r,
+tr.c th.r,
+tr.c td.r,
+td.r { text-align: right; }
+
+.dot { border-bottom: 1px dotted; }
+
+/* override bootstrap settings */
+.table-condensed th, .table-condensed td {
+  padding: 3px 3px;
 }
 
-table {
-	empty-cells: hide;
-	border-spacing: 1px;
+/* tablesorter styles */
+table .header {
+  cursor: pointer;
 }
-td {
-	padding: 4px 6px 4px 6px;
+table .header:after {
+  content: "";
+  float: right;
+  margin-top: 7px;
+  border-width: 0 4px 4px;
+  border-style: solid;
+  border-color: #000000 transparent;
+  visibility: hidden;
 }
-
-th, tfoot tr td {
-	background: #BFBFCF;
-	padding: 4px 6px 4px 6px;
+table .headerSortUp, table .headerSortDown {
+  background-color: #d7d7d9;
+  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.75);
 }
-td.head {
-	text-align: center;
-	font-weight: bold;
-	background: #BFBFCF;
-	padding: 4px 6px 4px 6px;
+table .header:hover:after {
+  visibility: visible;
 }
-tr.odd td {
-	background: #EFEFFF;
+table .headerSortDown:after, table .headerSortDown:hover:after {
+  visibility: visible;
+  filter: alpha(opacity=60);
+  -moz-opacity: 0.6;
+  opacity: 0.6;
 }
-tr.even td {
-	background: #DFDFEF;
+table .headerSortUp:after {
+  border-bottom: none;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 4px solid #000000;
+  visibility: visible;
+  -webkit-box-shadow: none;
+  -moz-box-shadow: none;
+  box-shadow: none;
+  filter: alpha(opacity=60);
+  -moz-opacity: 0.6;
+  opacity: 0.6;
 }
-tr.odd td.alt {
-	background: #DFDFEF;
-}
-tr.even td.alt {
-	background: #CECEDE;
-}
-tr.oddB td {
-	background: #EFAFAF;
-}
-tr.evenB td {
-	background: #DF9F9F;
-}
-tr.oddS td {
-	background: #8FEF8F;
-}
-tr.evenS td {
-	background: #7FDF7F;
-}
-
-span.pos { color: #009800; }
-span.neg { color: #FF0000; }
-
-table.tablesorter thead tr .header {
-	background-image: url(/thing_media/bg.gif);
-	background-repeat: no-repeat;
-	background-position: center right;
-	cursor: pointer;
-}
-table.tablesorter thead tr .headerSortUp {
-	background-image: url(/thing_media/asc.gif);
-}
-table.tablesorter thead tr .headerSortDown {
-	background-image: url(/thing_media/desc.gif);
-}
-*/
