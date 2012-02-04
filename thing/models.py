@@ -68,6 +68,9 @@ class CorpWallet(models.Model):
     
     class Meta:
         ordering = ('corporation', 'account_id')
+    
+    def __unicode__(self):
+        return '%s [%s] %s' % (self.corporation.name, self.account_key, self.description)
 
 # ---------------------------------------------------------------------------
 # Characters
@@ -267,6 +270,9 @@ class Campaign(models.Model):
     slug = models.SlugField(max_length=32)
     start_date = models.DateTimeField()
     end_date = models.DateTimeField()
+    
+    corp_wallets = models.ManyToManyField(CorpWallet, blank=True, null=True)
+    characters = models.ManyToManyField(Character, blank=True, null=True)
     
     class Meta:
         ordering = ('title',)
