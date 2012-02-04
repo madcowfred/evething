@@ -1,11 +1,11 @@
 from django.contrib import admin
-from evething.thing.models import APIKey, BlueprintInstance, Character, Corporation, Timeframe
+from evething.thing.models import APIKey, BlueprintInstance, Campaign, Character, Corporation
 
 class APIKeyAdmin(admin.ModelAdmin):
-    list_display = ('id', 'vcode', 'user', 'key_type', 'valid')
+    list_display = ('id', 'user', 'name', 'key_type', 'valid')
 
 class BlueprintInstanceAdmin(admin.ModelAdmin):
-    list_display = ('blueprint', 'bp_type', 'material_level', 'productivity_level')
+    list_display = ('blueprint', 'original', 'material_level', 'productivity_level')
 
 class CharacterAdmin(admin.ModelAdmin):
     fieldsets = [
@@ -22,11 +22,11 @@ class CharacterAdmin(admin.ModelAdmin):
     
     list_display = ('name', 'corporation', 'apikey')
 
-class TimeframeAdmin(admin.ModelAdmin):
+class CampaignAdmin(admin.ModelAdmin):
     prepopulated_fields = { 'slug': ( 'title', ) }
 
 admin.site.register(APIKey, APIKeyAdmin)
 admin.site.register(Character, CharacterAdmin)
 admin.site.register(BlueprintInstance, BlueprintInstanceAdmin)
-admin.site.register(Corporation)
-admin.site.register(Timeframe, TimeframeAdmin)
+admin.site.register(Campaign, CampaignAdmin)
+#admin.site.register(Corporation)
