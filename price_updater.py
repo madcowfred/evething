@@ -27,7 +27,7 @@ def main():
 		item_ids.update((Blueprint.objects.filter(pk=bp_id[0])[0].item.id,))
 	
 	# Get a list of items in active orders
-	for item_id in Order.objects.values_list('item').distinct():
+	for item_id in MarketOrder.objects.values_list('item').distinct():
 		item_ids.update(item_id)
 	
 	# Fetch market data and write to the database
