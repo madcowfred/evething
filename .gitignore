@@ -1,5 +1,3 @@
 *.db
 *.pyc
-cache/*.xml
-cache/cache.pickle
 local_settings.py
