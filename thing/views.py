@@ -64,7 +64,7 @@ def blueprints(request):
     # Build a map of Blueprint.id -> BlueprintComponent
     bpc_map = {}
     bp_ids = BlueprintInstance.objects.filter(user=request.user.id).values_list('blueprint_id', flat=True)
-    for bpc in BlueprintComponent.objects.select_related().filter(blueprint__in=bp_ids):
+    for bpc in BlueprintComponent.objects.select_related(depth=1).filter(blueprint__in=bp_ids):
         bpc_map.setdefault(bpc.blueprint.id, []).append(bpc)
     
     # Assemble blueprint data
