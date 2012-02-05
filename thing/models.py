@@ -392,7 +392,7 @@ class BlueprintInstance(models.Model):
     # Calculate production cost, taking ML and skills into account
     # TODO: fix this, skills not available
     # TODO: move factory cost/etc to a model attached to the User table
-    def calc_production_cost(self, runs=1, use_sell=False, components=None, character=None):
+    def calc_production_cost(self, components=None, runs=1, use_sell=False, character=None):
         total_cost = Decimal(0)
         
         # Component costs
@@ -421,16 +421,17 @@ class BlueprintInstance(models.Model):
     
     # Get all components required for this item, adjusted for ML and relevant skills
     # TODO: fix this, skills aren't currently available
-    def _get_components(self, runs=1):
-        PES = 5#fixme: self.character.production_efficiency_skill
+    def _get_components(self, components=None, runs=1):
+        PES = 5 #fixme: self.character.production_efficiency_skill
         ML = self.material_level
         WF = self.blueprint.waste_factor
         
         comps = []
         
-        component_queryset = BlueprintComponent.objects.filter(blueprint=self.blueprint).select_related(depth=1)
-        #for component in self.blueprint.components.select_related(depth=1):
-        for component in component_queryset:
+        if components is None:
+            components = BlueprintComponent.objects.filter(blueprint=self.blueprint).select_related(depth=1)
+        
+        for component in components:
             if component.needs_waste:
                 amt = round(component.count * (1 + ((WF / 100.0) / (ML + 1)) + (0.25 - (0.05 * PES))))
             else:

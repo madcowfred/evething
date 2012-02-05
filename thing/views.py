@@ -61,16 +61,22 @@ def blueprints(request):
     except ValueError:
         runs = 1
     
+    # Build a map of Blueprint.id -> BlueprintComponent
+    bpc_map = {}
+    bp_ids = BlueprintInstance.objects.filter(user=request.user.id).values_list('blueprint_id', flat=True)
+    for bpc in BlueprintComponent.objects.select_related().filter(blueprint__in=bp_ids):
+        bpc_map.setdefault(bpc.blueprint.id, []).append(bpc)
+    
     # Assemble blueprint data
     bpis = []
     for bpi in BlueprintInstance.objects.select_related().filter(user=request.user.id):
         # Cache component list so we don't have to retrieve it multiple times
-        components = bpi._get_components(runs=runs)
+        components = bpi._get_components(components=bpc_map[bpi.blueprint.id], runs=runs)
         
         # Calculate a bunch of things we can't easily do via SQL
         bpi.z_count = bpi.blueprint.item.portion_size * runs
         bpi.z_production_time = bpi.calc_production_time(runs=runs)
-        bpi.z_unit_cost_buy = bpi.calc_production_cost(runs=runs, components=components)
+        bpi.z_unit_cost_buy = bpi.calc_production_cost(components=components, runs=runs)
         bpi.z_unit_profit_buy = bpi.blueprint.item.sell_price - bpi.z_unit_cost_buy
         bpi.z_unit_cost_sell = bpi.calc_production_cost(runs=runs, use_sell=True, components=components)
         bpi.z_unit_profit_sell = bpi.blueprint.item.sell_price - bpi.z_unit_cost_sell
