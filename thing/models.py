@@ -89,7 +89,7 @@ class Character(models.Model):
     brokers_fee = models.DecimalField(max_digits=3, decimal_places=2, default=1.0)
     
     class Meta:
-        ordering = ('name',)
+       ordering = ('name',)
     
     def __unicode__(self):
         return self.name
@@ -319,6 +319,17 @@ class MarketOrder(models.Model):
     
     class Meta:
         ordering = ('buy_order', 'item__name')
+
+# ---------------------------------------------------------------------------
+# Industry jobs
+# fixme: implement POS support, oh god
+#class IndustryJob(models.Model):
+#    job_id = models.IntegerField()
+#    station_id = models.ForeignKeyField(Station)
+#    
+#    install_time = models.DateTimeField()
+#    begin_time = models.DateTimeField()
+#    end_time = models.DateTimeField()
 
 # ---------------------------------------------------------------------------
 # Blueprints

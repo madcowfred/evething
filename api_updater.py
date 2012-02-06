@@ -555,7 +555,7 @@ def get_station(station_id, station_name):
             station.save()
         
         _station_cache[station_id] = station
-
+    
     # Update the station name if it has changed since we last saw it
     if _station_cache[station_id].name != station_name and station_name != 'UNKNOWN STATION':
         _station_cache[station_id].name = station_name

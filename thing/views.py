@@ -122,9 +122,33 @@ def bpcalc(request):
     # Get the list of BPIs from GET vars
     bpi_list = map(int, request.GET.getlist('bpi'))
     if bpi_list:
+        # Build a map of Blueprint.id -> BlueprintComponents
+        bpc_map = {}
+        bp_ids = BlueprintInstance.objects.filter(user=request.user.id, pk__in=bpi_list).values_list('blueprint_id', flat=True)
+        for bpc in BlueprintComponent.objects.select_related(depth=1).filter(blueprint__in=bp_ids):
+            bpc_map.setdefault(bpc.blueprint.id, []).append(bpc)
+        
+        # Do weekly movement in bulk
+        item_ids = list(BlueprintInstance.objects.filter(user=request.user.id, pk__in=bpi_list).values_list('blueprint__item_id', flat=True))
+        one_month_ago = datetime.datetime.utcnow() - datetime.timedelta(30)
+        
+        query = """
+SELECT  item_id, CAST(SUM(movement) / 30 * 7 AS decimal(18,2))
+FROM    thing_pricehistory
+WHERE   item_id IN (%s)
+        AND date >= %%s
+GROUP BY item_id
+        """ % (', '.join(map(str, item_ids)))
+        
+        cursor = connection.cursor()
+        cursor.execute(query, (one_month_ago,))
+        move_map = {}
+        for row in cursor:
+            move_map[row[0]] = row[1]
+        
         comps = {}
         # Fetch BlueprintInstance objects
-        for bpi in BlueprintInstance.objects.select_related().filter(user=request.user.id, pk__in=bpi_list):
+        for bpi in BlueprintInstance.objects.select_related('blueprint__item').filter(user=request.user.id, pk__in=bpi_list):
             # Skip BPIs with no current price information
             if bpi.blueprint.item.sell_price == 0 and bpi.blueprint.item.buy_price == 0:
                 continue
@@ -140,7 +164,7 @@ def bpcalc(request):
             built = runs * bpi.blueprint.item.portion_size
             
             # Add the components
-            components = bpi._get_components(runs=runs)
+            components = bpi._get_components(components=bpc_map[bpi.blueprint.id], runs=runs)
             for item, amt in components:
                 comps[item] = comps.get(item, 0) + amt
             
@@ -151,14 +175,16 @@ def bpcalc(request):
             bpi.z_total_sell = bpi.blueprint.item.sell_price * built
             bpi.z_buy_build = bpi.calc_production_cost(runs=runs, components=components) * built
             bpi.z_sell_build = bpi.calc_production_cost(runs=runs, use_sell=True, components=components) * built
-            bpi.z_volume_week = bpi.blueprint.item.get_volume()
-            if bpi.z_volume_week:
-                bpi.z_volume_percent = (bpi.z_built / bpi.z_volume_week * 100).quantize(Decimal('.1'))
             
             bpi.z_buy_profit = bpi.z_total_sell - bpi.z_buy_build
             bpi.z_buy_profit_per = (bpi.z_buy_profit / bpi.z_buy_build * 100).quantize(Decimal('.1'))
             bpi.z_sell_profit = bpi.z_total_sell - bpi.z_sell_build
             bpi.z_sell_profit_per = (bpi.z_sell_profit / bpi.z_sell_build * 100).quantize(Decimal('.1'))
+            
+            #bpi.z_volume_week = bpi.blueprint.item.get_volume()
+            bpi.z_volume_week = move_map.get(bpi.blueprint.item.id, 0)
+            if bpi.z_volume_week:
+                bpi.z_volume_percent = (bpi.z_built / bpi.z_volume_week * 100).quantize(Decimal('.1'))
             
             # Update totals
             bpi_totals['total_sell'] += bpi.z_total_sell
