@@ -263,7 +263,7 @@ def trade(request):
     # Campaigns
     for camp in Campaign.objects.filter(user=request.user.id):
         title = '[%s]' % (camp.title)
-        t_check.append((title, camp.slug, transactions.filter(date__range=(camp.start_date, camp.end_date))))
+        t_check.append((title, camp.slug, camp.get_transactions_filter(transactions)))
     
     # Months
     for dt in transactions.dates('date', 'month', order='DESC'):
@@ -320,7 +320,7 @@ def trade_timeframe(request, year=None, month=None, period=None, slug=None):
     # Timeframe slug
     elif slug:
         camp = get_object_or_404(Campaign, slug=slug)
-        transactions = transactions.filter(date__range=(camp.start_date, camp.end_date))
+        transactions = camp.get_transactions_filter(transactions)
         data['timeframe'] = '%s (%s -> %s)' % (camp.title, camp.start_date, camp.end_date)
         data['urlpart'] = slug
     # All
@@ -441,9 +441,9 @@ def transactions_item(request, item_id, year=None, month=None, period=None, slug
         data['timeframe'] = '%s %s' % (MONTHS[month], year)
     # Timeframe slug
     elif slug:
-        tf = get_object_or_404(Campaign, slug=slug)
-        transactions = transactions.filter(date__range=(tf.start_date, tf.end_date))
-        data['timeframe'] = '%s (%s -> %s)' % (tf.title, tf.start_date, tf.end_date)
+        camp = get_object_or_404(Campaign, slug=slug)
+        transactions = camp.get_transactions_filter(transactions)
+        data['timeframe'] = '%s (%s -> %s)' % (camp.title, camp.start_date, camp.end_date)
     # All
     else:
         data['timeframe'] = 'all time'

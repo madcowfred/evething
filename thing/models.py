@@ -1,6 +1,6 @@
-from django.db import models
 from django.contrib.auth.models import User
-from django.db.models import Avg, Sum
+from django.db import models
+from django.db.models import Q, Avg, Sum
 from mptt.models import MPTTModel, TreeForeignKey
 
 import datetime
@@ -279,6 +279,16 @@ class Campaign(models.Model):
     
     def __unicode__(self):
         return self.title
+    
+    def get_transactions_filter(self, transactions):
+        return transactions.filter(
+            Q(corp_wallet__in=self.corp_wallets.all()) |
+            (
+                Q(corp_wallet=None) &
+                Q(character__in=self.characters.all())
+            ),
+            date__range=(self.start_date, self.end_date),
+        )
 
 # ---------------------------------------------------------------------------
 # Wallet transactions
