@@ -441,7 +441,7 @@ def transactions_item(request, item_id, year=None, month=None, period=None, slug
         data['timeframe'] = '%s %s' % (MONTHS[month], year)
     # Timeframe slug
     elif slug:
-        tf = get_object_or_404(Timeframe, slug=slug)
+        tf = get_object_or_404(Campaign, slug=slug)
         transactions = transactions.filter(date__range=(tf.start_date, tf.end_date))
         data['timeframe'] = '%s (%s -> %s)' % (tf.title, tf.start_date, tf.end_date)
     # All
