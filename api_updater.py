@@ -4,10 +4,8 @@ import datetime
 import os
 import requests
 import sys
-#import urllib2
 import xml.etree.ElementTree as ET
 from decimal import *
-#from urllib import urlencode
 
 # Aurgh
 from django.core.management import setup_environ
@@ -234,6 +232,8 @@ class APIUpdater:
         # Save character
         character.save()
     
+    # -----------------------------------------------------------------------
+    # Fetch and add/update character skill in training
     def fetch_char_training(self, apikey, character):
         # Make sure the access mask matches
         if (apikey.access_mask & 131072) == 0:
