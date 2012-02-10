@@ -293,7 +293,7 @@ class APIUpdater:
             accountKey = int(row.attrib['accountKey'])
             balance = Decimal(row.attrib['balance'])
             
-            wallets = CorpWallet.objects.filter(pk=accountID)
+            wallets = CorpWallet.objects.filter(pk=accountID, corporation=corporation)
             # If the wallet exists, update the balance
             if wallets:
                 wallet = wallets[0]
