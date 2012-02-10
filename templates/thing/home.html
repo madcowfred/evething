@@ -9,7 +9,8 @@
     <div class="row-fluid">
       {% for character in chars %}
       <div class="span3 well-small well">
-        <h4><a href="#">{{ character.name }}</a></h4>
+        <span class="large"><a href="#">{{ character.name }}</a></span>
+        <span class="small pull-right">[{{ character.apikey.name }}]</span>
         <p>{{ character.wallet_balance|commas }} ISK</p>
         <p>
           Int: {{ character.int_attribute }} |
@@ -19,8 +20,8 @@
           Cha: {{ character.cha_attribute }}
         </p>
         {% if character.training %}
-        <span>{{ character.training.skill.name }} (Level {{ character.training.to_level }})</span><br>
-        <em>Finishes in {{ character.training.get_remaining|duration }}</em>
+        <span>{{ character.training.skill.name }} {{ character.training.to_level }}</span><br>
+        <em class="small">Finishes in {{ character.training.get_remaining|duration }}</em>
         <div class="progress progress-info">
           <div class="bar" style="width: {{ character.training.get_complete_percentage }}%">{{ character.training.get_complete_percentage }}%</div>
         </div>
@@ -29,4 +30,29 @@
       {% endfor %}
     </div>
     {% endfor %}
+    
+    {% if corporations %}
+    <hr>
+    <div class="row-fluid">
+      {% for corporation in corporations %}
+      <div class="span3">
+        <table class="table table-striped table-bordered table-condensed">
+          <thead>
+            <th colspan="3">{{ corporation.name }} [{{ corporation.ticker }}]</th>
+          </thead>
+          <tbody>
+            {% for wallet in corporation.corpwallet_set.all %}
+            <tr>
+              <td>{{ wallet.account_key }}</td>
+              <td>{{ wallet.description }}</td>
+              <td class="r">{{ wallet.balance|commas }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        </ul>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
 {% endblock %}

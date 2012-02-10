@@ -47,11 +47,15 @@ ON ig.category_id = ic.id
 
 @login_required
 def home(request):
-    characters = Character.objects.select_related('training', 'training__skill').filter(apikey__user=request.user.id).order_by('training', 'apikey__name')
+    characters = Character.objects.select_related('apikey', 'training', 'training__skill').filter(apikey__user=request.user.id).order_by('training', 'apikey__name', 'name')
+    
+    corp_ids = APIKey.objects.filter(user=request.user.id).exclude(corp_character=None).values_list('corp_character__corporation', flat=True)
+    corporations = Corporation.objects.filter(pk__in=corp_ids)
     
     return render_to_response(
         'thing/home.html',
         {
+            'corporations': corporations,
             'characters': characters,
         },
         context_instance=RequestContext(request)

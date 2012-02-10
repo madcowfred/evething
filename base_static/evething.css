@@ -44,16 +44,29 @@ tr.c td.r,
 td.r { text-align: right; }
 
 .dot { border-bottom: 1px dotted; }
+.large { font-size: 1.1em; }
+.small { font-size: 0.9em; }
 
 /* override bootstrap settings */
 .table-condensed th, .table-condensed td {
   padding: 3px 4px;
 }
+.progress {
+  background-image: -moz-linear-gradient(top, #e2ffff, #eaffff);
+  background-image: -ms-linear-gradient(top, #e2ffff, #eaffff);
+  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#e2ffff), to(#eaffff));
+  background-image: -webkit-linear-gradient(top, #e2ffff, #eaffff);
+  background-image: -o-linear-gradient(top, #e2ffff, #eaffff);
+  background-image: linear-gradient(top, #e2ffff, #eaffff);
+}
 .well-small {
-  padding: 12px;
+  padding: 10px;
 }
 .well-small .progress {
-  margin-bottom: 5px;
+  margin-bottom: 0px;
+}
+hr {
+  margin-top: 0px;
 }
 
 /* tablesorter styles */
