@@ -47,8 +47,13 @@ ON ig.category_id = ic.id
 
 @login_required
 def home(request):
+    characters = Character.objects.select_related('training', 'training__skill').filter(apikey__user=request.user.id).order_by('training', 'apikey__name')
+    
     return render_to_response(
         'thing/home.html',
+        {
+            'characters': characters,
+        },
         context_instance=RequestContext(request)
     )
 

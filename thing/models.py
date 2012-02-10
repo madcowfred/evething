@@ -78,13 +78,22 @@ class Character(models.Model):
     apikey = models.ForeignKey(APIKey, null=True, blank=True)
     
     eve_character_id = models.IntegerField(primary_key=True)
-    
     name = models.CharField(max_length=64)
     corporation = models.ForeignKey(Corporation)
     
+    wallet_balance = models.DecimalField(max_digits=18, decimal_places=2)
+    cha_attribute = models.SmallIntegerField()
+    int_attribute = models.SmallIntegerField()
+    mem_attribute = models.SmallIntegerField()
+    per_attribute = models.SmallIntegerField()
+    wil_attribute = models.SmallIntegerField()
+    
+    training = models.ForeignKey('CharacterSkillInTraining', blank=True, null=True)
+    skills = models.ManyToManyField('CharacterSkill')
+    
+    # industry stuff
     factory_cost = models.DecimalField(max_digits=8, decimal_places=2, default=0.0)
     factory_per_hour = models.DecimalField(max_digits=8, decimal_places=2, default=0.0)
-    
     sales_tax = models.DecimalField(max_digits=3, decimal_places=2, default=1.0)
     brokers_fee = models.DecimalField(max_digits=3, decimal_places=2, default=1.0)
     
@@ -95,7 +104,28 @@ class Character(models.Model):
         return self.name
 
 # Character skills
-#class CharacterSkill(models.Model):
+class CharacterSkill(models.Model):
+    skill = models.ForeignKey('Item')
+    points = models.IntegerField()
+    level = models.SmallIntegerField()
+
+# Character skill in training
+class CharacterSkillInTraining(models.Model):
+    skill = models.ForeignKey('Item')
+    start_time = models.DateTimeField()
+    end_time = models.DateTimeField()
+    start_sp = models.IntegerField()
+    end_sp = models.IntegerField()
+    to_level = models.SmallIntegerField()
+    
+    def get_complete_percentage(self):
+        total = (self.end_time - self.start_time).total_seconds()
+        elapsed = (datetime.datetime.utcnow() - self.start_time).total_seconds()
+        return int(elapsed / total * 100)
+    
+    def get_remaining(self):
+        remaining = (self.end_time - datetime.datetime.utcnow()).total_seconds()
+        return int(remaining)
 
 # ---------------------------------------------------------------------------
 # Regions

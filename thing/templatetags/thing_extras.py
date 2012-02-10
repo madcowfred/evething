@@ -106,3 +106,22 @@ def spanif(value, arg):
 		return mark_safe('<span class="%s">%s</span>' % (parts[0], value))
 	else:
 		return value
+
+
+@register.filter
+def tablecols(data, cols):
+    rows = []
+    row = []
+    index = 0
+    for user in data:
+        row.append(user)
+        index = index + 1
+        if index % cols == 0:
+            rows.append(row)
+            row = []
+    # Still stuff missing?
+    if len(row) > 0:
+        for i in range(cols - len(row)):
+            row.append([])
+        rows.append(row)
+    return rows

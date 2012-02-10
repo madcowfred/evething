@@ -2,11 +2,12 @@
 
 import datetime
 import os
+import requests
 import sys
-import urllib2
+#import urllib2
 import xml.etree.ElementTree as ET
 from decimal import *
-from urllib import urlencode
+#from urllib import urlencode
 
 # Aurgh
 from django.core.management import setup_environ
@@ -23,10 +24,11 @@ BASE_URL = 'http://eveapiproxy.wafflemonster.org'
 
 API_INFO_URL = '%s/account/APIKeyInfo.xml.aspx' % (BASE_URL)
 BALANCE_URL = '%s/corp/AccountBalance.xml.aspx' % (BASE_URL)
-CHARACTERS_URL = '%s/account/Characters.xml.aspx' % (BASE_URL)
+CHAR_SHEET_URL = '%s/char/CharacterSheet.xml.aspx' % (BASE_URL)
 CORP_SHEET_URL = '%s/corp/CorporationSheet.xml.aspx' % (BASE_URL)
 ORDERS_CHAR_URL = '%s/char/MarketOrders.xml.aspx' % (BASE_URL)
 ORDERS_CORP_URL = '%s/corp/MarketOrders.xml.aspx' % (BASE_URL)
+SKILL_IN_TRAINING_URL = '%s/char/SkillInTraining.xml.aspx' % (BASE_URL)
 TRANSACTIONS_CHAR_URL = '%s/char/WalletTransactions.xml.aspx' % (BASE_URL)
 TRANSACTIONS_CORP_URL = '%s/corp/WalletTransactions.xml.aspx' % (BASE_URL)
 
@@ -52,6 +54,12 @@ class APIUpdater:
             # Account/Character key are basically the same thing
             if apikey.key_type in (APIKey.ACCOUNT_TYPE, APIKey.CHARACTER_TYPE):
                 for character in apikey.character_set.all():
+                    # Fetch character sheet
+                    self.fetch_char_sheet(apikey, character)
+                    
+                    # Fetch character skill in training
+                    self.fetch_char_training(apikey, character)
+                    
                     # Fetch wallet transactions
                     self.fetch_transactions(apikey, character)
                     
@@ -168,6 +176,100 @@ class APIUpdater:
             
             apikey.corp_character = character
             apikey.save()
+    
+    # -----------------------------------------------------------------------
+    # Fetch and add/update character sheet data
+    def fetch_char_sheet(self, apikey, character):
+        # Make sure the access mask matches
+        if (apikey.access_mask & 8) == 0:
+            return
+        
+        # Fetch the API data
+        params = { 'characterID': character.eve_character_id }
+        root, times = self.fetch_api(CHAR_SHEET_URL, params, apikey)
+        err = root.find('error')
+        if err is not None:
+            show_error('charsheet', err, times)
+            return
+        
+        # Update wallet balance
+        character.wallet_balance = root.findtext('result/balance')
+        
+        # Update attributes
+        character.cha_attribute = root.findtext('result/attributes/charisma')
+        character.int_attribute = root.findtext('result/attributes/intelligence')
+        character.mem_attribute = root.findtext('result/attributes/memory')
+        character.per_attribute = root.findtext('result/attributes/perception')
+        character.wil_attribute = root.findtext('result/attributes/willpower')
+        
+        # Get all of the rowsets
+        rowsets = root.findall('result/rowset')
+        
+        # First rowset is skills
+        skills = {}
+        for row in rowsets[0]:
+            skills[int(row.attrib['typeID'])] = (int(row.attrib['skillpoints']), int(row.attrib['level']))
+        
+        # Grab any already existing skills
+        char_skills = character.skills.filter(skill__in=skills.keys())
+        for char_skill in char_skills:
+            points, level = skills[char_skill.skill.id]
+            if char_skill.points != points or char_skill.level != level:
+                char_skill.points = points
+                char_skill.level = level
+                char_skill.save()
+            
+            del skills[char_skill.skill.id]
+        
+        # Add any leftovers
+        for skill, (points, level) in skills.items():
+            char_skill = CharacterSkill(
+                skill_id=skill,
+                points=points,
+                level=level,
+            )
+            char_skill.save()
+            character.skills.add(char_skill)
+        
+        # Save character
+        character.save()
+    
+    def fetch_char_training(self, apikey, character):
+        # Make sure the access mask matches
+        if (apikey.access_mask & 131072) == 0:
+            return
+        
+        # Fetch the API data
+        params = { 'characterID': character.eve_character_id }
+        root, times = self.fetch_api(SKILL_IN_TRAINING_URL, params, apikey)
+        err = root.find('error')
+        if err is not None:
+            show_error('charsheet', err, times)
+            return
+        
+        # Skill is not training
+        if root.findtext('result/skillInTraining') == '0':
+            if character.training:
+                character.training.delete()
+                character.training = None
+                character.save()
+        # Skill is training
+        else:
+            if character.training:
+                character.training.delete()
+            
+            csit = CharacterSkillInTraining(
+                skill_id=root.findtext('result/trainingTypeID'),
+                start_time=parse_api_date(root.findtext('result/trainingStartTime')),
+                end_time=parse_api_date(root.findtext('result/trainingEndTime')),
+                start_sp=root.findtext('result/trainingStartSP'),
+                end_sp=root.findtext('result/trainingDestinationSP'),
+                to_level=root.findtext('result/trainingToLevel'),
+            )
+            csit.save()
+            
+            character.training = csit
+            character.save()
     
     # -----------------------------------------------------------------------
     # Fetch and add/update corporation wallets
@@ -478,9 +580,13 @@ class APIUpdater:
                 sys.stdout.flush()
             
             # Fetch the URL
-            f = urllib2.urlopen(url, urlencode(params))
-            data = f.read()
-            f.close()
+            #f = urllib2.urlopen(url, urlencode(params))
+            #data = f.read()
+            #f.close()
+            
+            r = requests.post(url, params)
+            data = r.text
+            open('/tmp/data.debug', 'w').write(data)
             
             if self.debug:
                 print '%s' % (datetime.datetime.utcnow() - now)
@@ -566,5 +672,5 @@ def get_station(station_id, station_name):
 # ---------------------------------------------------------------------------
 
 if __name__ == '__main__':
-    updater = APIUpdater(True)
+    updater = APIUpdater(settings.DEBUG)
     updater.go()

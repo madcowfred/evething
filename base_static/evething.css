@@ -49,6 +49,12 @@ td.r { text-align: right; }
 .table-condensed th, .table-condensed td {
   padding: 3px 4px;
 }
+.well-small {
+  padding: 12px;
+}
+.well-small .progress {
+  margin-bottom: 5px;
+}
 
 /* tablesorter styles */
 table .header {

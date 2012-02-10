@@ -1,13 +1,32 @@
 {% extends "base.html" %}
+{% load thing_extras %}
 
 {% block title %}EVEthing: Home{% endblock %}
-{% block home_class %} class="active"{% endblock %}
+{% block nav_home_class %} class="active"{% endblock %}
 
 {% block content %}
-    <div class="row">
-      <div class="span16">
-        <h1>EVEthing</h1>
-        <p>Blah blah blah blah blah blah blah</p>
+    {% for chars in characters|tablecols:3 %}
+    <div class="row-fluid">
+      {% for character in chars %}
+      <div class="span3 well-small well">
+        <h4><a href="#">{{ character.name }}</a></h4>
+        <p>{{ character.wallet_balance|commas }} ISK</p>
+        <p>
+          Int: {{ character.int_attribute }} |
+          Mem: {{ character.mem_attribute }} |
+          Per: {{ character.per_attribute }} |
+          Wil: {{ character.wil_attribute }} |
+          Cha: {{ character.cha_attribute }}
+        </p>
+        {% if character.training %}
+        <span>{{ character.training.skill.name }} (Level {{ character.training.to_level }})</span><br>
+        <em>Finishes in {{ character.training.get_remaining|duration }}</em>
+        <div class="progress progress-info">
+          <div class="bar" style="width: {{ character.training.get_complete_percentage }}%">{{ character.training.get_complete_percentage }}%</div>
+        </div>
+        {% endif %}
       </div>
+      {% endfor %}
     </div>
+    {% endfor %}
 {% endblock %}
