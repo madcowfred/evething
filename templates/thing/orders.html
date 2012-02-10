@@ -32,8 +32,13 @@
                 <td><a href="{% url transactions-all order.item.id 'all' %}">{{ order.item.name }}</a></td>
                 <td class="r">{{ order.volume_remaining|humanize }}</td>
                 <td class="r">{{ order.volume_entered|humanize }}</td>
-                <td class="r">{{ order.price|commas }}</td>
-                <td class="r">{{ order.total_price|commas }}</td>
+                {% if order.buy_order %}
+                <td class="r"><span class="neg">{{ order.price|commas }}</span></td>
+                <td class="r"><span class="neg">{{ order.total_price|commas }}</span></td>
+                {% else %}
+                <td class="r"><span class="pos">{{ order.price|commas }}</span></td>
+                <td class="r"><span class="pos">{{ order.total_price|commas }}</span></td>
+                {% endif %}
                 <td class="r">{{ order.escrow|commas }}</td>
                 <td class="r">{{ order.expires|date:"Y-m-d H:i" }}</td>
               </tr>

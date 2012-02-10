@@ -485,7 +485,7 @@ def transactions_item(request, item_id, year=None, month=None, period=None, slug
 @login_required
 def orders(request):
     # Retrieve orders
-    orders = MarketOrder.objects.select_related('item', 'station', 'character', 'corp_wallet__corporation').filter(character__apikey__user=request.user.id).order_by('buy_order', 'station__name', 'item__name')
+    orders = MarketOrder.objects.select_related('item', 'station', 'character', 'corp_wallet__corporation').filter(character__apikey__user=request.user.id).order_by('station__name', '-buy_order', 'item__name')
     
     # Render template
     return render_to_response(
