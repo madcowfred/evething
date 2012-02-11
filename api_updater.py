@@ -6,6 +6,7 @@ import requests
 import sys
 import time
 import xml.etree.ElementTree as ET
+from collections import OrderedDict
 from decimal import *
 
 # Aurgh
@@ -292,18 +293,19 @@ class APIUpdater:
             return
         
         corporation = apikey.corp_character.corporation
-
+        wallet_map = {}
+        for cw in CorpWallet.objects.filter(corporation=corporation):
+            wallet_map[cw.account_key] = cw
+        
         for row in root.findall('result/rowset/row'):
             accountID = int(row.attrib['accountID'])
             accountKey = int(row.attrib['accountKey'])
             balance = Decimal(row.attrib['balance'])
             
-            wallets = CorpWallet.objects.filter(pk=accountID, corporation=corporation)
+            wallet = wallet_map.get(accountKey, None)
             # If the wallet exists, update the balance
-            if wallets:
-                wallet = wallets[0]
+            if wallet is not None:
                 wallet.balance = balance
-                wallet.save()
             # Otherwise just make a new one
             else:
                 wallet = CorpWallet(
@@ -311,9 +313,10 @@ class APIUpdater:
                     corporation=corporation,
                     account_key=accountKey,
                     description='',
-                    balance=balance
+                    balance=balance,
                 )
-                wallet.save()
+            
+            wallet.save()
     
     # -----------------------------------------------------------------------
     # Fetch the corporation sheet
@@ -338,25 +341,34 @@ class APIUpdater:
         
         for rowset in root.findall('result/rowset'):
             if rowset.attrib['name'] == 'walletDivisions':
+                wallet_map = {}
+                for cw in CorpWallet.objects.filter(corporation=corporation):
+                    wallet_map[cw.account_key] = cw
+                
                 for row in rowset.findall('row'):
-                    wallets = CorpWallet.objects.filter(corporation=corporation, account_key=row.attrib['accountKey'])
-                    # Wallet division doesn't exist, this is bad
-                    if wallets.count() == 0:
-                        print 'ERROR: no matching CorpWallet object for corpID=%s accountKey=%s' % (corporation.id, row.attrib['accountKey'])
-                    # Wallet division exists, update description
-                    else:
-                        wallet = wallets[0]
+                    wallet = wallet_map.get(int(row.attrib['accountKey']), None)
+                    # If the wallet exists, update the balance
+                    if wallet is not None:
                         wallet.description = row.attrib['description']
                         wallet.save()
+                    # If it doesn't exist, wtf?
+                    else:
+                        print 'ERROR: no matching CorpWallet object for corpID=%s accountKey=%s' % (corporation.id, row.attrib['accountKey'])
     
     # -----------------------------------------------------------------------
     # Fetch and add/update orders
     def fetch_orders(self, apikey, character):
-        # Initalise stuff
+        # Initialise for corporate query
         if apikey.corp_character:
             mask = 4096
             url = ORDERS_CORP_URL
             o_filter = MarketOrder.objects.filter(corp_wallet__corporation=character.corporation)
+            
+            wallet_map = {}
+            for cw in CorpWallet.objects.filter(corporation=character.corporation):
+                wallet_map[cw.account_key] = cw
+        
+        # Initialise for character query
         else:
             mask = 4096
             url = ORDERS_CHAR_URL
@@ -374,16 +386,21 @@ class APIUpdater:
             show_error('corporders', err, times)
             return
         
+        # Generate an order_id map
+        order_map = {}
+        for mo in MarketOrder.objects.filter(character=character):
+            order_map[mo.order_id] = mo
+        
         # Iterate over the returned result set
         seen = []
         for row in root.findall('result/rowset/row'):
             order_id = int(row.attrib['orderID'])
-            orders = MarketOrder.objects.filter(order_id=order_id, character=character)
+            #orders = MarketOrder.objects.filter(order_id=order_id, character=character)
             
             # Order exists
-            if orders.count() > 0:
-                order = orders[0]
-                
+            order = order_map.get(order_id, None)
+            #if orders.count() > 0:
+            if order is not None:
                 # Order is still active, update relevant details
                 if row.attrib['orderState'] == '0':
                     order.issued = parse_api_date(row.attrib['issued'])
@@ -406,8 +423,8 @@ class APIUpdater:
                     buy_order = True
                 
                 # Make sure the character charID is valid
-                chars = Character.objects.filter(eve_character_id=row.attrib['charID'])
-                if chars.count() == 0:
+                char = self.char_id_map.get(int(row.attrib['charID']))
+                if char is None:
                     print 'ERROR: no matching Character object for charID=%s' % (row.attrib['charID'])
                     continue
                 
@@ -426,7 +443,7 @@ class APIUpdater:
                     order_id=order_id,
                     station=get_station(int(row.attrib['stationID']), 'UNKNOWN STATION'),
                     item=get_item(row.attrib['typeID']),
-                    character=chars[0],
+                    character=char,
                     escrow=Decimal(row.attrib['escrow']),
                     price=price,
                     total_price=remaining * price,
@@ -439,7 +456,8 @@ class APIUpdater:
                 )
                 # Set the corp_wallet for corporation API requests
                 if apikey.corp_character:
-                    order.corp_wallet = CorpWallet.objects.get(corporation=character.corporation, account_key=row.attrib['accountKey'])
+                    #order.corp_wallet = CorpWallet.objects.get(corporation=character.corporation, account_key=row.attrib['accountKey'])
+                    order.corp_wallet = wallet_map.get(int(row.attrib['accountKey']))
                 order.save()
                 
                 seen.append(order_id)
@@ -452,13 +470,18 @@ class APIUpdater:
     def fetch_transactions(self, apikey, character, corp_wallet=None):
         # Initialise stuff
         params = { 'characterID': character.eve_character_id }
+        
+        # Corporate key
         if apikey.corp_character:
             params['accountKey'] = corp_wallet.account_key
             mask = 2097152
             url = TRANSACTIONS_CORP_URL
+            t_filter = Transaction.objects.filter(corp_wallet__corporation=character.corporation)
+        # Character key
         else:
             mask = 4194304
             url = TRANSACTIONS_CHAR_URL
+            t_filter = Transaction.objects.filter(corp_wallet=None, character=character)
         
         # Make sure the access mask matches
         if (apikey.access_mask & mask) == 0:
@@ -467,12 +490,6 @@ class APIUpdater:
         # Aaaaa
         if self.debug:
             start = time.time()
-            
-        # Set up the transactions filter
-        if apikey.corp_character:
-            transactions = Transaction.objects.filter(corp_wallet=corp_wallet)
-        else:
-            transactions = Transaction.objects.filter(character=character)
         
         # Loop until we run out of transactions
         one_week_ago = None
@@ -494,10 +511,21 @@ class APIUpdater:
             if not rows:
                 break
             
+            # Make a transaction id:row map
+            t_map = OrderedDict()
             for row in rows:
-                # Initalise some variables
                 transaction_id = int(row.attrib['transactionID'])
                 transaction_time = parse_api_date(row.attrib['transactionDateTime'])
+                t_map[transaction_id] = (transaction_time, row)
+            
+            # Query those transaction ids and delete any we've already seen
+            for trans in t_filter.filter(transaction_id__in=t_map.keys()):
+                del t_map[trans.transaction_id]
+            
+            # Now iterate over the leftovers
+            for transaction_id, (transaction_time, row) in t_map.items():
+                # Initalise some variables
+                #transaction_time = parse_api_date(row.attrib['transactionDateTime'])
                 
                 # Skip corporate transactions if this is a personal call, we have no idea
                 # what wallet this transaction is related to otherwise :ccp:
@@ -505,8 +533,8 @@ class APIUpdater:
                     continue
                 
                 # Check to see if this transaction already exists
-                if transactions.filter(transaction_id=transaction_id, date=transaction_time).count():
-                    continue
+                #if transactions.filter(transaction_id=transaction_id, date=transaction_time).count():
+                #    continue
                 
                 # Make sure the item typeID is valid
                 #items = Item.objects.filter(pk=row.attrib['typeID'])
@@ -531,10 +559,11 @@ class APIUpdater:
                 # Create a new transaction object and save it
                 quantity = int(row.attrib['quantity'])
                 price = Decimal(row.attrib['price'])
-                if row.attrib['transactionType'] == 'buy':
-                    buy_transaction = True
-                else:
-                    buy_transaction = False
+                #if row.attrib['transactionType'] == 'buy':
+                #    buy_transaction = True
+                #else:
+                #    buy_transaction = False
+                buy_transaction = (row.attrib['transactionType'] == 'buy')
                 
                 t = Transaction(
                     station=station,
