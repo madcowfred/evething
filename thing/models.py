@@ -88,8 +88,8 @@ class Character(models.Model):
     per_attribute = models.SmallIntegerField()
     wil_attribute = models.SmallIntegerField()
     
-    training = models.ForeignKey('CharacterSkillInTraining', blank=True, null=True)
-    skills = models.ManyToManyField('CharacterSkill')
+    skills = models.ManyToManyField('Item', related_name='learned_by', through='CharacterSkill')
+    skill_queue = models.ManyToManyField('Item', related_name='training_by', through='SkillQueue')
     
     # industry stuff
     factory_cost = models.DecimalField(max_digits=8, decimal_places=2, default=0.0)
@@ -105,18 +105,25 @@ class Character(models.Model):
 
 # Character skills
 class CharacterSkill(models.Model):
-    skill = models.ForeignKey('Item')
-    points = models.IntegerField()
+    character = models.ForeignKey('Character')
+    item = models.ForeignKey('Item')
+    
     level = models.SmallIntegerField()
+    points = models.IntegerField()
 
-# Character skill in training
-class CharacterSkillInTraining(models.Model):
-    skill = models.ForeignKey('Item')
+# Skill queue
+class SkillQueue(models.Model):
+    character = models.ForeignKey('Character')
+    item = models.ForeignKey('Item')
+    
     start_time = models.DateTimeField()
     end_time = models.DateTimeField()
     start_sp = models.IntegerField()
     end_sp = models.IntegerField()
     to_level = models.SmallIntegerField()
+    
+    class Meta:
+        ordering = ('start_time',)
     
     def get_complete_percentage(self):
         total = (self.end_time - self.start_time).total_seconds()

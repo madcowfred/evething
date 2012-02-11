@@ -4,6 +4,7 @@ import datetime
 import os
 import requests
 import sys
+import time
 import xml.etree.ElementTree as ET
 from decimal import *
 
@@ -12,6 +13,7 @@ from django.core.management import setup_environ
 import settings
 setup_environ(settings)
 
+from django.db import connection
 from django.db.models import Q
 
 from thing.models import *
@@ -26,7 +28,7 @@ CHAR_SHEET_URL = '%s/char/CharacterSheet.xml.aspx' % (BASE_URL)
 CORP_SHEET_URL = '%s/corp/CorporationSheet.xml.aspx' % (BASE_URL)
 ORDERS_CHAR_URL = '%s/char/MarketOrders.xml.aspx' % (BASE_URL)
 ORDERS_CORP_URL = '%s/corp/MarketOrders.xml.aspx' % (BASE_URL)
-SKILL_IN_TRAINING_URL = '%s/char/SkillInTraining.xml.aspx' % (BASE_URL)
+SKILL_QUEUE_URL = '%s/char/SkillQueue.xml.aspx' % (BASE_URL)
 TRANSACTIONS_CHAR_URL = '%s/char/WalletTransactions.xml.aspx' % (BASE_URL)
 TRANSACTIONS_CORP_URL = '%s/corp/WalletTransactions.xml.aspx' % (BASE_URL)
 
@@ -38,8 +40,10 @@ class APIUpdater:
     # -----------------------------------------------------------------------
     # Do the heavy lifting
     def go(self):
+        start = time.time()
+        
         # Make sure API keys are valid and various character things are up to date
-        for apikey in APIKey.objects.filter(valid=True):
+        for apikey in APIKey.objects.select_related().filter(valid=True):
             self.api_check(apikey)
 
         # Generate a character id map
@@ -56,7 +60,7 @@ class APIUpdater:
                     self.fetch_char_sheet(apikey, character)
                     
                     # Fetch character skill in training
-                    self.fetch_char_training(apikey, character)
+                    self.fetch_char_skill_queue(apikey, character)
                     
                     # Fetch wallet transactions
                     self.fetch_transactions(apikey, character)
@@ -86,6 +90,14 @@ class APIUpdater:
         # All done, clean up any out-of-date cached API requests
         now = datetime.datetime.utcnow()
         APICache.objects.filter(cached_until__lt=now).delete()
+        
+        # And dump some debug info
+        debug = open('/tmp/api.debug', 'w')
+        debug.write('%.3fs  %d queries (%.2fms)\n\n' % (time.time() - start, len(connection.queries), sum(float(q['time']) for q in connection.queries)))
+        debug.write('\n')
+        for query in connection.queries:
+           debug.write('%02.2fms  %s\n' % (float(query['time']), query['sql']))
+        debug.close()
     
     # -----------------------------------------------------------------------
     # Do various API key things
@@ -209,67 +221,60 @@ class APIUpdater:
             skills[int(row.attrib['typeID'])] = (int(row.attrib['skillpoints']), int(row.attrib['level']))
         
         # Grab any already existing skills
-        char_skills = character.skills.filter(skill__in=skills.keys())
+        char_skills = CharacterSkill.objects.select_related('item').filter(character=character, item__in=skills.keys())
         for char_skill in char_skills:
-            points, level = skills[char_skill.skill.id]
+            points, level = skills[char_skill.item.id]
             if char_skill.points != points or char_skill.level != level:
                 char_skill.points = points
                 char_skill.level = level
                 char_skill.save()
             
-            del skills[char_skill.skill.id]
+            del skills[char_skill.item.id]
         
         # Add any leftovers
-        for skill, (points, level) in skills.items():
+        for skill_id, (points, level) in skills.items():
             char_skill = CharacterSkill(
-                skill_id=skill,
+                character=character,
+                item_id=skill_id,
                 points=points,
                 level=level,
             )
             char_skill.save()
-            character.skills.add(char_skill)
         
         # Save character
         character.save()
     
     # -----------------------------------------------------------------------
     # Fetch and add/update character skill in training
-    def fetch_char_training(self, apikey, character):
+    def fetch_char_skill_queue(self, apikey, character):
         # Make sure the access mask matches
-        if (apikey.access_mask & 131072) == 0:
+        if (apikey.access_mask & 262144) == 0:
             return
         
         # Fetch the API data
         params = { 'characterID': character.eve_character_id }
-        root, times = self.fetch_api(SKILL_IN_TRAINING_URL, params, apikey)
+        root, times = self.fetch_api(SKILL_QUEUE_URL, params, apikey)
         err = root.find('error')
         if err is not None:
             show_error('charsheet', err, times)
             return
         
-        # Skill is not training
-        if root.findtext('result/skillInTraining') == '0':
-            if character.training:
-                character.training.delete()
-                character.training = None
-                character.save()
-        # Skill is training
-        else:
-            if character.training:
-                character.training.delete()
-            
-            csit = CharacterSkillInTraining(
-                skill_id=root.findtext('result/trainingTypeID'),
-                start_time=parse_api_date(root.findtext('result/trainingStartTime')),
-                end_time=parse_api_date(root.findtext('result/trainingEndTime')),
-                start_sp=root.findtext('result/trainingStartSP'),
-                end_sp=root.findtext('result/trainingDestinationSP'),
-                to_level=root.findtext('result/trainingToLevel'),
-            )
-            csit.save()
-            
-            character.training = csit
-            character.save()
+        # Delete the old queue
+        SkillQueue.objects.filter(character=character).delete()
+        
+        # Add any new skills
+        for row in root.findall('result/rowset/row'):
+            if row.attrib['startTime'] and row.attrib['endTime']:
+                sq = SkillQueue(
+                    character=character,
+                    item_id=row.attrib['typeID'],
+                    start_time=row.attrib['startTime'],
+                    end_time=row.attrib['endTime'],
+                    start_sp=row.attrib['startSP'],
+                    end_sp=row.attrib['endSP'],
+                    to_level=row.attrib['level'],
+                )
+                sq.save()
     
     # -----------------------------------------------------------------------
     # Fetch and add/update corporation wallets

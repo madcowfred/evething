@@ -44,7 +44,7 @@ def main():
 		for item_id in item_ids[i:i+25]:
 			item_cache[item_id] = Item.objects.get(pk=item_id)
 			
-			histories = ItemPriceHistory.objects.filter(item=item_id).order_by('-date')
+			histories = PriceHistory.objects.filter(item=item_id).order_by('-date')
 			if histories.count() > 0:
 				last_date[item_id] = '%s-%02d-%02d' % (histories[0].date.year, histories[0].date.month, histories[0].date.day)
 		
@@ -88,7 +88,8 @@ def main():
 			
 			# New one
 			if (not item_id in last_date) or (item_id in last_date and date > last_date[item_id]):
-				iph = ItemPriceHistory(
+				iph = PriceHistory(
+                    region_id=10000002,
 					item=item_cache[item_id],
 					date=date,
 					average=price_average,
