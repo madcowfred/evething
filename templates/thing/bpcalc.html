@@ -99,7 +99,7 @@ function filter_sub5() {
             </tbody>
             <tfoot>
               <tr class="r bold">
-                <td colspan="3"></td>
+                <td colspan="3">{{ bpis|length }} slots required</td>
                 <td>{{ bpi_totals.buy_build|humanize }}</td>
                 <td>{{ bpi_totals.buy_profit|humanize }}</td>
                 <td>{{ bpi_totals.buy_profit_per|spanif:"neg < 7" }}%</td>
