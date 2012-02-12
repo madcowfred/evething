@@ -1,5 +1,6 @@
 import calendar
 import datetime
+from collections import OrderedDict
 #import time
 
 from django.contrib.auth.decorators import login_required
@@ -47,7 +48,28 @@ ON ig.category_id = ic.id
 
 @login_required
 def home(request):
-    characters = Character.objects.select_related('apikey', 'training', 'training__skill').filter(apikey__user=request.user.id).order_by('training', 'apikey__name', 'name')
+    chars = OrderedDict()
+    for char in Character.objects.select_related('apikey').filter(apikey__user=request.user.id).order_by('apikey__name', 'name'):
+        char.z_training = None
+        chars[char.eve_character_id] = char
+    
+    utcnow = datetime.datetime.utcnow()
+    queues = SkillQueue.objects.select_related().filter(character__in=chars.keys(), end_time__gte=utcnow)
+    for sq in queues:
+        char = chars[sq.character.eve_character_id]
+        if char.z_training is None:
+            char.z_training = sq
+            char.z_skill_duration = (sq.end_time - utcnow).total_seconds()
+        
+        char.z_queue_duration = (sq.end_time - utcnow).total_seconds()
+    
+    first = []
+    last = []
+    for char in chars.values():
+        if char.z_training is None:
+            last.append(char)
+        else:
+            first.append(char)
     
     corp_ids = APIKey.objects.filter(user=request.user.id).exclude(corp_character=None).values_list('corp_character__corporation', flat=True)
     corporations = Corporation.objects.filter(pk__in=corp_ids)
@@ -56,7 +78,7 @@ def home(request):
         'thing/home.html',
         {
             'corporations': corporations,
-            'characters': characters,
+            'characters': first + last,
         },
         context_instance=RequestContext(request)
     )

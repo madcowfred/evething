@@ -12,18 +12,21 @@
         <span class="large"><a href="#">{{ character.name }}</a></span>
         <span class="small pull-right">[{{ character.apikey.name }}]</span>
         <p>{{ character.wallet_balance|commas }} ISK</p>
-        <p>
+        <!--<p>
           Int: {{ character.int_attribute }} |
           Mem: {{ character.mem_attribute }} |
           Per: {{ character.per_attribute }} |
           Wil: {{ character.wil_attribute }} |
           Cha: {{ character.cha_attribute }}
-        </p>
-        {% if character.training %}
-        <span>{{ character.training.skill.name }} {{ character.training.to_level }}</span><br>
-        <em class="small">Finishes in {{ character.training.get_remaining|duration }}</em>
-        <div class="progress progress-info">
-          <div class="bar" style="width: {{ character.training.get_complete_percentage }}%">{{ character.training.get_complete_percentage }}%</div>
+        </p>-->
+        {% if character.z_training %}
+        <span>{{ character.z_training.item.name }} {{ character.z_training.to_level }}</span><br>
+        <em class="small">Finishes: {{ character.z_skill_duration|duration }}</em>
+        {% if character.z_queue_duration > character.z_skill_duration %}
+        <em class="small pull-right">Queue: {{ character.z_queue_duration|duration }}</em>
+        {% endif %}
+        <div class="progress {% if character.z_queue_duration < 86400 %} progress-danger{% endif%}">
+          <div class="bar" style="width: {{ character.z_training.get_complete_percentage }}%">{{ character.z_training.get_complete_percentage }}%</div>
         </div>
         {% endif %}
       </div>
@@ -36,9 +39,14 @@
     <div class="row-fluid">
       {% for corporation in corporations %}
       <div class="span3">
+        <h4>{{ corporation.name }} [{{ corporation.ticker }}]</h4>
         <table class="table table-striped table-bordered table-condensed">
           <thead>
-            <th colspan="3">{{ corporation.name }} [{{ corporation.ticker }}]</th>
+            <tr class="l">
+              <th>Key</th>
+              <th>Description</th>
+              <th class="c">Balance</th>
+            </tr>
           </thead>
           <tbody>
             {% for wallet in corporation.corpwallet_set.all %}
@@ -53,6 +61,32 @@
         </ul>
       </div>
       {% endfor %}
+      
+      <div class="span6">
+        <h4>Orders</h4>
+        <table class="table table-striped table-bordered table-condensed">
+          <thead>
+            <tr class="c">
+              <th class="l">Character</th>
+              <th>Orders</th>
+              <th>Total Sell</th>
+              <th>Total Buy</th>
+              <th>Total Escrow</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for order_stat in order_stats %}
+            <tr class="r">
+              <td class="l">{{ order_stat.character.name }}</tr>
+              <td>{{ order_stat.orders }}</tr>
+              <td>{{ order_stat.total_sell|commas }}</tr>
+              <td>{{ order_stat.total_buy|commas }}</tr>
+              <td>{{ order_stat.total_escrow|commas }}</tr>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
     </div>
     {% endif %}
 {% endblock %}
