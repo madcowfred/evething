@@ -8,6 +8,7 @@
     {% for chars in characters|tablecols:3 %}
     <div class="row-fluid">
       {% for character in chars %}
+      {% if character %}
       <div class="span3 well-small well">
         <span class="large"><a href="#">{{ character.name }}</a></span>
         <span class="small pull-right">[{{ character.apikey.name }}]</span>
@@ -30,6 +31,7 @@
         </div>
         {% endif %}
       </div>
+      {% endif %}
       {% endfor %}
     </div>
     {% endfor %}
