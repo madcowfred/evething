@@ -151,6 +151,12 @@ class APIUpdater:
                         eve_character_id=characterID,
                         name=row.attrib['characterName'],
                         corporation=corp,
+                        wallet_balance=0,
+                        cha_attribute=0,
+                        int_attribute=0,
+                        mem_attribute=0,
+                        per_attribute=0,
+                        wil_attribute=0,
                     )
                 # Character exists, update API key and corporation information
                 else:
