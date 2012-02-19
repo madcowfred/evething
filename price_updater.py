@@ -54,7 +54,7 @@ WHERE   blueprint_id IN (
         root = ET.fromstring(data)
         
         # Save market order shit
-        for t in root.findall('marketstat/type'):
+        for t in root.findall('price_data/type'):
             item = Item.objects.get(pk=t.attrib['id'])
             item.buy_price = t.find('buy/max').text
             item.sell_price = t.find('sell/min').text
