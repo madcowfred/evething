@@ -15,6 +15,24 @@ $(document).ready(function() {
       $('#blueprints-table input:checkbox').removeAttr("checked");
     }
   );
+
+  // call the tablesorter plugin
+  $("#blueprints-table").tablesorter({
+    'headers': {
+      2: { sorter: false },
+      3: { sorter: false },
+      4: { sorter: false },
+      5: { sorter: false },
+      6: { sorter: false },
+      7: { sorter: 'human' },
+      8: { sorter: 'human' },
+      9: { sorter: 'human' },
+      10: { sorter: 'human' },
+      11: { sorter: 'human' },
+      12: { sorter: false },
+    },
+    'sortList': [[0, 1]],
+  });
 });
 </script>
 {% endblock %}
@@ -31,9 +49,15 @@ $(document).ready(function() {
         <div class="span3">
           <form action="/blueprints/" method="GET" class="form-search">
             <label>Runs</label>
-            <input type="text" class="input-small" name="runs" value="{{ runs }}">
-            <input type="submit" class="input-small" value="Update">
+            <input type="text" class="input-mini" name="runs" value="{{ runs }}">
+            <input type="submit" class="input-mini" value="Update">
           </form>
+        </div>
+        <div class="span5">
+          <div class="pull-right">
+            <a class="btn btn-success" data-toggle="modal" href="#add-blueprint"><i class="icon-plus icon-white"></i> Add</a>
+            <a class="btn btn-danger" href="#"><i class="icon-trash icon-white"></i> Delete</a>
+          </div>
         </div>
       </div>
       <div class="row-fluid">
@@ -42,13 +66,8 @@ $(document).ready(function() {
           <form action="/bpcalc/" method="GET" class="form-search">
           <table id="blueprints-table" class="table table-striped table-bordered table-condensed">
             <thead>
-              <tr>
-                <td colspan="7"></td>
-                <td colspan="2" class="head">Buy</td>
-                <td colspan="2" class="head">Sell</td>
-                <td colspan="2"></td>
-              </tr>
               <tr class="c">
+                <th>ID</th>
                 <th class="l">Blueprint</th>
                 <th class="l">Type</th>
                 <th>ML</th>
@@ -56,17 +75,18 @@ $(document).ready(function() {
                 <th>#</th>
                 <th>Time</th>
                 <th>Market</th>
-                <th>Make</th>
-                <th>Profit</th>
-                <th>Make</th>
-                <th>Profit</th>
-                <th>Links</th>
+                <th>B Make</th>
+                <th>B Profit</th>
+                <th>S Make</th>
+                <th>S Profit</th>
+                <!--<th>Links</th>-->
                 <th><a href="#" id="checkall">all</a></th>
               </tr>
             </thead>
             <tbody>
               {% for bpi in bpis %}
               <tr>
+                <td class="r">{{ bpi.id }}</td>
                 <td>{{ bpi.blueprint.item }}</td>
                 <td>{% if bpi.original %}BPO{% else %}BPC{% endif %}</td>
                 <td class="r">{{ bpi.material_level }}</td>
@@ -78,7 +98,7 @@ $(document).ready(function() {
                 <td class="r">{{ bpi.z_unit_profit_buy|humanize|balance }}</td>
                 <td class="r">{{ bpi.z_unit_cost_sell|humanize }}</td>
                 <td class="r">{{ bpi.z_unit_profit_sell|humanize|balance }}</td>
-                <td class="c"><a href="http://www.eve-central.com/home/quicklook.html?typeid={{ bpi.blueprint.item.id }}">EC</a></td>
+                <!--<td class="c"><a href="http://www.eve-central.com/home/quicklook.html?typeid={{ bpi.blueprint.item.id }}">EC</a></td>-->
                 <td><input type="checkbox" name="bpi" value="{{ bpi.pk }}"></td>
               </tr>
               {% empty %}
@@ -91,13 +111,60 @@ $(document).ready(function() {
               <tr>
                 <td colspan="13" class="r">
                   <label>Days</label>
-                  <input type="text" class="input-small" name="days" value="7" size="2">
-                  <input type="submit" class="input-small" value="BPCalc">
+                  <input type="text" class="input-mini" name="days" value="7" size="2">
+                  <input type="submit" class="input-mini" value="BPCalc">
                 </td>
               </tr>
             </tfoot>
           </table>
           </form>
         </div>
+      </div>
+      
+      <div class="modal hide" id="add-blueprint">
+        <div class="modal-header">
+          <a class="close" data-dismiss="modal"><i class="icon-remove"></i></a>
+          <h3>Add Blueprint</h3>
+        </div>
+        <form action="/blueprints/add/" method="GET" class="form-horizontal">
+          <div class="modal-body">
+            <fieldset>
+              <div class="control-group">
+                <label class="control-label" for="blueprint_id">Blueprint</label>
+                <div class="controls">
+                  <select name="blueprint_id" class="input-xlarge">
+                    {% for blueprint in blueprints %}
+                    <option value="{{ blueprint.id }}">{{ blueprint.name }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+              </div>
+              <div class="control-group">
+                <label class="control-label" for="original">Original</label>
+                <div class="controls">
+                  <label class="checkbox">
+                    <input type="checkbox" name="original" value="1" checked>
+                  </label>
+                </div>
+              </div>
+              <div class="control-group">
+                <label class="control-label" for="material_level">Material Level</label>
+                <div class="controls">
+                  <input type="text" name="material_level" value="0" class="input-mini">
+                </div>
+              </div>
+              <div class="control-group">
+                <label class="control-label" for="productivity_level">Productivity Level</label>
+                <div class="controls">
+                  <input type="text" name="productivity_level" value="0" class="input-mini">
+                </div>
+              </div>
+            </fieldset>
+          </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-primary">Add</button>
+            <button class="btn" data-dismiss="modal">Close</button>
+          </div>
+        </form>
       </div>
 {% endblock %}

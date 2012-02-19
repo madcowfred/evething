@@ -118,11 +118,26 @@ def blueprints(request):
     return render_to_response(
         'thing/blueprints.html',
         {
+            'blueprints': Blueprint.objects.all(),
             'bpis': bpis,
             'runs': runs,
         },
         context_instance=RequestContext(request)
     )
+
+# Add a new blueprint
+@login_required
+def blueprints_add(request):
+    bpi = BlueprintInstance(
+        user=request.user,
+        blueprint_id=request.GET['blueprint_id'],
+        original=request.GET['original'],
+        material_level=request.GET['material_level'],
+        productivity_level=request.GET['productivity_level'],
+    )
+    bpi.save()
+    
+    return redirect('blueprints')
 
 # Calculate blueprint production details for X number of days
 DAY = 24 * 60 * 60
