@@ -652,7 +652,7 @@ class APIUpdater:
         # Add the API key information
         params['keyID'] = apikey.id
         params['vCode'] = apikey.vcode
-        
+
         # Check the API cache for this URL/params combo
         now = datetime.datetime.utcnow()
         params_repr = repr(sorted(params.items()))
@@ -678,10 +678,14 @@ class APIUpdater:
 
             # If the status code is bad return None
             if not r.status_code == requests.codes.ok:
-                return (None, None)
+                return (None, {})
 
         # Parse the XML
         root = ET.fromstring(data)
+        times = {
+            'current': parse_api_date(root.find('currentTime').text),
+            'until': parse_api_date(root.find('cachedUntil').text),
+        }
         
         # If the data wasn't cached, cache it now
         if apicaches.count() == 0:
@@ -703,10 +707,13 @@ def parse_api_date(s):
 # ---------------------------------------------------------------------------
 # Spit out an error message
 def show_error(func, err, times):
+    current = times.get('current', '?')
+    until = times.get('until', '?')
+
     if hasattr(err, 'attrib'):
-        print '(%s) %s: %s | %s -> %s' % (func, err.attrib['code'], err.text, times['current'], times['until'])
+        print '(%s) %s: %s | %s -> %s' % (func, err.attrib['code'], err.text, current, until)
     else:
-        print '(%s) %s | %s -> %s' % (func, err, times['current'], times['until'])
+        print '(%s) %s | %s -> %s' % (func, err, current, until)
 
 # ---------------------------------------------------------------------------
 # Caching item fetcher
