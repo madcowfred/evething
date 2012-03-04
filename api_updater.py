@@ -153,10 +153,15 @@ class APIUpdater:
                         corporation=corp,
                         wallet_balance=0,
                         cha_attribute=0,
+                        cha_bonus=0,
                         int_attribute=0,
+                        int_bonus=0,
                         mem_attribute=0,
+                        mem_bonus=0,
                         per_attribute=0,
+                        per_bonus=0,
                         wil_attribute=0,
+                        wil_bonus=0,
                     )
                 # Character exists, update API key and corporation information
                 else:
@@ -219,6 +224,29 @@ class APIUpdater:
         character.per_attribute = root.findtext('result/attributes/perception')
         character.wil_attribute = root.findtext('result/attributes/willpower')
         
+        # Update attribute bonuses :ccp:
+        enh = root.find('result/attributeEnhancers')
+
+        val = enh.find('charismaBonus/augmentatorValue')
+        if val is not None:
+            character.cha_bonus = val.text
+        val = enh.find('intelligenceBonus/augmentatorValue')
+        if val is not None:
+            character.int_bonus = val.text
+        val = enh.find('memoryBonus/augmentatorValue')
+        if val is not None:
+            character.mem_bonus = val.text
+        val = enh.find('perceptionBonus/augmentatorValue')
+        if val is not None:
+            character.per_bonus = val.text
+        val = enh.find('willpowerBonus/augmentatorValue')
+        if val is not None:
+            character.wil_bonus = val.text
+
+        # Update clone information
+        character.clone_skill_points = root.findtext('result/cloneSkillPoints')
+        character.clone_name = root.findtext('result/cloneName')
+
         # Get all of the rowsets
         rowsets = root.findall('result/rowset')
         

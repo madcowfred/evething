@@ -45,7 +45,8 @@ INNER JOIN thing_itemcategory ic
 ON ig.category_id = ic.id
 """
 
-
+# ---------------------------------------------------------------------------
+# Home page
 @login_required
 def home(request):
     chars = OrderedDict()
@@ -83,6 +84,7 @@ def home(request):
         context_instance=RequestContext(request)
     )
 
+# ---------------------------------------------------------------------------
 # List of blueprints we own
 @login_required
 def blueprints(request):
@@ -125,6 +127,7 @@ def blueprints(request):
         context_instance=RequestContext(request)
     )
 
+# ---------------------------------------------------------------------------
 # Add a new blueprint
 @login_required
 def blueprints_add(request):
@@ -139,6 +142,7 @@ def blueprints_add(request):
     
     return redirect('blueprints')
 
+# ---------------------------------------------------------------------------
 # Calculate blueprint production details for X number of days
 DAY = 24 * 60 * 60
 @login_required
@@ -274,20 +278,26 @@ GROUP BY item_id
         context_instance=RequestContext(request)
     )
 
-# Trade volume
+# ---------------------------------------------------------------------------
+@login_required
+def character(request, character_id):
+    char = get_object_or_404(Character, eve_character_id=character_id)
+
+    return render_to_response(
+        'thing/character.html',
+        {
+            'char': char,
+        },
+        context_instance=RequestContext(request)
+    )
+
+# ---------------------------------------------------------------------------
+# Trade volume overview
 MONTHS = (None, 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec')
 @login_required
 def trade(request):
     data = {}
     now = datetime.datetime.now()
-    
-    # Wallets
-    #wallets = CorpWallet.objects.filter(corporation=corporation)
-    #if not wallets:
-    #    return show_error("This corporation has no wallets in the database, run API updater!")
-    #
-    #data['wallets'] = wallets
-    #data['wallet_balance'] = wallets.aggregate(Sum('balance'))['balance__sum'] or 0
     
     # Order information
     #orders = Order.objects.filter(corporation=corporation)
@@ -341,6 +351,7 @@ def trade(request):
         context_instance=RequestContext(request)
     )
 
+# ---------------------------------------------------------------------------
 # Trade overview for a variety of timeframe types
 @login_required
 def trade_timeframe(request, year=None, month=None, period=None, slug=None):
@@ -432,13 +443,11 @@ def trade_timeframe(request, year=None, month=None, period=None, slug=None):
         context_instance=RequestContext(request)
     )
 
-
-# Corp transaction details
+# ---------------------------------------------------------------------------
+# Transaction list
 @login_required
 def transactions(request):
     # Get a QuerySet of transactions by this user
-    #transactions = Transaction.objects.select_related('corp_wallet', 'item', 'station', 'character').filter(character__apikey__user=request.user.id).order_by('-date')
-    #transactions = Transaction.objects.select_related(depth=2).filter(character__apikey__user=request.user.id).order_by('-date')
     transactions = Transaction.objects.select_related('corp_wallet__corporation', 'item', 'station', 'character').filter(character__apikey__user=request.user.id).order_by('-date')
     
     # Create a new paginator
@@ -465,7 +474,8 @@ def transactions(request):
         context_instance=RequestContext(request)
     )
 
-# Corp transaction details for last x days for specific item
+# ---------------------------------------------------------------------------
+# Transaction details for last x days for specific item
 @login_required
 def transactions_item(request, item_id, year=None, month=None, period=None, slug=None):
     data = {}
@@ -518,6 +528,7 @@ def transactions_item(request, item_id, year=None, month=None, period=None, slug
         context_instance=RequestContext(request)
     )
 
+# ---------------------------------------------------------------------------
 # Active orders
 @login_required
 def orders(request):
@@ -533,7 +544,8 @@ def orders(request):
         context_instance=RequestContext(request)
     )
 
-
+# ---------------------------------------------------------------------------
+# Get a range of days for a year/month eg (01, 31)
 def _month_range(year, month):
     start = datetime.datetime(year, month, 1)
     end = datetime.datetime(year, month, calendar.monthrange(year, month)[1], 23, 59, 59)

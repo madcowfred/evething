@@ -10,7 +10,7 @@
       {% for character in chars %}
       {% if character %}
       <div class="span3 well-small well">
-        <span class="large"><a href="#">{{ character.name }}</a></span>
+        <span class="large"><a href="{% url evething.thing.views.character character.eve_character_id %}">{{ character.name }}</a></span>
         <span class="small pull-right">[{{ character.apikey.name }}]</span>
         <p>{{ character.wallet_balance|commas }} ISK</p>
         <!--<p>

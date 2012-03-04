@@ -82,12 +82,21 @@ class Character(models.Model):
     corporation = models.ForeignKey(Corporation)
     
     wallet_balance = models.DecimalField(max_digits=18, decimal_places=2)
+    
     cha_attribute = models.SmallIntegerField()
     int_attribute = models.SmallIntegerField()
     mem_attribute = models.SmallIntegerField()
     per_attribute = models.SmallIntegerField()
     wil_attribute = models.SmallIntegerField()
+    cha_bonus = models.SmallIntegerField()
+    int_bonus = models.SmallIntegerField()
+    mem_bonus = models.SmallIntegerField()
+    per_bonus = models.SmallIntegerField()
+    wil_bonus = models.SmallIntegerField()
     
+    clone_name = models.CharField(max_length=32)
+    clone_skill_points= models.IntegerField()
+
     skills = models.ManyToManyField('Item', related_name='learned_by', through='CharacterSkill')
     skill_queue = models.ManyToManyField('Item', related_name='training_by', through='SkillQueue')
     
@@ -102,6 +111,9 @@ class Character(models.Model):
     
     def __unicode__(self):
         return self.name
+
+    def get_total_skill_points(self):
+        return CharacterSkill.objects.filter(character=self).aggregate(total_sp=Sum('points'))['total_sp']
 
 # Character skills
 class CharacterSkill(models.Model):
@@ -276,6 +288,14 @@ class Item(models.Model):
             return Decimal('0')
         else:
             return Decimal(str(agg['movement__sum']))
+
+# ---------------------------------------------------------------------------
+# Skills
+#class Skill(models.Model):
+#    item = models.ForeignKey(Item)
+#    rank = models.SmallIntegerField()
+#    primary_attribute = 
+#    secondary_attribute = 
 
 # ---------------------------------------------------------------------------
 # Historical item price data

@@ -23,6 +23,7 @@ urlpatterns += patterns('evething.thing.views',
     url(r'^blueprints/$', 'blueprints', name='blueprints'),
     (r'^blueprints/add/$', 'blueprints_add'),
     (r'^bpcalc/$', 'bpcalc'),
+    (r'^character/(?P<character_id>\d+)/$', 'character'),
     (r'^orders/$', 'orders'),
     #(r'^status/$', 'status'),
     
