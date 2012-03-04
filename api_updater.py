@@ -104,6 +104,9 @@ class APIUpdater:
     # Do various API key things
     def api_check(self, apikey):
         root, times = self.fetch_api(API_INFO_URL, {}, apikey)
+        if root is None:
+            show_error('apicheck', 'HTTP error', times)
+            return
         
         # Check for errors
         err = root.find('error')
@@ -209,6 +212,9 @@ class APIUpdater:
         # Fetch the API data
         params = { 'characterID': character.eve_character_id }
         root, times = self.fetch_api(CHAR_SHEET_URL, params, apikey)
+        if root is None:
+            show_error('apicheck', 'HTTP error', times)
+            return
         err = root.find('error')
         if err is not None:
             show_error('charsheet', err, times)
@@ -289,6 +295,9 @@ class APIUpdater:
         # Fetch the API data
         params = { 'characterID': character.eve_character_id }
         root, times = self.fetch_api(SKILL_QUEUE_URL, params, apikey)
+        if root is None:
+            show_error('apicheck', 'HTTP error', times)
+            return
         err = root.find('error')
         if err is not None:
             show_error('charsheet', err, times)
@@ -321,6 +330,9 @@ class APIUpdater:
         params = { 'characterID': apikey.corp_character_id }
         
         root, times = self.fetch_api(BALANCE_URL, params, apikey)
+        if root is None:
+            show_error('apicheck', 'HTTP error', times)
+            return
         err = root.find('error')
         if err is not None:
             show_error('corpwallets', err, times)
@@ -362,6 +374,9 @@ class APIUpdater:
         params = { 'characterID': apikey.corp_character_id }
         
         root, times = self.fetch_api(CORP_SHEET_URL, params, apikey)
+        if root is None:
+            show_error('apicheck', 'HTTP error', times)
+            return
         err = root.find('error')
         if err is not None:
             show_error('corpsheet', err, times)
@@ -415,6 +430,9 @@ class APIUpdater:
         # Fetch the API data
         params = { 'characterID': character.eve_character_id }
         root, times = self.fetch_api(url, params, apikey)
+        if root is None:
+            show_error('apicheck', 'HTTP error', times)
+            return
         err = root.find('error')
         if err is not None:
             show_error('corporders', err, times)
@@ -529,6 +547,9 @@ class APIUpdater:
         one_week_ago = None
         while True:
             root, times = self.fetch_api(url, params, apikey)
+            if root is None:
+                show_error('apicheck', 'HTTP error', times)
+                return
             err = root.find('error')
             if err is not None:
                 # Fuck it, the API flat out lies about cache times
@@ -648,23 +669,19 @@ class APIUpdater:
                 sys.stdout.flush()
             
             # Fetch the URL
-            #f = urllib2.urlopen(url, urlencode(params))
-            #data = f.read()
-            #f.close()
-            
             r = requests.post(url, params)
             data = r.text
             open('/tmp/data.debug', 'w').write(data)
             
             if self.debug:
                 print '%s' % (datetime.datetime.utcnow() - now)
-        
+
+            # If the status code is bad return None
+            if not r.status_code == requests.codes.ok:
+                return (None, None)
+
         # Parse the XML
         root = ET.fromstring(data)
-        times = {
-            'current': parse_api_date(root.find('currentTime').text),
-            'until': parse_api_date(root.find('cachedUntil').text),
-        }
         
         # If the data wasn't cached, cache it now
         if apicaches.count() == 0:
@@ -685,8 +702,11 @@ def parse_api_date(s):
 
 # ---------------------------------------------------------------------------
 # Spit out an error message
-def show_error(text, err, times):
-    print '(%s) %s: %s | %s -> %s' % (text, err.attrib['code'], err.text, times['current'], times['until'])
+def show_error(func, err, times):
+    if hasattr(err, 'attrib'):
+        print '(%s) %s: %s | %s -> %s' % (func, err.attrib['code'], err.text, times['current'], times['until'])
+    else:
+        print '(%s) %s | %s -> %s' % (func, err, times['current'], times['until'])
 
 # ---------------------------------------------------------------------------
 # Caching item fetcher
