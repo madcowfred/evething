@@ -105,7 +105,7 @@ class APIUpdater:
     def api_check(self, apikey):
         root, times = self.fetch_api(API_INFO_URL, {}, apikey)
         if root is None:
-            show_error('apicheck', 'HTTP error', times)
+            show_error('api_check', 'HTTP error', times)
             return
         
         # Check for errors
@@ -119,7 +119,7 @@ class APIUpdater:
             if err.attrib['code'] in ('202', '203', '204', '205', '210', '212', '207', '220', '222', '223'):
                 apikey.valid = False
                 apikey.save()
-            show_error('apicheck', err, times)
+            show_error('api_check', err, times)
             return
         
         # Find the key node
@@ -213,11 +213,11 @@ class APIUpdater:
         params = { 'characterID': character.eve_character_id }
         root, times = self.fetch_api(CHAR_SHEET_URL, params, apikey)
         if root is None:
-            show_error('apicheck', 'HTTP error', times)
+            show_error('fetch_char_sheet', 'HTTP error', times)
             return
         err = root.find('error')
         if err is not None:
-            show_error('charsheet', err, times)
+            show_error('fetch_char_sheet', err, times)
             return
         
         # Update wallet balance
@@ -296,11 +296,11 @@ class APIUpdater:
         params = { 'characterID': character.eve_character_id }
         root, times = self.fetch_api(SKILL_QUEUE_URL, params, apikey)
         if root is None:
-            show_error('apicheck', 'HTTP error', times)
+            show_error('fetch_char_skill_queue', 'HTTP error', times)
             return
         err = root.find('error')
         if err is not None:
-            show_error('charsheet', err, times)
+            show_error('fetch_char_skill_queue', err, times)
             return
         
         # Delete the old queue
@@ -331,11 +331,11 @@ class APIUpdater:
         
         root, times = self.fetch_api(BALANCE_URL, params, apikey)
         if root is None:
-            show_error('apicheck', 'HTTP error', times)
+            show_error('fetch_corp_wallets', 'HTTP error', times)
             return
         err = root.find('error')
         if err is not None:
-            show_error('corpwallets', err, times)
+            show_error('fetch_corp_wallets', err, times)
             return
         
         corporation = apikey.corp_character.corporation
@@ -375,11 +375,11 @@ class APIUpdater:
         
         root, times = self.fetch_api(CORP_SHEET_URL, params, apikey)
         if root is None:
-            show_error('apicheck', 'HTTP error', times)
+            show_error('fetch_corp_sheet', 'HTTP error', times)
             return
         err = root.find('error')
         if err is not None:
-            show_error('corpsheet', err, times)
+            show_error('fetch_corp_sheet', err, times)
             return
         
         corporation = apikey.corp_character.corporation
@@ -431,11 +431,11 @@ class APIUpdater:
         params = { 'characterID': character.eve_character_id }
         root, times = self.fetch_api(url, params, apikey)
         if root is None:
-            show_error('apicheck', 'HTTP error', times)
+            show_error('fetch_orders', 'HTTP error', times)
             return
         err = root.find('error')
         if err is not None:
-            show_error('corporders', err, times)
+            show_error('fetch_orders', err, times)
             return
         
         # Generate an order_id map
@@ -548,7 +548,7 @@ class APIUpdater:
         while True:
             root, times = self.fetch_api(url, params, apikey)
             if root is None:
-                show_error('apicheck', 'HTTP error', times)
+                show_error('fetch_transactions', 'HTTP error', times)
                 return
             err = root.find('error')
             if err is not None:
@@ -575,7 +575,10 @@ class APIUpdater:
             
             # Query those transaction ids and delete any we've already seen
             for trans in t_filter.filter(transaction_id__in=t_map.keys()):
-                del t_map[trans.transaction_id]
+                if trans.transaction_id in t_map:
+                    del t_map[trans.transaction_id]
+                else:
+                    print 'WARNING: transaction_id not in t_map, what the fuck?'
             
             # Now iterate over the leftovers
             for transaction_id, (transaction_time, row) in t_map.items():
