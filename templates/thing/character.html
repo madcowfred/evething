@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% load thing_extras %}
+
+{% block title %}EVEthing: Character: {{ char.name }}{% endblock %}
+
+{% block content %}
+      <div class="row">
+        <div class="thumbnail span3">
+          <img src="http://image.eveonline.com/Character/{{ char.eve_character_id }}_256.jpg">
+        </div>
+        <div class="span9">
+          <h3>{{ char.name }}</h3>
+          <div class="row">
+            <div class="span4">
+              <p>Wallet: {{ char.wallet_balance|commas }} ISK</p>
+              <ul class="unstyled">
+                <li>Int: {{ char.int_attribute }} (+{{ char.int_bonus }})</li>
+                <li>Mem: {{ char.mem_attribute }} (+{{ char.mem_bonus }})</li>
+                <li>Per: {{ char.per_attribute }} (+{{ char.per_bonus }})</li>
+                <li>Wil: {{ char.wil_attribute }} (+{{ char.wil_bonus }})</li>
+                <li>Cha: {{ char.cha_attribute }} (+{{ char.cha_bonus }})</li>
+              </ul>
+            </div>
+            <div class="span3">
+              <ul class="unstyled">
+                <li>Total SP: {{ char.get_total_skill_points|commas }}</li>
+                <li>Clone limit: {{ char.clone_skill_points|commas }}</li>
+                <li>{{ char.clone_name }}</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+{% endblock %}
