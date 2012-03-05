@@ -10,8 +10,14 @@
       {% for character in chars %}
       {% if character %}
       <div class="span3 well-small well">
-        <span class="large"><a href="{% url evething.thing.views.character character.eve_character_id %}">{{ character.name }}</a></span>
-        <span class="small pull-right">[{{ character.apikey.name }}]</span>
+        <span class="large">
+          <a href="{% url evething.thing.views.character character.eve_character_id %}">
+            {% if sanitise %}character.name{% else %}{{ character.name }}{% endif %}
+          </a>
+        </span>
+        <span class="small pull-right">
+          {% if sanitise %}apikey.name{% else%}[{{ character.apikey.name }}]{% endif %}
+        </span>
         <p>{{ character.wallet_balance|commas }} ISK</p>
         <!--<p>
           Int: {{ character.int_attribute }} |
@@ -21,13 +27,15 @@
           Cha: {{ character.cha_attribute }}
         </p>-->
         {% if character.z_training %}
-        <span>{{ character.z_training.item.name }} {{ character.z_training.to_level }}</span><br>
+        <span>{{ character.z_training.skill.item.name }} {{ character.z_training.to_level }}</span><br>
         <em class="small">Finishes: {{ character.z_skill_duration|duration }}</em>
         {% if character.z_queue_duration > character.z_skill_duration %}
         <em class="small pull-right">Queue: {{ character.z_queue_duration|duration }}</em>
         {% endif %}
         <div class="progress {% if character.z_queue_duration < 86400 %} progress-danger{% endif%}">
-          <div class="bar" style="width: {{ character.z_training.get_complete_percentage }}%">{{ character.z_training.get_complete_percentage }}%</div>
+          {% with character.z_training.get_complete_percentage as complete_per %}
+          <div class="bar" style="width: {{ complete_per }}%">{{ complete_per }}%</div>
+          {% endwith %}
         </div>
         {% endif %}
       </div>
@@ -41,7 +49,9 @@
     <div class="row-fluid">
       {% for corporation in corporations %}
       <div class="span3">
-        <h4>{{ corporation.name }} [{{ corporation.ticker }}]</h4>
+        <h4>
+          {% if sanitise %}corporation.name [corporation.ticker]{% else %}{{ corporation.name }} [{{ corporation.ticker }}]{% endif %}
+        </h4>
         <table class="table table-striped table-bordered table-condensed">
           <thead>
             <tr class="l">
@@ -64,7 +74,7 @@
       </div>
       {% endfor %}
       
-      <div class="span6">
+      <!--<div class="span6">
         <h4>Orders</h4>
         <table class="table table-striped table-bordered table-condensed">
           <thead>
@@ -88,7 +98,7 @@
             {% endfor %}
           </tbody>
         </table>
-      </div>
+      </div>-->
     </div>
     {% endif %}
 {% endblock %}

@@ -1,3 +1,4 @@
+import os
 import sqlite3
 import sys
 import time
@@ -13,7 +14,7 @@ from thing.models import *
 
 # ---------------------------------------------------------------------------
 
-SDE_FILE = 'cru11-sqlite3-v1.dbs'
+SDE_FILE = 'cru11-sqlite3-v1.db'
 STATION_URL = 'http://eveapiproxy.wafflemonster.org/eve/ConquerableStationList.xml.aspx'
 
 # Override volume for ships, assembled volume is mostly useless :ccp:
@@ -66,7 +67,8 @@ class Importer:
             self.conn = None
     
     def import_all(self):
-        if self.conn is not None:
+        #if self.conn is not None:
+        if False:
             time_func('Region', self.import_region)
             time_func('Constellation', self.import_constellation)
             time_func('System', self.import_system)
@@ -76,6 +78,8 @@ class Importer:
             time_func('ItemGroup', self.import_itemgroup)
             time_func('Item', self.import_item)
             time_func('Blueprint', self.import_blueprint)
+
+        time_func('Skill', self.import_skill)
         
         time_func('Conquerable Station', self.import_conquerable_station)
     
@@ -429,7 +433,85 @@ class Importer:
                 added += 1
         
         return added
+    
+    # -----------------------------------------------------------------------
+    # Skills
+    def import_skill(self):
+        added = 0
 
+        skills = {}
+        self.cursor.execute("""
+            SELECT DISTINCT invTypes.typeID, CAST(dgmTypeAttributes.valueFloat AS integer) AS rank
+            FROM    invTypes
+            INNER JOIN invGroups ON (invTypes.groupID = invGroups.groupID)
+            INNER JOIN dgmTypeAttributes ON (invTypes.typeID = dgmTypeAttributes.typeID)
+            WHERE   invGroups.categoryID = 16
+                    AND invTypes.published = 1
+                    AND dgmTypeAttributes.attributeID = 275
+                    AND dgmTypeAttributes.valueFloat IS NOT NULL
+            ORDER BY invTypes.typeID
+        """)
+        for row in self.cursor:
+            skills[row[0]] = { 'rank': row[1], }
+
+        # Primary/secondary attributes
+        self.cursor.execute("""
+            SELECT  typeID, attributeID, valueInt, valueFloat
+            FROM    dgmTypeAttributes
+            WHERE   attributeID IN (180, 181)
+        """)
+        for row in self.cursor:
+            # skip unpublished
+            skill = skills.get(row[0], None)
+            if skill is None:
+                continue
+
+            if row[1] == 180:
+                k = 'pri'
+            else:
+                k = 'sec'
+            if row[2]:
+                skill[k] = row[2]
+            else:
+                skill[k] = row[3]
+
+        # filter skills I guess
+        skill_map = {}
+        for skill in Skill.objects.all():
+            skill_map[skill.item_id] = skill
+
+        for id, data in skills.items():
+            # TODO: add value verification
+            if id in skill_map:
+                continue
+
+            skill = Skill(
+                item_id=id,
+                rank=data['rank'],
+                primary_attribute=data['pri'],
+                secondary_attribute=data['sec'],
+            )
+            skill.save()
+            added += 1
+
+        return added
+
+# :skills:
+#       :prerequisite: # These are the attribute ids for skill prerequisites. [item, level]
+#         1: [182, 277]
+#         2: [183, 278]
+#         3: [184, 279]
+#         4: [1285, 1286]
+#         5: [1289, 1287]
+#         6: [1290, 1288]
+#       :primary_attribute: 180 # database attribute ID for primary attribute
+#       :secondary_attribute: 181 # database attribute ID for secondary attribute
+#       :attributes: # Mapping of id keys to the actual attribute
+#         165: :intelligence
+#         164: :charisma
+#         166: :memory
+#         167: :perception
+#         168: :willpower
 
 if __name__ == '__main__':
     importer = Importer()

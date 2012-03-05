@@ -165,6 +165,8 @@ class APIUpdater:
                         per_bonus=0,
                         wil_attribute=0,
                         wil_bonus=0,
+                        clone_name='',
+                        clone_skill_points=0,
                     )
                 # Character exists, update API key and corporation information
                 else:
@@ -262,21 +264,21 @@ class APIUpdater:
             skills[int(row.attrib['typeID'])] = (int(row.attrib['skillpoints']), int(row.attrib['level']))
         
         # Grab any already existing skills
-        char_skills = CharacterSkill.objects.select_related('item').filter(character=character, item__in=skills.keys())
+        char_skills = CharacterSkill.objects.select_related('item').filter(character=character, skill__in=skills.keys())
         for char_skill in char_skills:
-            points, level = skills[char_skill.item.id]
+            points, level = skills[char_skill.skill.item_id]
             if char_skill.points != points or char_skill.level != level:
                 char_skill.points = points
                 char_skill.level = level
                 char_skill.save()
             
-            del skills[char_skill.item.id]
+            del skills[char_skill.skill.item_id]
         
         # Add any leftovers
         for skill_id, (points, level) in skills.items():
             char_skill = CharacterSkill(
                 character=character,
-                item_id=skill_id,
+                skill_id=skill_id,
                 points=points,
                 level=level,
             )
@@ -311,7 +313,7 @@ class APIUpdater:
             if row.attrib['startTime'] and row.attrib['endTime']:
                 sq = SkillQueue(
                     character=character,
-                    item_id=row.attrib['typeID'],
+                    skill_id=row.attrib['typeID'],
                     start_time=row.attrib['startTime'],
                     end_time=row.attrib['endTime'],
                     start_sp=row.attrib['startSP'],

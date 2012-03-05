@@ -80,6 +80,7 @@ def home(request):
         {
             'corporations': corporations,
             'characters': first + last,
+            'sanitise': request.GET.get('sanitise', False)
         },
         context_instance=RequestContext(request)
     )

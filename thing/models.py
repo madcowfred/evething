@@ -4,6 +4,7 @@ from django.db.models import Q, Avg, Sum
 from mptt.models import MPTTModel, TreeForeignKey
 
 import datetime
+import math
 import time
 from decimal import *
 
@@ -97,8 +98,8 @@ class Character(models.Model):
     clone_name = models.CharField(max_length=32)
     clone_skill_points= models.IntegerField()
 
-    skills = models.ManyToManyField('Item', related_name='learned_by', through='CharacterSkill')
-    skill_queue = models.ManyToManyField('Item', related_name='training_by', through='SkillQueue')
+    skills = models.ManyToManyField('Skill', related_name='learned_by', through='CharacterSkill')
+    skill_queue = models.ManyToManyField('Skill', related_name='training_by', through='SkillQueue')
     
     # industry stuff
     factory_cost = models.DecimalField(max_digits=8, decimal_places=2, default=0.0)
@@ -118,15 +119,18 @@ class Character(models.Model):
 # Character skills
 class CharacterSkill(models.Model):
     character = models.ForeignKey('Character')
-    item = models.ForeignKey('Item')
+    skill = models.ForeignKey('Skill')
     
     level = models.SmallIntegerField()
     points = models.IntegerField()
 
+    def __unicode__(self):
+        return '%s: %s (%s; %s SP)' % (self.character, self.skill.item.name, self.level, self.points)
+
 # Skill queue
 class SkillQueue(models.Model):
     character = models.ForeignKey('Character')
-    item = models.ForeignKey('Item')
+    skill = models.ForeignKey('Skill')
     
     start_time = models.DateTimeField()
     end_time = models.DateTimeField()
@@ -140,7 +144,22 @@ class SkillQueue(models.Model):
     def get_complete_percentage(self):
         total = (self.end_time - self.start_time).total_seconds()
         elapsed = (datetime.datetime.utcnow() - self.start_time).total_seconds()
-        return int(elapsed / total * 100)
+
+        real_start_sp = self.skill.get_sp_at_level(self.to_level - 1)
+        current_sp = CharacterSkill.objects.get(character=self.character, skill=self.skill).points
+
+        if current_sp > real_start_sp:
+            progress = current_sp - real_start_sp
+            finish = self.end_sp - real_start_sp
+
+            sppm = self.skill.get_sp_per_minute(self.character)
+            guess = progress + (elapsed / 60 * sppm)
+
+            #this_progress = round(float(progress) / finish * 100, 1)
+            #return this_progress
+            return round(guess / finish * 100, 1)
+        else:
+            return round(elapsed / total * 100, 1)
     
     def get_remaining(self):
         remaining = (self.end_time - datetime.datetime.utcnow()).total_seconds()
@@ -291,11 +310,51 @@ class Item(models.Model):
 
 # ---------------------------------------------------------------------------
 # Skills
-#class Skill(models.Model):
-#    item = models.ForeignKey(Item)
-#    rank = models.SmallIntegerField()
-#    primary_attribute = 
-#    secondary_attribute = 
+class Skill(models.Model):
+    CHARISMA_ATTRIBUTE = 164
+    INTELLIGENCE_ATTRIBUTE = 165
+    MEMORY_ATTRIBUTE = 166
+    PERCEPTION_ATTRIBUTE = 167
+    WILLPOWER_ATTRIBUTE = 168
+    ATTRIBUTE_CHOICES = (
+        (CHARISMA_ATTRIBUTE, 'Cha'),
+        (INTELLIGENCE_ATTRIBUTE, 'Int'),
+        (MEMORY_ATTRIBUTE, 'Mem'),
+        (PERCEPTION_ATTRIBUTE, 'Per'),
+        (WILLPOWER_ATTRIBUTE, 'Wil'),
+    )
+
+    ATTRIBUTE_MAP = {
+        CHARISMA_ATTRIBUTE: ('cha_attribute', 'cha_bonus'),
+        INTELLIGENCE_ATTRIBUTE: ('int_attribute', 'int_bonus'),
+        MEMORY_ATTRIBUTE: ('mem_attribute', 'mem_bonus'),
+        PERCEPTION_ATTRIBUTE: ('per_attribute', 'per_bonus'),
+        WILLPOWER_ATTRIBUTE: ('wil_attribute', 'wil_bonus'),
+    }
+
+    item = models.OneToOneField(Item, primary_key=True)
+    rank = models.SmallIntegerField()
+    primary_attribute = models.SmallIntegerField(choices=ATTRIBUTE_CHOICES)
+    secondary_attribute = models.SmallIntegerField(choices=ATTRIBUTE_CHOICES)
+
+    def __unicode__(self):
+        return '%s (Rank %d; %s/%s)' % (self.item.name, self.rank, self.get_primary_attribute_display(),
+            self.get_secondary_attribute_display())
+
+    def get_sp_at_level(self, level):
+        if level == 0:
+            return 0
+        else:
+            return int(math.ceil(2 ** ((2.5 * level) - 2.5) * 250 * self.rank))
+
+    def get_sp_per_minute(self, character):
+        pri_attrs = Skill.ATTRIBUTE_MAP[self.primary_attribute]
+        sec_attrs = Skill.ATTRIBUTE_MAP[self.secondary_attribute]
+
+        pri = getattr(character, pri_attrs[0]) + getattr(character, pri_attrs[1])
+        sec = getattr(character, sec_attrs[0]) + getattr(character, sec_attrs[1])
+
+        return pri + (sec / 2.0)
 
 # ---------------------------------------------------------------------------
 # Historical item price data
