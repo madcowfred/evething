@@ -67,8 +67,7 @@ class Importer:
             self.conn = None
     
     def import_all(self):
-        #if self.conn is not None:
-        if False:
+        if self.conn is not None:
             time_func('Region', self.import_region)
             time_func('Constellation', self.import_constellation)
             time_func('System', self.import_system)
@@ -78,8 +77,7 @@ class Importer:
             time_func('ItemGroup', self.import_itemgroup)
             time_func('Item', self.import_item)
             time_func('Blueprint', self.import_blueprint)
-
-        time_func('Skill', self.import_skill)
+            time_func('Skill', self.import_skill)
         
         time_func('Conquerable Station', self.import_conquerable_station)
     
