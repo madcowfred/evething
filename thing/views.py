@@ -49,10 +49,15 @@ ON ig.category_id = ic.id
 # Home page
 @login_required
 def home(request):
+    total_balance = 0
+
+    apikeys = {}
     chars = OrderedDict()
     for char in Character.objects.select_related('apikey').filter(apikey__user=request.user.id).order_by('apikey__name', 'name'):
+        total_balance += char.wallet_balance
         char.z_training = None
         chars[char.eve_character_id] = char
+        apikeys[char.apikey.id] = True
     
     utcnow = datetime.datetime.utcnow()
     queues = SkillQueue.objects.select_related().filter(character__in=chars.keys(), end_time__gte=utcnow)
@@ -61,8 +66,12 @@ def home(request):
         if char.z_training is None:
             char.z_training = sq
             char.z_skill_duration = (sq.end_time - utcnow).total_seconds()
+            char.z_spph = int(sq.skill.get_sp_per_minute(char) * 60)
         
         char.z_queue_duration = (sq.end_time - utcnow).total_seconds()
+
+        if char.apikey.id in apikeys:
+            del apikeys[char.apikey.id]
     
     first = []
     last = []
@@ -78,6 +87,8 @@ def home(request):
     return render_to_response(
         'thing/home.html',
         {
+            'not_training': apikeys,
+            'total_balance': total_balance,
             'corporations': corporations,
             'characters': first + last,
             'sanitise': request.GET.get('sanitise', False)

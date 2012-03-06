@@ -19,13 +19,29 @@
           <a class="brand" href="https://github.com/madcowfred/evething">EVEthing</a>
           <div class="nav-collapse">
             <ul class="nav">
-              <li{% block nav_home_class %}{% endblock %}><a href="{% url home %}">Home</a></li>
-              <li{% block nav_blueprints_class %}{% endblock %}><a href="{% url evething.thing.views.blueprints %}">Blueprints</a></li>
-              <li{% block nav_contracts_class %}{% endblock %}><a href="#">Contracts</a></li>
-              <li{% block nav_industry_class %}{% endblock %}><a href="#">Industry</a></li>
-              <li{% block nav_orders_class %}{% endblock %}><a href="{% url evething.thing.views.orders %}">Orders</a></li>
-              <li{% block nav_trade_class %}{% endblock %}><a href="{% url evething.thing.views.trade %}">Trade</a></li>
-              <li{% block nav_transactions_class %}{% endblock %}><a href="{% url evething.thing.views.transactions %}">Transactions</a></li>
+              <li{% block nav_home_class %}{% endblock %}>
+                <a href="{% url home %}"><i class="icon-home icon-white"></i>Home</a>
+              </li>
+              <li{% block nav_assets_class %}{% endblock %}>
+                <a href="#">Assets</a>
+              </li>
+              <li{% block nav_blueprints_class %}{% endblock %}>
+                <a href="{% url evething.thing.views.blueprints %}">Blueprints</a>
+              </li>
+              <li{% block nav_contracts_class %}{% endblock %}>
+                <a href="#">Contracts</a>
+              </li>
+              <li{% block nav_industry_class %}{% endblock %}>
+                <a href="#">Industry</a></li>
+              <li{% block nav_orders_class %}{% endblock %}>
+                <a href="{% url evething.thing.views.orders %}">Orders</a>
+              </li>
+              <li{% block nav_trade_class %}{% endblock %}>
+                <a href="{% url evething.thing.views.trade %}">Trade</a>
+              </li>
+              <li{% block nav_transactions_class %}{% endblock %}>
+                <a href="{% url evething.thing.views.transactions %}">Transactions</a>
+              </li>
             </ul>
           </div>
           <p class="navbar-text pull-right">

@@ -5,7 +5,10 @@ import os
 import requests
 import sys
 import time
-import xml.etree.ElementTree as ET
+try:
+    import xml.etree.cElementTree as ET
+except:
+    import xml.etree.ElementTree as ET
 from collections import OrderedDict
 from decimal import *
 
@@ -24,6 +27,8 @@ BASE_URL = 'http://eveapiproxy.wafflemonster.org'
 #BASE_URL = 'http://api.eveonline.com'
 
 API_INFO_URL = '%s/account/APIKeyInfo.xml.aspx' % (BASE_URL)
+ASSETS_CHAR_URL = '%s/char/AssetList.xml.aspx' % (BASE_URL)
+ASSETS_CORP_URL = '%s/corp/AssetList.xml.aspx' % (BASE_URL)
 BALANCE_URL = '%s/corp/AccountBalance.xml.aspx' % (BASE_URL)
 CHAR_SHEET_URL = '%s/char/CharacterSheet.xml.aspx' % (BASE_URL)
 CORP_SHEET_URL = '%s/corp/CorporationSheet.xml.aspx' % (BASE_URL)
@@ -68,6 +73,9 @@ class APIUpdater:
                     
                     # Fetch market orders
                     self.fetch_orders(apikey, character)
+
+                    # Fetch assets
+                    #self.fetch_assets(apikey, character)
             
             # Corporation key
             elif apikey.key_type == APIKey.CORPORATION_TYPE:
@@ -87,6 +95,9 @@ class APIUpdater:
                 
                 # Fetch market orders
                 self.fetch_orders(apikey, character)
+
+                # Fetch assets
+                #self.fetch_assets(apikey, character)
         
         # All done, clean up any out-of-date cached API requests
         now = datetime.datetime.utcnow()
@@ -406,6 +417,73 @@ class APIUpdater:
                     else:
                         print 'ERROR: no matching CorpWallet object for corpID=%s accountKey=%s' % (corporation.id, row.attrib['accountKey'])
     
+    # -----------------------------------------------------------------------
+    # Fetch and add/update assets
+    def fetch_assets(self, apikey, character):
+        # Initialise for corporate query
+        if apikey.corp_character:
+            mask = 2
+            url = ASSETS_CORP_URL
+            a_filter = Asset.objects.filter(corporation=apikey.corp_character.corporation)
+
+        # Initialise for character query
+        else:
+            mask = 2
+            url = ASSETS_CHAR_URL
+            a_filter = Asset.objects.filter(character=character)
+
+        # Make sure the access mask matches
+        if (apikey.access_mask & mask) == 0:
+            return
+
+        # Fetch the API data
+        params = { 'characterID': character.eve_character_id }
+        root, times = self.fetch_api(url, params, apikey)
+        if root is None:
+            show_error('fetch_assets', 'HTTP error', times)
+            return
+        err = root.find('error')
+        if err is not None:
+            show_error('fetch_assets', err, times)
+            return
+
+        open('assets.xml', 'w').write(ET.tostring(root))
+
+        # Generate an asset_id map
+        asset_map = {}
+        for asset in a_filter:
+            asset_map[asset.id] = asset
+
+        # Iterate over the returned result set
+        rowsets = [root.find('result/rowset')]
+        while rowsets:
+            rowset = rowsets.pop(0)
+
+            for row in rowset.findall('row'):
+                # find any children rowsets first
+                rowsets.extend(row.findall('rowset'))
+
+                asset_id = int(row.attrib('itemID'))
+                asset = asset_map.get(asset_id, None)
+                #if asset_id in asset_map:
+                #    if 
+
+                location_id = int(row.attrib('locationID'))
+
+                try:
+                    station = Station.objects.get(id=location_id)
+                except Station.DoesNotExist:
+                    print 'not station:', row
+                    continue
+
+    # <row flag="4" itemID="1005803741159" locationID="60008494" quantity="1" rawQuantity="-1" singleton="1" typeID="596">
+    #   <rowset columns="itemID,typeID,quantity,flag,singleton" key="itemID" name="contents">
+    #     <row flag="27" itemID="1005803741162" quantity="1" rawQuantity="-1" singleton="1" typeID="3634" />
+    #     <row flag="28" itemID="1005803741163" quantity="1" rawQuantity="-1" singleton="1" typeID="3651" />
+    #     <row flag="5" itemID="1005803741175" quantity="1" singleton="0" typeID="34" />
+    #   </rowset>
+    # </row>
+
     # -----------------------------------------------------------------------
     # Fetch and add/update orders
     def fetch_orders(self, apikey, character):
