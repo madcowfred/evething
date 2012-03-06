@@ -52,12 +52,12 @@ td.r { text-align: right; }
   padding: 3px 4px;
 }
 .progress {
-  background-image: -moz-linear-gradient(top, #e2ffff, #eaffff);
-  background-image: -ms-linear-gradient(top, #e2ffff, #eaffff);
-  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#e2ffff), to(#eaffff));
-  background-image: -webkit-linear-gradient(top, #e2ffff, #eaffff);
-  background-image: -o-linear-gradient(top, #e2ffff, #eaffff);
-  background-image: linear-gradient(top, #e2ffff, #eaffff);
+  background-image: -moz-linear-gradient(top, #cfcfcf, #dadada);
+  background-image: -ms-linear-gradient(top, #cfcfcf, #dadada);
+  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#cfcfcf), to(#dadada));
+  background-image: -webkit-linear-gradient(top, #cfcfcf, #dadada);
+  background-image: -o-linear-gradient(top, #cfcfcf, #dadada);
+  background-image: linear-gradient(top, #cfcfcf, #dadada);
 }
 .well-small {
   padding: 10px;
@@ -67,6 +67,9 @@ td.r { text-align: right; }
 }
 hr {
   margin-top: 0px;
+}
+.progress .bar {
+  text-shadow: 0 0 5px #000000;
 }
 
 /* tablesorter styles */
