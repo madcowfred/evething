@@ -12,7 +12,7 @@ WHERE   corporation_id IN (
 ORDER BY c.name, cw.account_key
 """
 
-item_ids_nope """
+item_ids_nope = """
 SELECT  item_id
 FROM    thing_marketorder
 UNION
