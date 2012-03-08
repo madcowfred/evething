@@ -12,10 +12,13 @@ WHERE   corporation_id IN (
 ORDER BY c.name, cw.account_key
 """
 
-all_item_ids = """
+item_ids_nope """
 SELECT  item_id
 FROM    thing_marketorder
 UNION
+"""
+
+all_item_ids = """
 SELECT  bp.item_id
 FROM    thing_blueprint bp, thing_blueprintinstance bpi
 WHERE   bp.id = bpi.blueprint_id
