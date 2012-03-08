@@ -2,7 +2,6 @@
 {% load thing_extras %}
 
 {% block title %}EVEthing: Home{% endblock %}
-{% block nav_home_class %} class="active"{% endblock %}
 
 {% block content %}
     <div class="row-fluid">
@@ -52,7 +51,7 @@
     {% endfor %}
     
     {% if corporations %}
-    <hr>
+    <hr class="nomargin">
     <div class="row-fluid">
       {% for corporation in corporations %}
       <div class="span3">

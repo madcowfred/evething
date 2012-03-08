@@ -12,38 +12,7 @@ from django.shortcuts import *
 from django.template import RequestContext
 
 from evething.thing.models import *
-
-
-# This is the nasty trade timeframe thing. Be afraid.
-# I hope one day I can do this via the Django ORM :p
-TRADE_TIMEFRAME_JOIN = """
-SELECT
-  COALESCE(t1.item_id, t2.item_id) AS id,
-  i.name,
-  ic.name AS cat_name,
-  i.sell_price,
-  t1.buy_maximum, t1.buy_quantity, t1.buy_total, t1.buy_minimum,
-  t2.sell_maximum, t2.sell_quantity, t2.sell_total, t2.sell_minimum,
-  t1.buy_total / t1.buy_quantity AS buy_average,
-  t2.sell_total / t2.sell_quantity AS sell_average,
-  COALESCE(t2.sell_total, 0) - COALESCE(t1.buy_total, 0) AS balance,
-  t1.buy_quantity - t2.sell_quantity AS diff
-FROM
-(
-  %s
-) t1
-FULL OUTER JOIN
-(
-  %s
-) t2
-ON t1.item_id = t2.item_id
-INNER JOIN thing_item i
-ON i.id = COALESCE(t1.item_id, t2.item_id)
-INNER JOIN thing_itemgroup ig
-ON i.item_group_id = ig.id
-INNER JOIN thing_itemcategory ic
-ON ig.category_id = ic.id
-"""
+from evething.thing import queries
 
 # ---------------------------------------------------------------------------
 # Home page
@@ -415,7 +384,7 @@ def trade_timeframe(request, year=None, month=None, period=None, slug=None):
     buy_sql = item_buy_data._as_sql(connection)
     sell_sql = item_sell_data._as_sql(connection)
     
-    query = TRADE_TIMEFRAME_JOIN % (buy_sql[0], sell_sql[0])
+    query = queries.trade_timeframe % (buy_sql[0], sell_sql[0])
     params = buy_sql[1] + sell_sql[1]
     
     # Make Item objects out of the nasty query
@@ -552,6 +521,25 @@ def orders(request):
         'thing/orders.html',
         {
             'orders': orders
+        },
+        context_instance=RequestContext(request)
+    )
+
+# ---------------------------------------------------------------------------
+# Market scan
+@login_required
+def market_scan(request):
+    cursor = connection.cursor()
+
+    item_ids = []
+    cursor.execute(queries.all_item_ids)
+    for row in cursor:
+        item_ids.append(row[0])
+
+    return render_to_response(
+        'thing/market_scan.html',
+        {
+            'item_ids': item_ids,
         },
         context_instance=RequestContext(request)
     )

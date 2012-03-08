@@ -65,7 +65,7 @@ td.r { text-align: right; }
 .well-small .progress {
   margin-bottom: 2px;
 }
-hr {
+hr.nomargin {
   margin-top: 0px;
 }
 .progress .bar {

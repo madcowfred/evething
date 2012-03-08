@@ -8,6 +8,17 @@
     <script src="{{ STATIC_URL }}bootstrap.min.js"></script>
     <link rel="stylesheet" href="{{ STATIC_URL }}bootstrap.min.css">
     <link rel="stylesheet" href="{{ STATIC_URL }}evething.css" />
+    <script type="text/javascript">
+      $(document).ready(function() {
+        // highlight currently active link
+        var path = window.location.pathname;
+        $('#nav-list li a').each(function() {
+          if ($(this).attr('href') == path) {
+            $(this).parent().addClass('active');
+          }
+        });
+      });
+    </script>
     {% block extra_head %}{% endblock %}
     <title>{% block title %}EVEthing{% endblock %}</title>
   </head>
@@ -18,30 +29,16 @@
         <div class="container-fluid">
           <a class="brand" href="https://github.com/madcowfred/evething">EVEthing</a>
           <div class="nav-collapse">
-            <ul class="nav">
-              <li{% block nav_home_class %}{% endblock %}>
-                <a href="{% url home %}"><i class="icon-home icon-white"></i>Home</a>
-              </li>
-              <li{% block nav_assets_class %}{% endblock %}>
-                <a href="#">Assets</a>
-              </li>
-              <li{% block nav_blueprints_class %}{% endblock %}>
-                <a href="{% url evething.thing.views.blueprints %}">Blueprints</a>
-              </li>
-              <li{% block nav_contracts_class %}{% endblock %}>
-                <a href="#">Contracts</a>
-              </li>
-              <li{% block nav_industry_class %}{% endblock %}>
-                <a href="#">Industry</a></li>
-              <li{% block nav_orders_class %}{% endblock %}>
-                <a href="{% url evething.thing.views.orders %}">Orders</a>
-              </li>
-              <li{% block nav_trade_class %}{% endblock %}>
-                <a href="{% url evething.thing.views.trade %}">Trade</a>
-              </li>
-              <li{% block nav_transactions_class %}{% endblock %}>
-                <a href="{% url evething.thing.views.transactions %}">Transactions</a>
-              </li>
+            <ul class="nav" id="nav-list">
+              <li><a href="{% url home %}"><i class="icon-home icon-white"></i>Home</a></li>
+              <li><a href="#">Assets</a></li>
+              <li><a href="{% url evething.thing.views.blueprints %}">Blueprints</a></li>
+              <li><a href="#">Contracts</a></li>
+              <li><a href="#">Industry</a></li>
+              <li><a href="{% url evething.thing.views.orders %}">Orders</a></li>
+              <li><a href="{% url evething.thing.views.trade %}">Trade</a></li>
+              <li><a href="{% url evething.thing.views.transactions %}">Transactions</a></li>
+              <li><a href="{% url evething.thing.views.market_scan %}">Market Scan</a></li>
             </ul>
           </div>
           <p class="navbar-text pull-right">

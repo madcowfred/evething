@@ -13,40 +13,26 @@ setup_environ(settings)
 
 from django.db import connection
 from thing.models import *
+from thing import queries
 
 
+PER_REQUEST = 100
 PRICE_URL = 'http://goonmetrics.com/api/price_data/?station_id=60003760&type_id=%s'
+
 
 def main():
     cursor = connection.cursor()
     
     # Get a list of all item_ids
     item_ids = []
-    cursor.execute("""
-    SELECT  item_id
-FROM    thing_marketorder
-UNION
-SELECT  bp.item_id
-FROM    thing_blueprint bp, thing_blueprintinstance bpi
-WHERE   bp.id = bpi.blueprint_id
-UNION
-SELECT  item_id
-FROM    thing_blueprintcomponent
-WHERE   blueprint_id IN (
-            SELECT  blueprint_id
-            FROM    thing_blueprintinstance
-)
-    """)
+    cursor.execute(queries.all_item_ids)
     for row in cursor:
         item_ids.append(row[0])
-    
+
     # Fetch market data and write to the database
-    item_ids = list(item_ids)
-    item_ids.sort()
-    
-    for i in range(0, len(item_ids), 50):
+    for i in range(0, len(item_ids), PER_REQUEST):
         # Retrieve market data and parse the XML
-        tstring = ','.join(str(item_id) for item_id in item_ids[i:i+50])
+        tstring = ','.join(str(item_id) for item_id in item_ids[i:i+PER_REQUEST])
         url = PRICE_URL % (tstring)
         f = urllib2.urlopen(url)
         data = f.read()
@@ -59,8 +45,6 @@ WHERE   blueprint_id IN (
             item.buy_price = t.find('buy/max').text
             item.sell_price = t.find('sell/min').text
             item.save()
-        
-        #time.sleep(1)
 
 
 if __name__ == '__main__':

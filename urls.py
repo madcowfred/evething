@@ -25,7 +25,7 @@ urlpatterns += patterns('evething.thing.views',
     (r'^bpcalc/$', 'bpcalc'),
     (r'^character/(?P<character_id>\d+)/$', 'character'),
     (r'^orders/$', 'orders'),
-    #(r'^status/$', 'status'),
+    (r'^market_scan/$', 'market_scan'),
     
     (r'^trade/$', 'trade'),
     (r'^trade/(?P<year>\d{4})-(?P<month>\d{2})/$', 'trade_timeframe'),
