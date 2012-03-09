@@ -14,34 +14,44 @@
       {% for character in chars %}
       {% if character %}
       <div class="span3 well-small well{% if character.apikey.id in not_training %} alert-error{% endif %}">
-        <span class="large">
-          <a href="{% url evething.thing.views.character character.eve_character_id %}">
-            {% if sanitise %}character.name{% else %}{{ character.name }}{% endif %}
-          </a>
-        </span>
-        <span class="small pull-right">
-          {% if sanitise %}apikey.name{% else%}[{{ character.apikey.name }}]{% endif %}
-        </span>
-        <p>{{ character.wallet_balance|commas }} ISK</p>
-        <!--<p>
-          Int: {{ character.int_attribute }} |
-          Mem: {{ character.mem_attribute }} |
-          Per: {{ character.per_attribute }} |
-          Wil: {{ character.wil_attribute }} |
-          Cha: {{ character.cha_attribute }}
-        </p>-->
+        <div>
+          <span class="large">
+            <a href="{% url evething.thing.views.character character.eve_character_id %}">
+              {% if sanitise %}character.name{% else %}{{ character.name }}{% endif %}
+            </a>
+          </span>
+          <span class="small pull-right">
+            {% if character.apikey.name == 'madcowfred2' or character.apikey.name == 'wafflemonster' %}
+            <i class="icon-time" rel="tooltip" title="Account expires in 7d"></i>
+            {% endif %}
+            [{% if sanitise %}apikey.name{% else%}{{ character.apikey.name }}{% endif %}]
+          </span>
+        </div>
+
+        <div>
+          <span>{{ character.wallet_balance|commas }} ISK</span>
+          <span class="small pull-right">
+            {% with character.get_total_skill_points as total_sp %}
+            {% if total_sp > character.clone_skill_points %}<i class="icon-user" rel="tooltip" title="Insufficient clone: {{ character.clone_skill_points|commas }} SP"></i>{% endif %}
+            {{ total_sp|commas }} SP
+            {% endwith %}
+          </span>
+        </div>
+
         {% if character.z_training %}
-        <span>{{ character.z_training.skill.item.name }} {{ character.z_training.get_roman_level }} (Rank {{ character.z_training.skill.rank }})</span>
-        <span class="pull-right">{{ character.z_spph }} SP/hr</span>
-        <br>
-        <em class="small">Finishes: {{ character.z_skill_duration|duration }}</em>
-        {% if character.z_queue_duration > character.z_skill_duration %}
-        <em class="small pull-right">Queue: {{ character.z_queue_duration|duration }}</em>
-        {% endif %}
-        <div class="progress {% if character.z_queue_duration < 86400 %} progress-danger{% endif%}">
-          {% with character.z_training.get_complete_percentage as complete_per %}
-          <div class="bar" style="width: {{ complete_per }}%">{{ complete_per }}%</div>
-          {% endwith %}
+        <div class="training">
+          <span>{{ character.z_training.skill.item.name }} {{ character.z_training.get_roman_level }} (Rank {{ character.z_training.skill.rank }})</span>
+          <span class="pull-right">{{ character.z_spph }} SP/hr</span>
+          <br>
+          <em class="small">Finishes: {{ character.z_skill_duration|duration }}</em>
+          {% if character.z_queue_duration > character.z_skill_duration %}
+          <em class="small pull-right">Queue: {{ character.z_queue_duration|duration }}</em>
+          {% endif %}
+          <div class="progress {% if character.z_queue_duration < 86400 %} progress-danger{% endif%}">
+            {% with character.z_training.get_complete_percentage as complete_per %}
+            <div class="bar" style="width: {{ complete_per }}%">{{ complete_per }}%</div>
+            {% endwith %}
+          </div>
         </div>
         {% endif %}
       </div>

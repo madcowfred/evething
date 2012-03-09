@@ -29,6 +29,8 @@ class APIKey(models.Model):
     # this is only used for corporate keys, ugh
     corp_character = models.ForeignKey('Character', null=True, blank=True, related_name='corporate_apikey')
     
+    paid_until = models.DateTimeField(null=True, blank=True)
+
     class Meta:
         ordering = ('id',)
     

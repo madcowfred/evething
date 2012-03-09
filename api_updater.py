@@ -26,6 +26,7 @@ from thing.models import *
 BASE_URL = 'http://eveapiproxy.wafflemonster.org'
 #BASE_URL = 'http://api.eveonline.com'
 
+ACCOUNT_INFO_URL = '%s/account/AccountStatus.xml.aspx' % (BASE_URL)
 API_INFO_URL = '%s/account/APIKeyInfo.xml.aspx' % (BASE_URL)
 ASSETS_CHAR_URL = '%s/char/AssetList.xml.aspx' % (BASE_URL)
 ASSETS_CORP_URL = '%s/corp/AssetList.xml.aspx' % (BASE_URL)
@@ -51,6 +52,7 @@ class APIUpdater:
         # Make sure API keys are valid and various character things are up to date
         for apikey in APIKey.objects.select_related().filter(valid=True):
             self.api_check(apikey)
+            self.fetch_account_status(apikey)
 
         # Generate a character id map
         self.char_id_map = {}
@@ -215,6 +217,32 @@ class APIUpdater:
             apikey.corp_character = character
             apikey.save()
     
+    # -----------------------------------------------------------------------
+    # Fetch account status
+    def fetch_account_status(self, apikey):
+        # Don't check corporate keys
+        if apikey.corp_character:
+            return
+
+        # Make sure the access mask matches
+        if (apikey.access_mask & 33554432) == 0:
+            return
+
+        # Fetch the API data
+        root, times = self.fetch_api(ACCOUNT_INFO_URL, {}, apikey)
+        if root is None:
+            show_error('fetch_account_status', 'HTTP error', times)
+            return
+        err = root.find('error')
+        if err is not None:
+            show_error('fetch_account_status', err, times)
+            return
+
+        # Update paid_until
+        apikey.paid_until = parse_api_date(root.findtext('result/paidUntil'))
+
+        apikey.save()
+
     # -----------------------------------------------------------------------
     # Fetch and add/update character sheet data
     def fetch_char_sheet(self, apikey, character):

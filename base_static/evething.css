@@ -44,8 +44,12 @@ tr.c td.r,
 td.r { text-align: right; }
 
 .dot { border-bottom: 1px dotted; }
-.large { font-size: 1.1em; }
-.small { font-size: 0.9em; }
+.large { font-size: 1.15em; }
+.small { font-size: 0.85em; }
+
+div.training {
+  margin-top: 0.7em;
+}
 
 /* override bootstrap settings */
 .table-condensed th, .table-condensed td {
@@ -60,7 +64,7 @@ td.r { text-align: right; }
   background-image: linear-gradient(top, #cfcfcf, #dadada);
 }
 .well-small {
-  padding: 10px;
+  padding: 8px;
 }
 .well-small .progress {
   margin-bottom: 2px;

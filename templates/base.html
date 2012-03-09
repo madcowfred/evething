@@ -17,6 +17,9 @@
             $(this).parent().addClass('active');
           }
         });
+
+        // activate bootstrap tooltips
+        $("[rel=tooltip]").tooltip();
       });
     </script>
     {% block extra_head %}{% endblock %}
