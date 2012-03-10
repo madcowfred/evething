@@ -20,6 +20,9 @@ from evething.thing import queries
 def home(request):
     total_balance = 0
 
+    now = datetime.datetime.utcnow()
+    expire_check = datetime.timedelta(11)
+
     apikeys = {}
     chars = OrderedDict()
     for char in Character.objects.select_related('apikey').filter(apikey__user=request.user.id).order_by('apikey__name', 'name'):
@@ -27,7 +30,12 @@ def home(request):
         char.z_training = None
         chars[char.eve_character_id] = char
         apikeys[char.apikey.id] = True
+
+        timediff = char.apikey.paid_until - now
+        if timediff < expire_check:
+            char.z_expires = timediff.total_seconds()
     
+    # Do skill training check - this should really be in the model
     utcnow = datetime.datetime.utcnow()
     queues = SkillQueue.objects.select_related().filter(character__in=chars.keys(), end_time__gte=utcnow)
     for sq in queues:
@@ -42,6 +50,7 @@ def home(request):
         if char.apikey.id in apikeys:
             del apikeys[char.apikey.id]
     
+    # Make separate lists of training and not training characters
     first = []
     last = []
     for char in chars.values():
@@ -50,6 +59,7 @@ def home(request):
         else:
             first.append(char)
     
+    # Get corporations this user has APIKeys for
     corp_ids = APIKey.objects.filter(user=request.user.id).exclude(corp_character=None).values_list('corp_character__corporation', flat=True)
     corporations = Corporation.objects.filter(pk__in=corp_ids)
     
@@ -536,7 +546,7 @@ def market_scan(request):
     for row in cursor:
         item_ids.append(row[0])
 
-    return render_to_response(
+    return render_to_responsse(
         'thing/market_scan.html',
         {
             'item_ids': item_ids,

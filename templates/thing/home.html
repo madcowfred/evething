@@ -22,8 +22,8 @@
               </a>
             </span>
             <span class="small pull-right">
-              {% if character.apikey.paid_until %}
-              <!--<i class="icon-time" rel="tooltip" title="Account expires in 7d"></i>-->
+              {% if character.z_expires %}
+              <i class="icon-time" rel="tooltip" title="Account expires in {{ character.z_expires|duration }}"></i>
               {% endif %}
               [{% if sanitise %}apikey.name{% else%}{{ character.apikey.name }}{% endif %}]
             </span>
