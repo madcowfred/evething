@@ -546,7 +546,7 @@ def market_scan(request):
     for row in cursor:
         item_ids.append(row[0])
 
-    return render_to_responsse(
+    return render_to_response(
         'thing/market_scan.html',
         {
             'item_ids': item_ids,
