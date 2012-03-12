@@ -30,7 +30,7 @@ def home(request):
     apikeys = set()
     training = set()
     chars = OrderedDict()
-    for char in Character.objects.select_related('apikey').filter(apikey__user_id=request.user.id).order_by('apikey__name', 'name'):
+    for char in Character.objects.select_related('apikey').filter(apikey__user=request.user).order_by('apikey__name', 'name'):
         char.z_training = {}
         chars[char.eve_character_id] = char
         apikeys.add(char.apikey_id)
@@ -57,7 +57,7 @@ def home(request):
         char.z_training['queue_duration'] = (sq.end_time - utcnow).total_seconds()
     
     # Do total skill point aggregation
-    for cs in CharacterSkill.objects.select_related().filter(character__apikey__user_id=request.user.id).values('character').annotate(total_sp=Sum('points')):
+    for cs in CharacterSkill.objects.select_related().filter(character__apikey__user=request.user).values('character').annotate(total_sp=Sum('points')):
         chars[cs['character']].z_total_sp = cs['total_sp']
 
     # Make separate lists of training and not training characters
@@ -306,7 +306,7 @@ def trade(request):
     #data['net_asset_value'] = data['wallet_balance'] + data['sell_total'] + data['escrow_total']
     
     # Transaction stuff oh god
-    transactions = Transaction.objects.filter(character__apikey__user=request.user.id)
+    transactions = Transaction.objects.filter(character__apikey__user=request.user)
     
     t_check = []
     # All
@@ -361,7 +361,7 @@ def trade_timeframe(request, year=None, month=None, period=None, slug=None):
     }
     
     # Get a QuerySet of transactions by this user
-    transactions = Transaction.objects.filter(character__apikey__user=request.user.id)
+    transactions = Transaction.objects.filter(character__apikey__user=request.user)
     
     # Year/Month
     if year and month:
@@ -444,7 +444,7 @@ def trade_timeframe(request, year=None, month=None, period=None, slug=None):
 @login_required
 def transactions(request):
     # Get a QuerySet of transactions by this user
-    transactions = Transaction.objects.select_related('corp_wallet__corporation', 'item', 'station', 'character').filter(character__apikey__user=request.user.id).order_by('-date')
+    transactions = Transaction.objects.select_related('corp_wallet__corporation', 'item', 'station', 'character').filter(character__apikey__user=request.user).order_by('-date')
     
     # Create a new paginator
     paginator = Paginator(transactions, 100)
@@ -477,7 +477,7 @@ def transactions_item(request, item_id, year=None, month=None, period=None, slug
     data = {}
     
     # Get a QuerySet of transactions by this user
-    transactions = Transaction.objects.filter(character__apikey__user=request.user.id).order_by('-date')
+    transactions = Transaction.objects.filter(character__apikey__user=request.user).order_by('-date')
     
     # If item_id is an integer we should filter on that item_id
     if item_id.isdigit():
@@ -529,7 +529,7 @@ def transactions_item(request, item_id, year=None, month=None, period=None, slug
 @login_required
 def orders(request):
     # Retrieve orders
-    orders = MarketOrder.objects.select_related('item', 'station', 'character', 'corp_wallet__corporation').filter(character__apikey__user=request.user.id).order_by('station__name', '-buy_order', 'item__name')
+    orders = MarketOrder.objects.select_related('item', 'station', 'character', 'corp_wallet__corporation').filter(character__apikey__user=request.user).order_by('station__name', '-buy_order', 'item__name')
     
     # Render template
     return render_to_response(
