@@ -14,7 +14,7 @@
       {% for character in chars %}
       {% if character %}
       <div class="span3">
-        <div class="well-small well{% if character.apikey.id in not_training %} alert-error{% endif %}">
+        <div class="well-small well{% if character.apikey_id in not_training %} alert-error{% endif %}">
           <div>
             <span class="large">
               <a href="{% url evething.thing.views.character character.eve_character_id %}">
@@ -32,26 +32,24 @@
           <div>
             <span>{{ character.wallet_balance|commas }} ISK</span>
             <span class="small pull-right">
-              {% with character.get_total_skill_points as total_sp %}
-              {% if total_sp > character.clone_skill_points %}<i class="icon-user" rel="tooltip" title="Insufficient clone: {{ character.clone_skill_points|commas }} SP"></i>{% endif %}
-              {{ total_sp|commas }} SP
-              {% endwith %}
+              {% if character.z_total_sp > character.clone_skill_points %}
+              <i class="icon-user" rel="tooltip" title="Insufficient clone: {{ character.clone_skill_points|commas }} SP"></i>
+              {% endif %}
+              {{ character.z_total_sp|commas }} SP
             </span>
           </div>
 
           {% if character.z_training %}
           <div class="training">
-            <span>{{ character.z_training.skill.item.name }} {{ character.z_training.get_roman_level }} (Rank {{ character.z_training.skill.rank }})</span>
-            <span class="pull-right">{{ character.z_spph }} SP/hr</span>
+            <span>{{ character.z_training.sq.skill.item.name }} {{ character.z_training.sq.get_roman_level }} (Rank {{ character.z_training.sq.skill.rank }})</span>
+            <span class="pull-right">{{ character.z_training.sp_per_hour }} SP/hr</span>
             <br>
-            <em class="small">Finishes: {{ character.z_skill_duration|duration }}</em>
-            {% if character.z_queue_duration > character.z_skill_duration %}
-            <em class="small pull-right">Queue: {{ character.z_queue_duration|duration }}</em>
+            <em class="small">Finishes: {{ character.z_training.skill_duration|duration }}</em>
+            {% if character.z_training.queue_duration > character.z_training.skill_duration %}
+            <em class="small pull-right">Queue: {{ character.z_training.queue_duration|duration }}</em>
             {% endif %}
-            <div class="progress {% if character.z_queue_duration < 86400 %} progress-danger{% endif%}">
-              {% with character.z_training.get_complete_percentage as complete_per %}
-              <div class="bar" style="width: {{ complete_per }}%">{{ complete_per }}%</div>
-              {% endwith %}
+            <div class="progress {% if character.z_training.queue_duration < 86400 %} progress-danger{% endif%}">
+              <div class="bar" style="width: {{ character.z_training.complete_per }}%">{{ character.z_training.complete_per }}%</div>
             </div>
           </div>
           {% endif %}

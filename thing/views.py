@@ -15,58 +15,63 @@ from evething.thing.models import *
 from evething.thing import queries
 
 # ---------------------------------------------------------------------------
+# How many days to start warning about expiring accounts
+EXPIRE_WARNING = datetime.timedelta(10)
+
+# ---------------------------------------------------------------------------
 # Home page
 @login_required
 def home(request):
     total_balance = 0
 
     now = datetime.datetime.utcnow()
-    expire_check = datetime.timedelta(11)
 
-    apikeys = {}
+    # Grab the initial set of characters and do some stuff
+    apikeys = set()
+    training = set()
     chars = OrderedDict()
-    for char in Character.objects.select_related('apikey').filter(apikey__user=request.user.id).order_by('apikey__name', 'name'):
-        total_balance += char.wallet_balance
-        char.z_training = None
+    for char in Character.objects.select_related('apikey').filter(apikey__user_id=request.user.id).order_by('apikey__name', 'name'):
+        char.z_training = {}
         chars[char.eve_character_id] = char
-        apikeys[char.apikey.id] = True
+        apikeys.add(char.apikey_id)
+        total_balance += char.wallet_balance
 
+        # See if the account expires soon
         timediff = char.apikey.paid_until - now
-        if timediff < expire_check:
+        if timediff < EXPIRE_WARNING:
             char.z_expires = timediff.total_seconds()
-    
-    # Do skill training check - this should really be in the model
+
+    # Do skill training check - this can't be in the model because it
+    # scales like crap doing individual queries
     utcnow = datetime.datetime.utcnow()
     queues = SkillQueue.objects.select_related().filter(character__in=chars.keys(), end_time__gte=utcnow)
     for sq in queues:
-        char = chars[sq.character.eve_character_id]
-        if char.z_training is None:
-            char.z_training = sq
-            char.z_skill_duration = (sq.end_time - utcnow).total_seconds()
-            char.z_spph = int(sq.skill.get_sp_per_minute(char) * 60)
+        char = chars[sq.character_id]
+        if 'sq' not in char.z_training:
+            char.z_training['sq'] = sq
+            char.z_training['skill_duration'] = (sq.end_time - utcnow).total_seconds()
+            char.z_training['sp_per_hour'] = int(sq.skill.get_sp_per_minute(char) * 60)
+            char.z_training['complete_per'] = sq.get_complete_percentage(now)
+            training.add(char.apikey_id)
         
-        char.z_queue_duration = (sq.end_time - utcnow).total_seconds()
-
-        if char.apikey.id in apikeys:
-            del apikeys[char.apikey.id]
+        char.z_training['queue_duration'] = (sq.end_time - utcnow).total_seconds()
     
+    # Do total skill point aggregation
+    for cs in CharacterSkill.objects.select_related().filter(character__apikey__user_id=request.user.id).values('character').annotate(total_sp=Sum('points')):
+        chars[cs['character']].z_total_sp = cs['total_sp']
+
     # Make separate lists of training and not training characters
-    first = []
-    last = []
-    for char in chars.values():
-        if char.z_training is None:
-            last.append(char)
-        else:
-            first.append(char)
+    first = [char for char in chars.values() if char.z_training]
+    last = [char for char in chars.values() if not char.z_training]
     
     # Get corporations this user has APIKeys for
-    corp_ids = APIKey.objects.filter(user=request.user.id).exclude(corp_character=None).values_list('corp_character__corporation', flat=True)
+    corp_ids = APIKey.objects.select_related().filter(user=request.user.id).exclude(corp_character=None).values_list('corp_character__corporation', flat=True)
     corporations = Corporation.objects.filter(pk__in=corp_ids)
-    
+
     return render_to_response(
         'thing/home.html',
         {
-            'not_training': apikeys,
+            'not_training': apikeys - training,
             'total_balance': total_balance,
             'corporations': corporations,
             'characters': first + last,

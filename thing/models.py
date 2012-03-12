@@ -140,28 +140,21 @@ class SkillQueue(models.Model):
     end_sp = models.IntegerField()
     to_level = models.SmallIntegerField()
     
+    def __unicode__(self):
+        return '%s: %s %d, %d -> %d - Start: %s, End: %s' % (self.character.name, self.skill.item.name,
+            self.to_level, self.start_sp, self.end_sp, self.start_time, self.end_time)
+
     class Meta:
         ordering = ('start_time',)
     
-    def get_complete_percentage(self):
-        total = (self.end_time - self.start_time).total_seconds()
-        elapsed = (datetime.datetime.utcnow() - self.start_time).total_seconds()
+    def get_complete_percentage(self, now=None):
+        if now is None:
+            now = datetime.datetime.utcnow()
+        remaining = (self.end_time - now).total_seconds()
+        remain_sp = remaining / 60.0 * self.skill.get_sp_per_minute(self.character)
+        required_sp = self.skill.get_sp_at_level(self.to_level) - self.skill.get_sp_at_level(self.to_level - 1)
 
-        real_start_sp = self.skill.get_sp_at_level(self.to_level - 1)
-        current_sp = CharacterSkill.objects.get(character=self.character, skill=self.skill).points
-
-        if current_sp > real_start_sp:
-            progress = current_sp - real_start_sp
-            finish = self.end_sp - real_start_sp
-
-            sppm = self.skill.get_sp_per_minute(self.character)
-            guess = progress + (elapsed / 60 * sppm)
-
-            #this_progress = round(float(progress) / finish * 100, 1)
-            #return this_progress
-            return round(guess / finish * 100, 1)
-        else:
-            return round(elapsed / total * 100, 1)
+        return round(100 - (remain_sp / required_sp * 100), 1)
     
     def get_roman_level(self):
         return ['', 'I', 'II', 'III', 'IV', 'V'][self.to_level]
