@@ -301,14 +301,17 @@ def character(request, character_name):
 
     # Retrieve the list of skills and group them by market group
     skills = OrderedDict()
+    skill_totals = {}
     cur = None
     for cs in CharacterSkill.objects.select_related('skill__item__market_group', 'character').filter(character=char).order_by('skill__item__market_group__name', 'skill__item__name'):
         mg = cs.skill.item.market_group
         if mg != cur:
             cur = mg
+            cur.z_total_sp = 0
             skills[cur] = []
 
         skills[cur].append(cs)
+        cur.z_total_sp += cs.points
 
     # Retrieve skill queue
     queue = SkillQueue.objects.select_related().filter(character=char).order_by('end_time')
@@ -321,7 +324,9 @@ def character(request, character_name):
             'config': config,
             'skill_loop': range(1, 6),
             'skills': skills,
+            'skill_totals': skill_totals,
             'queue': queue,
+            'queue_rest': queue[1:],
         },
         context_instance=RequestContext(request)
     )

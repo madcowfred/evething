@@ -57,16 +57,22 @@
           <div class="row">
             <div class="span9">
               <div class="well well-small alert-success black">
-                <h3>Training Skill</h3>
+                <h3>Skill Queue</h3>
                 <div>
                   {{ queue.0.skill.item.name }} {{ queue.0.get_roman_level }} (Rank {{ queue.0.skill.rank }}) --
-                  {{ queue.0.get_remaining|duration }}
-                  <div class="pull-right" style="width: 150px;">
-                    <div class="progress">
+                  {{ queue.0.get_remaining|duration }} remaining
+                  <div class="pull-right">{{ queue.0.end_time|date:"Y-m-d H:i:s" }} UTC</div>
+                  <div style="width: 100%">
+                    <div class="progress margin-half-top">
                       <div class="bar" style="width: {{ queue.0.get_complete_percentage }}%">{{ queue.0.get_complete_percentage }}%</div>
                     </div>
                   </div>
                 </div>
+                {% if queue_rest %}
+                {% for sq in queue_rest %}
+                {{ sq.skill.item.name }} {{ sq.get_roman_level }} (Rank {{ sq.skill.rank }})
+                {% endfor %}
+                {% endif %}
                 </ul>
               </div>
             </div>
@@ -77,11 +83,11 @@
           <div class="row">
             <div class="span9">
               <div class="well well-small">
-              <h3>{{ mg.name }}</h3>
+                <h3>{{ mg.name }}</h3>
                 {% for cs in css %}
                 <div>
                   {% if cs.level == 5 %}<span class="level5">{% endif %}
-                  {{ cs.skill.item.name }} (Rank {{ cs.skill.rank }}) / Level: {{ cs.level }} / SP: {{ cs.points|commas }}
+                  {{ cs.skill.item.name }} {{ cs.get_roman_level }} (Rank {{ cs.skill.rank }}) / SP: {{ cs.points|commas }} of {{ cs.skill.get_sp_at_level|commas }}
                   {% if cs.level == 5 %}</span>{% endif %}
                   <div class="pull-right">
                     {% for level in skill_loop %}
@@ -90,6 +96,8 @@
                   </div>
                 </div>
                 {% endfor %}
+                <div class="margin-half-top">
+                  <strong>{{ css|length }}</strong> skills trained for <strong>{{ mg.z_total_sp|commas }}</strong> SP</div>
               </div>
             </div>
           </div>

@@ -55,6 +55,8 @@ div.training {
   margin-top: 0.7em;
 }
 
+.margin-half-top { margin-top: 0.6em; }
+
 /* override bootstrap settings */
 .table-condensed th, .table-condensed td {
   padding: 3px 4px;
