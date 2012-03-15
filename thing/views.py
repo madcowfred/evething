@@ -314,6 +314,7 @@ def character(request, character_name):
         {
             'char': char,
             'config': config,
+            'skill_loop': range(1, 6),
             'skills': skills,
         },
         context_instance=RequestContext(request)

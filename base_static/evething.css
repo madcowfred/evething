@@ -46,6 +46,9 @@ td.r { text-align: right; }
 .dot { border-bottom: 1px dotted; }
 .large { font-size: 1.15em; }
 .small { font-size: 0.85em; }
+.level5 { 
+  color: #009900;
+}
 
 div.training {
   margin-top: 0.7em;
@@ -74,6 +77,9 @@ hr.nomargin {
 }
 .progress .bar {
   text-shadow: 0 0 5px #000000;
+}
+i.nomargin {
+  margin-right: -2px;
 }
 
 /* tablesorter styles */

@@ -9,10 +9,10 @@
           <img src="http://image.eveonline.com/Character/{{ char.eve_character_id }}_256.jpg">
         </div>
         <div class="span9">
-          <h3>{{ char.name }}</h3>
+          <h2>{{ char.name }}</h2>
           <div class="row">
             <div class="span4">
-              {% if config.show_wallet %}<p>Wallet: {{ char.wallet_balance|commas }} ISK</p>{% endif %}
+              <p>Wallet: {% if config.show_wallet %}{{ char.wallet_balance|commas }}{% else %}??{% endif %} ISK</p>
               <ul class="unstyled">
                 <li>Int: {{ char.int_attribute }} ({% if config.show_implants %}+{{ char.int_bonus }}{% else %}??{% endif %})</li>
                 <li>Mem: {{ char.mem_attribute }} ({% if config.show_implants %}+{{ char.mem_bonus }}{% else %}??{% endif %})</li>
@@ -35,13 +35,21 @@
           <div class="row">
             <div class="span8">
               {% for mg, css in skills.items %}
-              <h4>{{ mg.name }}</h4>
-              <table class="table table-striped table-bordered table-condensed">
+              <div class="well well-small">
+              <h3>{{ mg.name }}</h3>
                 {% for cs in css %}
-                <div>{{ cs.skill.item.name }} (Rank {{ cs.skill.rank }}) / Level: {{ cs.level }} / SP: {{ cs.points|commas }}</div>
-
+                <div>
+                  {% if cs.level == 5 %}<span class="level5">{% endif %}
+                  {{ cs.skill.item.name }} (Rank {{ cs.skill.rank }}) / Level: {{ cs.level }} / SP: {{ cs.points|commas }}
+                  {% if cs.level == 5 %}</span>{% endif %}
+                  <div class="pull-right">
+                    {% for level in skill_loop %}
+                    <i class="{% if level <= cs.level %}icon-star{% else %}icon-star-empty{% endif %} nomargin"></i>
+                    {% endfor %}
+                  </div>
+                </div>
                 {% endfor %}
-              </table>
+              </div>
               {% endfor %}
             </div>
           </div>
