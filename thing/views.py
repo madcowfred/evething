@@ -299,6 +299,7 @@ def character(request, character_name):
         for thing in ('show_clone', 'show_implants', 'show_skill_queue', 'show_wallet'):
             config[thing] = True
 
+    # Retrieve the list of skills and group them by market group
     skills = OrderedDict()
     cur = None
     for cs in CharacterSkill.objects.select_related('skill__item__market_group', 'character').filter(character=char).order_by('skill__item__market_group__name', 'skill__item__name'):
@@ -309,6 +310,10 @@ def character(request, character_name):
 
         skills[cur].append(cs)
 
+    # Retrieve skill queue
+    queue = SkillQueue.objects.select_related().filter(character=char).order_by('end_time')
+
+    # Render template
     return render_to_response(
         'thing/character.html',
         {
@@ -316,6 +321,7 @@ def character(request, character_name):
             'config': config,
             'skill_loop': range(1, 6),
             'skills': skills,
+            'queue': queue,
         },
         context_instance=RequestContext(request)
     )

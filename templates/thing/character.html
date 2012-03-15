@@ -32,9 +32,29 @@
             </div>
           </div>
 
+          {% if config.show_skill_queue and queue %}
           <div class="row">
-            <div class="span8">
-              {% for mg, css in skills.items %}
+            <div class="span9">
+              <div class="well well-small alert-success black">
+                <h3>Training Skill</h3>
+                <div>
+                  {{ queue.0.skill.item.name }} {{ queue.0.get_roman_level }} (Rank {{ queue.0.skill.rank }}) --
+                  {{ queue.0.get_remaining|duration }}
+                  <div class="pull-right" style="width: 150px;">
+                    <div class="progress">
+                      <div class="bar" style="width: {{ queue.0.get_complete_percentage }}%">{{ queue.0.get_complete_percentage }}%</div>
+                    </div>
+                  </div>
+                </div>
+                </ul>
+              </div>
+            </div>
+          </div>
+          {% endif %}
+
+          {% for mg, css in skills.items %}
+          <div class="row">
+            <div class="span9">
               <div class="well well-small">
               <h3>{{ mg.name }}</h3>
                 {% for cs in css %}
@@ -50,9 +70,9 @@
                 </div>
                 {% endfor %}
               </div>
-              {% endfor %}
             </div>
           </div>
+          {% endfor %}
         </div>
       </div>
 
