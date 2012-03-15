@@ -1,5 +1,5 @@
 from django.contrib import admin
-from evething.thing.models import APIKey, BlueprintInstance, Campaign, Character, Corporation
+from evething.thing.models import APIKey, BlueprintInstance, Campaign, Character, CharacterConfig, Corporation
 
 class APIKeyAdmin(admin.ModelAdmin):
     list_display = ('id', 'user', 'name', 'key_type', 'valid')
@@ -27,6 +27,7 @@ class CampaignAdmin(admin.ModelAdmin):
 
 admin.site.register(APIKey, APIKeyAdmin)
 admin.site.register(Character, CharacterAdmin)
+admin.site.register(CharacterConfig)
 admin.site.register(BlueprintInstance, BlueprintInstanceAdmin)
 admin.site.register(Campaign, CampaignAdmin)
 #admin.site.register(Corporation)

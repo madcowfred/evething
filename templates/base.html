@@ -34,6 +34,7 @@
           <div class="nav-collapse">
             <ul class="nav" id="nav-list">
               <li><a href="{% url home %}"><i class="icon-home icon-white"></i>Home</a></li>
+              {% if request.user.is_authenticated %}
               <li><a href="#">Assets</a></li>
               <li><a href="{% url evething.thing.views.blueprints %}">Blueprints</a></li>
               <li><a href="#">Contracts</a></li>
@@ -42,6 +43,7 @@
               <li><a href="{% url evething.thing.views.trade %}">Trade</a></li>
               <li><a href="{% url evething.thing.views.transactions %}">Transactions</a></li>
               <li><a href="{% url evething.thing.views.market_scan %}">Market Scan</a></li>
+              {% endif %}
             </ul>
           </div>
           <p class="navbar-text pull-right">

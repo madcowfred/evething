@@ -118,6 +118,18 @@ class Character(models.Model):
     def get_total_skill_points(self):
         return CharacterSkill.objects.filter(character=self).aggregate(total_sp=Sum('points'))['total_sp']
 
+class CharacterConfig(models.Model):
+    character = models.OneToOneField(Character, unique=True, primary_key=True, related_name='config')
+
+    is_public = models.BooleanField()
+    show_clone = models.BooleanField()
+    show_implants = models.BooleanField()
+    show_skill_queue = models.BooleanField()
+    show_wallet = models.BooleanField()
+
+    def __unicode__(self):
+        return self.character.name
+
 # Character skills
 class CharacterSkill(models.Model):
     character = models.ForeignKey('Character')

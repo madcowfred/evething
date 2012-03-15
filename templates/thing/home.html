@@ -17,7 +17,7 @@
         <div class="well-small well{% if character.apikey_id in not_training %} alert-error{% endif %}">
           <div>
             <span class="large">
-              <a href="{% url evething.thing.views.character character.eve_character_id %}">
+              <a href="{% url evething.thing.views.character character.name %}">
                 {% if sanitise %}character.name{% else %}{{ character.name }}{% endif %}
               </a>
             </span>

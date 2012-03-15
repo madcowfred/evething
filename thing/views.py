@@ -8,6 +8,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import Paginator, InvalidPage, EmptyPage
 from django.db import connection
 from django.db.models import Avg, Count, Max, Min, Sum
+from django.http import Http404
 from django.shortcuts import *
 from django.template import RequestContext
 
@@ -275,14 +276,45 @@ GROUP BY item_id
     )
 
 # ---------------------------------------------------------------------------
-@login_required
-def character(request, character_id):
-    char = get_object_or_404(Character, eve_character_id=character_id)
+
+def character(request, character_name):
+    char = get_object_or_404(Character, name=character_name)
+
+    # Check access
+    public = True
+    if request.user.is_authenticated() and request.user.id == char.apikey.user.id:
+        public = False
+
+    # If it's for public access, make sure this character is visible
+    if public:
+        try:
+            config = char.config
+        except CharacterConfig.DoesNotExist:
+            raise Http404
+
+        if not config.is_public:
+            raise Http404
+    else:
+        config = {}
+        for thing in ('show_clone', 'show_implants', 'show_skill_queue', 'show_wallet'):
+            config[thing] = True
+
+    skills = OrderedDict()
+    cur = None
+    for cs in CharacterSkill.objects.select_related('skill__item__market_group', 'character').filter(character=char).order_by('skill__item__market_group__name', 'skill__item__name'):
+        mg = cs.skill.item.market_group
+        if mg != cur:
+            cur = mg
+            skills[cur] = []
+
+        skills[cur].append(cs)
 
     return render_to_response(
         'thing/character.html',
         {
             'char': char,
+            'config': config,
+            'skills': skills,
         },
         context_instance=RequestContext(request)
     )
