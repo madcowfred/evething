@@ -13,13 +13,34 @@
           <div class="row">
             <div class="span4">
               <p>Wallet: {% if config.show_wallet %}{{ char.wallet_balance|commas }}{% else %}??{% endif %} ISK</p>
-              <ul class="unstyled">
-                <li>Int: {{ char.int_attribute }} ({% if config.show_implants %}+{{ char.int_bonus }}{% else %}??{% endif %})</li>
-                <li>Mem: {{ char.mem_attribute }} ({% if config.show_implants %}+{{ char.mem_bonus }}{% else %}??{% endif %})</li>
-                <li>Per: {{ char.per_attribute }} ({% if config.show_implants %}+{{ char.per_bonus }}{% else %}??{% endif %})</li>
-                <li>Wil: {{ char.wil_attribute }} ({% if config.show_implants %}+{{ char.wil_bonus }}{% else %}??{% endif %})</li>
-                <li>Cha: {{ char.cha_attribute }} ({% if config.show_implants %}+{{ char.cha_bonus }}{% else %}??{% endif %})</li>
-              </ul>
+              <table>
+                <tr class="r">
+                  <td><strong>Int:</strong></td>
+                  <td>{{ char.int_attribute }}</td>
+                  <td>({% if config.show_implants %}+{{ char.int_bonus }}{% else %}??{% endif %})</td>
+                </tr>
+                <tr class="r">
+                  <td><strong>Mem:</strong></td>
+                  <td>{{ char.mem_attribute }}</td>
+                  <td>({% if config.show_implants %}+{{ char.mem_bonus }}{% else %}??{% endif %})</td>
+                </tr>
+                <tr class="r">
+                  <td><strong>Per:</strong></td>
+                  <td>{{ char.per_attribute }}</td>
+                  <td>({% if config.show_implants %}+{{ char.per_bonus }}{% else %}??{% endif %})</td>
+                </tr>
+                <tr class="r">
+                  <td><strong>Wil:</strong></td>
+                  <td>{{ char.wil_attribute }}</td>
+                  <td>({% if config.show_implants %}+{{ char.wil_bonus }}{% else %}??{% endif %})</td>
+                </tr>
+                <tr class="r">
+                  <td><strong>Cha:</strong></td>
+                  <td>{{ char.cha_attribute }}</td>
+                  <td>({% if config.show_implants %}+{{ char.cha_bonus }}{% else %}??{% endif %})</td>
+                </tr>
+              </table>
+              <br>
             </div>
             <div class="span3">
               <ul class="unstyled">
