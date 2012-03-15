@@ -91,7 +91,7 @@
                   {% if cs.level == 5 %}</span>{% endif %}
                   <div class="pull-right">
                     {% for level in skill_loop %}
-                    <i class="{% if level <= cs.level %}icon-star{% else %}icon-minus{% endif %} nomargin"></i>
+                    <i class="{% if level <= cs.level %}icon-star{% else %}{% if cs.z_partial == level %}icon-star-empty{% else %}icon-minus{% endif %}{% endif %} nomargin"></i>
                     {% endfor %}
                   </div>
                 </div>

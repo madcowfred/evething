@@ -310,6 +310,9 @@ def character(request, character_name):
             cur.z_total_sp = 0
             skills[cur] = []
 
+        if cs.points > cs.skill.get_sp_at_level(cs.level):
+            cs.z_partial = cs.level + 1
+
         skills[cur].append(cs)
         cur.z_total_sp += cs.points
 
