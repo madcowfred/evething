@@ -46,15 +46,13 @@ td.r { text-align: right; }
 .dot { border-bottom: 1px dotted; }
 .large { font-size: 1.15em; }
 .small { font-size: 0.85em; }
-.level5 {
-  color: #009900;
-}
+.level5 { color: #4F4FAF; }
 .black { color: #000000; }
 .training-highlight {
-  color: #4F4FAF;
-  font-size: 1.1em;
+  color: #4FAF00;
   margin-top: 0;
   margin-bottom: 0;
+  font-weight: bold;
   padding: 0;
 }
 
