@@ -317,7 +317,7 @@ def character(request, character_name):
         cur.z_total_sp += cs.points
 
     # Retrieve skill queue
-    queue = SkillQueue.objects.select_related().filter(character=char).order_by('end_time')
+    queue = SkillQueue.objects.select_related().filter(character=char, end_time__gte=datetime.datetime.utcnow()).order_by('end_time')
 
     # Render template
     return render_to_response(
