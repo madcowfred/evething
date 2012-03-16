@@ -11,45 +11,49 @@
         <div class="span9">
           <h2>{{ char.name }}</h2>
           <div class="row">
-            <div class="span4">
-              <p>Wallet: {% if config.show_wallet %}{{ char.wallet_balance|commas }}{% else %}??{% endif %} ISK</p>
-              <table>
-                <tr class="r">
-                  <td><strong>Int:</strong></td>
-                  <td>{{ char.int_attribute }}</td>
-                  <td>({% if config.show_implants %}+{{ char.int_bonus }}{% else %}??{% endif %})</td>
-                </tr>
-                <tr class="r">
-                  <td><strong>Mem:</strong></td>
-                  <td>{{ char.mem_attribute }}</td>
-                  <td>({% if config.show_implants %}+{{ char.mem_bonus }}{% else %}??{% endif %})</td>
-                </tr>
-                <tr class="r">
-                  <td><strong>Per:</strong></td>
-                  <td>{{ char.per_attribute }}</td>
-                  <td>({% if config.show_implants %}+{{ char.per_bonus }}{% else %}??{% endif %})</td>
-                </tr>
-                <tr class="r">
-                  <td><strong>Wil:</strong></td>
-                  <td>{{ char.wil_attribute }}</td>
-                  <td>({% if config.show_implants %}+{{ char.wil_bonus }}{% else %}??{% endif %})</td>
-                </tr>
-                <tr class="r">
-                  <td><strong>Cha:</strong></td>
-                  <td>{{ char.cha_attribute }}</td>
-                  <td>({% if config.show_implants %}+{{ char.cha_bonus }}{% else %}??{% endif %})</td>
-                </tr>
-              </table>
-              <br>
-            </div>
-            <div class="span3">
-              <ul class="unstyled">
-                <li>Total SP: {{ char.get_total_skill_points|commas }}</li>
-                {% if config.show_clone %}
-                <li>Clone limit: {{ char.clone_skill_points|commas }}</li>
-                <li>{{ char.clone_name }}</li>
-                {% endif %}
-              </ul>
+            <div class="span7">
+              <div class="row">
+                <div class="span4">
+                  <p><strong>Wallet:</strong> {% if config.show_wallet %}{{ char.wallet_balance|commas }}{% else %}??{% endif %} ISK</p>
+                  <ul class="unstyled">
+                    <li><strong>Total SP:</strong> {{ char.get_total_skill_points|commas }}</li>
+                    {% if config.show_clone %}
+                    <li><strong>Clone limit:</strong> {{ char.clone_skill_points|commas }}</li>
+                    <li>{{ char.clone_name }}</li>
+                    {% endif %}
+                  </ul>
+                </div>
+                <div class="span3 pull-right">
+                  <table>
+                    <tr class="r">
+                      <td><strong>Int:</strong></td>
+                      <td>{{ char.int_attribute }}</td>
+                      <td>({% if config.show_implants %}+{{ char.int_bonus }}{% else %}??{% endif %})</td>
+                    </tr>
+                    <tr class="r">
+                      <td><strong>Mem:</strong></td>
+                      <td>{{ char.mem_attribute }}</td>
+                      <td>({% if config.show_implants %}+{{ char.mem_bonus }}{% else %}??{% endif %})</td>
+                    </tr>
+                    <tr class="r">
+                      <td><strong>Per:</strong></td>
+                      <td>{{ char.per_attribute }}</td>
+                      <td>({% if config.show_implants %}+{{ char.per_bonus }}{% else %}??{% endif %})</td>
+                    </tr>
+                    <tr class="r">
+                      <td><strong>Wil:</strong></td>
+                      <td>{{ char.wil_attribute }}</td>
+                      <td>({% if config.show_implants %}+{{ char.wil_bonus }}{% else %}??{% endif %})</td>
+                    </tr>
+                    <tr class="r">
+                      <td><strong>Cha:</strong></td>
+                      <td>{{ char.cha_attribute }}</td>
+                      <td>({% if config.show_implants %}+{{ char.cha_bonus }}{% else %}??{% endif %})</td>
+                    </tr>
+                  </table>
+                  <br>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -69,9 +73,14 @@
                   </div>
                 </div>
                 {% if queue_rest %}
-                {% for sq in queue_rest %}
-                {{ sq.skill.item.name }} {{ sq.get_roman_level }} (Rank {{ sq.skill.rank }})
-                {% endfor %}
+                <div class="margin-half-top">
+                  {% for sq in queue_rest %}
+                  <div>
+                    {{ sq.skill.item.name }} {{ sq.get_roman_level }} (Rank {{ sq.skill.rank }})
+                    <div class="pull-right">{{ sq.end_time|date:"Y-m-d H:i:s" }} UTC</div>
+                  </div>
+                  {% endfor %}
+                </div>
                 {% endif %}
                 </ul>
               </div>
@@ -97,7 +106,8 @@
                 </div>
                 {% endfor %}
                 <div class="margin-half-top">
-                  <strong>{{ css|length }}</strong> skills trained for <strong>{{ mg.z_total_sp|commas }}</strong> SP</div>
+                  <i class="icon-chevron-right"></i>
+                  <strong>{{ css|length }}</strong> skill{{ css|length|pluralize }} trained for <strong>{{ mg.z_total_sp|commas }}</strong> SP</div>
               </div>
             </div>
           </div>

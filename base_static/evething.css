@@ -55,7 +55,8 @@ div.training {
   margin-top: 0.7em;
 }
 
-.margin-half-top { margin-top: 0.6em; }
+.margin-half-top { margin-top: 0.5em; }
+.margin-half-bot { margin-bottom: 0.5em; }
 
 /* override bootstrap settings */
 .table-condensed th, .table-condensed td {
