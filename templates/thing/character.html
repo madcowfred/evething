@@ -95,9 +95,15 @@
                 <h3>{{ mg.name }}</h3>
                 {% for cs in css %}
                 <div>
-                  {% if cs.level == 5 %}<span class="level5">{% endif %}
+                  <span class="{% if cs.level == 5 %}level5{% endif %}">
+                  {% if config.show_skill_queue and queue and queue.0.skill.item.id == cs.skill.item.id %}
+                  <span class="training-highlight"><i class="icon-play"></i>
+                  {% endif %}
                   {{ cs.skill.item.name }} {{ cs.get_roman_level }} (Rank {{ cs.skill.rank }}) / SP: {{ cs.points|commas }} of {{ cs.skill.get_sp_at_level|commas }}
-                  {% if cs.level == 5 %}</span>{% endif %}
+                  {% if config.show_skill_queue and queue and queue.0.skill.item.id == cs.skill.item.id %}
+                  </span>
+                  {% endif %}
+                  </span>
                   <div class="pull-right">
                     {% for level in skill_loop %}
                     <i class="{% if level <= cs.level %}icon-star{% else %}{% if cs.z_partial == level %}icon-star-empty{% else %}icon-minus{% endif %}{% endif %} nomargin"></i>
