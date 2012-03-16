@@ -40,9 +40,9 @@
           </div>
 
           {% if character.z_training %}
-          <div class="training">
+          <div class="margin-half-top">
             <span>{{ character.z_training.sq.skill.item.name }} {{ character.z_training.sq.get_roman_level }} (Rank {{ character.z_training.sq.skill.rank }})</span>
-            <span class="pull-right">{{ character.z_training.sp_per_hour }} SP/hr</span>
+            <span class="small pull-right">{{ character.z_training.sp_per_hour }} SP/hr</span>
             <br>
             <em class="small">Finishes: {{ character.z_training.skill_duration|duration }}</em>
             {% if character.z_training.queue_duration > character.z_training.skill_duration %}
