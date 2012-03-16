@@ -95,6 +95,7 @@
                 <h3>{{ mg.name }}</h3>
                 {% for cs in css %}
                 <div>
+                  {% spaceless %}
                   <span class="{% if cs.level == 5 %}level5{% endif %}">
                   {% if config.show_skill_queue and queue and queue.0.skill.item.id == cs.skill.item.id %}
                   <span class="training-highlight"><i class="icon-play"></i>
@@ -104,10 +105,18 @@
                   </span>
                   {% endif %}
                   </span>
+                  {% endspaceless %}
                   <div class="pull-right">
+                    {% spaceless %}
                     {% for level in skill_loop %}
-                    <i class="{% if level <= cs.level %}icon-star{% else %}{% if cs.z_partial == level %}icon-star-empty{% else %}icon-minus{% endif %}{% endif %} nomargin"></i>
+                    {% if cs.level == 5 %}<i class="icon-heart nomargin">
+                    {% else %}{% if level <= cs.level %}<i class="icon-star nomargin">
+                    {% else %}{% if cs.z_partial == level %}<i class="icon-star-empty nomargin">
+                    {% else %}<i class="icon-minus nomargin">
+                    {% endif %}{% endif %}{% endif %}
+                    </i>
                     {% endfor %}
+                    {% endspaceless %}
                   </div>
                 </div>
                 {% endfor %}
