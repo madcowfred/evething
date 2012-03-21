@@ -41,12 +41,12 @@
 
           {% if character.z_training %}
           <div class="margin-half-top">
-            <span>{{ character.z_training.sq.skill.item.name }} {{ character.z_training.sq.get_roman_level }} (Rank {{ character.z_training.sq.skill.rank }})</span>
-            <span class="small pull-right">{{ character.z_training.sp_per_hour }} SP/hr</span>
+            <span>{{ character.z_training.sq.skill.item.name }} {{ character.z_training.sq.get_roman_level }}</span>
+            <span class="small">(Rank {{ character.z_training.sq.skill.rank }})</span>
             <br>
-            <em class="small">Finishes: {{ character.z_training.skill_duration|duration }}</em>
+            <em class="small">{{ character.z_training.skill_duration|shortduration }} @ {{ character.z_training.sp_per_hour }} SP/hr</em>
             {% if character.z_training.queue_duration > character.z_training.skill_duration %}
-            <em class="small pull-right">Queue: {{ character.z_training.queue_duration|duration }}</em>
+            <em class="small pull-right">Queue: {{ character.z_training.queue_duration|shortduration }}</em>
             {% endif %}
             <div class="progress {% if character.z_training.queue_duration < 86400 %} progress-danger{% endif%}">
               <div class="bar" style="width: {{ character.z_training.complete_per }}%">{{ character.z_training.complete_per }}%</div>
@@ -87,32 +87,5 @@
         </ul>
       </div>
       {% endfor %}
-      
-      <!--<div class="span6">
-        <h4>Orders</h4>
-        <table class="table table-striped table-bordered table-condensed">
-          <thead>
-            <tr class="c">
-              <th class="l">Character</th>
-              <th>Orders</th>
-              <th>Total Sell</th>
-              <th>Total Buy</th>
-              <th>Total Escrow</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for order_stat in order_stats %}
-            <tr class="r">
-              <td class="l">{{ order_stat.character.name }}</tr>
-              <td>{{ order_stat.orders }}</tr>
-              <td>{{ order_stat.total_sell|commas }}</tr>
-              <td>{{ order_stat.total_buy|commas }}</tr>
-              <td>{{ order_stat.total_escrow|commas }}</tr>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>-->
-    </div>
     {% endif %}
 {% endblock %}
