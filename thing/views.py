@@ -82,6 +82,86 @@ def home(request):
     )
 
 # ---------------------------------------------------------------------------
+# List of API keys associated with our account
+@login_required
+def apikeys(request):
+    if 'message' in request.session:
+        message = request.session.pop('message')
+        message_type = request.session.pop('message_type')
+    else:
+        message = None
+        message_type = None
+
+    return render_to_response(
+        'thing/apikeys.html',
+        {
+            'apikeys': APIKey.objects.filter(user=request.user.id),
+            'sanitise': request.GET.get('sanitise', False),
+            'message': message,
+            'message_type': message_type,
+        },
+        context_instance=RequestContext(request)
+    )
+
+# Add an API key
+@login_required
+def apikeys_add(request):
+    keyid = request.POST.get('keyid', '0')
+    vcode = request.POST.get('vcode', '')
+    name = request.POST.get('name', '')
+
+    if not keyid.isdigit() or int(keyid) < 1 or len(vcode) != 64:
+        request.session['message_type'] = 'error'
+        request.session['message'] = 'KeyID or vCode is invalid!'
+
+    else:
+        if APIKey.objects.filter(id=request.POST.get('keyid', 0)).count():
+            request.session['message_type'] = 'error'
+            request.session['message'] = 'An API key with that KeyID already exists!'
+
+        else:
+            apikey = APIKey(
+                user_id=request.user.id,
+                id=keyid,
+                vcode=vcode,
+                name=name,
+            )
+            apikey.save()
+
+            request.session['message_type'] = 'success'
+            request.session['message'] = 'API key added successfully!'
+
+    return redirect('apikeys')
+
+# Delete an API key
+@login_required
+def apikeys_delete(request):
+    print request.POST.items()
+
+    try:
+        apikey = APIKey.objects.get(user=request.user.id, id=request.POST.get('keyid', '0'))
+    
+    except APIKey.DoesNotExist:
+        request.session['message_type'] = 'error'
+        request.session['message'] = 'You do not have an API key with that KeyID!'
+    
+    else:
+        request.session['message_type'] = 'success'
+        request.session['message'] = 'API key %s deleted successfully!' % (apikey.id)
+        
+        # remove this APIKey from any existing Character objects
+        Character.objects.filter(apikey=apikey).update(apikey=None)
+        # delete the APIKey
+        apikey.delete()
+
+    return redirect('apikeys')
+
+# Edit an API key
+@login_required
+def apikeys_edit(request):
+    return
+
+# ---------------------------------------------------------------------------
 # List of blueprints we own
 @login_required
 def blueprints(request):
@@ -335,6 +415,41 @@ def character(request, character_name):
     )
 
 # ---------------------------------------------------------------------------
+# Market scan
+@login_required
+def market_scan(request):
+    cursor = connection.cursor()
+
+    item_ids = []
+    cursor.execute(queries.all_item_ids)
+    for row in cursor:
+        item_ids.append(row[0])
+
+    return render_to_response(
+        'thing/market_scan.html',
+        {
+            'item_ids': item_ids,
+        },
+        context_instance=RequestContext(request)
+    )
+
+# ---------------------------------------------------------------------------
+# Market orders
+@login_required
+def orders(request):
+    # Retrieve orders
+    orders = MarketOrder.objects.select_related('item', 'station', 'character', 'corp_wallet__corporation').filter(character__apikey__user=request.user).order_by('station__name', '-buy_order', 'item__name')
+    
+    # Render template
+    return render_to_response(
+        'thing/orders.html',
+        {
+            'orders': orders
+        },
+        context_instance=RequestContext(request)
+    )
+
+# ---------------------------------------------------------------------------
 # Trade volume overview
 MONTHS = (None, 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec')
 @login_required
@@ -568,41 +683,6 @@ def transactions_item(request, item_id, year=None, month=None, period=None, slug
     return render_to_response(
         'thing/transactions_item.html',
         data,
-        context_instance=RequestContext(request)
-    )
-
-# ---------------------------------------------------------------------------
-# Active orders
-@login_required
-def orders(request):
-    # Retrieve orders
-    orders = MarketOrder.objects.select_related('item', 'station', 'character', 'corp_wallet__corporation').filter(character__apikey__user=request.user).order_by('station__name', '-buy_order', 'item__name')
-    
-    # Render template
-    return render_to_response(
-        'thing/orders.html',
-        {
-            'orders': orders
-        },
-        context_instance=RequestContext(request)
-    )
-
-# ---------------------------------------------------------------------------
-# Market scan
-@login_required
-def market_scan(request):
-    cursor = connection.cursor()
-
-    item_ids = []
-    cursor.execute(queries.all_item_ids)
-    for row in cursor:
-        item_ids.append(row[0])
-
-    return render_to_response(
-        'thing/market_scan.html',
-        {
-            'item_ids': item_ids,
-        },
         context_instance=RequestContext(request)
     )
 

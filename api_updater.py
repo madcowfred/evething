@@ -49,9 +49,12 @@ class APIUpdater:
     def go(self):
         start = time.time()
         
-        # Make sure API keys are valid and various character things are up to date
+        # Make sure API keys are valid first
         for apikey in APIKey.objects.select_related().filter(valid=True):
             self.api_check(apikey)
+
+        # Make sure account status is up to date
+        for apikey in APIKey.objects.select_related().filter(valid=True):
             self.fetch_account_status(apikey)
 
         # Generate a character id map
@@ -116,6 +119,9 @@ class APIUpdater:
     # -----------------------------------------------------------------------
     # Do various API key things
     def api_check(self, apikey):
+        if apikey.valid is False:
+            return
+
         root, times = self.fetch_api(API_INFO_URL, {}, apikey)
         if root is None:
             show_error('api_check', 'HTTP error', times)

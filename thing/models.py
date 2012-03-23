@@ -37,6 +37,9 @@ class APIKey(models.Model):
     def __unicode__(self):
         return '#%s (%s)' % (self.id, self.key_type)
 
+    def get_masked_vcode(self):
+        return '%s%s%s' % (self.vcode[:4], '*' * 24, self.vcode[-4:])
+
 # API cache entries
 class APICache(models.Model):
     url = models.URLField()
