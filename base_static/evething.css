@@ -43,6 +43,8 @@ tr.c th.r,
 tr.c td.r,
 td.r { text-align: right; }
 
+.fixed { font-family:Menlo,Monaco,"Courier New",monospace;font-size:12px;color:#333333; }
+
 .dot { border-bottom: 1px dotted; }
 .large { font-size: 1.15em; }
 .small { font-size: 0.85em; }
