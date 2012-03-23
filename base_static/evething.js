@@ -1,3 +1,20 @@
+$(document).ready(function() {
+	// highlight currently active link
+	var path = window.location.pathname;
+	$('#nav-list li a').each(function() {
+		if ($(this).attr('href') == path) {
+			$(this).parent().addClass('active');
+		}
+	});
+
+	// activate bootstrap tooltips
+	$("[rel=tooltip]").tooltip();
+	// activate bootstrap dropdowns
+	$('.dropdown-toggle').dropdown();
+});
+
+
+
 $.tablesorter.addParser({
 	id: 'human',
 	is: function(s) {

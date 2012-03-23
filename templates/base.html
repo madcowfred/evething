@@ -5,27 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
     <script src="{{ STATIC_URL }}jquery.tablesorter.min.js"></script>
-    <script src="{{ STATIC_URL }}evething.js"></script>
     <script src="{{ STATIC_URL }}bootstrap.min.js"></script>
+    <script src="{{ STATIC_URL }}evething.js"></script>
     <link rel="stylesheet" href="{{ STATIC_URL }}bootstrap.min.css">
     <link rel="stylesheet" href="{{ STATIC_URL }}bootstrap-responsive.min.css">
     <link rel="stylesheet" href="{{ STATIC_URL }}evething.css" />
-    <script type="text/javascript">
-      $(document).ready(function() {
-        // highlight currently active link
-        var path = window.location.pathname;
-        $('#nav-list li a').each(function() {
-          if ($(this).attr('href') == path) {
-            $(this).parent().addClass('active');
-          }
-        });
-
-        // activate bootstrap tooltips
-        $("[rel=tooltip]").tooltip();
-      });
-    </script>
     {% block extra_head %}{% endblock %}
-    <title>{% block title %}EVEthing{% endblock %}</title>
+    <title>EVEthing: {% block title %}{% endblock %}</title>
   </head>
   
   <body>
@@ -44,17 +30,33 @@
               <li><a href="{% url evething.thing.views.orders %}">Orders</a></li>
               <li><a href="{% url evething.thing.views.trade %}">Trade</a></li>
               <li><a href="{% url evething.thing.views.transactions %}">Transactions</a></li>
+              <li class="divider-vertical"></li>
               <li><a href="{% url evething.thing.views.market_scan %}">Market Scan</a></li>
               {% endif %}
             </ul>
+
+            <ul class="nav pull-right">
+              <li class="navbar-text">
+                {% if user.is_authenticated %}
+                {{ user.username }}
+                {% else %}
+                <a href="{% url auth_login %}">Login</a>
+                {% endif %}
+              </li>
+              {% if user.is_authenticated %}
+              <li class="dropdown">
+                <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                  <i class="icon-cog icon-white"></i>
+                  <b class="caret"></b>
+                </a>
+                <ul class="dropdown-menu">
+                  <li><a href="{% url evething.thing.views.apikeys %}">API keys</a></li>
+                  <li class="divider"></li>
+                  <li><a href="{% url auth_logout %}">Logout</a>
+                </ul>
+              </li>
+              {% endif %}
           </div>
-          <p class="navbar-text pull-right">
-            {% if user.is_authenticated %}
-            Logged in as {{ user.username }} | <a href="{% url auth_logout %}">Logout</a>
-            {% else %}
-            You are not logged in. | <a href="{% url auth_login %}">Login</a>
-            {% endif %}
-          </p>
         </div>
       </div>
     </div>
