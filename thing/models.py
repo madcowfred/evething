@@ -38,7 +38,7 @@ class APIKey(models.Model):
         return '#%s (%s)' % (self.id, self.key_type)
 
     def get_masked_vcode(self):
-        return '%s%s%s' % (self.vcode[:4], '*' * 24, self.vcode[-4:])
+        return '%s%s%s' % (self.vcode[:4], '*' * 16, self.vcode[-4:])
 
 # API cache entries
 class APICache(models.Model):
