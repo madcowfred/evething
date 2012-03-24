@@ -4,6 +4,9 @@
 
 {% block extra_head %}
 <script type="text/javascript">
+  var savedTD = null;
+  var savedHTML = null;
+
   $(document).ready(function() {
     $('#key-table').on('click', 'a.delete-button', function(event) {
       var keyid = $('td:nth-child(2)', $(this).parents('tr')).text();
@@ -11,6 +14,37 @@
       $('#delete-keyid-input').val(keyid);
       $('#keyid').text(keyid);
       $('#keyname').text(keyname);
+    });
+
+    $('#key-table').on('click', 'a.edit-button', function(event) {
+      var keyid = $('td:nth-child(2)', $(this).parents('tr')).text();
+      var keyname = $('td:nth-child(4)', $(this).parents('tr')).text();
+
+      if (savedTD) {
+        $(savedTD).html(savedHTML);
+        savedTD = null;
+        savedHTML = null;
+      }
+      savedTD = $('td:nth-child(4)', $(this).parents('tr'));
+      savedHTML = savedTD.html();
+
+      var html = [];
+      html.push('<form action="{% url evething.thing.views.apikeys_edit %}" method="POST" class="form-inline nomargin">');
+      html.push("{% csrf_token %}");
+      html.push('<input type="hidden" name="apikey_id" value="' + keyid + '">')
+      html.push('<input type="text" class="edit-name" name="name" id="magic_keyname" value="' + '">');
+      html.push('</form>');
+
+      $('td:nth-child(4)', $(this).parents('tr')).html(html.join(''));
+      $('#magic_keyname').focus();
+    });
+    
+    $('#key-table').on('focusout', 'input.edit-name', function(event) {
+      if (savedTD) {
+        $(savedTD).html(savedHTML);
+        savedTD = null;
+        savedHTML = null;
+      }
     });
   });
 </script>
@@ -41,11 +75,14 @@
                 <td>{% if sanitise %}123456{% else %}{{ apikey.id }}{% endif %}</td>
                 <td class="fixed c">{% if sanitise %}ABcd****************wxYZ{% else %}{{ apikey.get_masked_vcode }}{% endif %}</td>
                 <td>
+                  {% spaceless %}
                   {% if sanitise %}
                   apikey.name
                   {% else %}
                   {{ apikey.name }}
+                  <a href="#" class="edit-button"><i class="pull-right icon-pencil"></i></a>
                   {% endif %}
+                  {% endspaceless %}
                 </td>
                 <td>{{ apikey.access_mask }}</td>
                 <td>{{ apikey.key_type }}</td>

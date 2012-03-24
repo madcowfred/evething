@@ -96,7 +96,7 @@ def apikeys(request):
     return render_to_response(
         'thing/apikeys.html',
         {
-            'apikeys': APIKey.objects.filter(user=request.user.id),
+            'apikeys': APIKey.objects.filter(user=request.user.id).order_by('-valid', 'key_type', 'name'),
             'sanitise': request.GET.get('sanitise', False),
             'message': message,
             'message_type': message_type,
@@ -160,7 +160,21 @@ def apikeys_delete(request):
 # Edit an API key
 @login_required
 def apikeys_edit(request):
-    return
+    try:
+        apikey = APIKey.objects.get(user=request.user.id, id=request.POST.get('apikey_id', '0'))
+
+    except APIKey.DoesNotExist:
+        request.session['message_type'] = 'error'
+        request.session['message'] = 'You do not have an API key with that KeyID!'
+    
+    else:
+        request.session['message_type'] = 'success'
+        request.session['message'] = 'API key %s edited successfully!' % (apikey.id)
+
+        apikey.name = request.POST.get('name', '')
+        apikey.save()
+
+    return redirect('apikeys')
 
 # ---------------------------------------------------------------------------
 # List of blueprints we own
