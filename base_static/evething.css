@@ -61,6 +61,12 @@ td.r { text-align: right; }
 .margin-half-top { margin-top: 0.5em; }
 .margin-half-bot { margin-bottom: 0.5em; }
 
+div.character-sp {
+  text-align: right;
+  margin-right: 1em;
+  width: 6.1em;
+}
+
 /* override bootstrap settings */
 .table-condensed th, .table-condensed td {
   padding: 3px 4px;
@@ -86,7 +92,7 @@ hr.nomargin {
   text-shadow: 0 0 5px #000000;
 }
 i.nomargin {
-  margin-right: -2px;
+  margin-right: -1px;
 }
 
 /* tablesorter styles */

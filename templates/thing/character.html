@@ -131,12 +131,14 @@
                 {% for cs in css %}
                 <div>
                   {% spaceless %}
-                  <span class="{% if cs.level == 5 %}level5{% endif %}">
-                  {% if training_id == cs.skill.item.id %}<span class="training-highlight"><i class="icon-play"></i>{% endif %}
-                  {{ cs.skill.item.name }} {{ cs.get_roman_level }} (Rank {{ cs.skill.rank }}) / SP: {{ cs.points|commas }} of {{ cs.skill.get_sp_at_level|commas }}
-                  {% if training_id == cs.skill.item.id %}</span>{% endif %}
+                  {% if training_id == cs.skill.item.id %}<span class="training-highlight"><i class="icon-play"></i>
+                  {% else %}{% if cs.level == 5 %}<span class="level5">{% endif %}
+                  {% endif %}
+                  {{ cs.skill.item.name }} {{ cs.get_roman_level }}
+                  {% if training_id == cs.skill.item.id or cs.level == 5 %}</span>{% endif %}
                   </span>
                   {% endspaceless %}
+                  
                   <div class="pull-right">
                     {% spaceless %}
                     {% for level in skill_loop %}
@@ -149,6 +151,18 @@
                     </i>
                     {% endfor %}
                     {% endspaceless %}
+                  </div>
+
+                  <div class="pull-right character-sp">
+                      {{ cs.skill.get_sp_at_level|commas }} SP
+                  </div>
+
+                  <div class="pull-right character-sp">
+                      {{ cs.points|commas }} / 
+                  </div>
+
+                  <div class="pull-right character-sp">
+                    Rank {{ cs.skill.rank }}
                   </div>
                 </div>
                 {% endfor %}
