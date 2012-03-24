@@ -91,6 +91,9 @@ hr.nomargin {
 .progress .bar {
   text-shadow: 0 0 5px #000000;
 }
+form.nomargin {
+  margin: 0;
+}
 i.nomargin {
   margin-right: -1px;
 }

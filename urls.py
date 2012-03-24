@@ -12,9 +12,11 @@ urlpatterns = patterns('',
     (r'^admin/doc/', include('django.contrib.admindocs.urls')),
     (r'^admin/', include(admin.site.urls)),
     
-    # Login/logout
+    # Authentication things
     url(r'^accounts/login/$', 'django.contrib.auth.views.login', name="auth_login"),
     url(r'^accounts/logout/$', 'django.contrib.auth.views.logout', {'next_page': '/'}, name="auth_logout"),
+    url(r'^accounts/password_change/$', 'django.contrib.auth.views.password_change', name="auth_password_change"),
+    url(r'^accounts/password_change_done/$', 'django.contrib.auth.views.password_change_done'),
 )
 
 urlpatterns += patterns('evething.thing.views',
@@ -30,8 +32,8 @@ urlpatterns += patterns('evething.thing.views',
 
     (r'^bpcalc/$', 'bpcalc'),
     
-    url(r'^character/(?P<character_name>[\w ]+)/$', 'character', name='character'),
-    (r'^character/(?P<character_name>[\w ]+)/settings/', 'character_settings'),
+    url(r'^character/(?P<character_name>[\w\' ]+)/$', 'character', name='character'),
+    (r'^character/(?P<character_name>[\w\' ]+)/settings/', 'character_settings'),
     
     (r'^orders/$', 'orders'),
     (r'^market_scan/$', 'market_scan'),
