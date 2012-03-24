@@ -205,14 +205,13 @@ def blueprints(request):
         context_instance=RequestContext(request)
     )
 
-# ---------------------------------------------------------------------------
 # Add a new blueprint
 @login_required
 def blueprints_add(request):
     bpi = BlueprintInstance(
         user=request.user,
         blueprint_id=request.GET['blueprint_id'],
-        original=request.GET['original'],
+        original=request.GET.get('original', False),
         material_level=request.GET['material_level'],
         productivity_level=request.GET['productivity_level'],
     )
