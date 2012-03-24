@@ -22,12 +22,14 @@ all_item_ids = """
 SELECT  bp.item_id
 FROM    thing_blueprint bp, thing_blueprintinstance bpi
 WHERE   bp.id = bpi.blueprint_id
+        AND bpi.user_id = %s
 UNION
 SELECT  item_id
 FROM    thing_blueprintcomponent
 WHERE   blueprint_id IN (
             SELECT  blueprint_id
             FROM    thing_blueprintinstance
+            WHERE   user_id = %s
 )
 """
 
