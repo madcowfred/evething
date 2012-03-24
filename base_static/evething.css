@@ -67,6 +67,17 @@ div.character-sp {
   width: 6.1em;
 }
 
+form.nomargin, input.nomargin {
+  margin: 0;
+  padding: 0;
+}
+hr.nomargin {
+  margin-top: 0px;
+}
+i.nomargin {
+  margin-right: -1px;
+}
+
 /* override bootstrap settings */
 .table-condensed th, .table-condensed td {
   padding: 3px 4px;
@@ -85,18 +96,8 @@ div.character-sp {
 .well-small .progress {
   margin-bottom: 2px;
 }
-hr.nomargin {
-  margin-top: 0px;
-}
 .progress .bar {
   text-shadow: 0 0 5px #000000;
-}
-form.nomargin {
-  margin: 0;
-  padding: 0;
-}
-i.nomargin {
-  margin-right: -1px;
 }
 
 /* tablesorter styles */

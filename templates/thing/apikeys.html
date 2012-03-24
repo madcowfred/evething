@@ -31,8 +31,8 @@
       var html = [];
       html.push('<form action="{% url evething.thing.views.apikeys_edit %}" method="POST" class="form-inline nomargin">');
       html.push("{% csrf_token %}");
-      html.push('<input type="hidden" name="apikey_id" value="' + keyid + '">')
-      html.push('<input type="text" class="edit-name" name="name" id="magic_keyname" value="' + '">');
+      html.push('<input type="hidden" class="nomargin" name="apikey_id" value="' + keyid + '">')
+      html.push('<input type="text" class="edit-name nomargin input-medium" name="name" id="magic_keyname" value="' + $.trim(keyname) + '">');
       html.push('</form>');
 
       $('td:nth-child(4)', $(this).parents('tr')).html(html.join(''));
