@@ -5,8 +5,42 @@
 
 {% block content %}
       <div class="row">
-        <div class="thumbnail span3">
-          <img src="http://image.eveonline.com/Character/{{ char.eve_character_id }}_256.jpg">
+        <div class="span3">
+          <div class="thumbnail">
+            <img src="http://image.eveonline.com/Character/{{ char.eve_character_id }}_256.jpg">
+          </div>
+          
+          {% if not public %}
+          <br>
+          <div class="well">
+            <h3>Settings</h3>
+            <form action="{% url evething.thing.views.character_settings char.name %}" method="POST" style="margin: 0">
+              {% csrf_token %}
+              <input type="hidden" name="character_id" value="{{ char.eve_character_id }}">
+              <label class="checkbox">
+                <input type="checkbox" name="public"{% if config.is_public %} checked{% endif %}>
+                Publicly visible
+              </label>
+              <label class="checkbox">
+                <input type="checkbox" name="clone"{% if config.show_clone %} checked{% endif %}>
+                Show clone information
+              </label>
+              <label class="checkbox">
+                <input type="checkbox" name="implants"{% if config.show_implants %} checked{% endif %}>
+                Show implants
+              </label>
+              <label class="checkbox">
+                <input type="checkbox" name="queue"{% if config.show_skill_queue %} checked{% endif %}>
+                Show skill queue
+              </label>
+              <label class="checkbox">
+                <input type="checkbox" name="wallet"{% if config.show_wallet %} checked{% endif %}>
+                Show wallet balance
+              </label>
+              <button type="submit" class="btn btn-primary">Save</button>
+            </form>
+          </div>
+          {% endif %}
         </div>
         <div class="span9">
           <h2>{{ char.name }}</h2>
@@ -14,10 +48,10 @@
             <div class="span7">
               <div class="row">
                 <div class="span4">
-                  <p><strong>Wallet:</strong> {% if config.show_wallet %}{{ char.wallet_balance|commas }}{% else %}??{% endif %} ISK</p>
+                  <p><strong>Wallet:</strong> {% if not public or config.show_wallet %}{{ char.wallet_balance|commas }}{% else %}??{% endif %} ISK</p>
                   <ul class="unstyled">
                     <li><strong>Total SP:</strong> {{ char.get_total_skill_points|commas }}</li>
-                    {% if config.show_clone %}
+                    {% if not public or config.show_clone %}
                     <li><strong>Clone limit:</strong> {{ char.clone_skill_points|commas }}</li>
                     <li>{{ char.clone_name }}</li>
                     {% endif %}
@@ -28,27 +62,27 @@
                     <tr class="r">
                       <td><strong>Int:</strong></td>
                       <td>{{ char.int_attribute }}</td>
-                      <td>({% if config.show_implants %}+{{ char.int_bonus }}{% else %}??{% endif %})</td>
+                      <td>({% if not public or config.show_implants %}+{{ char.int_bonus }}{% else %}??{% endif %})</td>
                     </tr>
                     <tr class="r">
                       <td><strong>Mem:</strong></td>
                       <td>{{ char.mem_attribute }}</td>
-                      <td>({% if config.show_implants %}+{{ char.mem_bonus }}{% else %}??{% endif %})</td>
+                      <td>({% if not public or config.show_implants %}+{{ char.mem_bonus }}{% else %}??{% endif %})</td>
                     </tr>
                     <tr class="r">
                       <td><strong>Per:</strong></td>
                       <td>{{ char.per_attribute }}</td>
-                      <td>({% if config.show_implants %}+{{ char.per_bonus }}{% else %}??{% endif %})</td>
+                      <td>({% if not public or config.show_implants %}+{{ char.per_bonus }}{% else %}??{% endif %})</td>
                     </tr>
                     <tr class="r">
                       <td><strong>Wil:</strong></td>
                       <td>{{ char.wil_attribute }}</td>
-                      <td>({% if config.show_implants %}+{{ char.wil_bonus }}{% else %}??{% endif %})</td>
+                      <td>({% if not public or config.show_implants %}+{{ char.wil_bonus }}{% else %}??{% endif %})</td>
                     </tr>
                     <tr class="r">
                       <td><strong>Cha:</strong></td>
                       <td>{{ char.cha_attribute }}</td>
-                      <td>({% if config.show_implants %}+{{ char.cha_bonus }}{% else %}??{% endif %})</td>
+                      <td>({% if not public or config.show_implants %}+{{ char.cha_bonus }}{% else %}??{% endif %})</td>
                     </tr>
                   </table>
                   <br>
@@ -57,7 +91,8 @@
             </div>
           </div>
 
-          {% if config.show_skill_queue and queue %}
+          {% if not public or config.show_skill_queue %}
+          {% if queue %}
           <div class="row">
             <div class="span9">
               <div class="well well-small alert-success black">
@@ -86,7 +121,7 @@
               </div>
             </div>
           </div>
-          {% endif %}
+          {% endif %}{% endif %}
 
           {% for mg, css in skills.items %}
           <div class="row">
@@ -97,13 +132,9 @@
                 <div>
                   {% spaceless %}
                   <span class="{% if cs.level == 5 %}level5{% endif %}">
-                  {% if config.show_skill_queue and queue and queue.0.skill.item.id == cs.skill.item.id %}
-                  <span class="training-highlight"><i class="icon-play"></i>
-                  {% endif %}
+                  {% if training_id == cs.skill.item.id %}<span class="training-highlight"><i class="icon-play"></i>{% endif %}
                   {{ cs.skill.item.name }} {{ cs.get_roman_level }} (Rank {{ cs.skill.rank }}) / SP: {{ cs.points|commas }} of {{ cs.skill.get_sp_at_level|commas }}
-                  {% if config.show_skill_queue and queue and queue.0.skill.item.id == cs.skill.item.id %}
-                  </span>
-                  {% endif %}
+                  {% if training_id == cs.skill.item.id %}</span>{% endif %}
                   </span>
                   {% endspaceless %}
                   <div class="pull-right">
@@ -112,7 +143,7 @@
                     {% if cs.level == 5 %}<i class="icon-heart nomargin">
                     {% else %}{% if level <= cs.level %}<i class="icon-star nomargin">
                     {% else %}{% if cs.z_partial == level %}<i class="icon-star-empty nomargin">
-                    {% else %}{% if config.show_skill_queue and queue and queue.0.skill.item.id == cs.skill.item.id and queue.0.to_level == level %}<i class="icon-star-empty nomargin">
+                    {% else %}{% if cs.skill.item.id == training_id and level == training_level %}<i class="icon-star-empty nomargin">
                     {% else %}<i class="icon-minus nomargin">
                     {% endif %}{% endif %}{% endif %}{% endif %}
                     </i>

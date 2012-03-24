@@ -365,19 +365,27 @@ def character(request, character_name):
     if request.user.is_authenticated() and request.user.id == char.apikey.user.id:
         public = False
 
-    # If it's for public access, make sure this character is visible
-    if public:
-        try:
-            config = char.config
-        except CharacterConfig.DoesNotExist:
-            raise Http404
+    # Check for CharacterConfig
+    try:
+        config = char.config
+    except CharacterConfig.DoesNotExist:
+        # Create an empty config so this doesn't happen in future
+        config = CharacterConfig(
+            character=char,
+            is_public=False,
+            show_clone=False,
+            show_implants=False,
+            show_skill_queue=False,
+            show_wallet=False,
+        )
+        config.save()
 
-        if not config.is_public:
-            raise Http404
-    else:
-        config = {}
-        for thing in ('show_clone', 'show_implants', 'show_skill_queue', 'show_wallet'):
-            config[thing] = True
+        char.config = config
+        char.save()
+
+    # If it's for public access, make sure this character is visible
+    if public and not config.is_public:
+        raise Http404
 
     # Retrieve the list of skills and group them by market group
     skills = OrderedDict()
@@ -398,6 +406,12 @@ def character(request, character_name):
 
     # Retrieve skill queue
     queue = SkillQueue.objects.select_related().filter(character=char, end_time__gte=datetime.datetime.utcnow()).order_by('end_time')
+    if (not public or config.show_skill_queue) and queue:
+        training_id = queue[0].skill.item.id
+        training_level = queue[0].to_level
+    else:
+        training_id = None
+        training_level = None
 
     # Render template
     return render_to_response(
@@ -405,14 +419,29 @@ def character(request, character_name):
         {
             'char': char,
             'config': config,
+            'public': public,
             'skill_loop': range(1, 6),
             'skills': skills,
             'skill_totals': skill_totals,
             'queue': queue,
             'queue_rest': queue[1:],
+            'training_id': training_id,
+            'training_level': training_level,
         },
         context_instance=RequestContext(request)
     )
+
+def character_settings(request, character_name):
+    char = get_object_or_404(Character, name=character_name, apikey__user=request.user)
+
+    char.config.is_public = ('public' in request.POST)
+    char.config.show_clone = ('clone' in request.POST)
+    char.config.show_implants = ('implants' in request.POST)
+    char.config.show_skill_queue = ('queue' in request.POST)
+    char.config.show_wallet = ('wallet' in request.POST)
+    char.config.save()
+
+    return redirect(char)
 
 # ---------------------------------------------------------------------------
 # Market scan

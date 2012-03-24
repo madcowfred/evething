@@ -118,6 +118,13 @@ class Character(models.Model):
     def __unicode__(self):
         return self.name
 
+    @models.permalink
+    def get_absolute_url(self):
+        return ('character', (), {
+            'character_name': self.name,
+            }
+        )
+
     def get_total_skill_points(self):
         return CharacterSkill.objects.filter(character=self).aggregate(total_sp=Sum('points'))['total_sp']
 

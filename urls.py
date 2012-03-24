@@ -27,9 +27,12 @@ urlpatterns += patterns('evething.thing.views',
 
     url(r'^blueprints/$', 'blueprints', name='blueprints'),
     (r'^blueprints/add/$', 'blueprints_add'),
-    
+
     (r'^bpcalc/$', 'bpcalc'),
-    (r'^character/(?P<character_name>[\w ]+)/$', 'character'),
+    
+    url(r'^character/(?P<character_name>[\w ]+)/$', 'character', name='character'),
+    (r'^character/(?P<character_name>[\w ]+)/settings/', 'character_settings'),
+    
     (r'^orders/$', 'orders'),
     (r'^market_scan/$', 'market_scan'),
     
