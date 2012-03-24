@@ -38,9 +38,10 @@ def home(request):
         total_balance += char.wallet_balance
 
         # See if the account expires soon
-        timediff = char.apikey.paid_until - now
-        if timediff < EXPIRE_WARNING:
-            char.z_expires = timediff.total_seconds()
+        if char.apikey.paid_until:
+            timediff = char.apikey.paid_until - now
+            if timediff < EXPIRE_WARNING:
+                char.z_expires = timediff.total_seconds()
 
     # Do skill training check - this can't be in the model because it
     # scales like crap doing individual queries
