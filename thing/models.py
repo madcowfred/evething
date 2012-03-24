@@ -126,7 +126,7 @@ class Character(models.Model):
         )
 
     def get_short_clone_name(self):
-        return self.clone_name.split(None, 2)[2]
+        return self.clone_name.replace('Clone Grade ', '')
 
     def get_total_skill_points(self):
         return CharacterSkill.objects.filter(character=self).aggregate(total_sp=Sum('points'))['total_sp']
