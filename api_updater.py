@@ -43,6 +43,8 @@ TRANSACTIONS_CORP_URL = '%s/corp/WalletTransactions.xml.aspx' % (BASE_URL)
 class APIUpdater:
     def __init__(self, debug=False):
         self.debug = debug
+
+        self._total_api = 0
     
     # -----------------------------------------------------------------------
     # Do the heavy lifting
@@ -109,12 +111,15 @@ class APIUpdater:
         APICache.objects.filter(cached_until__lt=now).delete()
         
         # And dump some debug info
-        debug = open('/tmp/api.debug', 'w')
-        debug.write('%.3fs  %d queries (%.2fms)\n\n' % (time.time() - start, len(connection.queries), sum(float(q['time']) for q in connection.queries)))
-        debug.write('\n')
-        for query in connection.queries:
-           debug.write('%02.2fms  %s\n' % (float(query['time']), query['sql']))
-        debug.close()
+        if self.debug:
+            debug = open('/tmp/api.debug', 'w')
+            debug.write('%.3fs  %d queries (%.2fms)  API: %.1fs\n\n' % (time.time() - start,
+                len(connection.queries), sum(float(q['time']) for q in connection.queries),
+                self._total_api))
+            debug.write('\n')
+            for query in connection.queries:
+               debug.write('%02.2fms  %s\n' % (float(query['time']), query['sql']))
+            debug.close()
     
     # -----------------------------------------------------------------------
     # Do various API key things
@@ -309,7 +314,7 @@ class APIUpdater:
             skills[int(row.attrib['typeID'])] = (int(row.attrib['skillpoints']), int(row.attrib['level']))
         
         # Grab any already existing skills
-        char_skills = CharacterSkill.objects.select_related('item').filter(character=character, skill__in=skills.keys())
+        char_skills = CharacterSkill.objects.select_related('item', 'skill').filter(character=character, skill__in=skills.keys())
         for char_skill in char_skills:
             points, level = skills[char_skill.skill.item_id]
             if char_skill.points != points or char_skill.level != level:
@@ -398,7 +403,9 @@ class APIUpdater:
             wallet = wallet_map.get(accountKey, None)
             # If the wallet exists, update the balance
             if wallet is not None:
-                wallet.balance = balance
+                if balance != wallet.balance:
+                    wallet.balance = balance
+                    wallet.save()
             # Otherwise just make a new one
             else:
                 wallet = CorpWallet(
@@ -408,8 +415,7 @@ class APIUpdater:
                     description='',
                     balance=balance,
                 )
-            
-            wallet.save()
+                wallet.save()
     
     # -----------------------------------------------------------------------
     # Fetch the corporation sheet
@@ -443,10 +449,11 @@ class APIUpdater:
                 
                 for row in rowset.findall('row'):
                     wallet = wallet_map.get(int(row.attrib['accountKey']), None)
-                    # If the wallet exists, update the balance
+                    # If the wallet exists, update the description
                     if wallet is not None:
-                        wallet.description = row.attrib['description']
-                        wallet.save()
+                        if wallet.description != row.attrib['description']:
+                            wallet.description = row.attrib['description']
+                            wallet.save()
                     # If it doesn't exist, wtf?
                     else:
                         print 'ERROR: no matching CorpWallet object for corpID=%s accountKey=%s' % (corporation.id, row.attrib['accountKey'])
@@ -554,7 +561,7 @@ class APIUpdater:
         
         # Generate an order_id map
         order_map = {}
-        for mo in MarketOrder.objects.filter(character=character):
+        for mo in o_filter.select_related('item'):
             order_map[mo.order_id] = mo
         
         # Iterate over the returned result set
@@ -565,16 +572,25 @@ class APIUpdater:
             
             # Order exists
             order = order_map.get(order_id, None)
-            #if orders.count() > 0:
             if order is not None:
                 # Order is still active, update relevant details
                 if row.attrib['orderState'] == '0':
-                    order.issued = parse_api_date(row.attrib['issued'])
-                    order.volume_remaining = int(row.attrib['volRemaining'])
-                    order.escrow = Decimal(row.attrib['escrow'])
-                    order.price = Decimal(row.attrib['price'])
-                    order.total_price = order.volume_remaining * order.price
-                    order.save()
+                    issued = parse_api_date(row.attrib['issued'])
+                    volRemaining = int(row.attrib['volRemaining'])
+                    escrow = Decimal(row.attrib['escrow'])
+                    price = Decimal(row.attrib['price'])
+                    print 'aaa'
+
+                    if issued > order.issued or \
+                       volRemaining != order.volume_remaining or \
+                       escrow != order.escrow or \
+                       price != order.price:
+                        order.issued = parse_api_date(row.attrib['issued'])
+                        order.volume_remaining = int(row.attrib['volRemaining'])
+                        order.escrow = Decimal(row.attrib['escrow'])
+                        order.price = Decimal(row.attrib['price'])
+                        order.total_price = order.volume_remaining * order.price
+                        order.save()
                     
                     seen.append(order_id)
                 # Not active, nuke it from orbit
@@ -624,6 +640,7 @@ class APIUpdater:
                 if apikey.corp_character:
                     #order.corp_wallet = CorpWallet.objects.get(corporation=character.corporation, account_key=row.attrib['accountKey'])
                     order.corp_wallet = wallet_map.get(int(row.attrib['accountKey']))
+                print 'dddd', order.order_id
                 order.save()
                 
                 seen.append(order_id)
@@ -652,10 +669,6 @@ class APIUpdater:
         # Make sure the access mask matches
         if (apikey.access_mask & mask) == 0:
             return
-        
-        # Aaaaa
-        if self.debug:
-            start = time.time()
         
         # Loop until we run out of transactions
         one_week_ago = None
@@ -759,13 +772,12 @@ class APIUpdater:
                 params['beforeTransID'] = transaction_id
             else:
                 break
-        
-        if self.debug:
-            print 'transactions took %.2fs' % (time.time() - start)
 
     # ---------------------------------------------------------------------------
     # Perform an API request and parse the returned XML via ElementTree
     def fetch_api(self, url, params, apikey):
+        start = time.time()
+
         # Add the API key information
         params['keyID'] = apikey.id
         params['vCode'] = apikey.vcode
@@ -773,14 +785,14 @@ class APIUpdater:
         # Check the API cache for this URL/params combo
         now = datetime.datetime.utcnow()
         params_repr = repr(sorted(params.items()))
-        apicaches = APICache.objects.filter(url=url, parameters=params_repr, cached_until__gt=now)
-        # Data is cached, use that
-        if apicaches.count() > 0:
-            if self.debug:
-                print 'API: %s CACHED' % (url)
-            data = apicaches[0].text
+        
+        try:
+            apicache = APICache.objects.get(url=url, parameters=params_repr, cached_until__gt=now)
+
         # Data is not cached, fetch new data
-        else:
+        except APICache.DoesNotExist:
+            apicache = None
+
             if self.debug:
                 print 'API: %s...' % (url),
                 sys.stdout.flush()
@@ -788,14 +800,20 @@ class APIUpdater:
             # Fetch the URL
             r = requests.post(url, params)
             data = r.text
-            open('/tmp/data.debug', 'w').write(data)
-            
             if self.debug:
+                open('/tmp/data.debug', 'w').write(data)
                 print '%s' % (datetime.datetime.utcnow() - now)
 
             # If the status code is bad return None
             if not r.status_code == requests.codes.ok:
+                self._total_api += (time.time() - start)
                 return (None, {})
+
+        # Data is cached, use that
+        else:
+            if self.debug:
+                print 'API: %s CACHED' % (url)
+            data = apicache.text
 
         # Parse the XML
         root = ET.fromstring(data)
@@ -805,7 +823,7 @@ class APIUpdater:
         }
         
         # If the data wasn't cached, cache it now
-        if apicaches.count() == 0:
+        if apicache is None:
             apicache = APICache(
                 url=url,
                 parameters=params_repr,
@@ -814,6 +832,8 @@ class APIUpdater:
             )
             apicache.save()
         
+        self._total_api += (time.time() - start)
+
         return (root, times)
 
 # ---------------------------------------------------------------------------
