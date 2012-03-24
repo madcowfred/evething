@@ -48,12 +48,12 @@
             <div class="span7">
               <div class="row">
                 <div class="span4">
+                  <p><strong>Corp:</strong> {{ char.corporation.name }}</p>
                   <p><strong>Wallet:</strong> {% if not public or config.show_wallet %}{{ char.wallet_balance|commas }}{% else %}??{% endif %} ISK</p>
                   <ul class="unstyled">
                     <li><strong>Total SP:</strong> {{ char.get_total_skill_points|commas }}</li>
                     {% if not public or config.show_clone %}
-                    <li><strong>Clone limit:</strong> {{ char.clone_skill_points|commas }}</li>
-                    <li>{{ char.clone_name }}</li>
+                    <li><strong>Clone limit:</strong> {{ char.clone_skill_points|commas }} ({{ char.get_short_clone_name }})</li>
                     {% endif %}
                   </ul>
                 </div>
