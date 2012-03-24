@@ -579,7 +579,6 @@ class APIUpdater:
                     volRemaining = int(row.attrib['volRemaining'])
                     escrow = Decimal(row.attrib['escrow'])
                     price = Decimal(row.attrib['price'])
-                    print 'aaa'
 
                     if issued > order.issued or \
                        volRemaining != order.volume_remaining or \
