@@ -112,7 +112,7 @@
                     {% if cs.level == 5 %}<i class="icon-heart nomargin">
                     {% else %}{% if level <= cs.level %}<i class="icon-star nomargin">
                     {% else %}{% if cs.z_partial == level %}<i class="icon-star-empty nomargin">
-                    {% else %}{% if config.show_skill_queue and queue and queue.0.skill.item.id == cs.skill.item.id %}<i class="icon-star-empty nomargin">
+                    {% else %}{% if config.show_skill_queue and queue and queue.0.skill.item.id == cs.skill.item.id and queue.0.to_level == level %}<i class="icon-star-empty nomargin">
                     {% else %}<i class="icon-minus nomargin">
                     {% endif %}{% endif %}{% endif %}{% endif %}
                     </i>
