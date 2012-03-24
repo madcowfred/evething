@@ -11,7 +11,7 @@ Features
 - Home page: displays relevant information about all API keys related to your
   account - `example <http://wafflemonster.org/freddie/evething/home.png>`_. Blue
   bars are training, red bars have free room in the skill queue, little profile icon
-  is a tooltip for inadequate clone, little clock icon isa tooltip for <10d game time
+  is a tooltip for inadequate clone, little clock icon is a tooltip for <10d game time
   remaining. Accounts that are not training have red background boxes (not shown).
 
 - Character page: displays character information (picture, name, wallet balance,
