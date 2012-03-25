@@ -18,7 +18,6 @@ import settings
 setup_environ(settings)
 
 from django.db import connection
-from django.db.models import Q
 
 from thing.models import *
 
@@ -129,9 +128,6 @@ class APIUpdater:
     # -----------------------------------------------------------------------
     # Do various API key things
     def api_check(self, apikey):
-        if apikey.valid is False:
-            return
-
         root, times = self.fetch_api(API_INFO_URL, {}, apikey)
         if root is None:
             show_error('api_check', 'HTTP error', times)
@@ -644,7 +640,6 @@ class APIUpdater:
                 if apikey.corp_character:
                     #order.corp_wallet = CorpWallet.objects.get(corporation=character.corporation, account_key=row.attrib['accountKey'])
                     order.corp_wallet = wallet_map.get(int(row.attrib['accountKey']))
-                print 'dddd', order.order_id
                 order.save()
                 
                 seen.append(order_id)
@@ -748,10 +743,6 @@ class APIUpdater:
                 # Create a new transaction object and save it
                 quantity = int(row.attrib['quantity'])
                 price = Decimal(row.attrib['price'])
-                #if row.attrib['transactionType'] == 'buy':
-                #    buy_transaction = True
-                #else:
-                #    buy_transaction = False
                 buy_transaction = (row.attrib['transactionType'] == 'buy')
                 
                 t = Transaction(
