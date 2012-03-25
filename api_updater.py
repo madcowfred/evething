@@ -39,13 +39,18 @@ SKILL_QUEUE_URL = '%s/char/SkillQueue.xml.aspx' % (BASE_URL)
 TRANSACTIONS_CHAR_URL = '%s/char/WalletTransactions.xml.aspx' % (BASE_URL)
 TRANSACTIONS_CORP_URL = '%s/corp/WalletTransactions.xml.aspx' % (BASE_URL)
 
+# ---------------------------------------------------------------------------
 
 class APIUpdater:
     def __init__(self, debug=False):
         self.debug = debug
 
         self._total_api = 0
-    
+
+        self.headers = {
+            'User-Agent': 'EVEthing-api-updater',
+        }
+
     # -----------------------------------------------------------------------
     # Do the heavy lifting
     def go(self):
@@ -797,7 +802,7 @@ class APIUpdater:
                 sys.stdout.flush()
             
             # Fetch the URL
-            r = requests.post(url, params)
+            r = requests.post(url, params, headers=self.headers)
             data = r.text
             if self.debug:
                 open('/tmp/data.debug', 'w').write(data)
