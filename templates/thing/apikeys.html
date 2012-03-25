@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load thing_extras %}
 
 {% block title %}API Keys{% endblock %}
 
@@ -62,9 +63,10 @@
                 <th>KeyID</th>
                 <th>vCode</th>
                 <th>Name</th>
-                <th>Mask</th>
                 <th>Type</th>
+                <th>Mask</th>
                 <th>Expires</th>
+                <th>Account Time</th>
                 <th></th>
               </tr>
             </thead>
@@ -72,7 +74,7 @@
               {% for apikey in apikeys %}
               <tr>
                 <td class="c"><i class="icon-{{ apikey.valid|yesno:"ok,remove" }}"></i></td>
-                <td>{% if sanitise %}123456{% else %}{{ apikey.id }}{% endif %}</td>
+                <td class="r">{% if sanitise %}123456{% else %}{{ apikey.id }}{% endif %}</td>
                 <td class="fixed c">{% if sanitise %}ABcd****************wxYZ{% else %}{{ apikey.get_masked_vcode }}{% endif %}</td>
                 <td>
                   {% spaceless %}
@@ -84,13 +86,25 @@
                   {% endif %}
                   {% endspaceless %}
                 </td>
-                <td>{{ apikey.access_mask }}</td>
                 <td>{{ apikey.key_type }}</td>
+                <td>{{ apikey.access_mask }}</td>
                 <td>{{ apikey.expires|default_if_none:"Never" }}</td>
+                <td>
+                  {% spaceless %}
+                  {% if apikey.valid and apikey.key_type == 'Account' %}
+                  {% with apikey.get_remaining_time as remaining %}
+                  {{ remaining|duration }}
+                  {% if remaining < 604800 %}<i class="pull-right icon-warning-sign"></i>{% endif %}
+                  {% endwith %}
+                  {% endif %}
+                  {% endspaceless %}
+                </td>
                 <td class="c">
+                  {% spaceless %}
                   {% if apikey.valid %}
                   <a class="delete-button" data-toggle="modal" href="#delete-modal"><i class="icon-trash"></i></a>
                   {% endif %}
+                  {% endspaceless %}
                 </td>
               </tr>
               {% endfor %}

@@ -40,6 +40,12 @@ class APIKey(models.Model):
     def get_masked_vcode(self):
         return '%s%s%s' % (self.vcode[:4], '*' * 16, self.vcode[-4:])
 
+    def get_remaining_time(self):
+        if self.paid_until:
+            return max((self.paid_until - datetime.datetime.utcnow()).total_seconds(), 0)
+        else:
+            return 0
+
 # API cache entries
 class APICache(models.Model):
     url = models.URLField()

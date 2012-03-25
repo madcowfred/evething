@@ -21,7 +21,7 @@ urlpatterns = patterns('',
 
 urlpatterns += patterns('evething.thing.views',
     url(r'^$', 'home', name='home'),
-    
+
     url(r'^apikeys/$', 'apikeys', name='apikeys'),
     (r'^apikeys/add/$', 'apikeys_add'),
     (r'^apikeys/delete/$', 'apikeys_delete'),
