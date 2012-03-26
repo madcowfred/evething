@@ -86,7 +86,6 @@ def duration(s):
 def shortduration(s):
 	return ' '.join(duration(s).split()[:2])
 
-
 # Do balance colouring (red for negative, green for positive)
 @register.filter
 @stringfilter

@@ -501,7 +501,7 @@ def orders(request):
             continue
 
         if 'slots' not in char_orders[char_id]:
-            char_orders[char_id]['slots'] = 0
+            char_orders[char_id]['slots'] = 5
 
         char_orders[char_id]['slots'] += (cs.level * ORDER_SLOT_SKILLS.get(cs.skill.item.name, 0))
 
