@@ -37,11 +37,13 @@
 
             <ul class="nav pull-right">
               <li class="navbar-text">
+                {% spaceless %}
                 {% if user.is_authenticated %}
                 {{ user.username }}
                 {% else %}
                 <a href="{% url auth_login %}">Login</a>
                 {% endif %}
+                {% endspaceless %}
               </li>
               {% if user.is_authenticated %}
               <li class="dropdown">
@@ -58,6 +60,7 @@
                 </ul>
               </li>
               {% endif %}
+            </ul>
           </div>
         </div>
       </div>
