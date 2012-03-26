@@ -379,18 +379,15 @@ GROUP BY item_id
 # ---------------------------------------------------------------------------
 
 def character(request, character_name):
-    char = get_object_or_404(Character, name=character_name)
+    char = get_object_or_404(Character.objects.select_related('apikey', 'config', 'corporation'), name=character_name)
 
     # Check access
     public = True
     if request.user.is_authenticated() and request.user.id == char.apikey.user.id:
         public = False
 
-    # Check for CharacterConfig
-    try:
-        config = char.config
-    except CharacterConfig.DoesNotExist:
-        # Create an empty config so this doesn't happen in future
+    # Check for CharacterConfig, creating an empty config if it does not exist
+    if char.config is None:
         config = CharacterConfig(
             character=char,
             is_public=False,
@@ -405,49 +402,62 @@ def character(request, character_name):
         char.save()
 
     # If it's for public access, make sure this character is visible
-    if public and not config.is_public:
+    if public and not char.config.is_public:
         raise Http404
-
-    # Retrieve the list of skills and group them by market group
-    skills = OrderedDict()
-    skill_totals = {}
-    cur = None
-    for cs in CharacterSkill.objects.select_related('skill__item__market_group', 'character').filter(character=char).order_by('skill__item__market_group__name', 'skill__item__name'):
-        mg = cs.skill.item.market_group
-        if mg != cur:
-            cur = mg
-            cur.z_total_sp = 0
-            skills[cur] = []
-
-        if cs.points > cs.skill.get_sp_at_level(cs.level):
-            cs.z_partial = cs.level + 1
-
-        skills[cur].append(cs)
-        cur.z_total_sp += cs.points
-
+    
     # Retrieve skill queue
-    queue = SkillQueue.objects.select_related().filter(character=char, end_time__gte=datetime.datetime.utcnow()).order_by('end_time')
-    if (not public or config.show_skill_queue) and queue:
+    queue = SkillQueue.objects.select_related('skill__item', 'character__corporation').filter(character=char, end_time__gte=datetime.datetime.utcnow()).order_by('end_time')
+    if (not public or char.config.show_skill_queue) and queue:
         training_id = queue[0].skill.item.id
         training_level = queue[0].to_level
     else:
         training_id = None
         training_level = None
 
+    # Retrieve the list of skills and group them by market group
+    skills = OrderedDict()
+    skill_totals = {}
+    cur = None
+    for cs in CharacterSkill.objects.select_related('skill__item__market_group').filter(character=char).order_by('skill__item__market_group__name', 'skill__item__name'):
+        mg = cs.skill.item.market_group
+        if mg != cur:
+            cur = mg
+            cur.z_total_sp = 0
+            skills[cur] = []
+
+        cs.z_icons = []
+        # level 5 skill = all hearts
+        if cs.level == 5:
+            cs.z_icons.extend(['heart'] * 5)
+        # 0-4 = stars
+        else:
+            for i in range(cs.level):
+                cs.z_icons.append('star')
+
+        # partially trained and currently training skills get a partial star
+        if cs.points > cs.skill.get_sp_at_level(cs.level) or cs.skill.item.id == training_id:
+            cs.z_icons.append('star-empty')
+
+        if cs.skill.item.id == training_id:
+            cs.z_training = True
+
+        # then fill out the rest with minus
+        cs.z_icons.extend(['minus'] * (5 - len(cs.z_icons)))
+
+        skills[cur].append(cs)
+        cur.z_total_sp += cs.points
+
     # Render template
     return render_to_response(
         'thing/character.html',
         {
             'char': char,
-            'config': config,
             'public': public,
             'skill_loop': range(1, 6),
             'skills': skills,
             'skill_totals': skill_totals,
             'queue': queue,
             'queue_rest': queue[1:],
-            'training_id': training_id,
-            'training_level': training_level,
         },
         context_instance=RequestContext(request)
     )
