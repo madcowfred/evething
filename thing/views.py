@@ -19,6 +19,13 @@ from evething.thing import queries
 # How many days to start warning about expiring accounts
 EXPIRE_WARNING = datetime.timedelta(10)
 
+ORDER_SLOT_SKILLS = {
+    'Trade': 4,
+    'Retail': 8,
+    'Wholesale': 16,
+    'Tycoon': 32,
+}
+
 # ---------------------------------------------------------------------------
 # Home page
 @login_required
@@ -480,14 +487,37 @@ def market_scan(request):
 # Market orders
 @login_required
 def orders(request):
-    # Retrieve orders
+    # Retrieve order aggregate data
+    cursor = connection.cursor()
+    cursor.execute(queries.order_aggregation, (request.user.id,))
+    char_orders = OrderedDict()
+    for row in dictfetchall(cursor):
+        char_orders[row['character_id']] = row
+
+    # Retrieve... skills? Hrm.
+    for cs in CharacterSkill.objects.select_related().filter(character__apikey__user=request.user, skill__item__name__in=ORDER_SLOT_SKILLS.keys()):
+        char_id = cs.character.eve_character_id
+        if char_id not in char_orders:
+            continue
+
+        if 'slots' not in char_orders[char_id]:
+            char_orders[char_id]['slots'] = 0
+
+        char_orders[char_id]['slots'] += (cs.level * ORDER_SLOT_SKILLS.get(cs.skill.item.name, 0))
+
+    # Calculate free slots
+    for row in char_orders.values():
+        row['free_slots'] = row['slots'] - row['corp_orders'] - row['personal_orders']
+
+    # Retrieve all orders
     orders = MarketOrder.objects.select_related('item', 'station', 'character', 'corp_wallet__corporation').filter(character__apikey__user=request.user).order_by('station__name', '-buy_order', 'item__name')
     
     # Render template
     return render_to_response(
         'thing/orders.html',
         {
-            'orders': orders
+            'char_orders': char_orders,
+            'orders': orders,
         },
         context_instance=RequestContext(request)
     )
@@ -735,3 +765,12 @@ def _month_range(year, month):
     start = datetime.datetime(year, month, 1)
     end = datetime.datetime(year, month, calendar.monthrange(year, month)[1], 23, 59, 59)
     return (start, end)
+
+# Fetch all rows from a cursor as a list of dictionaries
+def dictfetchall(cursor):
+    "Returns all rows from a cursor as a dict"
+    desc = cursor.description
+    return [
+        dict(zip([col[0] for col in desc], row))
+        for row in cursor.fetchall()
+    ]

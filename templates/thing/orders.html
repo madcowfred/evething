@@ -4,6 +4,45 @@
 {% block title %}Orders{% endblock %}
 
 {% block content %}
+      {% if char_orders %}
+      <div class="row-fluid">
+        <div class="span1">&nbsp;</div>
+        <div class="span8">
+          <h2>Character Summary</h2>
+          <table class="table table-striped table-bordered table-condensed">
+            <thead>
+              <tr class="c">
+                <th>Character</th>
+                <th>Avail.</th>
+                <th>Total</th>
+                <th>Pers.</th>
+                <th>Corp.</th>
+                <th colspan="2">Sell Orders</th>
+                <th colspan="2">Buy Orders</th>
+                <th>Escrow</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in char_orders.values %}
+              <tr class="r">
+                <td class="l"> row.name </td>
+                <td>{{ row.free_slots }}</td>
+                <td>{{ row.slots }}</td>
+                <td>{{ row.personal_orders }}</td>
+                <td>{{ row.corp_orders }}</td>
+                <td>{{ row.sell_orders }}</td>
+                <td>{{ row.total_sells|commas }}</td>
+                <td>{{ row.buy_orders }}</td>
+                <td>{{ row.total_buys|commas }}</td>
+                <td>{{ row.total_escrow|commas }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      {% endif %}
+
       <div class="row-fluid">
         <div class="span1">&nbsp;</div>
         <div class="span10">
