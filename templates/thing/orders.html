@@ -25,7 +25,7 @@
             <tbody>
               {% for row in char_orders.values %}
               <tr class="r">
-                <td class="l"> row.name </td>
+                <td class="l">{{ row.name }}</td>
                 <td>{{ row.free_slots }}</td>
                 <td>{{ row.slots }}</td>
                 <td>{{ row.personal_orders }}</td>
