@@ -84,7 +84,7 @@ def duration(s):
 # Turn a duration in seconds into a shorter human readable string
 @register.filter
 def shortduration(s):
-	return ''.join(duration(s).split()[:2])
+	return ' '.join(duration(s).split()[:2])
 
 
 # Do balance colouring (red for negative, green for positive)
