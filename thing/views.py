@@ -509,6 +509,18 @@ def orders(request):
     for row in char_orders.values():
         row['free_slots'] = row['slots'] - row['corp_orders'] - row['personal_orders']
 
+    total_row = {
+        'free_slots': sum(row['free_slots'] for row in char_orders.values()),
+        'slots': sum(row['slots'] for row in char_orders.values()),
+        'personal_orders': sum(row['personal_orders'] for row in char_orders.values()),
+        'corp_orders': sum(row['corp_orders'] for row in char_orders.values()),
+        'sell_orders': sum(row['sell_orders'] for row in char_orders.values()),
+        'total_sells': sum(row['total_sells'] for row in char_orders.values()),
+        'buy_orders': sum(row['buy_orders'] for row in char_orders.values()),
+        'total_buys': sum(row['total_buys'] for row in char_orders.values()),
+        'total_escrow': sum(row['total_escrow'] for row in char_orders.values()),
+    }
+
     # Retrieve all orders
     orders = MarketOrder.objects.select_related('item', 'station', 'character', 'corp_wallet__corporation').filter(character__apikey__user=request.user).order_by('station__name', '-buy_order', 'item__name')
     
@@ -518,6 +530,7 @@ def orders(request):
         {
             'char_orders': char_orders,
             'orders': orders,
+            'total_row': total_row,
         },
         context_instance=RequestContext(request)
     )

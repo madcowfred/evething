@@ -5,8 +5,8 @@ body {
     color: #E0FFFF;
 }
 
-span.pos { color: #009800; }
-span.neg { color: #FF0000; }
+.pos { color: #009800; }
+.neg { color: #FF0000; }
 
 .c { text-align: center; }
 .r { text-align: right; }

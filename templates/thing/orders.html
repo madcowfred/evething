@@ -31,13 +31,27 @@
                 <td>{{ row.personal_orders }}</td>
                 <td>{{ row.corp_orders }}</td>
                 <td>{{ row.sell_orders }}</td>
-                <td>{{ row.total_sells|commas }}</td>
+                <td class="pos">{{ row.total_sells|commas }}</td>
                 <td>{{ row.buy_orders }}</td>
-                <td>{{ row.total_buys|commas }}</td>
+                <td class="neg">{{ row.total_buys|commas }}</td>
                 <td>{{ row.total_escrow|commas }}</td>
               </tr>
               {% endfor %}
             </tbody>
+            <tfoot>
+              <tr class="r bold">
+                <td></td>
+                <td>{{ total_row.free_slots }}</td>
+                <td>{{ total_row.slots }}</td>
+                <td>{{ total_row.personal_orders }}</td>
+                <td>{{ total_row.corp_orders }}</td>
+                <td>{{ total_row.sell_orders }}</td>
+                <td class="pos">{{ total_row.total_sells|commas }}</td>
+                <td>{{ total_row.buy_orders }}</td>
+                <td class="neg">{{ total_row.total_buys|commas }}</td>
+                <td>{{ total_row.total_escrow|commas }}</td>
+              </tr>
+            </tfoot>
           </table>
         </div>
       </div>
