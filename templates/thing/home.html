@@ -96,7 +96,7 @@
       <h4>Notifications</h4>
       <ul>
         {% for notif in notifications %}
-        <li>{{ notif.issued|date:"Y-m-d H:i:s" }} <strong>/</strong> {{ notif.text|safe }}</li>
+        <li>{{ notif.get_age|duration }} ago <strong>/</strong> {{ notif.text|safe }}</li>
         {% endfor %}
       </ul>
     </div>
