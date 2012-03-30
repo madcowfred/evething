@@ -60,6 +60,9 @@ class Notification(models.Model):
     issued = models.DateTimeField()
     text = models.TextField()
 
+    class Meta:
+        ordering = ('-issued', '-id')
+
     def get_age(self):
         return (datetime.datetime.now() - self.issued).total_seconds()
 

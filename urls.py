@@ -36,8 +36,11 @@ urlpatterns += patterns('evething.thing.views',
     (r'^character/(?P<character_name>[\w\' ]+)/settings/', 'character_settings'),
     
     (r'^orders/$', 'orders'),
+    
     (r'^market_scan/$', 'market_scan'),
     
+    (r'^notifications/$', 'notifications'),
+
     (r'^trade/$', 'trade'),
     (r'^trade/(?P<year>\d{4})-(?P<month>\d{2})/$', 'trade_timeframe'),
     (r'^trade/(?P<period>all)/$', 'trade_timeframe'),

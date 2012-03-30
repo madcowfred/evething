@@ -99,6 +99,7 @@
         <li>{{ notif.get_age|duration }} ago <strong>/</strong> {{ notif.text|safe }}</li>
         {% endfor %}
       </ul>
+      <span><a href="{% url evething.thing.views.notifications %}">See all</a></span>
     </div>
     {% endif %}
 {% endblock %}

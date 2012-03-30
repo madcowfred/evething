@@ -85,7 +85,7 @@ def home(request):
             'corporations': corporations,
             'characters': first + last,
             'sanitise': request.GET.get('sanitise', False),
-            'notifications': Notification.objects.filter(user=request.user).order_by('-issued')[:20]
+            'notifications': Notification.objects.filter(user=request.user)[:10]
         },
         context_instance=RequestContext(request)
     )
@@ -490,6 +490,36 @@ def market_scan(request):
         'thing/market_scan.html',
         {
             'item_ids': item_ids,
+        },
+        context_instance=RequestContext(request)
+    )
+
+# ---------------------------------------------------------------------------
+@login_required
+def notifications(request):
+    # Get a QuerySet of notifications for this user
+    notifications = Notification.objects.filter(user=request.user)
+
+    # Create a new paginator
+    paginator = Paginator(notifications, 100)
+    
+    # Make sure page request is an int, default to 1st page
+    try:
+        page = int(request.GET.get('page', '1'))
+    except ValueError:
+        page = 1
+    
+    # If page request is out of range, deliver last page of results
+    try:
+        notifications = paginator.page(page)
+    except (EmptyPage, InvalidPage):
+        notifications = paginator.page(paginator.num_pages)
+    
+    # Render template
+    return render_to_response(
+        'thing/notifications.html',
+        {
+            'notifications': notifications,
         },
         context_instance=RequestContext(request)
     )
