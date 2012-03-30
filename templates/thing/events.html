@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 {% load thing_extras %}
 
-{% block title %}Notifications{% endblock %}
+{% block title %}Event log{% endblock %}
 
 {% block content %}
       <div class="row-fluid">
         <div class="span1">&nbsp;</div>
         <div class="span10">
-          <h2>Notifications</h2>
+          <h2>Event log</h2>
           <table class="table table-striped table-bordered table-condensed">
             <thead>
               <tr class="c">
@@ -17,29 +17,29 @@
               </tr>
             </thead>
             <tbody>
-              {% for notification in notifications.object_list %}
+              {% for event in events.object_list %}
               <tr>
-                <td class="c">{{ notification.issued|date:"Y-m-d H:i" }}</td>
-                <td class="r">{{ notification.get_age|duration }}</td>
-                <td>{{ notification.text|safe }}</td>
+                <td class="c">{{ event.issued|date:"Y-m-d H:i" }}</td>
+                <td class="r">{{ event.get_age|duration }}</td>
+                <td>{{ event.text|safe }}</td>
               </tr>
               {% empty %}
               <tr>
-                <td colspan="3">No notifications found.</td>
+                <td colspan="3">No events found.</td>
               </tr>
               {% endfor %}
             </tbody>
           </table>
           <div class="pagination pagination-centered">
             <ul>
-              {% if notifications.has_previous %}
-              <li><a href="?page={{ notifications.previous_page_number }}">Prev</a></li>
+              {% if events.has_previous %}
+              <li><a href="?page={{ events.previous_page_number }}">Prev</a></li>
               {% else %}
               <li class="disabled"><a href="#">Prev</a></li>
               {% endif %}
-              <li class="active"><a href="#">{{ notifications.number }}</a></li>
-              {% if notifications.has_next %}
-              <li><a href="?page={{ notifications.next_page_number }}">Next</a></li>
+              <li class="active"><a href="#">{{ events.number }}</a></li>
+              {% if events.has_next %}
+              <li><a href="?page={{ events.next_page_number }}">Next</a></li>
               {% else %}
               <li class="disabled"><a href="#">Next</a></li>
               {% endif %}

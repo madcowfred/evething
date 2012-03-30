@@ -90,16 +90,16 @@
     </div>
     {% endif %}
 
-    {% if notifications %}
+    {% if events %}
     <hr class="nomargin">
     <div class="row-fluid">
-      <h4>Notifications</h4>
+      <h4>Event log</h4>
       <ul>
-        {% for notif in notifications %}
-        <li>{{ notif.get_age|duration }} ago <strong>/</strong> {{ notif.text|safe }}</li>
+        {% for event in events %}
+        <li>{{ event.get_age|duration }} ago <strong>/</strong> {{ event.text|safe }}</li>
         {% endfor %}
       </ul>
-      <span><a href="{% url evething.thing.views.notifications %}">See all</a></span>
+      <span><a href="{% url evething.thing.views.events %}">See all</a></span>
     </div>
     {% endif %}
 {% endblock %}

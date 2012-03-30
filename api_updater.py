@@ -646,7 +646,7 @@ class APIUpdater:
                 seen.append(order_id)
         
 
-        # Any orders we didn't see need to be deleted - issue notifications first
+        # Any orders we didn't see need to be deleted - issue events first
         to_delete = o_filter.exclude(pk__in=seen)
         now = datetime.datetime.now()
         for order in to_delete.select_related():
@@ -663,12 +663,12 @@ class APIUpdater:
             text = '%s: %s %s order for <a href="%s">%s</a> completed/expired (%s)' % (order.station.short_name, order_type, buy_sell, url, 
                 order.item.name, order.character.name)
 
-            notification = Notification(
+            event = Event(
                 user_id=apikey.user.id,
                 issued=now,
                 text=text,
             )
-            notification.save()
+            event.save()
 
         # Then delete
         to_delete.delete()

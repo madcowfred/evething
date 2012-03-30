@@ -54,8 +54,8 @@ class APICache(models.Model):
     text = models.TextField()
 
 # ---------------------------------------------------------------------------
-# Notifications
-class Notification(models.Model):
+# Events
+class Event(models.Model):
     user = models.ForeignKey(User)
     issued = models.DateTimeField()
     text = models.TextField()

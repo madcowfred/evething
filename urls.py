@@ -35,11 +35,11 @@ urlpatterns += patterns('evething.thing.views',
     url(r'^character/(?P<character_name>[\w\' ]+)/$', 'character', name='character'),
     (r'^character/(?P<character_name>[\w\' ]+)/settings/', 'character_settings'),
     
+    (r'^events/$', 'events'),
+    
     (r'^orders/$', 'orders'),
     
     (r'^market_scan/$', 'market_scan'),
-    
-    (r'^notifications/$', 'notifications'),
 
     (r'^trade/$', 'trade'),
     (r'^trade/(?P<year>\d{4})-(?P<month>\d{2})/$', 'trade_timeframe'),
