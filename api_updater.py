@@ -925,5 +925,14 @@ def get_station(station_id, station_name):
 # ---------------------------------------------------------------------------
 
 if __name__ == '__main__':
+    # don't start if the lock file exists
+    lockfile = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'api.lock')
+    if os.path.isfile(lockfile):
+        sys.exit(0)
+
+    open(lockfile, 'w').write('meow')
+    
     updater = APIUpdater(settings.DEBUG)
     updater.go()
+
+    os.remove(lockfile)
