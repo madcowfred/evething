@@ -14,7 +14,7 @@ from thing.models import *
 
 # ---------------------------------------------------------------------------
 
-SDE_FILE = 'cru11-sqlite3-v1.db'
+SDE_FILE = 'cru16-sqlite3-v1.db'
 STATION_URL = 'http://eveapiproxy.wafflemonster.org/eve/ConquerableStationList.xml.aspx'
 
 # Override volume for ships, assembled volume is mostly useless :ccp:
