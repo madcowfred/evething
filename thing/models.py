@@ -54,6 +54,13 @@ class APICache(models.Model):
     text = models.TextField()
 
 # ---------------------------------------------------------------------------
+# Notifications
+class Notification(models.Model):
+    user = models.ForeignKey(User)
+    issued = models.DateTimeField()
+    text = models.TextField()
+
+# ---------------------------------------------------------------------------
 # Corporations
 class Corporation(models.Model):
     id = models.IntegerField(primary_key=True)

@@ -89,4 +89,16 @@
       {% endfor %}
     </div>
     {% endif %}
+
+    {% if notifications %}
+    <hr class="nomargin">
+    <div class="row-fluid">
+      <h4>Notifications</h4>
+      <ul>
+        {% for notif in notifications %}
+        <li>{{ notif.issued|date:"Y-m-d H:i:s" }} <strong>/</strong> {{ notif.text|safe }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
 {% endblock %}

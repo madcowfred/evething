@@ -84,7 +84,8 @@ def home(request):
             'total_balance': total_balance,
             'corporations': corporations,
             'characters': first + last,
-            'sanitise': request.GET.get('sanitise', False)
+            'sanitise': request.GET.get('sanitise', False),
+            'notifications': Notification.objects.filter(user=request.user).order_by('-issued')[:20]
         },
         context_instance=RequestContext(request)
     )

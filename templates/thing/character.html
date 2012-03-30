@@ -122,6 +122,7 @@
           </div>
           {% endif %}{% endif %}
 
+          {% autoescape off %}
           {% for mg, css in skills.items %}
           <div class="row">
             <div class="span9">
@@ -153,6 +154,7 @@
             </div>
           </div>
           {% endfor %}
+          {% endautoescape %}
         </div>
       </div>
 

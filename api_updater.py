@@ -17,6 +17,7 @@ from django.core.management import setup_environ
 import settings
 setup_environ(settings)
 
+from django.core.urlresolvers import reverse
 from django.db import connection
 
 from thing.models import *
@@ -315,8 +316,7 @@ class APIUpdater:
             skills[int(row.attrib['typeID'])] = (int(row.attrib['skillpoints']), int(row.attrib['level']))
         
         # Grab any already existing skills
-        char_skills = CharacterSkill.objects.select_related('item', 'skill').filter(character=character, skill__in=skills.keys())
-        for char_skill in char_skills:
+        for char_skill in CharacterSkill.objects.select_related('item', 'skill').filter(character=character, skill__in=skills.keys()):
             points, level = skills[char_skill.skill.item_id]
             if char_skill.points != points or char_skill.level != level:
                 char_skill.points = points
@@ -593,9 +593,10 @@ class APIUpdater:
                         order.save()
                     
                     seen.append(order_id)
-                # Not active, nuke it from orbit
-                else:
-                    order.delete()
+                
+                # Not active, delete order
+                #else:
+                #    order.delete()
             
             # Doesn't exist and is active, make a new order
             elif row.attrib['orderState'] == '0':
@@ -644,9 +645,34 @@ class APIUpdater:
                 
                 seen.append(order_id)
         
-        # Delete orders we didn't see, they're gooone
-        o_filter.exclude(pk__in=seen).delete()
-    
+
+        # Any orders we didn't see need to be deleted - issue notifications first
+        to_delete = o_filter.exclude(pk__in=seen)
+        now = datetime.datetime.now()
+        for order in to_delete.select_related():
+            if order.buy_order:
+                buy_sell = 'buy'
+            else:
+                buy_sell = 'sell'
+            if order.corp_wallet:
+                order_type = 'corporate'
+            else:
+                order_type = 'personal'
+
+            url = reverse('transactions-all', args=[order.item.id, 'all'])
+            text = '%s: %s %s order for <a href="%s">%s</a> completed/expired (%s)' % (order.station.short_name, order_type, buy_sell, url, 
+                order.item.name, order.character.name)
+
+            notification = Notification(
+                user_id=apikey.user.id,
+                issued=now,
+                text=text,
+            )
+            notification.save()
+
+        # Then delete
+        #to_delete.delete()
+
     # -----------------------------------------------------------------------
     # Fetch transactions and update the database
     def fetch_transactions(self, apikey, character, corp_wallet=None):
