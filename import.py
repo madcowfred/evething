@@ -309,9 +309,17 @@ class Importer:
         data_map = ItemGroup.objects.in_bulk(bulk_data.keys())
         
         for id, data in bulk_data.items():
-            if id in data_map or not data[1]:
+            if data[1]:
                 continue
-            
+
+            ig = data_map.get(id, None)
+            if ig is not None:
+                if ig.name != data[0]:
+                    print '==> Renamed %r to %r' % (ig.name, data[0])
+                    ig.name = data[0]
+                    ig.save()
+                continue
+
             ig = ItemGroup(
                 id=id,
                 name=data[0],
@@ -380,7 +388,15 @@ class Importer:
         data_map = Blueprint.objects.in_bulk(bulk_data.keys())
         
         for id, data in bulk_data.items():
-            if id in data_map or not data[0] or not data[1]:
+            if not data[0] or not data[1]:
+                continue
+
+            bp = data_map.get(id, None)
+            if bp is not None:
+                if bp.name != data[0]:
+                    print '==> Renamed %r to %r' % (bp.name, data[0])
+                    bp.name = data[0]
+                    bp.save()
                 continue
             
             bp = Blueprint(
