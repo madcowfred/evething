@@ -671,7 +671,7 @@ class APIUpdater:
             notification.save()
 
         # Then delete
-        #to_delete.delete()
+        to_delete.delete()
 
     # -----------------------------------------------------------------------
     # Fetch transactions and update the database
