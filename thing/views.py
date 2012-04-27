@@ -621,10 +621,12 @@ def trade(request):
         row['buy_total'] = trans.filter(buy_transaction=True).aggregate(Sum('total_price'))['total_price__sum']
         row['sell_total'] = trans.filter(buy_transaction=False).aggregate(Sum('total_price'))['total_price__sum']
         
-        if row['buy_total'] is None or row['sell_total'] is None:
-            row['balance'] = 0
-        else:
-            row['balance'] = row['sell_total'] - row['buy_total']
+        if row['buy_total'] is None:
+            row['buy_total'] = 0
+        if row['sell_total'] is None:
+            row['sell_total'] = 0
+        
+        row['balance'] = row['sell_total'] - row['buy_total']
         
         t_data.append(row)
     
