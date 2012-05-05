@@ -534,6 +534,7 @@ def orders(request):
     cursor.execute(queries.order_aggregation, (request.user.id,))
     char_orders = OrderedDict()
     for row in dictfetchall(cursor):
+        row['slots'] = 5
         char_orders[row['character_id']] = row
 
     # Retrieve... skills? Hrm.
@@ -541,9 +542,6 @@ def orders(request):
         char_id = cs.character.eve_character_id
         if char_id not in char_orders:
             continue
-
-        if 'slots' not in char_orders[char_id]:
-            char_orders[char_id]['slots'] = 5
 
         char_orders[char_id]['slots'] += (cs.level * ORDER_SLOT_SKILLS.get(cs.skill.item.name, 0))
 
