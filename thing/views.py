@@ -335,6 +335,8 @@ GROUP BY item_id
             if bpi.z_volume_week:
                 bpi.z_volume_percent = (bpi.z_built / bpi.z_volume_week * 100).quantize(Decimal('.1'))
             
+            bpi.z_total_m3 = bpi.blueprint.item.volume * built
+
             # Update totals
             bpi_totals['total_sell'] += bpi.z_total_sell
             bpi_totals['buy_build'] += bpi.z_buy_build

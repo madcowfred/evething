@@ -86,8 +86,7 @@
 
 {% block content %}
       <div class="row-fluid">
-        <div class="span1">&nbsp;</div>
-        <div class="span10">
+        <div class="span12">
           <h2>Building</h2>
           <p>
             <a href="#" onclick="filter_profit();">filter profit &lt;</a> <input id="profit" type="text" value="5" class="input-mini">
@@ -106,11 +105,13 @@
                 <td colspan="3" class="head">From Sells</td>
                 <td colspan="3" class="head">Sell</td>
                 <td colspan="2" class="head">Volume</td>
+                <td></td>
               </tr>
               <tr class="c">
                 <th class="l">Name</th>
                 <th>Runs</th>
                 <th>Time</th>
+                <th>Total m3</th>
                 <th>Build</th>
                 <th>Profit</th>
                 <th>P%</th>
@@ -122,26 +123,28 @@
                 <th>Total</th>
                 <th>Week</th>
                 <th>%</th>
+                <th></th>
               </tr>
             </thead>
             <tbody>
               {% for bpi in bpis %}
-              <tr data_bpi="{{ bpi.id }}">
-                <td>{{ bpi.blueprint.item }}</td>
-                <td class="r">{{ bpi.z_runs|commas }}</td>
-                <td class="r">{{ bpi.z_total_time|duration }}</td>
-                <td class="r" class="alt">{{ bpi.z_buy_build|humanize }}</td>
-                <td class="r" class="alt">{{ bpi.z_buy_profit|humanize|balance }}</td>
-                <td class="r" class="alt">{{ bpi.z_buy_profit_per|spanif:"neg < 7" }}%</td>
-                <td class="r">{{ bpi.z_sell_build|humanize }}</td>
-                <td class="r">{{ bpi.z_sell_profit|humanize|balance }}</td>
-                <td class="r">{{ bpi.z_sell_profit_per|spanif:"neg < 7" }}%</td>
-                <td class="r" class="alt">{{ bpi.z_built|commas }}</td>
-                <td class="r" class="alt">{{ bpi.blueprint.item.sell_price|humanize }}</td>
-                <td class="r" class="alt">{{ bpi.z_total_sell|humanize }}</td>
-                <td class="r">{{ bpi.z_volume_week|humanize }}</td>
-                <td class="r">{{ bpi.z_volume_percent|spanif:"neg > 10" }}%</td>
-                <td class="r"><input type="checkbox"></td>
+              <tr class="r" data_bpi="{{ bpi.id }}">
+                <td class="l">{{ bpi.blueprint.item }}</td>
+                <td>{{ bpi.z_runs|commas }}</td>
+                <td>{{ bpi.z_total_time|duration }}</td>
+                <td>{{ bpi.z_total_m3|commas }} m<sup>3</sup></td>
+                <td>{{ bpi.z_buy_build|humanize }}</td>
+                <td>{{ bpi.z_buy_profit|humanize|balance }}</td>
+                <td>{{ bpi.z_buy_profit_per|spanif:"neg < 7" }}%</td>
+                <td>{{ bpi.z_sell_build|humanize }}</td>
+                <td>{{ bpi.z_sell_profit|humanize|balance }}</td>
+                <td>{{ bpi.z_sell_profit_per|spanif:"neg < 7" }}%</td>
+                <td>{{ bpi.z_built|commas }}</td>
+                <td>{{ bpi.blueprint.item.sell_price|humanize }}</td>
+                <td>{{ bpi.z_total_sell|humanize }}</td>
+                <td>{{ bpi.z_volume_week|humanize }}</td>
+                <td>{{ bpi.z_volume_percent|spanif:"neg > 10" }}%</td>
+                <td><input type="checkbox"></td>
               </tr>
               {% empty %}
               <tr>
