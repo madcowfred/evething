@@ -11,6 +11,7 @@
       'headers': {
         1: { sorter: false },
         2: { sorter: false },
+        3: { sorter: 'human' },
         4: { sorter: false },
         5: { sorter: 'human' },
         6: { sorter: false },
@@ -132,7 +133,7 @@
                 <td class="l">{{ bpi.blueprint.item }}</td>
                 <td>{{ bpi.z_runs|commas }}</td>
                 <td>{{ bpi.z_total_time|duration }}</td>
-                <td>{{ bpi.z_total_m3|commas }} m<sup>3</sup></td>
+                <td>{{ bpi.z_total_m3|humanize }}</td>
                 <td>{{ bpi.z_buy_build|humanize }}</td>
                 <td>{{ bpi.z_buy_profit|humanize|balance }}</td>
                 <td>{{ bpi.z_buy_profit_per|spanif:"neg < 7" }}%</td>
