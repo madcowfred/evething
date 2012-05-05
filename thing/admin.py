@@ -1,5 +1,5 @@
 from django.contrib import admin
-from evething.thing.models import APIKey, BlueprintInstance, Campaign, Character, CharacterConfig, Corporation
+from thing.models import APIKey, BlueprintInstance, Campaign, Character, CharacterConfig, Corporation
 
 class APIKeyAdmin(admin.ModelAdmin):
     list_display = ('id', 'user', 'name', 'key_type', 'valid')

@@ -30,7 +30,7 @@
       savedHTML = savedTD.html();
 
       var html = [];
-      html.push('<form action="{% url evething.thing.views.apikeys_edit %}" method="POST" class="form-inline nomargin">');
+      html.push('<form action="{% url thing.views.apikeys_edit %}" method="POST" class="form-inline nomargin">');
       html.push("{% csrf_token %}");
       html.push('<input type="hidden" class="nomargin" name="apikey_id" value="' + keyid + '">')
       html.push('<input type="text" class="edit-name nomargin input-medium" name="name" id="magic_keyname" value="' + $.trim(keyname) + '">');
@@ -111,7 +111,7 @@
             </tbody>
           </table>
 
-          <form action="{% url evething.thing.views.apikeys_add %}" method="POST" class="form-inline">
+          <form action="{% url thing.views.apikeys_add %}" method="POST" class="form-inline">
             {% csrf_token %}
             <input type="text" name="name" class="input-medium" placeholder="Name">
             <input type="text" name="keyid" class="input-small" placeholder="KeyID">
@@ -126,7 +126,7 @@
           {% endif %}
 
           <div class="modal hide" id="delete-modal">
-            <form action="{% url evething.thing.views.apikeys_delete %}" method="POST" class="form-inline">
+            <form action="{% url thing.views.apikeys_delete %}" method="POST" class="form-inline">
               {% csrf_token %}
               <input type="hidden" name="keyid" value="a" id="delete-keyid-input">
               <div class="modal-header">

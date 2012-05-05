@@ -1,7 +1,7 @@
 # Django settings for evething project.
 
 import os
-_PATH = os.path.realpath(os.path.dirname(__file__))
+_PATH = os.path.realpath(os.path.join(os.path.dirname(__file__), '..'))
 
 # admins, obviously
 ADMINS = (
@@ -108,7 +108,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.admin',
     'django.contrib.admindocs',
-    'evething.thing',
+    'thing',
 )
 
 # A sample logging configuration. The only tangible logging

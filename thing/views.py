@@ -12,8 +12,8 @@ from django.http import Http404
 from django.shortcuts import *
 from django.template import RequestContext
 
-from evething.thing.models import *
-from evething.thing import queries
+from thing.models import *
+from thing import queries
 
 # ---------------------------------------------------------------------------
 # How many days to start warning about expiring accounts

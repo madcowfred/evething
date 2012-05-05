@@ -17,7 +17,7 @@
         <div class="well-small well{% if character.apikey_id in not_training %} alert-error{% endif %}">
           <div>
             <span class="large">
-              <a href="{% url evething.thing.views.character character.name %}">
+              <a href="{% url thing.views.character character.name %}">
                 {% if sanitise %}Character Name{% else %}{{ character.name }}{% endif %}
               </a>
             </span>
@@ -99,7 +99,7 @@
         <li>{{ event.get_age|duration }} ago <strong>/</strong> {{ event.text|safe }}</li>
         {% endfor %}
       </ul>
-      <span><a href="{% url evething.thing.views.events %}">See all</a></span>
+      <span><a href="{% url thing.views.events %}">See all</a></span>
     </div>
     {% endif %}
 {% endblock %}

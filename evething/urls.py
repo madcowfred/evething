@@ -19,7 +19,7 @@ urlpatterns = patterns('',
     url(r'^accounts/password_change_done/$', 'django.contrib.auth.views.password_change_done'),
 )
 
-urlpatterns += patterns('evething.thing.views',
+urlpatterns += patterns('thing.views',
     url(r'^$', 'home', name='home'),
 
     url(r'^apikeys/$', 'apikeys', name='apikeys'),

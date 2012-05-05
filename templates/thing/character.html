@@ -14,7 +14,7 @@
           <br>
           <div class="well">
             <h3>Settings</h3>
-            <form action="{% url evething.thing.views.character_settings char.name %}" method="POST" style="margin: 0">
+            <form action="{% url thing.views.character_settings char.name %}" method="POST" style="margin: 0">
               {% csrf_token %}
               <input type="hidden" name="character_id" value="{{ char.eve_character_id }}">
               <label class="checkbox">

@@ -55,7 +55,7 @@ $(document).ready(function() {
             <tbody>
               {% for item in items %}
               <tr class="r">
-                <td class="l"><a href="{% url evething.thing.views.transactions_item item.pk urlpart %}">{{ item.name }}</a></td>
+                <td class="l"><a href="{% url thing.views.transactions_item item.pk urlpart %}">{{ item.name }}</a></td>
                 <td class="l">{{ item.cat_name }}</td>
                 <td>
                   <a href="#" title="Min: {{ item.buy_minimum|humanize }} | Avg: {{ item.buy_average|humanize }} | Max: {{ item.buy_maximum|humanize }}">
