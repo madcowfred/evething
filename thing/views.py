@@ -565,7 +565,10 @@ def orders(request):
 
     # Retrieve all orders
     orders = MarketOrder.objects.select_related('item', 'station', 'character', 'corp_wallet__corporation').filter(character__apikey__user=request.user).order_by('station__name', '-buy_order', 'item__name')
-    
+    now = datetime.datetime.utcnow()
+    for order in orders:
+        order.z_remaining = (order.expires - now).total_seconds()
+
     # Render template
     return render_to_response(
         'thing/orders.html',

@@ -92,7 +92,7 @@
                 <td class="r"><span class="pos">{{ order.total_price|commas }}</span></td>
                 {% endif %}
                 <td class="r">{{ order.escrow|commas }}</td>
-                <td class="r">{{ order.expires|date:"Y-m-d H:i" }}</td>
+                <td class="r">{{ order.z_remaining|shortduration }}</td>
               </tr>
               {% empty %}
               <tr>
