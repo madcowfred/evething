@@ -9,7 +9,7 @@ from decimal import *
 
 # Aurgh
 from django.core.management import setup_environ
-import settings
+from evething import settings
 setup_environ(settings)
 
 from django.db import connection

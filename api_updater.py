@@ -14,7 +14,7 @@ from decimal import *
 
 # Aurgh
 from django.core.management import setup_environ
-import settings
+from evething import settings
 setup_environ(settings)
 
 from django.core.urlresolvers import reverse
@@ -57,7 +57,7 @@ class APIUpdater:
         start = time.time()
         
         # Make sure API keys are valid first
-        for apikey in APIKey.objects.select_related().filter(valid=True):
+        for apikey in APIKey.objects.select_related().filter(valid=True).order_by('key_type'):
             self.api_check(apikey)
 
         # Make sure account status is up to date
