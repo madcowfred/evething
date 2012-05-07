@@ -61,7 +61,7 @@ class APIUpdater:
             self.api_check(apikey)
 
         # Make sure account status is up to date
-        for apikey in APIKey.objects.select_related().filter(valid=True):
+        for apikey in APIKey.objects.select_related().filter(valid=True, access_mask__isnull=False):
             self.fetch_account_status(apikey)
 
         # Generate a character id map
@@ -70,7 +70,7 @@ class APIUpdater:
             self.char_id_map[character.eve_character_id] = character
         
         # Now we can get down to business
-        for apikey in APIKey.objects.filter(valid=True):
+        for apikey in APIKey.objects.filter(valid=True, access_mask__isnull=False):
             # Account/Character key are basically the same thing
             if apikey.key_type in (APIKey.ACCOUNT_TYPE, APIKey.CHARACTER_TYPE):
                 for character in apikey.character_set.all():
