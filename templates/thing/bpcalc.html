@@ -10,7 +10,7 @@
     $("#build-table").tablesorter({
       'headers': {
         1: { sorter: false },
-        2: { sorter: false },
+        2: { sorter: 'human' },
         3: { sorter: 'human' },
         4: { sorter: false },
         5: { sorter: 'human' },
@@ -30,7 +30,7 @@
     var keep = [];
     var min_profit = $('#profit').attr('value');
     $("#build-table tbody tr").each(function(i, tr) {
-      var profit_td = $(tr).children()[8];
+      var profit_td = $(tr).children()[9];
       var profit = parseFloat($(profit_td).text().split('%')[0]);
       if (profit >= min_profit)
         keep.push('bpi=' + $(tr).attr('data_bpi'));
@@ -45,7 +45,7 @@
     var keep = [];
     var max_movement = $('#movement').attr('value');
     $("#build-table tbody tr").each(function(i, tr) {
-      var movement_td = $(tr).children()[13];
+      var movement_td = $(tr).children()[14];
       var movement = parseFloat($(movement_td).text().split('%')[0]);
       if (movement < max_movement)
         keep.push('bpi=' + $(tr).attr('data_bpi'));
@@ -101,7 +101,8 @@
           <table id="build-table" class="table table-striped table-bordered table-condensed">
             <thead>
               <tr>
-                <td colspan="4"></td>
+                <td colspan="2"></td>
+                <td colspan="2" class="head">Total m<sup>3</sup></td>
                 <td colspan="3" class="head">From Buys</td>
                 <td colspan="3" class="head">From Sells</td>
                 <td colspan="3" class="head">Sell</td>
@@ -111,8 +112,8 @@
               <tr class="c">
                 <th class="l">Name</th>
                 <th>Runs</th>
-                <th>Time</th>
-                <th>Total m3</th>
+                <th>Input</th>
+                <th>Output</th>
                 <th>Build</th>
                 <th>Profit</th>
                 <th>P%</th>
@@ -132,8 +133,8 @@
               <tr class="r" data_bpi="{{ bpi.id }}">
                 <td class="l">{{ bpi.blueprint.item }}</td>
                 <td>{{ bpi.z_runs|commas }}</td>
-                <td>{{ bpi.z_total_time|duration }}</td>
-                <td>{{ bpi.z_total_m3|humanize }}</td>
+                <td>{{ bpi.z_input_m3|humanize }}</td>
+                <td>{{ bpi.z_output_m3|humanize }}</td>
                 <td>{{ bpi.z_buy_build|humanize }}</td>
                 <td>{{ bpi.z_buy_profit|humanize|balance }}</td>
                 <td>{{ bpi.z_buy_profit_per|spanif:"neg < 7" }}%</td>

@@ -312,11 +312,16 @@ GROUP BY item_id
             
             built = runs * bpi.blueprint.item.portion_size
             
+            # Magical m3 stuff
+            bpi.z_input_m3 = 0
+            bpi.z_output_m3 = bpi.blueprint.item.volume * built
+
             # Add the components
             components = bpi._get_components(components=bpc_map[bpi.blueprint.id], runs=runs)
             for item, amt in components:
                 comps[item] = comps.get(item, 0) + amt
-            
+                bpi.z_input_m3 += (item.volume * amt)
+
             # Calculate a bunch of things we can't easily do via SQL
             bpi.z_total_time = pt * runs
             bpi.z_runs = runs
@@ -334,8 +339,6 @@ GROUP BY item_id
             bpi.z_volume_week = move_map.get(bpi.blueprint.item.id, 0)
             if bpi.z_volume_week:
                 bpi.z_volume_percent = (bpi.z_built / bpi.z_volume_week * 100).quantize(Decimal('.1'))
-            
-            bpi.z_total_m3 = bpi.blueprint.item.volume * built
 
             # Update totals
             bpi_totals['total_sell'] += bpi.z_total_sell
