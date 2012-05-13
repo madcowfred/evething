@@ -18,9 +18,10 @@ $(document).ready(function() {
 $.tablesorter.addParser({
 	id: 'human',
 	is: function(s) {
-		return /^[0-9.]+[KMB]?$/.test(s);
+		return /^[0-9\,\.]+[KMB]?$/.test(s);
 	},
 	format: function(s) {
+		var s = s.replace(/\,/g,'');
 		var l = s.length - 1;
 		var c = s.charAt(l);
 		if (c == 'K') {
