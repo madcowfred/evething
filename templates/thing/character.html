@@ -94,6 +94,7 @@
               </label>
               <label>
                 <input type="text" id="anon-key-text" class="disable-toggle" name="anon-key" maxlength="16" value="{{ char.config.anon_key }}">
+                {% if char.config.anon_key %}<a href="{% url thing.views.character_anonymous char.config.anon_key %}">Anonymized link</a>{% endif %}
               </label>
               <button type="submit" class="btn btn-primary">Save</button>
             </form>
