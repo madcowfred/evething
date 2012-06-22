@@ -1,5 +1,6 @@
 import calendar
 import datetime
+import re
 from collections import OrderedDict
 #import time
 
@@ -383,7 +384,7 @@ GROUP BY item_id
     )
 
 # ---------------------------------------------------------------------------
-
+# Display a character page
 def character(request, character_name):
     char = get_object_or_404(Character.objects.select_related('apikey', 'config', 'corporation'), name=character_name)
 
@@ -401,6 +402,7 @@ def character(request, character_name):
             show_implants=False,
             show_skill_queue=False,
             show_wallet=False,
+            anon_key=None,
         )
         config.save()
 
@@ -468,6 +470,57 @@ def character(request, character_name):
         context_instance=RequestContext(request)
     )
 
+# Display an anonymized character page
+def character_anonymous(request, anon_key):
+    char = get_object_or_404(Character.objects.select_related('apikey', 'config', 'corporation'), config__anon_key=anon_key)
+
+    # Make sure this character is visible
+    if not char.config.is_public:
+        raise Http404
+
+    # Retrieve the list of skills and group them by market group
+    skills = OrderedDict()
+    skill_totals = {}
+    cur = None
+    for cs in CharacterSkill.objects.select_related('skill__item__market_group').filter(character=char).order_by('skill__item__market_group__name', 'skill__item__name'):
+        mg = cs.skill.item.market_group
+        if mg != cur:
+            cur = mg
+            cur.z_total_sp = 0
+            skills[cur] = []
+
+        cs.z_icons = []
+        # level 5 skill = all hearts
+        if cs.level == 5:
+            cs.z_icons.extend(['heart'] * 5)
+        # 0-4 = stars
+        else:
+            for i in range(cs.level):
+                cs.z_icons.append('star')
+
+        # partially trained skills get a partial star
+        if cs.points > cs.skill.get_sp_at_level(cs.level):
+            cs.z_icons.append('star-empty')
+
+        # then fill out the rest with minus
+        cs.z_icons.extend(['minus'] * (5 - len(cs.z_icons)))
+
+        skills[cur].append(cs)
+        cur.z_total_sp += cs.points
+
+    # Render template
+    return render_to_response(
+        'thing/character_anonymous.html',
+        {
+            'char': char,
+            'skill_loop': range(1, 6),
+            'skills': skills,
+            'skill_totals': skill_totals,
+        },
+        context_instance=RequestContext(request)
+    )
+
+ANON_KEY_RE = re.compile(r'^[a-z0-9]+$')
 def character_settings(request, character_name):
     char = get_object_or_404(Character, name=character_name, apikey__user=request.user)
 
@@ -476,6 +529,16 @@ def character_settings(request, character_name):
     char.config.show_implants = ('implants' in request.POST)
     char.config.show_skill_queue = ('queue' in request.POST)
     char.config.show_wallet = ('wallet' in request.POST)
+
+    if 'anon-key-toggle' in request.POST:
+        anon_key = request.POST.get('anon-key', '').lower()
+        if ANON_KEY_RE.match(anon_key) and len(anon_key) == 16:
+            char.config.anon_key = anon_key
+        else:
+            char.config.anon_key = None
+    else:
+        char.config.anon_key = None
+
     char.config.save()
 
     return redirect(char)

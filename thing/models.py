@@ -158,6 +158,7 @@ class CharacterConfig(models.Model):
     show_implants = models.BooleanField()
     show_skill_queue = models.BooleanField()
     show_wallet = models.BooleanField()
+    anon_key = models.CharField(max_length=16, blank=True, null=True)
 
     def __unicode__(self):
         return self.character.name

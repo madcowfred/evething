@@ -3,6 +3,37 @@
 
 {% block title %}Character: {{ char.name }}{% endblock %}
 
+{% block extra_head %}
+  <script type="text/javascript">
+    $(document).ready(function() {
+      settings_checkboxes();
+      anon_toggle();
+      
+      $("#public-checkbox").change(settings_checkboxes);
+      $("#anon-key").change(anon_toggle);
+    });
+
+    function settings_checkboxes() {
+      var state = $("#public-checkbox").attr("checked");
+      if (state == "checked") { $("input.disable-toggle").removeAttr("disabled"); }
+      else { $("input.disable-toggle").attr("disabled", ""); }
+    }
+
+    function anon_toggle() {
+      if ($("#anon-key").attr("checked") == "checked") {
+        $("#anon-key-text").removeAttr("disabled");
+        if ($("#anon-key-text").val() == "") {
+          $("#anon-key-text").val(randString(16));
+        }
+      }
+      else {
+        $("#anon-key-text").attr("disabled", "");
+        $("#anon-key-text").val("");
+      }
+    }
+  </script>
+{% endblock %}
+
 {% block content %}
       <div class="row">
         <div class="span3">
@@ -18,24 +49,51 @@
               {% csrf_token %}
               <input type="hidden" name="character_id" value="{{ char.eve_character_id }}">
               <label class="checkbox">
-                <input type="checkbox" name="public"{% if char.config.is_public %} checked{% endif %}>
+                <input type="checkbox" id="public-checkbox" name="public"{% if char.config.is_public %} checked{% endif %}>
                 Publicly visible
+                <div class="pull-right">
+                  <i class="icon icon-question-sign" rel="tooltip" title="Whether or not this character sheet is publicly accessible"></i>
+                </div>
               </label>
+              <br>
               <label class="checkbox">
-                <input type="checkbox" name="clone"{% if char.config.show_clone %} checked{% endif %}>
+                <input type="checkbox" class="disable-toggle" name="clone"{% if char.config.show_clone %} checked{% endif %}>
                 Show clone information
+                <div class="pull-right">
+                  <i class="icon icon-question-sign" rel="tooltip" title="Show clone information on public sheet"></i>
+                </div>
               </label>
               <label class="checkbox">
-                <input type="checkbox" name="implants"{% if char.config.show_implants %} checked{% endif %}>
+                <input type="checkbox" class="disable-toggle" name="implants"{% if char.config.show_implants %} checked{% endif %}>
                 Show implants
+                <div class="pull-right">
+                  <i class="icon icon-question-sign" rel="tooltip" title="Show implant information on public sheet"></i>
+                </div>
               </label>
               <label class="checkbox">
-                <input type="checkbox" name="queue"{% if char.config.show_skill_queue %} checked{% endif %}>
+                <input type="checkbox" class="disable-toggle" name="queue"{% if char.config.show_skill_queue %} checked{% endif %}>
                 Show skill queue
+                <div class="pull-right">
+                  <i class="icon icon-question-sign" rel="tooltip" title="Show skill queue on public sheet"></i>
+                </div>
               </label>
               <label class="checkbox">
-                <input type="checkbox" name="wallet"{% if char.config.show_wallet %} checked{% endif %}>
+                <input type="checkbox" class="disable-toggle" name="wallet"{% if char.config.show_wallet %} checked{% endif %}>
                 Show wallet balance
+                <div class="pull-right">
+                  <i class="icon icon-question-sign" rel="tooltip" title="Show wallet balance on public sheet"></i>
+                </div>
+              </label>
+              <br>
+              <label class="checkbox">
+                <input type="checkbox" id="anon-key" class="disable-toggle" name="anon-key-toggle"{% if char.config.anon_key %} checked{% endif %}>
+                Anon key
+                <div class="pull-right">
+                  <i class="icon icon-question-sign" rel="tooltip" title="Key to use for anonymous character sheet"></i>
+                </div>
+              </label>
+              <label>
+                <input type="text" id="anon-key-text" class="disable-toggle" name="anon-key" maxlength="16" value="{{ char.config.anon_key }}">
               </label>
               <button type="submit" class="btn btn-primary">Save</button>
             </form>
