@@ -131,7 +131,7 @@ class APIUpdater:
     def api_check(self, apikey):
         root, times = self.fetch_api(API_INFO_URL, {}, apikey)
         if root is None:
-            show_error('api_check', 'HTTP error', times)
+            #show_error('api_check', 'HTTP error', times)
             return
         
         # Check for errors
@@ -145,7 +145,14 @@ class APIUpdater:
             if err.attrib['code'] in ('202', '203', '204', '205', '210', '212', '207', '220', '222', '223'):
                 apikey.valid = False
                 apikey.save()
-            show_error('api_check', err, times)
+
+            # Stupid OUR SERVER IS FUCKED AGAIN errors
+            # 520 Unexpected failure accessing database
+            # 901 Web site database temporarily disabled
+            # 902 EVE backend database temporarily disabled
+            if 'Scotty the docking manager' not in err.text and err.attrib['code'] not in ('520', '901', '902'):
+                show_error('api_check', err, times)
+
             return
         
         # Find the key node
