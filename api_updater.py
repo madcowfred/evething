@@ -146,13 +146,6 @@ class APIUpdater:
                 apikey.valid = False
                 apikey.save()
 
-            # Stupid OUR SERVER IS FUCKED AGAIN errors
-            # 520 Unexpected failure accessing database
-            # 901 Web site database temporarily disabled
-            # 902 EVE backend database temporarily disabled
-            if 'Scotty the docking manager' not in err.text and err.attrib['code'] not in ('520', '901', '902'):
-                show_error('api_check', err, times)
-
             return
         
         # Find the key node
@@ -874,6 +867,13 @@ def parse_api_date(s):
 def show_error(func, err, times):
     current = times.get('current', '?')
     until = times.get('until', '?')
+
+    # Stupid OUR SERVER IS FUCKED AGAIN errors
+    # 520 Unexpected failure accessing database
+    # 901 Web site database temporarily disabled
+    # 902 EVE backend database temporarily disabled
+    if 'Scotty the docking manager' in err.text or err.attrib['code'] in ('520', '901', '902'):
+        return
 
     if hasattr(err, 'attrib'):
         print '(%s) %s: %s | %s -> %s' % (func, err.attrib['code'], err.text, current, until)
