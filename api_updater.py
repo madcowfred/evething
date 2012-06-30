@@ -251,7 +251,7 @@ class APIUpdater:
         # Fetch the API data
         root, times = self.fetch_api(ACCOUNT_INFO_URL, {}, apikey)
         if root is None:
-            show_error('fetch_account_status', 'HTTP error', times)
+            #show_error('fetch_account_status', 'HTTP error', times)
             return
         err = root.find('error')
         if err is not None:
@@ -274,7 +274,7 @@ class APIUpdater:
         params = { 'characterID': character.eve_character_id }
         root, times = self.fetch_api(CHAR_SHEET_URL, params, apikey)
         if root is None:
-            show_error('fetch_char_sheet', 'HTTP error', times)
+            #show_error('fetch_char_sheet', 'HTTP error', times)
             return
         err = root.find('error')
         if err is not None:
@@ -356,7 +356,7 @@ class APIUpdater:
         params = { 'characterID': character.eve_character_id }
         root, times = self.fetch_api(SKILL_QUEUE_URL, params, apikey)
         if root is None:
-            show_error('fetch_char_skill_queue', 'HTTP error', times)
+            #show_error('fetch_char_skill_queue', 'HTTP error', times)
             return
         err = root.find('error')
         if err is not None:
@@ -391,7 +391,7 @@ class APIUpdater:
         
         root, times = self.fetch_api(BALANCE_URL, params, apikey)
         if root is None:
-            show_error('fetch_corp_wallets', 'HTTP error', times)
+            #show_error('fetch_corp_wallets', 'HTTP error', times)
             return
         err = root.find('error')
         if err is not None:
@@ -436,7 +436,7 @@ class APIUpdater:
         
         root, times = self.fetch_api(CORP_SHEET_URL, params, apikey)
         if root is None:
-            show_error('fetch_corp_sheet', 'HTTP error', times)
+            #show_error('fetch_corp_sheet', 'HTTP error', times)
             return
         err = root.find('error')
         if err is not None:
@@ -489,7 +489,7 @@ class APIUpdater:
         params = { 'characterID': character.eve_character_id }
         root, times = self.fetch_api(url, params, apikey)
         if root is None:
-            show_error('fetch_assets', 'HTTP error', times)
+            #show_error('fetch_assets', 'HTTP error', times)
             return
         err = root.find('error')
         if err is not None:
@@ -560,7 +560,7 @@ class APIUpdater:
         params = { 'characterID': character.eve_character_id }
         root, times = self.fetch_api(url, params, apikey)
         if root is None:
-            show_error('fetch_orders', 'HTTP error', times)
+            #show_error('fetch_orders', 'HTTP error', times)
             return
         err = root.find('error')
         if err is not None:
@@ -707,7 +707,7 @@ class APIUpdater:
         while True:
             root, times = self.fetch_api(url, params, apikey)
             if root is None:
-                show_error('fetch_transactions', 'HTTP error', times)
+                #show_error('fetch_transactions', 'HTTP error', times)
                 return
             err = root.find('error')
             if err is not None:
@@ -826,7 +826,7 @@ class APIUpdater:
                 sys.stdout.flush()
             
             # Fetch the URL
-            r = requests.post(url, params, headers=self.headers)
+            r = requests.post(url, params, headers=self.headers, config={ 'max_retries': 1 })
             data = r.text
             if self.debug:
                 open('/tmp/data.debug', 'w').write(data)
