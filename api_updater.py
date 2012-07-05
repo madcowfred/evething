@@ -288,19 +288,33 @@ class APIUpdater:
         enh = root.find('result/attributeEnhancers')
 
         val = enh.find('charismaBonus/augmentatorValue')
-        if val is not None:
+        if val is None:
+            character.cha_bonus = 0
+        else:
             character.cha_bonus = val.text
+
         val = enh.find('intelligenceBonus/augmentatorValue')
-        if val is not None:
+        if val is None:
+            character.int_bonus = 0
+        else:
             character.int_bonus = val.text
+
         val = enh.find('memoryBonus/augmentatorValue')
-        if val is not None:
+        if val is None:
+            character.mem_bonus = 0
+        else:
             character.mem_bonus = val.text
+
         val = enh.find('perceptionBonus/augmentatorValue')
-        if val is not None:
+        if val is None:
+            character.per_bonus = 0
+        else:
             character.per_bonus = val.text
+
         val = enh.find('willpowerBonus/augmentatorValue')
-        if val is not None:
+        if val is None:
+            character.wil_bonus = 0
+        else:
             character.wil_bonus = val.text
 
         # Update clone information
