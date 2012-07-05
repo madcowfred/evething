@@ -5,10 +5,9 @@ import time
 import urllib2
 import xml.etree.ElementTree as ET
 
-# Aurgh
-from django.core.management import setup_environ
-import settings
-setup_environ(settings)
+# Set up our environment and import settings
+os.environ['DJANGO_SETTINGS_MODULE'] = 'evething.settings'
+from django.conf import settings
 
 from thing.models import *
 
