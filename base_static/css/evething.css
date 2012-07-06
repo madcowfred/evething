@@ -64,8 +64,8 @@ td.r { text-align: right; }
 
 div.character-sp {
   text-align: right;
-  margin-right: 1em;
-  width: 6.1em;
+  margin-right: 0.8em;
+  width: 6.5em;
 }
 
 form.nomargin, input.nomargin {

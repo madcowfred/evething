@@ -19,7 +19,8 @@ from thing.templatetags.thing_extras import commas, duration, shortduration
 
 # ---------------------------------------------------------------------------
 # How many days (10) to start warning about expiring accounts
-EXPIRE_WARNING = 10 * 24 * 60 * 60
+ONE_DAY = 24 * 60 * 60
+EXPIRE_WARNING = 10 * ONE_DAY
 
 ORDER_SLOT_SKILLS = {
     'Trade': 4,
@@ -61,12 +62,15 @@ def home(request):
         
         char.z_training['queue_duration'] = (sq.end_time - utcnow).total_seconds()
     
+    # Work out who is and isn't training
+    not_training = apikeys - training
+
     # Do total skill point aggregation
     for cs in CharacterSkill.objects.select_related().filter(character__apikey__user=request.user).values('character').annotate(total_sp=Sum('points')):
         chars[cs['character']].z_total_sp = cs['total_sp']
 
     # Do notifications
-    for char in chars.values():
+    for char_id, char in chars.items():
         char.z_notifications = []
 
         # Game time warnings
@@ -77,20 +81,40 @@ def home(request):
                 char.z_notifications.append({
                     'icon': 'time',
                     'text': 'Expired',
+                    'tooltip': 'Game time',
                 })
 
             elif timediff < EXPIRE_WARNING:
                 char.z_notifications.append({
                     'icon': 'time',
                     'text': shortduration(timediff),
+                    'tooltip': 'Game time',
                 })
-        
+
+        # Empty skill queue
+        if char.apikey_id in not_training:
+            char.z_notifications.append({
+                'icon': 'tasks',
+                'text': 'Empty!',
+                'tooltip': 'Skill queue',
+            })
+        # Room in skill queue
+        elif char.z_training and char.z_training['queue_duration'] < ONE_DAY:
+            timediff = ONE_DAY - char.z_training['queue_duration']
+            char.z_notifications.append({
+                'icon': 'tasks',
+                'text': shortduration(timediff),
+                'tooltip': 'Skill queue',
+            })
+
         # Insufficient clone
         if char.z_total_sp > char.clone_skill_points:
             char.z_notifications.append({
                 'icon': 'user',
                 'text': '%s SP' % (commas(char.clone_skill_points)),
+                'tooltip': 'Clone',
             })
+
 
     # Make separate lists of training and not training characters
     first = [char for char in chars.values() if char.z_training]
@@ -103,7 +127,7 @@ def home(request):
     return render_to_response(
         'thing/home.html',
         {
-            'not_training': apikeys - training,
+            'not_training': not_training,
             'total_balance': total_balance,
             'corporations': corporations,
             'characters': first + last,

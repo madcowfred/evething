@@ -3,10 +3,24 @@
 
 {% block title %}Home{% endblock %}
 
+{% block extra_head %}
+  <script type="text/javascript">
+  function toggle_tooltips() {
+    $('i').each(function() {
+      $this = $(this);
+      if ($this.attr('rel') == 'tooltip') {
+        $this.tooltip('toggle');
+      }
+    });
+  }
+  </script>
+{% endblock %}
+
 {% block content %}
     <div class="row-fluid">
       <div class="span12">
-        <p><strong>Total Balance:</strong> {{ total_balance|commas }} ISK</p>
+        <span><strong>Total Balance:</strong> {{ total_balance|commas }} ISK</span>
+        <span class="pull-right"><a href="#" onclick="toggle_tooltips();">Toggle tooltips</a></span>
       </div>
     </div>
     {% for chars in characters|tablecols:4 %}
@@ -51,7 +65,7 @@
           {% if character.z_notifications %}
           <div class="margin-half-top smaller">
             {% for notif in character.z_notifications %}
-            <i class="icon-{{ notif.icon }}"></i> {{ notif.text }}
+            <i class="icon-{{ notif.icon }}" rel="tooltip" title="{{ notif.tooltip }}"></i> {{ notif.text }}
             {% endfor %}
           </div>
           {% endif %}
