@@ -1,5 +1,6 @@
 import calendar
 import datetime
+import operator
 import re
 from collections import OrderedDict
 #import time
@@ -33,18 +34,18 @@ ORDER_SLOT_SKILLS = {
 # Home page
 @login_required
 def home(request):
+    now = datetime.datetime.utcnow()
+    sanitise = request.GET.get('sanitise', False)
     total_balance = 0
 
-    now = datetime.datetime.utcnow()
-
     # Grab the initial set of characters and do some stuff
-    apikeys = set()
+    api_keys = set()
     training = set()
     chars = OrderedDict()
     for char in Character.objects.select_related('apikey').filter(apikey__user=request.user).order_by('apikey__name', 'name'):
         char.z_training = {}
         chars[char.eve_character_id] = char
-        apikeys.add(char.apikey_id)
+        api_keys.add(char.apikey)
         total_balance += char.wallet_balance
 
     # Do skill training check - this can't be in the model because it
@@ -58,16 +59,16 @@ def home(request):
             char.z_training['skill_duration'] = (sq.end_time - utcnow).total_seconds()
             char.z_training['sp_per_hour'] = int(sq.skill.get_sp_per_minute(char) * 60)
             char.z_training['complete_per'] = sq.get_complete_percentage(now)
-            training.add(char.apikey_id)
+            training.add(char.apikey)
         
         char.z_training['queue_duration'] = (sq.end_time - utcnow).total_seconds()
-    
-    # Work out who is and isn't training
-    not_training = apikeys - training
 
     # Do total skill point aggregation
     for cs in CharacterSkill.objects.select_related().filter(character__apikey__user=request.user).values('character').annotate(total_sp=Sum('points')):
         chars[cs['character']].z_total_sp = cs['total_sp']
+
+    # Work out who is and isn't training
+    not_training = api_keys - training
 
     # Do notifications
     for char_id, char in chars.items():
@@ -146,14 +147,26 @@ def home(request):
     corp_ids = APIKey.objects.select_related().filter(user=request.user.id).exclude(corp_character=None).values_list('corp_character__corporation', flat=True)
     corporations = Corporation.objects.filter(pk__in=corp_ids)
 
+
+    # Sanitise if required
+    if sanitise:
+        san = {}
+        for i, apikey in enumerate(sorted(api_keys, key=operator.attrgetter('name'))):
+            apikey.z_sanitised_name = "account%d" % (i + 1)
+            san[apikey.id] = "account%d" % (i + 1)
+
+        for char in chars.values():
+            char.z_sanitised_api = san[char.apikey.id]
+
+
     return render_to_response(
         'thing/home.html',
         {
+            'sanitise': sanitise,
             'not_training': not_training,
             'total_balance': total_balance,
             'corporations': corporations,
             'characters': first + last,
-            'sanitise': request.GET.get('sanitise', False),
             'events': Event.objects.filter(user=request.user)[:10]
         },
         context_instance=RequestContext(request)

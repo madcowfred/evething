@@ -36,7 +36,7 @@
               </a>
             </span>
             <span class="small pull-right">
-              [{% if sanitise %}api.desc{% else%}{{ character.apikey.name }}{% endif %}]
+              [{{ character.z_sanitised_api|default:character.apikey.name }}]
             </span>
           </div>
 
