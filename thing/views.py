@@ -15,10 +15,11 @@ from django.template import RequestContext
 
 from thing.models import *
 from thing import queries
+from thing.templatetags.thing_extras import commas, duration, shortduration
 
 # ---------------------------------------------------------------------------
-# How many days to start warning about expiring accounts
-EXPIRE_WARNING = datetime.timedelta(10)
+# How many days (10) to start warning about expiring accounts
+EXPIRE_WARNING = 10 * 24 * 60 * 60
 
 ORDER_SLOT_SKILLS = {
     'Trade': 4,
@@ -45,12 +46,6 @@ def home(request):
         apikeys.add(char.apikey_id)
         total_balance += char.wallet_balance
 
-        # See if the account expires soon
-        if char.apikey.paid_until:
-            timediff = char.apikey.paid_until - now
-            if timediff < EXPIRE_WARNING:
-                char.z_expires = timediff.total_seconds()
-
     # Do skill training check - this can't be in the model because it
     # scales like crap doing individual queries
     utcnow = datetime.datetime.utcnow()
@@ -70,10 +65,37 @@ def home(request):
     for cs in CharacterSkill.objects.select_related().filter(character__apikey__user=request.user).values('character').annotate(total_sp=Sum('points')):
         chars[cs['character']].z_total_sp = cs['total_sp']
 
+    # Do notifications
+    for char in chars.values():
+        char.z_notifications = []
+
+        # Game time warnings
+        if char.apikey.paid_until:
+            timediff = (char.apikey.paid_until - now).total_seconds()
+
+            if timediff < 0:
+                char.z_notifications.append({
+                    'icon': 'time',
+                    'text': 'Expired',
+                })
+
+            elif timediff < EXPIRE_WARNING:
+                char.z_notifications.append({
+                    'icon': 'time',
+                    'text': shortduration(timediff),
+                })
+        
+        # Insufficient clone
+        if char.z_total_sp > char.clone_skill_points:
+            char.z_notifications.append({
+                'icon': 'user',
+                'text': '%s SP' % (commas(char.clone_skill_points)),
+            })
+
     # Make separate lists of training and not training characters
     first = [char for char in chars.values() if char.z_training]
     last = [char for char in chars.values() if not char.z_training]
-    
+
     # Get corporations this user has APIKeys for
     corp_ids = APIKey.objects.select_related().filter(user=request.user.id).exclude(corp_character=None).values_list('corp_character__corporation', flat=True)
     corporations = Corporation.objects.filter(pk__in=corp_ids)
