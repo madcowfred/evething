@@ -98,14 +98,36 @@ def home(request):
                 'text': 'Empty!',
                 'tooltip': 'Skill queue',
             })
-        # Room in skill queue
-        elif char.z_training and char.z_training['queue_duration'] < ONE_DAY:
-            timediff = ONE_DAY - char.z_training['queue_duration']
-            char.z_notifications.append({
-                'icon': 'tasks',
-                'text': shortduration(timediff),
-                'tooltip': 'Skill queue',
-            })
+        
+        if char.z_training:
+            # Room in skill queue
+            if char.z_training['queue_duration'] < ONE_DAY:
+                timediff = ONE_DAY - char.z_training['queue_duration']
+                char.z_notifications.append({
+                    'icon': 'tasks',
+                    'text': shortduration(timediff),
+                    'tooltip': 'Skill queue',
+                })
+
+            # Missing implants
+            skill = char.z_training['sq'].skill
+            pri_attrs = Skill.ATTRIBUTE_MAP[skill.primary_attribute]
+            sec_attrs = Skill.ATTRIBUTE_MAP[skill.secondary_attribute]
+            pri_bonus = getattr(char, pri_attrs[1])
+            sec_bonus = getattr(char, sec_attrs[1])
+
+            if pri_bonus == 0 or sec_bonus == 0:
+                t = []
+                if pri_bonus == 0:
+                    t.append(skill.get_primary_attribute_display())
+                if sec_bonus == 0:
+                    t.append(skill.get_secondary_attribute_display())
+
+                char.z_notifications.append({
+                    'icon': 'thumbs-down',
+                    'text': ', '.join(t),
+                    'tooltip': 'Missing implants',
+                })
 
         # Insufficient clone
         if char.z_total_sp > char.clone_skill_points:
