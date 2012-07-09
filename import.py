@@ -13,8 +13,8 @@ from thing.models import *
 
 # ---------------------------------------------------------------------------
 
-SDE_FILE = 'cru16-sqlite3-v1.db'
-STATION_URL = 'http://eveapiproxy.wafflemonster.org/eve/ConquerableStationList.xml.aspx'
+SDE_FILE = 'esc10-sqlite3-v1.db'
+STATION_URL = 'http://proxy.evething.org/eve/ConquerableStationList.xml.aspx'
 
 # Override volume for ships, assembled volume is mostly useless :ccp:
 PACKAGED = {
@@ -77,6 +77,7 @@ class Importer:
             time_func('Item', self.import_item)
             time_func('Blueprint', self.import_blueprint)
             time_func('Skill', self.import_skill)
+            time_func('InventoryFlag', self.import_inventoryflag)
         
         time_func('Conquerable Station', self.import_conquerable_station)
     
@@ -525,6 +526,43 @@ class Importer:
 #         166: :memory
 #         167: :perception
 #         168: :willpower
+
+    # -----------------------------------------------------------------------
+    # InventoryFlags
+    def import_inventoryflag(self):
+        added = 0
+
+        self.cursor.execute('SELECT flagID, flagName, flagText FROM invFlags')
+
+        bulk_data = {}
+        for row in self.cursor:
+            bulk_data[int(row[0])] = row[1:]
+
+        data_map = InventoryFlag.objects.in_bulk(bulk_data.keys())
+
+        for id, data in bulk_data.items():
+            if not data[0] or not data[1]:
+                continue
+
+            # handle renamed flags
+            flag = data_map.get(id, None)
+            if flag is not None:
+                if flag.name != data[0] or flag.text != data[1]:
+                    print '==> Renamed %r to %r' % (flag.name, data[0])
+                    flag.name = data[0]
+                    flag.text = data[1]
+                    flag.save()
+                continue
+
+            flag = InventoryFlag(
+                id=id,
+                name=data[0],
+                text=data[1],
+            )
+            flag.save()
+            added += 1
+
+        return added
 
 if __name__ == '__main__':
     importer = Importer()
