@@ -47,8 +47,10 @@ WHERE   blueprint_id IN (
 )
 UNION
 SELECT  item_id
-FROM    thing_characterasset
-WHERE   user_id = %s
+FROM    thing_characterasset ca, thing_character c, thing_apikey a
+WHERE   ca.character_id = c.eve_character_id
+        AND c.apikey_id = a.id
+        AND a.user_id = %s
 """
 
 # item_ids for all BlueprintInstance objects and related components

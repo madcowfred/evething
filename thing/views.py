@@ -749,7 +749,7 @@ def market_scan(request):
     cursor = connection.cursor()
 
     item_ids = []
-    cursor.execute(queries.user_item_ids, (request.user.id, request.user.id))
+    cursor.execute(queries.user_item_ids, (request.user.id, request.user.id, request.user.id))
     for row in cursor:
         item_ids.append(row[0])
 
