@@ -54,6 +54,9 @@ td.assets-location {
   font-size: 1.05em;
   font-weight: bold;
 }
+td.assets-head {
+  font-weight: bold;
+}
 td.assets-img {
   padding: 0;
   margin: 0;

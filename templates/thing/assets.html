@@ -57,9 +57,13 @@
             <tr><td colspan="6">&nbsp;</td></tr>
             {% endif %}
             <tr>
-              <td class="assets-location" colspan="6">
+              <td class="assets-location" colspan="2">
                 {{ system_name }}
               </td>
+              <td class="c assets-head">Group</td>
+              <td class="c assets-head">Quantity</td>
+              <td class="c assets-head">Unit Value</td>
+              <td class="c assets-head">Total Value</td>
             </tr>
             {% endifchanged %}
             {% for asset in asset_roots %}
