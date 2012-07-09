@@ -334,9 +334,9 @@ def assets(request):
 
     # decorate/sort/undecorate for our strange sort requirements :(
     for system_name in systems:
-        temp = [(ca.character.name.lower(), ca.is_leaf_node(), ca.item.name, ca) for ca in systems[system_name]]
+        temp = [(ca.character.name.lower(), ca.is_leaf_node(), ca.item.name, ca.name, ca) for ca in systems[system_name]]
         temp.sort()
-        systems[system_name] = [s[3] for s in temp]
+        systems[system_name] = [s[4] for s in temp]
 
     sorted_systems = systems.items()
     sorted_systems.sort()
