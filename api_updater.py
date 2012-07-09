@@ -122,12 +122,12 @@ class APIUpdater:
         # And dump some debug info
         if self.debug:
             debug = open('/tmp/api.debug', 'w')
-            debug.write('%.3fs  %d queries (%.2fms)  API: %.1fs\n\n' % (time.time() - start,
+            debug.write('%.3fs  %d queries (%.3fs)  API: %.1fs\n\n' % (time.time() - start,
                 len(connection.queries), sum(float(q['time']) for q in connection.queries),
                 self._total_api))
             debug.write('\n')
             for query in connection.queries:
-               debug.write('%02.2fms  %s\n' % (float(query['time']), query['sql']))
+               debug.write('%02.3fs  %s\n' % (float(query['time']), query['sql']))
             debug.close()
     
     # -----------------------------------------------------------------------
@@ -534,17 +534,23 @@ class APIUpdater:
                 else:
                     parent = None
 
-                # if the asset already exists, update
+                # if the asset already exists, maybe update
                 asset = asset_map.get(id, None)
                 if asset is not None:
-                    asset.system = data[0]
-                    asset.station = data[1]
-                    asset.parent = parent
-                    asset.item = data[3]
-                    asset.flag = data[4]
-                    asset.quantity = data[5]
-                    asset.rawQuantity = data[6]
-                    asset.singleton = data[7]
+                    if asset.system != data[0] or asset.station != data[1] or asset.parent != parent or \
+                       asset.item != data[3] or asset.inv_flag_id != data[4] or asset.quantity != data[5] or \
+                       asset.raw_quantity != data[6] or asset.singleton != data[7]:
+
+                        asset.system = data[0]
+                        asset.station = data[1]
+                        asset.parent = parent
+                        asset.item = data[3]
+                        asset.flag = data[4]
+                        asset.quantity = data[5]
+                        asset.rawQuantity = data[6]
+                        asset.singleton = data[7]
+
+                        asset.save()
 
                 else:
                     asset = CharacterAsset(
@@ -559,8 +565,7 @@ class APIUpdater:
                         raw_quantity=data[6],
                         singleton=data[7],
                     )
-                
-                asset.save()
+                    asset.save()
 
                 asset_ids.add(id)
                 del rows[id]
@@ -574,15 +579,8 @@ class APIUpdater:
             # No container_id (parent)
             if 'locationID' in row.attrib:
                 location_id = row.attrib['locationID']
-                try:
-                    system = System.objects.get(id=location_id)
-                except System.DoesNotExist:
-                    system = None
-                
-                try:
-                    station = Station.objects.get(id=location_id)
-                except Station.DoesNotExist:
-                    station = None
+                system = get_system(location_id)
+                station = get_station(location_id)
             else:
                 system = None
                 station = None
@@ -743,7 +741,7 @@ class APIUpdater:
                 issued = parse_api_date(row.attrib['issued'])
                 order = MarketOrder(
                     order_id=order_id,
-                    station=get_station(int(row.attrib['stationID']), 'UNKNOWN STATION'),
+                    station=get_station(int(row.attrib['stationID'])),
                     item=get_item(row.attrib['typeID']),
                     character=char,
                     escrow=Decimal(row.attrib['escrow']),
@@ -873,7 +871,7 @@ class APIUpdater:
                 #    continue
                 
                 # Make the station object if it doesn't already exist
-                station = get_station(int(row.attrib['stationID']), row.attrib['stationName'])
+                station = get_station(int(row.attrib['stationID']))
                 
                 # Work out what the character should be
                 if apikey.corp_character:
@@ -1026,25 +1024,30 @@ def get_corporation(corp_id, corp_name):
     return _corp_cache[corp_id]
 
 # ---------------------------------------------------------------------------
-# Caching station fetcher, adds unknown stations to the database
+# Caching system fetcher
+_system_cache = {}
+def get_system(system_id):
+    if system_id not in _system_cache:
+        try:
+            system = System.objects.get(pk=system_id)
+        except System.DoesNotExist:
+            system = None
+        
+        _system_cache[system_id] = system
+    
+    return _system_cache[system_id]
+
+# ---------------------------------------------------------------------------
+# Caching station fetcher
 _station_cache = {}
-def get_station(station_id, station_name):
+def get_station(station_id):
     if station_id not in _station_cache:
-        stations = Station.objects.filter(pk=station_id)
-        # Station already exists
-        if stations.count() > 0:
-            station = stations[0]
-        # Station doesn't exist, make a new object and save it
-        else:
-            station = Station(id=station_id, name=station_name)
-            station.save()
+        try:
+            station = Station.objects.get(pk=station_id)
+        except Station.DoesNotExist:
+            station = None
         
         _station_cache[station_id] = station
-    
-    # Update the station name if it has changed since we last saw it
-    if _station_cache[station_id].name != station_name and station_name != 'UNKNOWN STATION':
-        _station_cache[station_id].name = station_name
-        _station_cache[station_id].save()
     
     return _station_cache[station_id]
 
