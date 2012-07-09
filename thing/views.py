@@ -267,6 +267,93 @@ def apikeys_edit(request):
     return redirect('apikeys')
 
 # ---------------------------------------------------------------------------
+# Assets
+@login_required
+def assets(request):
+    # apply our initial set of filters
+    assets = CharacterAsset.objects.select_related('system', 'station', 'item__item_group__category', 'character').filter(character__apikey__user=request.user)
+
+    # retrieve any supplied filter values
+    filter_types = request.GET.getlist('filter_type')
+    filter_comps = request.GET.getlist('filter_comp')
+    filter_values = request.GET.getlist('filter_value')
+
+    # check lengths
+    if len(filter_types) == len(filter_comps) and len(filter_types) == len(filter_values):
+        for i in range(len(filter_types)):
+            ft = filter_types[i]
+            fc = filter_comps[i]
+            fv = filter_values[i]
+
+            if ft == 'char' and fv.isdigit():
+                if fc == 'eq':
+                    assets = assets.filter(character_id=fv)
+                elif fc == 'ne':
+                    assets = assets.exclude(character_id=fv)
+
+    # initialise data structures
+    ca_lookup = {}
+    loc_totals = {}
+    systems = {}
+
+    for ca in assets:
+        # total value of this asset stack
+        ca.z_total = ca.quantity * ca.item.sell_price
+
+        # work out if this is a system or station asset
+        k = ca.system_or_station()
+
+        # system/station asset
+        if k is not None:
+            ca_lookup[ca.id] = ca
+
+            if k not in systems:
+                loc_totals[k] = 0
+                systems[k] = []
+            
+            loc_totals[k] += ca.z_total
+            systems[k].append(ca)
+        # asset is inside something, assign it to parent
+        else:
+            parent = ca_lookup[ca.parent_id]
+            if not hasattr(parent, 'z_contents'):
+                parent.z_contents = []
+            parent.z_contents.append(ca)
+
+            # add this to the parent's entry in loc_totals
+            loc_totals[parent.system_or_station()] += ca.z_total
+
+    # add contents to the parent total
+    for cas in systems.values():
+        for ca in cas:
+            for content in getattr(ca, 'z_contents', []):
+                ca.z_total += content.z_total
+
+    # get a total asset value
+    total_value = sum(loc_totals.values())
+
+    # decorate/sort/undecorate for our strange sort requirements :(
+    for system_name in systems:
+        temp = [(ca.character.name.lower(), ca.is_leaf_node(), ca.item.name, ca) for ca in systems[system_name]]
+        temp.sort()
+        systems[system_name] = [s[3] for s in temp]
+
+    sorted_systems = systems.items()
+    sorted_systems.sort()
+
+
+    return render_to_response(
+        'thing/assets.html',
+        {
+            'characters': Character.objects.filter(apikey__user=request.user),
+            'total_value': total_value,
+            'systems': sorted_systems,
+            'loc_totals': loc_totals,
+        },
+        context_instance=RequestContext(request)
+    )
+
+# ---------------------------------------------------------------------------
 # List of blueprints we own
 @login_required
 def blueprints(request):

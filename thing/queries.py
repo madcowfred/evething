@@ -45,6 +45,10 @@ WHERE   blueprint_id IN (
             FROM    thing_blueprintinstance
             WHERE   user_id = %s
 )
+UNION
+SELECT  item_id
+FROM    thing_characterasset
+WHERE   user_id = %s
 """
 
 # item_ids for all BlueprintInstance objects and related components
@@ -59,6 +63,9 @@ WHERE   blueprint_id IN (
             SELECT  blueprint_id
             FROM    thing_blueprintinstance
 )
+UNION
+SELECT  item_id
+FROM    thing_characterasset
 """
 
 # This is the nasty trade timeframe thing. Be afraid.

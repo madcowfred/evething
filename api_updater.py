@@ -23,7 +23,7 @@ from django.db import connection
 from thing.models import *
 
 # my API proxy, you should probably either run your own or uncomment the second line
-BASE_URL = 'http://eveapiproxy.wafflemonster.org'
+BASE_URL = 'http://proxy.evething.org'
 #BASE_URL = 'http://api.eveonline.com'
 
 ACCOUNT_INFO_URL = '%s/account/AccountStatus.xml.aspx' % (BASE_URL)
@@ -33,6 +33,7 @@ ASSETS_CORP_URL = '%s/corp/AssetList.xml.aspx' % (BASE_URL)
 BALANCE_URL = '%s/corp/AccountBalance.xml.aspx' % (BASE_URL)
 CHAR_SHEET_URL = '%s/char/CharacterSheet.xml.aspx' % (BASE_URL)
 CORP_SHEET_URL = '%s/corp/CorporationSheet.xml.aspx' % (BASE_URL)
+LOCATIONS_CHAR_URL = '%s/char/Locations.xml.aspx' % (BASE_URL)
 ORDERS_CHAR_URL = '%s/char/MarketOrders.xml.aspx' % (BASE_URL)
 ORDERS_CORP_URL = '%s/corp/MarketOrders.xml.aspx' % (BASE_URL)
 SKILL_QUEUE_URL = '%s/char/SkillQueue.xml.aspx' % (BASE_URL)
@@ -55,7 +56,7 @@ class APIUpdater:
     # Do the heavy lifting
     def go(self):
         start = time.time()
-        
+
         # Make sure API keys are valid first
         for apikey in APIKey.objects.select_related().filter(valid=True).order_by('key_type'):
             self.api_check(apikey)
@@ -87,8 +88,11 @@ class APIUpdater:
                     self.fetch_orders(apikey, character)
 
                     # Fetch assets
-                    #self.fetch_assets(apikey, character)
-            
+                    self.fetch_assets(apikey, character)
+
+                    # Fetch asset locations
+                    self.fetch_asset_locations(apikey, character)
+
             # Corporation key
             elif apikey.key_type == APIKey.CORPORATION_TYPE:
                 character = apikey.corp_character
@@ -108,7 +112,7 @@ class APIUpdater:
                 # Fetch market orders
                 self.fetch_orders(apikey, character)
 
-                # Fetch assets
+                # Fetch assets -- NYI for corps
                 #self.fetch_assets(apikey, character)
         
         # All done, clean up any out-of-date cached API requests
@@ -480,13 +484,12 @@ class APIUpdater:
         if apikey.corp_character:
             mask = 2
             url = ASSETS_CORP_URL
-            a_filter = Asset.objects.filter(corporation=apikey.corp_character.corporation)
-
+            a_filter = CorporationAsset.objects.filter(corporation=apikey.corp_character.corporation)
         # Initialise for character query
         else:
             mask = 2
             url = ASSETS_CHAR_URL
-            a_filter = Asset.objects.filter(character=character)
+            a_filter = CharacterAsset.objects.filter(character=character)
 
         # Make sure the access mask matches
         if (apikey.access_mask & mask) == 0:
@@ -503,42 +506,138 @@ class APIUpdater:
             show_error('fetch_assets', err, times)
             return
 
-        open('assets.xml', 'w').write(ET.tostring(root))
+        #open('assets.xml', 'w').write(ET.tostring(root))
 
         # Generate an asset_id map
+        asset_ids = set()
         asset_map = {}
         for asset in a_filter:
             asset_map[asset.id] = asset
 
-        # Iterate over the returned result set
-        rowsets = [root.find('result/rowset')]
-        while rowsets:
-            rowset = rowsets.pop(0)
+        # ACTIVATE RECURSION :siren:
+        rows = {}
+        self.assets_recurse(rows, root.find('result/rowset'), None)
 
-            for row in rowset.findall('row'):
-                # find any children rowsets first
-                rowsets.extend(row.findall('rowset'))
+        # assetID - [0]system, [1]station, [2]container_id, [3]item, [4]flag, [5]quantiy, [6]rawQuantity, [7]singleton
+        while rows:
+            assets = list(rows.items())
+            
+            for id, data in assets:
+                # asset has a container_id...
+                if data[2] is not None:
+                    # and the container_id doesn't exist, yet we have to do this later
+                    try:
+                        parent = CharacterAsset.objects.get(pk=data[2])
+                    except CharacterAsset.DoesNotExist:
+                        continue
+                # asset has no container_id
+                else:
+                    parent = None
 
-                asset_id = int(row.attrib('itemID'))
-                asset = asset_map.get(asset_id, None)
-                #if asset_id in asset_map:
-                #    if 
+                # if the asset already exists, update
+                asset = asset_map.get(id, None)
+                if asset is not None:
+                    asset.system = data[0]
+                    asset.station = data[1]
+                    asset.parent = parent
+                    asset.item = data[3]
+                    asset.flag = data[4]
+                    asset.quantity = data[5]
+                    asset.rawQuantity = data[6]
+                    asset.singleton = data[7]
 
-                location_id = int(row.attrib('locationID'))
+                else:
+                    asset = CharacterAsset(
+                        id=id,
+                        character=character,
+                        system=data[0],
+                        station=data[1],
+                        parent=parent,
+                        item=data[3],
+                        inv_flag_id=data[4],
+                        quantity=data[5],
+                        raw_quantity=data[6],
+                        singleton=data[7],
+                    )
+                
+                asset.save()
 
+                asset_ids.add(id)
+                del rows[id]
+
+        # Delete any assets that we didn't see now
+        a_filter.exclude(pk__in=asset_ids).delete()
+
+    # Recursively visit the assets tree and gather data
+    def assets_recurse(self, rows, rowset, container_id):
+        for row in rowset.findall('row'):
+            # No container_id (parent)
+            if 'locationID' in row.attrib:
+                location_id = row.attrib['locationID']
+                try:
+                    system = System.objects.get(id=location_id)
+                except System.DoesNotExist:
+                    system = None
+                
                 try:
                     station = Station.objects.get(id=location_id)
                 except Station.DoesNotExist:
-                    print 'not station:', row
-                    continue
+                    station = None
+            else:
+                system = None
+                station = None
 
-    # <row flag="4" itemID="1005803741159" locationID="60008494" quantity="1" rawQuantity="-1" singleton="1" typeID="596">
-    #   <rowset columns="itemID,typeID,quantity,flag,singleton" key="itemID" name="contents">
-    #     <row flag="27" itemID="1005803741162" quantity="1" rawQuantity="-1" singleton="1" typeID="3634" />
-    #     <row flag="28" itemID="1005803741163" quantity="1" rawQuantity="-1" singleton="1" typeID="3651" />
-    #     <row flag="5" itemID="1005803741175" quantity="1" singleton="0" typeID="34" />
-    #   </rowset>
-    # </row>
+            asset_id = int(row.attrib['itemID'])
+            rows[asset_id] = [
+                system,
+                station,
+                container_id,
+                get_item(row.attrib['typeID']),
+                int(row.attrib['flag']),
+                int(row.attrib.get('quantity', '0')),
+                int(row.attrib.get('rawQuantity', '0')),
+                int(row.attrib.get('singleton', '0')),
+            ]
+
+            # Now we need to visit children rowsets
+            for rowset in row.findall('rowset'):
+                self.assets_recurse(rows, rowset, asset_id)
+    
+    # -----------------------------------------------------------------------
+    # Fetch locations (and more importantly names) for assets
+    def fetch_asset_locations(self, apikey, character):
+        # Initialise for character query
+        if not apikey.corp_character:
+            mask = 134217728
+            url = LOCATIONS_CHAR_URL
+            a_filter = CharacterAsset.objects.root_nodes().filter(character=character, singleton=True, item__item_group__category__name__in=('Celestial', 'Ship'))
+
+        # Make sure the access mask matches
+        if (apikey.access_mask & mask) == 0:
+            return
+
+        # Fetch the API data
+        params = {
+            'characterID': character.eve_character_id,
+            'IDs': ','.join(map(str, a_filter.values_list('id', flat=True))),
+        }
+        root, times = self.fetch_api(url, params, apikey)
+        if root is None:
+            #show_error('fetch_asset_locations', 'HTTP error', times)
+            return
+        err = root.find('error')
+        if err is not None:
+            show_error('fetch_asset_locations', err, times)
+            return
+
+        open('locations.xml', 'w').write(ET.tostring(root))
+
+        for row in root.findall('result/rowset/row'):
+            ca = CharacterAsset.objects.get(character=character, id=row.attrib['itemID'])
+            if ca.name is None or ca.name != row.attrib['itemName']:
+                #print 'changing name to %r (%d)' % (row.attrib['itemName'], len(row.attrib['itemName']))
+                ca.name = row.attrib['itemName']
+                ca.save()
 
     # -----------------------------------------------------------------------
     # Fetch and add/update orders

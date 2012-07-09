@@ -18,6 +18,12 @@ thead td.head {
 
 tr.bold td { font-weight: bold; }
 
+ul.children li {
+  margin-top: 0px;
+  padding-top: 0px;
+  margin-left: 8px;
+}
+
 /* table alignment, urgh */
 tr.c th,
 tr.c td { text-align: center; }
@@ -43,6 +49,33 @@ tr.c th.r,
 tr.c td.r,
 td.r { text-align: right; }
 
+/* assets layout */
+td.assets-location {
+  font-size: 1.05em;
+  font-weight: bold;
+}
+td.assets-img {
+  padding: 0;
+  margin: 0;
+  width: 32px;
+}
+td.assets-item {
+  width: 28em;
+}
+td.assets-type {
+  width: 8em;
+}
+td.assets-quantity {
+  width: 5em;
+}
+td.assets-value {
+  width: 10em;
+}
+td.assets-total {
+  font-weight: bold;
+}
+
+/* various font things */
 .fixed { font-family:Menlo,Monaco,"Courier New",monospace;font-size:12px;color:#333333; }
 
 .dot { border-bottom: 1px dotted; }
@@ -51,6 +84,7 @@ td.r { text-align: right; }
 .smaller { font-size: 0.8em; }
 .level5 { color: #4F4FAF; }
 .black { color: #000000; }
+
 .training-highlight {
   color: #4FAF00;
   margin-top: 0;
@@ -59,21 +93,22 @@ td.r { text-align: right; }
   padding: 0;
 }
 
-.margin-half-top { margin-top: 0.5em; }
-.margin-half-bot { margin-bottom: 0.5em; }
-
 div.character-sp {
   text-align: right;
   margin-right: 0.8em;
   width: 6.5em;
 }
 
-form.nomargin, input.nomargin {
+.margin-half-top { margin-top: 0.5em; }
+.margin-half-bot { margin-bottom: 0.5em; }
+
+form.nomargin, input.nomargin, img.nomargin {
   margin: 0;
   padding: 0;
 }
 hr.nomargin {
   margin-top: 0px;
+  margin-bottom: 6px;
 }
 i.nomargin {
   margin-right: -1px;

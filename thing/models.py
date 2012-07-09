@@ -309,8 +309,8 @@ class MarketGroup(MPTTModel):
     parent = TreeForeignKey('self', blank=True, null=True, related_name='children')
     
     def __unicode__(self):
-        return '%s' % (self.name)
-    
+        return self.name
+
     class MPTTMeta:
         order_insertion_by = ['name']
 
@@ -319,6 +319,9 @@ class MarketGroup(MPTTModel):
 class ItemCategory(models.Model):
     id = models.IntegerField(primary_key=True)
     name = models.CharField(max_length=64)
+    
+    def __unicode__(self):
+        return self.name
 
 # ---------------------------------------------------------------------------
 # Item groups
@@ -326,6 +329,9 @@ class ItemGroup(models.Model):
     id = models.IntegerField(primary_key=True)
     name = models.CharField(max_length=64)
     category = models.ForeignKey(ItemCategory)
+    
+    def __unicode__(self):
+        return self.name
 
 # ---------------------------------------------------------------------------
 # Items
@@ -493,48 +499,41 @@ class MarketOrder(models.Model):
         ordering = ('buy_order', 'item__name')
 
 # ---------------------------------------------------------------------------
-# class Asset(models.Model):
-#     HANGAR_FLAG = 4
-#     CARGO_FLAG = 5
-#     LOW_SLOT_1_FLAG = 11
-#     LOW_SLOT_2_FLAG = 12
-#     LOW_SLOT_3_FLAG = 13
-#     LOW_SLOT_4_FLAG = 14
-#     LOW_SLOT_5_FLAG = 15
-#     LOW_SLOT_6_FLAG = 16
-#     LOW_SLOT_7_FLAG = 17
-#     LOW_SLOT_8_FLAG = 18
-#     MID_SLOT_1_FLAG = 19
-#     MID_SLOT_2_FLAG = 20
-#     MID_SLOT_3_FLAG = 21
-#     MID_SLOT_4_FLAG = 22
-#     MID_SLOT_5_FLAG = 23
-#     MID_SLOT_6_FLAG = 24
-#     MID_SLOT_7_FLAG = 25
-#     MID_SLOT_8_FLAG = 26
-#     HIGH_SLOT_1_FLAG = 27
-#     HIGH_SLOT_2_FLAG = 28
-#     HIGH_SLOT_3_FLAG = 29
-#     HIGH_SLOT_4_FLAG = 30
-#     HIGH_SLOT_5_FLAG = 31
-#     HIGH_SLOT_6_FLAG = 32
-#     HIGH_SLOT_7_FLAG = 33
-#     HIGH_SLOT_8_FLAG = 34
 
-#     id = models.BigIntegerField(primary_key=True)
+class InventoryFlag(models.Model):
+    id = models.IntegerField(primary_key=True)
+    name = models.CharField(max_length=64)
+    text = models.CharField(max_length=128)
 
-#     character = models.ForeignKey(Character, blank=True, null=True)
-#     corporation = models.ForeignKey(Character, blank=True, null=True)
+class CharacterAsset(MPTTModel):
+    id = models.BigIntegerField(primary_key=True)
 
-#     item = models.ForeignKey(Item)
-#     system = models.ForeignKey(System, blank=True, null=True)
-#     station = models.ForeignKey(Station, blank=True, null=True)
+    parent = TreeForeignKey('self', blank=True, null=True, related_name='children')
 
-#     container = models.ForeignKey('self', blank=True, null=True, related_name='contents')
+    character = models.ForeignKey(Character, blank=True, null=True)
+    system = models.ForeignKey(System, blank=True, null=True)
+    station = models.ForeignKey(Station, blank=True, null=True)
 
-#     flag = models.IntegerField()
-#     quantity = models.BigIntegerField()
+    item = models.ForeignKey(Item)
+    name = models.CharField(max_length=128, blank=True, null=True)
+    inv_flag = models.ForeignKey(InventoryFlag)
+    quantity = models.IntegerField()
+    raw_quantity = models.IntegerField()
+    singleton = models.BooleanField()
 
+    def system_or_station(self):
+        if self.system is not None:
+            return self.system.name
+        elif self.station is not None:
+            return self.station.name
+        else:
+            return None
+
+#    def __unicode__(self):
+#        return '%s' % (self.name)
+
+#    class MPTTMeta:
+#        order_insertion_by = ['name']
 
 # ---------------------------------------------------------------------------
 # Industry jobs

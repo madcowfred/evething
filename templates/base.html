@@ -30,7 +30,7 @@
               <li class="divider-vertical"></li>
               <li><a href="{% url thing.views.market_scan %}">Market Scan</a></li>
               <li class="divider-vertical"></li>
-              <li><a href="#" style="text-decoration: line-through">Assets</a></li>
+              <li><a href="{% url thing.views.assets %}"><i class="icon-bell icon-white"></i> Assets</a></li>
               <li><a href="#" style="text-decoration: line-through">Contracts</a></li>
               <li><a href="#" style="text-decoration: line-through">Industry</a></li>
               {% endif %}
@@ -70,7 +70,7 @@
     
     <div class="container-fluid" id="container">
       {% block content %}{% endblock %}
-      <hr>
+      <hr class="nomargin">
       <footer>
         <p>&copy; Freddie 2012</p>
       </footer>

@@ -27,6 +27,8 @@ urlpatterns += patterns('thing.views',
     (r'^apikeys/delete/$', 'apikeys_delete'),
     (r'^apikeys/edit/$', 'apikeys_edit'),
 
+    (r'^assets/$', 'assets'),
+
     url(r'^blueprints/$', 'blueprints', name='blueprints'),
     (r'^blueprints/add/$', 'blueprints_add'),
 
