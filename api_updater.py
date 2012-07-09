@@ -587,12 +587,18 @@ class APIUpdater:
                 system = None
                 station = None
 
+            try:
+                item = get_item(row.attrib['typeID'])
+            except Item.DoesNotExist:
+                print '(assets) Item #%s apparently does not exist?' % (row.attrib['typeID'])
+                continue
+
             asset_id = int(row.attrib['itemID'])
             rows[asset_id] = [
                 system,
                 station,
                 container_id,
-                get_item(row.attrib['typeID']),
+                item,
                 int(row.attrib['flag']),
                 int(row.attrib.get('quantity', '0')),
                 int(row.attrib.get('rawQuantity', '0')),
