@@ -101,6 +101,7 @@ div.character-sp {
 
 .margin-half-top { margin-top: 0.5em; }
 .margin-half-bot { margin-bottom: 0.5em; }
+.margin-left { margin-left: 1em; }
 
 form.nomargin, input.nomargin, img.nomargin {
   margin: 0;

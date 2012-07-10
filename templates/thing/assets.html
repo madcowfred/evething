@@ -4,13 +4,32 @@
 
 {% block title %}Assets{% endblock %}
 
-{% comment %}{% block extra_head %}
-  <script type="text/javascript">
-  $(document).ready(function (){
-    $("#add-filter").on('click', 'add-filter-click');
-  });
-  </script>
-{% endblock %}{% endcomment %}
+{% block extra_head %}
+    <script type="text/javascript">
+      $(document).ready(function (){
+        $(".asset-sneaky").each(function (){
+          $(this).hide();
+        });
+
+        $(".asset-expand").on('click', function() {
+          var $this = $(this);
+          
+          if ($this.hasClass('icon-plus')) {
+            $this.removeClass('icon-plus').addClass('icon-minus');
+            $($this.attr('data-target')).each(function() {
+              $(this).show();
+            });
+          }
+          else {
+            $this.removeClass('icon-minus').addClass('icon-plus');
+            $($this.attr('data-target')).each(function() {
+              $(this).hide();
+            });
+          }
+        });
+      });
+    </script>
+{% endblock %}
 
 {% block content %}
       <div class="row-fluid">
@@ -71,7 +90,7 @@
                   <img class="nomargin" src="http://image.eveonline.com/Type/{{ asset.item_id }}_32.png">
                 </td>{% endcomment %}
                 <td class="assets-item">
-                  {% if asset.z_contents %}<i class="icon-plus"></i> {% endif %}
+                  {% if asset.z_contents %}<i class="icon-plus asset-expand" data-target=".asset-{{ asset.id }}"></i> {% endif %}
                   {{ asset.item.name }}
                   {% if asset.name %} - <i>{{ asset.name }}</i>{% endif %}
                 </td>
@@ -88,6 +107,19 @@
                   {{ asset.z_total|commas }} ISK
                 </td>
               </tr>
+              {% if asset.z_contents %}
+              {% for content in asset.z_contents %}
+              <tr class="asset-sneaky asset-{{ asset.id }}">
+                <td></td>
+                <td><i class="icon-arrow-right margin-left"></i> {{ content.item.name }}</td>
+                <td class="c"><!--{{ content.item.item_group.category.name }}-->{{ content.inv_flag.nice_name }}</td>
+                <td class="r">{{ content.quantity }}</td>
+                <td class="r">{{ content.item.sell_price|commas }} ISK</td>
+                <td class="r">{{ content.z_total|commas }} ISK</td>
+              </tr>
+              {% endfor %}
+              {% if asset.z_contents|length|modulus:2 == 1 %}<tr></tr>{% endif %}{% comment %}dummy row to make zebra work{% endcomment %}
+              {% endif %}{% comment %}z_contents{% endcomment %}
               {% endfor %}{% comment %}in asset_roots{% endcomment %}
               <tr>
                 <td colspan="4"></td>

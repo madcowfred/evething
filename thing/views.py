@@ -271,7 +271,7 @@ def apikeys_edit(request):
 @login_required
 def assets(request):
     # apply our initial set of filters
-    assets = CharacterAsset.objects.select_related('system', 'station', 'item__item_group__category', 'character').filter(character__apikey__user=request.user)
+    assets = CharacterAsset.objects.select_related('system', 'station', 'item__item_group__category', 'character', 'inv_flag').filter(character__apikey__user=request.user)
 
     # retrieve any supplied filter values
     filter_types = request.GET.getlist('filter_type')
@@ -329,8 +329,14 @@ def assets(request):
     # add contents to the parent total
     for cas in systems.values():
         for ca in cas:
-            for content in getattr(ca, 'z_contents', []):
-                ca.z_total += content.z_total
+            if hasattr(ca, 'z_contents'):
+                for content in ca.z_contents:
+                    ca.z_total += content.z_total
+
+                # decorate/sort/undecorate argh
+                temp = [(c.inv_flag.sort_order(), c.item.name, c) for c in ca.z_contents]
+                temp.sort()
+                ca.z_contents = [s[2] for s in temp]
 
     # get a total asset value
     total_value = sum(loc_totals.values())

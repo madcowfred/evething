@@ -505,6 +505,35 @@ class InventoryFlag(models.Model):
     name = models.CharField(max_length=64)
     text = models.CharField(max_length=128)
 
+    def nice_name(self):
+        if self.name.startswith('HiSlot'):
+            return 'High Slot'
+        elif self.name.startswith('MedSlot'):
+            return 'Mid Slot'
+        elif self.name.startswith('LoSlot'):
+            return 'Low Slot'
+        elif self.name.startswith('RigSlot'):
+            return 'Rig Slot'
+        elif self.name == 'DroneBay':
+            return 'Drone Bay'
+        else:
+            return self.name
+
+    def sort_order(self):
+        if self.name.startswith('HiSlot'):
+            return 0
+        elif self.name.startswith('MedSlot'):
+            return 1
+        elif self.name.startswith('LoSlot'):
+            return 2
+        elif self.name.startswith('RigSlot'):
+            return 3
+        elif self.name.startswith('DroneBay'):
+            return 4
+        else:
+            return 9
+
+
 class CharacterAsset(MPTTModel):
     id = models.BigIntegerField(primary_key=True)
 

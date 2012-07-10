@@ -134,3 +134,9 @@ def tablecols(data, cols):
 @register.filter
 def dictlookup(d, key):
     return d[key]
+
+
+# Modulus
+@register.filter
+def modulus(v, d):
+    return v % d
