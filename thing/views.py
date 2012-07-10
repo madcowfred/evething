@@ -131,7 +131,7 @@ def home(request):
                 })
 
         # Insufficient clone
-        if char.z_total_sp > char.clone_skill_points:
+        if hasattr(char, 'z_total_sp') and char.z_total_sp > char.clone_skill_points:
             char.z_notifications.append({
                 'icon': 'user',
                 'text': '%s SP' % (commas(char.clone_skill_points)),
