@@ -315,7 +315,10 @@ def assets(request):
             systems[k].append(ca)
         # asset is inside something, assign it to parent
         else:
-            parent = ca_lookup[ca.parent_id]
+            parent = ca_lookup.get(ca.parent_id, None)
+            if parent is None:
+                continue
+            
             if not hasattr(parent, 'z_contents'):
                 parent.z_contents = []
             parent.z_contents.append(ca)
