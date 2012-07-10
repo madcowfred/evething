@@ -887,7 +887,13 @@ class APIUpdater:
                 quantity = int(row.attrib['quantity'])
                 price = Decimal(row.attrib['price'])
                 buy_transaction = (row.attrib['transactionType'] == 'buy')
-                
+
+                try:
+                    item = get_item(row.attrib['typeID'])
+                except Item.DoesNotExist:
+                    print '(transactions) Item #%s apparently does not exist?' % (row.attrib['typeID'])
+                    continue
+
                 t = Transaction(
                     station=station,
                     character=char,
