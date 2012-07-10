@@ -330,12 +330,22 @@ def assets(request):
             if parent is None:
                 continue
 
-            #if not hasattr(parent, 'z_contents'):
-            #    parent.z_contents = []
+            # add to parent's contents
             parent.z_contents.append(ca)
 
             # add this to the parent's entry in loc_totals
             loc_totals[parent.z_k] += ca.z_total
+
+            # Celestials (containers) need some special casing
+            if parent.item.item_group.category.name == 'Celestial':
+                if ca.inv_flag.name == 'Locked':
+                    ca.z_locked = True
+
+                ca.z_group = ca.item.item_group.category.name
+
+            else:
+                ca.z_group = ca.inv_flag.nice_name()
+
 
     # add contents to the parent total
     for cas in systems.values():
@@ -348,6 +358,8 @@ def assets(request):
                 temp = [(c.inv_flag.sort_order(), c.item.name, c) for c in ca.z_contents]
                 temp.sort()
                 ca.z_contents = [s[2] for s in temp]
+
+                ca.z_mod = len(ca.z_contents) % 2
 
     # get a total asset value
     total_value = sum(loc_totals.values())

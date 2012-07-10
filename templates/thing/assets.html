@@ -83,7 +83,6 @@
               </tr>
             </thead>
             <tbody>
-              {% spaceless %}
               {% for asset in asset_roots %}
               <tr>
                 <td class="assets-character">{{ asset.character.name }}</td>
@@ -103,29 +102,22 @@
                 <td></td>
                 <td>
                   <i class="icon-arrow-right margin-left"></i>
-                  {% if asset.item.item_group.category.name == 'Celestial' and content.inv_flag.nice_name == 'Locked' %}<i class="icon-lock"></i>{% endif %}
+                  {% if asset.z_locked %}<i class="icon-lock"></i>{% endif %}
                   {{ content.item.name }}
                 </td>
-                <td class="c">
-                  {% if asset.item.item_group.category.name == 'Celestial' %}
-                  {{ content.item.item_group.category.name }}
-                  {% else %}
-                  {{ content.inv_flag.nice_name }}
-                  {% endif %}
-                </td>
+                <td class="c">{{ content.z_group }}</td>
                 <td class="r">{{ content.quantity }}</td>
                 <td class="r">{{ content.item.sell_price|commas }} ISK</td>
                 <td class="r">{{ content.z_total|commas }} ISK</td>
               </tr>
               {% endfor %}
-              {% if asset.z_contents|length|modulus:2 == 1 %}<tr></tr>{% endif %}{% comment %}dummy row to make zebra work{% endcomment %}
-              {% endif %}{% comment %}z_contents{% endcomment %}
-              {% endfor %}{% comment %}in asset_roots{% endcomment %}
+              {% if asset.z_mod == 1 %}<tr></tr>{% endif %}
+              {% endif %}
+              {% endfor %}
               <tr>
                 <td colspan="4"></td>
                 <td class="assets-total r" colspan="2">{{ loc_totals|dictlookup:system_name|commas }} ISK</td>
               </tr>
-              {% endspaceless %}
             </tbody>
           </table>
           {% endfor %}{% comment %}in systems{% endcomment %}

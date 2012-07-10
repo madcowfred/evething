@@ -499,7 +499,7 @@ class MarketOrder(models.Model):
         ordering = ('buy_order', 'item__name')
 
 # ---------------------------------------------------------------------------
-
+# Inventory flags
 class InventoryFlag(models.Model):
     id = models.IntegerField(primary_key=True)
     name = models.CharField(max_length=64)
@@ -533,6 +533,7 @@ class InventoryFlag(models.Model):
         else:
             return 9
 
+# ---------------------------------------------------------------------------
 
 class CharacterAsset(MPTTModel):
     id = models.BigIntegerField(primary_key=True)
