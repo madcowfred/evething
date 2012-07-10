@@ -83,31 +83,19 @@
               </tr>
             </thead>
             <tbody>
+              {% spaceless %}
               {% for asset in asset_roots %}
               <tr>
-                <td class="assets-character">
-                  {{ asset.character.name }}
-                </td>
-                {% comment %}<td class="assets-img">
-                  <img class="nomargin" src="http://image.eveonline.com/Type/{{ asset.item_id }}_32.png">
-                </td>{% endcomment %}
+                <td class="assets-character">{{ asset.character.name }}</td>
                 <td class="assets-item">
                   {% if asset.z_contents %}<i class="icon-plus asset-expand" data-target=".asset-{{ asset.id }}"></i> {% endif %}
                   {{ asset.item.name }}
                   {% if asset.name %} - <i>{{ asset.name }}</i>{% endif %}
                 </td>
-                <td class="assets-type c">
-                  {{ asset.item.item_group.category.name }}
-                </td>
-                <td class="assets-quantity r">
-                  {{ asset.quantity|commas }}
-                </td>
-                <td class="assets-value r">
-                  {{ asset.item.sell_price|commas }} ISK
-                </td>
-                <td class="assets-value r">
-                  {{ asset.z_total|commas }} ISK
-                </td>
+                <td class="assets-type c">{{ asset.item.item_group.category.name }}</td>
+                <td class="assets-quantity r">{{ asset.quantity|commas }}</td>
+                <td class="assets-value r">{{ asset.item.sell_price|commas }} ISK</td>
+                <td class="assets-value r">{{ asset.z_total|commas }} ISK</td>
               </tr>
               {% if asset.z_contents %}
               {% for content in asset.z_contents %}
@@ -122,9 +110,8 @@
                   {% if asset.item.item_group.category.name == 'Celestial' %}
                   {{ content.item.item_group.category.name }}
                   {% else %}
-                  d{{ content.inv_flag.nice_name }}
+                  {{ content.inv_flag.nice_name }}
                   {% endif %}
-                  <!---->
                 </td>
                 <td class="r">{{ content.quantity }}</td>
                 <td class="r">{{ content.item.sell_price|commas }} ISK</td>
@@ -138,6 +125,7 @@
                 <td colspan="4"></td>
                 <td class="assets-total r" colspan="2">{{ loc_totals|dictlookup:system_name|commas }} ISK</td>
               </tr>
+              {% endspaceless %}
             </tbody>
           </table>
           {% endfor %}{% comment %}in systems{% endcomment %}
