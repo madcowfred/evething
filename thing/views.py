@@ -318,7 +318,7 @@ def assets(request):
             parent = ca_lookup.get(ca.parent_id, None)
             if parent is None:
                 continue
-            
+
             if not hasattr(parent, 'z_contents'):
                 parent.z_contents = []
             parent.z_contents.append(ca)
@@ -692,6 +692,7 @@ def character_anonymous(request, anon_key):
     )
 
 ANON_KEY_RE = re.compile(r'^[a-z0-9]+$')
+@login_required
 def character_settings(request, character_name):
     char = get_object_or_404(Character, name=character_name, apikey__user=request.user)
 
