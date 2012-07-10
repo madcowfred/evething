@@ -551,18 +551,15 @@ class CharacterAsset(MPTTModel):
     singleton = models.BooleanField()
 
     def system_or_station(self):
-        if self.system is not None:
-            return self.system.name
-        elif self.station is not None:
+        if self.station is not None:
             return self.station.name
+        elif self.system is not None:
+            return self.system.name
         else:
             return None
 
 #    def __unicode__(self):
 #        return '%s' % (self.name)
-
-#    class MPTTMeta:
-#        order_insertion_by = ['name']
 
 # ---------------------------------------------------------------------------
 # Industry jobs

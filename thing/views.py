@@ -314,24 +314,28 @@ def assets(request):
         if k is not None:
             ca_lookup[ca.id] = ca
 
+            ca.z_k = k
+            ca.z_contents = []
+
             if k not in systems:
                 loc_totals[k] = 0
                 systems[k] = []
             
             loc_totals[k] += ca.z_total
             systems[k].append(ca)
+
         # asset is inside something, assign it to parent
         else:
             parent = ca_lookup.get(ca.parent_id, None)
             if parent is None:
                 continue
 
-            if not hasattr(parent, 'z_contents'):
-                parent.z_contents = []
+            #if not hasattr(parent, 'z_contents'):
+            #    parent.z_contents = []
             parent.z_contents.append(ca)
 
             # add this to the parent's entry in loc_totals
-            loc_totals[parent.system_or_station()] += ca.z_total
+            loc_totals[parent.z_k] += ca.z_total
 
     # add contents to the parent total
     for cas in systems.values():
