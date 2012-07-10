@@ -274,22 +274,29 @@ def assets(request):
     assets = CharacterAsset.objects.select_related('system', 'station', 'item__item_group__category', 'character', 'inv_flag').filter(character__apikey__user=request.user)
 
     # retrieve any supplied filter values
-    filter_types = request.GET.getlist('filter_type')
-    filter_comps = request.GET.getlist('filter_comp')
-    filter_values = request.GET.getlist('filter_value')
+    f_types = request.GET.getlist('type')
+    f_comps = request.GET.getlist('comp')
+    f_values = request.GET.getlist('value')
 
     # check lengths
-    if len(filter_types) == len(filter_comps) and len(filter_types) == len(filter_values):
-        for i in range(len(filter_types)):
-            ft = filter_types[i]
-            fc = filter_comps[i]
-            fv = filter_values[i]
+    filters = []
+
+    if len(f_types) == len(f_comps) and len(f_types) == len(f_values):
+        for i in range(len(f_types)):
+            ft = f_types[i]
+            fc = f_comps[i]
+            fv = f_values[i]
 
             if ft == 'char' and fv.isdigit():
                 if fc == 'eq':
                     assets = assets.filter(character_id=fv)
                 elif fc == 'ne':
                     assets = assets.exclude(character_id=fv)
+
+                filters.append((ft, fc, int(fv)))
+
+    if not filters:
+        filters.append(('char', 'eq', 0))
 
     # initialise data structures
     ca_lookup = {}
@@ -355,6 +362,7 @@ def assets(request):
         'thing/assets.html',
         {
             'characters': Character.objects.filter(apikey__user=request.user),
+            'filters': filters,
             'total_value': total_value,
             'systems': sorted_systems,
             'loc_totals': loc_totals,

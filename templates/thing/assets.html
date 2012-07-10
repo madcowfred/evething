@@ -46,19 +46,21 @@
           <form class="well well-small" action="{% url thing.views.assets %}" method="GET">
             <h4>Filters</h4>
             <fieldset>
-              <select name="filter_type">
-                <option value="char">Character</option>
+              {% for f_type, f_comp, f_value in filters %}
+              <select name="type">
+                <option value="char"{% if f_type == 'char' %} selected{% endif %}>Character</option>
               </select>
-              <select name="filter_comp" class="input-small">
-                <option value="eq">=</option>
-                <option value="ne">!=</option>
+              <select name="comp" class="input-small">
+                <option value="eq"{% if f_comp == 'eq' %} selected{% endif %}>=</option>
+                <option value="ne"{% if f_comp == 'ne' %} selected{% endif %}>!=</option>
               </select>
-              <select name="filter_value">
+              <select name="value">
                 <option value=""></option>
                 {% for character in characters %}
-                <option value="{{ character.eve_character_id }}">{{ character.name }}</option>
+                <option value="{{ character.eve_character_id }}"{% if f_value == character.eve_character_id %} selected{% endif %}>{{ character.name }}</option>
                 {% endfor %}
               </select>
+              {% endfor %}
             </fieldset>
             {% comment %}<button id="add-filter" class="btn btn-primary"><i class="icon-plus icon-white"></i> Add filter</button>{% endcomment %}
             <button type="submit" class="btn btn-primary">Apply filters</button>
