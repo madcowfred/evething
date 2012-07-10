@@ -113,8 +113,19 @@
               {% for content in asset.z_contents %}
               <tr class="asset-sneaky asset-{{ asset.id }}">
                 <td></td>
-                <td><i class="icon-arrow-right margin-left"></i> {{ content.item.name }}</td>
-                <td class="c"><!--{{ content.item.item_group.category.name }}-->{{ content.inv_flag.nice_name }}</td>
+                <td>
+                  <i class="icon-arrow-right margin-left"></i>
+                  {% if asset.item.item_group.category.name == 'Celestial' and content.inv_flag.nice_name == 'Locked' %}<i class="icon-lock"></i>{% endif %}
+                  {{ content.item.name }}
+                </td>
+                <td class="c">
+                  {% if asset.item.item_group.category.name == 'Celestial' %}
+                  {{ content.item.item_group.category.name }}
+                  {% else %}
+                  d{{ content.inv_flag.nice_name }}
+                  {% endif %}
+                  <!---->
+                </td>
                 <td class="r">{{ content.quantity }}</td>
                 <td class="r">{{ content.item.sell_price|commas }} ISK</td>
                 <td class="r">{{ content.z_total|commas }} ISK</td>
