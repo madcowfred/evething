@@ -406,7 +406,6 @@ class Assets(APIJob):
                 item = get_item(row.attrib['typeID'])
             except Item.DoesNotExist:
                 print '(assets) Item #%s apparently does not exist?' % (row.attrib['typeID'])
-                errors += 1
                 continue
 
             asset_id = int(row.attrib['itemID'])
