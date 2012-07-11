@@ -360,16 +360,23 @@ class Assets(APIJob):
                        asset.item != data[3] or asset.inv_flag_id != data[4] or asset.quantity != data[5] or \
                        asset.raw_quantity != data[6] or asset.singleton != data[7]:
 
-                        asset.system = data[0]
-                        asset.station = data[1]
-                        asset.parent = parent
-                        asset.item = data[3]
-                        asset.flag = data[4]
-                        asset.quantity = data[5]
-                        asset.rawQuantity = data[6]
-                        asset.singleton = data[7]
+                        asset.delete()
 
+                        asset = CharacterAsset(
+                            id=id,
+                            character=self._character,
+                            system=data[0],
+                            station=data[1],
+                            parent=parent,
+                            item=data[3],
+                            inv_flag_id=data[4],
+                            quantity=data[5],
+                            raw_quantity=data[6],
+                            singleton=data[7],
+                        )
                         asset.save()
+
+                        asset_map[id] = asset
 
                 else:
                     asset = CharacterAsset(
