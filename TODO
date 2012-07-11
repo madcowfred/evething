@@ -8,7 +8,6 @@
 * Character Sheet page:
   - Possibly start all categories collapsed with "Category - 5.3 million SP - 5.7%", expandable
   - Expand all/collapse all JavaScript links
-  - 256x256 spy image for anonymous character pages
 
 * Assets page:
   - Corporate assets needs to be enabled and tested
@@ -32,9 +31,13 @@
 * More prominent account expiry warnings on Home/API Keys pages
 * Corporate assets needs to be enabled and tested
 
+* Wallet journal:
+  - ohgod
+  - ISK per hour graph for mission rewards/rat bounties/etc
+  - Corporation graph too?
+
 * api_updater:
-  - quick fix: don't do processing for calls that succeeded with no warnings, duh
-  - long fix: rewrite to use some sort of worker backend (Celery+RabbitMQ?)
+- make SystemEventLog objects for start/finish with basic stats so I can maybe track performance issues easier
 
 * Documentation:
   - pages need to explain what the hell they do
