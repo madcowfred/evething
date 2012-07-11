@@ -68,7 +68,7 @@ class APIUpdater:
         # Generate a character id map
         self.char_id_map = {}
         for character in Character.objects.all():
-            self.char_id_map[character.eve_character_id] = character
+            self.char_id_map[character.id] = character
         
         # Now we can get down to business
         for apikey in APIKey.objects.filter(valid=True, access_mask__isnull=False):
@@ -176,12 +176,12 @@ class APIUpdater:
                 # Get a corporation object
                 corp = get_corporation(row.attrib['corporationID'], row.attrib['corporationName'])
                 
-                characters = Character.objects.filter(eve_character_id=characterID)
+                characters = Character.objects.filter(id=characterID)
                 # Character doesn't exist, make a new one and save it
                 if characters.count() == 0:
                     character = Character(
+                        id=characterID,
                         apikey=apikey,
-                        eve_character_id=characterID,
                         name=row.attrib['characterName'],
                         corporation=corp,
                         wallet_balance=0,
@@ -220,11 +220,11 @@ class APIUpdater:
             # Get a corporation object
             corp = get_corporation(row.attrib['corporationID'], row.attrib['corporationName'])
             
-            characters = Character.objects.filter(eve_character_id=characterID)
+            characters = Character.objects.filter(id=characterID)
             # Character doesn't exist, make a new one and save it
             if characters.count() == 0:
                 character = Character(
-                    eve_character_id=characterID,
+                    id=characterID,
                     name=row.attrib['characterName'],
                     corporation=corp,
                 )
@@ -268,7 +268,7 @@ class APIUpdater:
             return
         
         # Fetch the API data
-        params = { 'characterID': character.eve_character_id }
+        params = { 'characterID': character.id }
         root, times = self.fetch_api(CHAR_SHEET_URL, params, apikey)
         if root is None:
             #show_error('fetch_char_sheet', 'HTTP error', times)
@@ -364,7 +364,7 @@ class APIUpdater:
             return
         
         # Fetch the API data
-        params = { 'characterID': character.eve_character_id }
+        params = { 'characterID': character.id }
         root, times = self.fetch_api(SKILL_QUEUE_URL, params, apikey)
         if root is None:
             #show_error('fetch_char_skill_queue', 'HTTP error', times)
@@ -496,7 +496,7 @@ class APIUpdater:
             return
 
         # Fetch the API data
-        params = { 'characterID': character.eve_character_id }
+        params = { 'characterID': character.id }
         root, times = self.fetch_api(url, params, apikey)
         if root is None:
             #show_error('fetch_assets', 'HTTP error', times)
@@ -622,7 +622,7 @@ class APIUpdater:
 
         # Fetch the API data
         params = {
-            'characterID': character.eve_character_id,
+            'characterID': character.id,
             'IDs': ','.join(map(str, a_filter.values_list('id', flat=True))),
         }
         root, times = self.fetch_api(url, params, apikey)
@@ -667,7 +667,7 @@ class APIUpdater:
             return
         
         # Fetch the API data
-        params = { 'characterID': character.eve_character_id }
+        params = { 'characterID': character.id }
         root, times = self.fetch_api(url, params, apikey)
         if root is None:
             #show_error('fetch_orders', 'HTTP error', times)
@@ -794,7 +794,7 @@ class APIUpdater:
     # Fetch transactions and update the database
     def fetch_transactions(self, apikey, character, corp_wallet=None):
         # Initialise stuff
-        params = { 'characterID': character.eve_character_id }
+        params = { 'characterID': character.id }
         
         # Corporate key
         if apikey.corp_character:
