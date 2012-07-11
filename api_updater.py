@@ -1056,6 +1056,10 @@ class WalletTransactions(APIJob):
 class APIUpdater:
     def __init__(self):
         #self._total_api = 0
+
+        # do a dummy strptime because strptime is not fucking thread safe?
+        datetime.datetime.strptime('2012-01-01', '%Y-%m-%d')
+
         # set up logging
         if settings.DEBUG:
             level = logging.INFO
