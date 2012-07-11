@@ -154,7 +154,7 @@
           {% if not public or char.config.show_skill_queue %}{% if queue %}
           <div class="row">
             <div class="span9">
-              <div class="well well-small alert-success black">
+              <div class="well well-small {% if char.z_training.queue_duration < 86400 %}alert-error{% else %}alert-success{% endif %} black">
                 <h3>Skill Queue</h3>
                 <div>
                   {{ queue.0.skill.item.name }} {{ queue.0.get_roman_level }} (Rank {{ queue.0.skill.rank }}) --
