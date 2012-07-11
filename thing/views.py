@@ -44,7 +44,7 @@ def home(request):
     chars = OrderedDict()
     for char in Character.objects.select_related('apikey').filter(apikey__user=request.user).order_by('apikey__name', 'name'):
         char.z_training = {}
-        chars[char.eve_character_id] = char
+        chars[char.id] = char
         api_keys.add(char.apikey)
         total_balance += char.wallet_balance
 
@@ -809,7 +809,7 @@ def orders(request):
 
     # Retrieve... skills? Hrm.
     for cs in CharacterSkill.objects.select_related().filter(character__apikey__user=request.user, skill__item__name__in=ORDER_SLOT_SKILLS.keys()):
-        char_id = cs.character.eve_character_id
+        char_id = cs.character.id
         if char_id not in char_orders:
             continue
 

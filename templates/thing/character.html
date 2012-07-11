@@ -38,7 +38,7 @@
       <div class="row">
         <div class="span3">
           <div class="thumbnail">
-            <img src="http://image.eveonline.com/Character/{{ char.eve_character_id }}_256.jpg">
+            <img src="http://image.eveonline.com/Character/{{ char.id }}_256.jpg">
           </div>
           
           {% if not public %}
@@ -47,7 +47,7 @@
             <h3>Settings</h3>
             <form action="{% url thing.views.character_settings char.name %}" method="POST" style="margin: 0">
               {% csrf_token %}
-              <input type="hidden" name="character_id" value="{{ char.eve_character_id }}">
+              <input type="hidden" name="character_id" value="{{ char.id }}">
               <label class="checkbox">
                 <input type="checkbox" id="public-checkbox" name="public"{% if char.config.is_public %} checked{% endif %}>
                 Publicly visible

@@ -56,7 +56,7 @@
               <select name="value">
                 <option value=""></option>
                 {% for character in characters %}
-                <option value="{{ character.eve_character_id }}"{% if f_value == character.eve_character_id %} selected{% endif %}>{{ character.name }}</option>
+                <option value="{{ character.id }}"{% if f_value == character.id %} selected{% endif %}>{{ character.name }}</option>
                 {% endfor %}
               </select>
               {% endfor %}
