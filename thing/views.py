@@ -93,7 +93,7 @@ def home(request):
                 })
 
         # Empty skill queue
-        if char.apikey_id in not_training:
+        if char.apikey in not_training:
             char.z_notifications.append({
                 'icon': 'tasks',
                 'text': 'Empty!',
@@ -227,7 +227,7 @@ def apikeys_add(request):
 # Delete an API key
 @login_required
 def apikeys_delete(request):
-    print request.POST.items()
+    #print request.POST.items()
 
     try:
         apikey = APIKey.objects.get(user=request.user.id, id=request.POST.get('keyid', '0'))

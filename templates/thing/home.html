@@ -28,7 +28,7 @@
       {% for character in chars %}
       {% if character %}
       <div class="span3">
-        <div class="well-small well{% if character.apikey_id in not_training %} alert-error{% endif %}">
+        <div class="well-small well{% if character.apikey in not_training %} alert-error{% endif %}">
           <div>
             <span class="large">
               <a href="{% url thing.views.character character.name %}">
