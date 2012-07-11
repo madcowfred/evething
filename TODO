@@ -10,6 +10,21 @@
   - Expand all/collapse all JavaScript links
   - 256x256 spy image for anonymous character pages
 
+* Assets page:
+  - Corporate assets needs to be enabled and tested
+  - Add a volume column
+  - Improve search features:
+    = Types: value, total value, containers only, group only
+    = Magical JS buttons to add/remove extra search filters
+  - Work out why the initial CharacterAsset view query is so slow, 1300 rows shouldn't take half a second. Possibly
+    related to the pile of horrible LEFT OUTER JOINs, try querying (items, characters, etc) separately and caching.
+
+* Account Settings page:
+  - new page, add various account settings that don't exist right now
+    = number of accounts per row on home page (2, 3, 4, 6)
+    = theme selection (I assume people will want a dark theme)
+  - combine API Keys into this page
+  - combine Change Password into this page
 
 * Fix Blueprints page not having a working delete button
 * Multiple user accounts using keys for the same game account needs to work without weird things happening
