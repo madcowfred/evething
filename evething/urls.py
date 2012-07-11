@@ -34,8 +34,8 @@ urlpatterns += patterns('thing.views',
 
     (r'^bpcalc/$', 'bpcalc'),
     
-    url(r'^character/(?P<character_name>[\w\' ]+)/$', 'character', name='character'),
-    (r'^character/(?P<character_name>[\w\' ]+)/settings/', 'character_settings'),
+    url(r'^character/(?P<character_name>[\w\'- ]+)/$', 'character', name='character'),
+    (r'^character/(?P<character_name>[\w\'- ]+)/settings/', 'character_settings'),
     url(r'^character_anon/(?P<anon_key>[a-z0-9]+)/$', 'character_anonymous', name='character_anonymous'),
     
     (r'^events/$', 'events'),
