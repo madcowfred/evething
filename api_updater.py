@@ -1,6 +1,7 @@
 #!/usr/local/bin/python
 
 import datetime
+import logging
 import os
 import requests
 import sys
@@ -53,11 +54,12 @@ TRANSACTIONS_CORP_URL = '%s/corp/WalletTransactions.xml.aspx' % (BASE_URL)
 # Simple job-consuming worker thread
 class APIWorker(threading.Thread):
     def __init__(self, queue):
-        self.queue = queue
         threading.Thread.__init__(self)
 
+        self.queue = queue
+
     def run(self):
-        #print '%s started' % (self.name)
+        logging.info('%s: started', self.name)
         while True:
             job = self.queue.get()
             # die die die
@@ -65,7 +67,11 @@ class APIWorker(threading.Thread):
                 self.queue.task_done()
                 return
             else:
-                job.run()
+                try:
+                    job.run()
+                except:
+                    logging.error('Trapped exception!', exc_info=sys.exc_info())
+
                 self.queue.task_done()
 
 # ---------------------------------------------------------------------------
@@ -95,12 +101,13 @@ class APIJob:
         except APICache.DoesNotExist:
             apicache = None
             
+            logging.info('Fetching URL %s', url)
+
             # Fetch the URL
             r = requests.post(url, params, headers=HEADERS, config={ 'max_retries': 1 })
             data = r.text
             
-            if settings.DEBUG:
-                print 'API: %s -> %s' % (url, datetime.datetime.utcnow() - now)
+            logging.info('URL retrieved in %s', datetime.datetime.utcnow() - now)
 
             # If the status code is bad return None
             if not r.status_code == requests.codes.ok:
@@ -109,8 +116,7 @@ class APIJob:
 
         # Data is cached, use that
         else:
-            if settings.DEBUG:
-                print 'API: %s -> CACHED' % (url)
+            logging.info('Cached URL %s', url)
             data = apicache.text
 
         # Parse the XML
@@ -405,7 +411,7 @@ class Assets(APIJob):
             try:
                 item = get_item(row.attrib['typeID'])
             except Item.DoesNotExist:
-                print '(assets) Item #%s apparently does not exist?' % (row.attrib['typeID'])
+                logging.warn("Item #%s apparently doesn't exist", row.attrib['typeID'])
                 continue
 
             asset_id = int(row.attrib['itemID'])
@@ -445,7 +451,6 @@ class CharacterSheet(APIJob):
         
         err = root.find('error')
         if err is not None:
-            print '%s %s %s' % (self._apikey.id, self._character.id, self._character.name)
             show_error('fetch_char_sheet', err, times)
             return
         
@@ -681,7 +686,7 @@ class CorporationSheet(APIJob):
                             wallet.save()
                     # If it doesn't exist, wtf?
                     else:
-                        print 'ERROR: no matching CorpWallet object for corpID=%s accountKey=%s' % (corporation.id, row.attrib['accountKey'])
+                        logging.warn("No matching CorpWallet object for corpID=%s accountkey=%s", corporation.id, row.attrib['accountKey'])
                         errors += 1
         
         # completed ok
@@ -823,7 +828,7 @@ class MarketOrders(APIJob):
                 # Make sure the character charID is valid
                 char = self.char_id_map.get(int(row.attrib['charID']))
                 if char is None:
-                    print 'ERROR: no matching Character object for charID=%s' % (row.attrib['charID'])
+                    logging.warn("No matching Character object for charID=%s", row.attrib['charID'])
                     continue
                 
                 # Make sure the item typeID is valid
@@ -962,7 +967,7 @@ class WalletTransactions(APIJob):
                 if trans.transaction_id in t_map:
                     del t_map[trans.transaction_id]
                 else:
-                    print 'WARNING: transaction_id not in t_map, what the fuck?'
+                    logging.warn("transaction_id not in t_map, what in the fuck?")
                     errors += 1
             
             # Now iterate over the leftovers
@@ -1007,7 +1012,7 @@ class WalletTransactions(APIJob):
                 try:
                     item = get_item(row.attrib['typeID'])
                 except Item.DoesNotExist:
-                    print '(transactions) Item #%s apparently does not exist?' % (row.attrib['typeID'])
+                    logging.warn("Item #%s apparently doesn't exist", row.attrib['typeID'])
                     errors += 1
                     continue
 
@@ -1044,6 +1049,12 @@ class WalletTransactions(APIJob):
 class APIUpdater:
     def __init__(self):
         #self._total_api = 0
+        # set up logging
+        if settings.DEBUG:
+            level = logging.INFO
+        else:
+            level = logging.WARNING
+        logging.basicConfig(format='%(asctime)s %(levelname)-8s %(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=level)
 
         # job queue
         self._job_queue = Queue()
@@ -1171,9 +1182,9 @@ def show_error(func, err, times):
         return
 
     if hasattr(err, 'attrib'):
-        print '(%s) %s: %s | %s -> %s' % (func, err.attrib['code'], err.text, current, until)
+        logging.error('(%s) %s: %s | %s -> %s', func, err.attrib['code'], err.text, current, until)
     else:
-        print '(%s) %s | %s -> %s' % (func, err, current, until)
+        logging.error('(%s) %s | %s -> %s', func, err, current, until)
 
 # ---------------------------------------------------------------------------
 # Caching item fetcher
@@ -1237,8 +1248,8 @@ if __name__ == '__main__':
     if os.path.isfile(lockfile):
         sys.exit(0)
 
-    open(lockfile, 'w').write('meow')
-    
+    open(lockfile, 'w').write(str(os.getpid()))
+
     updater = APIUpdater()
     updater.go()
 
