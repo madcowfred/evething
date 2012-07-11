@@ -1,0 +1,25 @@
+* API Keys page:
+  - minimum flags for basic functionality (skill plans, character sheets)
+  - list of other flags and what features they enable
+  - link to the API page with a minimum key flag set
+  - "this key has not yet updated" or something instead of just NONE NONE NONE
+  - explain how API data is pulled
+
+* Character Sheet page:
+  - Possibly start all categories collapsed with "Category - 5.3 million SP - 5.7%", expandable
+  - Expand all/collapse all JavaScript links
+  - 256x256 spy image for anonymous character pages
+
+
+* Fix Blueprints page not having a working delete button
+* Multiple user accounts using keys for the same game account needs to work without weird things happening
+* Total SP on Home page
+* More prominent account expiry warnings on Home/API Keys pages
+* Corporate assets needs to be enabled and tested
+
+* api_updater:
+  - quick fix: don't do processing for calls that succeeded with no warnings, duh
+  - long fix: rewrite to use some sort of worker backend (Celery+RabbitMQ?)
+
+* Documentation:
+  - pages need to explain what the hell they do
