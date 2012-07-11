@@ -56,7 +56,7 @@
             {% if character.z_training.queue_duration > character.z_training.skill_duration %}
             <em class="small pull-right">Queue: {{ character.z_training.queue_duration|shortduration }}</em>
             {% endif %}
-            <div class="progress {% if character.z_training.queue_duration < 86400 %} progress-danger{% endif%}">
+            <div class="progress progress-striped {% if character.z_training.queue_duration < 86400 %} progress-danger{% endif%}">
               <div class="bar" style="width: {{ character.z_training.complete_per }}%">{{ character.z_training.complete_per }}%</div>
             </div>
           </div>
