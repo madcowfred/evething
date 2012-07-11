@@ -1172,8 +1172,10 @@ class APIUpdater:
 
 # ---------------------------------------------------------------------------
 # Turn an API date into a datetime object
+_pad_lock = threading.Lock()
 def parse_api_date(s):
-    return datetime.datetime.strptime(s, '%Y-%m-%d %H:%M:%S')
+    with _pad_lock:
+        return datetime.datetime.strptime(s, '%Y-%m-%d %H:%M:%S')
 
 # ---------------------------------------------------------------------------
 # Spit out an error message
