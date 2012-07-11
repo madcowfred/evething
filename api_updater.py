@@ -133,9 +133,13 @@ class APIUpdater:
     # -----------------------------------------------------------------------
     # Do various API key things
     def api_check(self, apikey):
-        root, times = self.fetch_api(API_INFO_URL, {}, apikey)
+        root, times, apicache = self.fetch_api(API_INFO_URL, {}, apikey)
         if root is None:
             #show_error('api_check', 'HTTP error', times)
+            return
+
+        # cached and completed ok? pass.
+        if apicache and apicache.completed_ok:
             return
         
         # Check for errors
@@ -233,6 +237,10 @@ class APIUpdater:
             
             apikey.corp_character = character
             apikey.save()
+
+        # completed ok
+        apicache.completed_ok = True
+        apicache.save()
     
     # -----------------------------------------------------------------------
     # Fetch account status
@@ -246,10 +254,15 @@ class APIUpdater:
             return
 
         # Fetch the API data
-        root, times = self.fetch_api(ACCOUNT_INFO_URL, {}, apikey)
+        root, times, apicache = self.fetch_api(ACCOUNT_INFO_URL, {}, apikey)
         if root is None:
             #show_error('fetch_account_status', 'HTTP error', times)
             return
+        
+        # cached and completed ok? pass.
+        if apicache and apicache.completed_ok:
+            return
+        
         err = root.find('error')
         if err is not None:
             show_error('fetch_account_status', err, times)
@@ -259,6 +272,10 @@ class APIUpdater:
         apikey.paid_until = parse_api_date(root.findtext('result/paidUntil'))
 
         apikey.save()
+        
+        # completed ok
+        apicache.completed_ok = True
+        apicache.save()
 
     # -----------------------------------------------------------------------
     # Fetch and add/update character sheet data
@@ -269,10 +286,15 @@ class APIUpdater:
         
         # Fetch the API data
         params = { 'characterID': character.id }
-        root, times = self.fetch_api(CHAR_SHEET_URL, params, apikey)
+        root, times, apicache = self.fetch_api(CHAR_SHEET_URL, params, apikey)
         if root is None:
             #show_error('fetch_char_sheet', 'HTTP error', times)
             return
+        
+        # cached and completed ok? pass.
+        if apicache and apicache.completed_ok:
+            return
+        
         err = root.find('error')
         if err is not None:
             show_error('fetch_char_sheet', err, times)
@@ -355,6 +377,10 @@ class APIUpdater:
         
         # Save character
         character.save()
+        
+        # completed ok
+        apicache.completed_ok = True
+        apicache.save()
     
     # -----------------------------------------------------------------------
     # Fetch and add/update character skill in training
@@ -365,10 +391,15 @@ class APIUpdater:
         
         # Fetch the API data
         params = { 'characterID': character.id }
-        root, times = self.fetch_api(SKILL_QUEUE_URL, params, apikey)
+        root, times, apicache = self.fetch_api(SKILL_QUEUE_URL, params, apikey)
         if root is None:
             #show_error('fetch_char_skill_queue', 'HTTP error', times)
             return
+        
+        # cached and completed ok? pass.
+        if apicache and apicache.completed_ok:
+            return
+        
         err = root.find('error')
         if err is not None:
             show_error('fetch_char_skill_queue', err, times)
@@ -390,6 +421,10 @@ class APIUpdater:
                     to_level=row.attrib['level'],
                 )
                 sq.save()
+        
+        # completed ok
+        apicache.completed_ok = True
+        apicache.save()
     
     # -----------------------------------------------------------------------
     # Fetch and add/update corporation wallets
@@ -400,10 +435,15 @@ class APIUpdater:
         
         params = { 'characterID': apikey.corp_character_id }
         
-        root, times = self.fetch_api(BALANCE_URL, params, apikey)
+        root, times, apicache = self.fetch_api(BALANCE_URL, params, apikey)
         if root is None:
             #show_error('fetch_corp_wallets', 'HTTP error', times)
             return
+        
+        # cached and completed ok? pass.
+        if apicache and apicache.completed_ok:
+            return
+        
         err = root.find('error')
         if err is not None:
             show_error('fetch_corp_wallets', err, times)
@@ -435,6 +475,10 @@ class APIUpdater:
                     balance=balance,
                 )
                 wallet.save()
+        
+        # completed ok
+        apicache.completed_ok = True
+        apicache.save()
     
     # -----------------------------------------------------------------------
     # Fetch the corporation sheet
@@ -445,10 +489,15 @@ class APIUpdater:
         
         params = { 'characterID': apikey.corp_character_id }
         
-        root, times = self.fetch_api(CORP_SHEET_URL, params, apikey)
+        root, times, apicache = self.fetch_api(CORP_SHEET_URL, params, apikey)
         if root is None:
             #show_error('fetch_corp_sheet', 'HTTP error', times)
             return
+        
+        # cached and completed ok? pass.
+        if apicache and apicache.completed_ok:
+            return
+        
         err = root.find('error')
         if err is not None:
             show_error('fetch_corp_sheet', err, times)
@@ -460,6 +509,7 @@ class APIUpdater:
         corporation.ticker = ticker.text
         corporation.save()
         
+        errors = 0
         for rowset in root.findall('result/rowset'):
             if rowset.attrib['name'] == 'walletDivisions':
                 wallet_map = {}
@@ -476,6 +526,12 @@ class APIUpdater:
                     # If it doesn't exist, wtf?
                     else:
                         print 'ERROR: no matching CorpWallet object for corpID=%s accountKey=%s' % (corporation.id, row.attrib['accountKey'])
+                        errors += 1
+        
+        # completed ok
+        if errors == 0:
+            apicache.completed_ok = True
+            apicache.save()
     
     # -----------------------------------------------------------------------
     # Fetch and add/update assets
@@ -497,10 +553,15 @@ class APIUpdater:
 
         # Fetch the API data
         params = { 'characterID': character.id }
-        root, times = self.fetch_api(url, params, apikey)
+        root, times, apicache = self.fetch_api(url, params, apikey)
         if root is None:
             #show_error('fetch_assets', 'HTTP error', times)
             return
+        
+        # cached and completed ok? pass.
+        if apicache and apicache.completed_ok:
+            return
+        
         err = root.find('error')
         if err is not None:
             show_error('fetch_assets', err, times)
@@ -519,6 +580,7 @@ class APIUpdater:
         self.assets_recurse(rows, root.find('result/rowset'), None)
 
         # assetID - [0]system, [1]station, [2]container_id, [3]item, [4]flag, [5]quantiy, [6]rawQuantity, [7]singleton
+        errors = 0
         while rows:
             assets = list(rows.items())
             
@@ -572,6 +634,10 @@ class APIUpdater:
 
         # Delete any assets that we didn't see now
         a_filter.exclude(pk__in=asset_ids).delete()
+        
+        # completed ok
+        apicache.completed_ok = True
+        apicache.save()
 
     # Recursively visit the assets tree and gather data
     def assets_recurse(self, rows, rowset, container_id):
@@ -589,6 +655,7 @@ class APIUpdater:
                 item = get_item(row.attrib['typeID'])
             except Item.DoesNotExist:
                 print '(assets) Item #%s apparently does not exist?' % (row.attrib['typeID'])
+                errors += 1
                 continue
 
             asset_id = int(row.attrib['itemID'])
@@ -606,7 +673,7 @@ class APIUpdater:
             # Now we need to visit children rowsets
             for rowset in row.findall('rowset'):
                 self.assets_recurse(rows, rowset, asset_id)
-    
+
     # -----------------------------------------------------------------------
     # Fetch locations (and more importantly names) for assets
     def fetch_asset_locations(self, apikey, character):
@@ -625,16 +692,21 @@ class APIUpdater:
             'characterID': character.id,
             'IDs': ','.join(map(str, a_filter.values_list('id', flat=True))),
         }
-        root, times = self.fetch_api(url, params, apikey)
+        root, times, apicache = self.fetch_api(url, params, apikey)
         if root is None:
             #show_error('fetch_asset_locations', 'HTTP error', times)
             return
+        
+        # cached and completed ok? pass.
+        if apicache and apicache.completed_ok:
+            return
+        
         err = root.find('error')
         if err is not None:
             show_error('fetch_asset_locations', err, times)
             return
 
-        open('locations.xml', 'w').write(ET.tostring(root))
+        #open('locations.xml', 'w').write(ET.tostring(root))
 
         for row in root.findall('result/rowset/row'):
             ca = CharacterAsset.objects.get(character=character, id=row.attrib['itemID'])
@@ -642,6 +714,10 @@ class APIUpdater:
                 #print 'changing name to %r (%d)' % (row.attrib['itemName'], len(row.attrib['itemName']))
                 ca.name = row.attrib['itemName']
                 ca.save()
+        
+        # completed ok
+        apicache.completed_ok = True
+        apicache.save()
 
     # -----------------------------------------------------------------------
     # Fetch and add/update orders
@@ -668,10 +744,15 @@ class APIUpdater:
         
         # Fetch the API data
         params = { 'characterID': character.id }
-        root, times = self.fetch_api(url, params, apikey)
+        root, times, apicache = self.fetch_api(url, params, apikey)
         if root is None:
             #show_error('fetch_orders', 'HTTP error', times)
             return
+        
+        # cached and completed ok? pass.
+        if apicache and apicache.completed_ok:
+            return
+        
         err = root.find('error')
         if err is not None:
             show_error('fetch_orders', err, times)
@@ -789,6 +870,10 @@ class APIUpdater:
 
         # Then delete
         to_delete.delete()
+        
+        # completed ok
+        apicache.completed_ok = True
+        apicache.save()
 
     # -----------------------------------------------------------------------
     # Fetch transactions and update the database
@@ -813,12 +898,18 @@ class APIUpdater:
             return
         
         # Loop until we run out of transactions
+        errors = 0
         one_week_ago = None
         while True:
-            root, times = self.fetch_api(url, params, apikey)
+            root, times, apicache = self.fetch_api(url, params, apikey)
             if root is None:
                 #show_error('fetch_transactions', 'HTTP error', times)
                 return
+
+            # cached and completed ok? pass.
+            if apicache and apicache.completed_ok:
+                return
+
             err = root.find('error')
             if err is not None:
                 # Fuck it, the API flat out lies about cache times
@@ -848,6 +939,7 @@ class APIUpdater:
                     del t_map[trans.transaction_id]
                 else:
                     print 'WARNING: transaction_id not in t_map, what the fuck?'
+                    errors += 1
             
             # Now iterate over the leftovers
             for transaction_id, (transaction_time, row) in t_map.items():
@@ -892,6 +984,7 @@ class APIUpdater:
                     item = get_item(row.attrib['typeID'])
                 except Item.DoesNotExist:
                     print '(transactions) Item #%s apparently does not exist?' % (row.attrib['typeID'])
+                    errors += 1
                     continue
 
                 t = Transaction(
@@ -916,6 +1009,11 @@ class APIUpdater:
                 params['beforeTransID'] = transaction_id
             else:
                 break
+        
+        # completed ok
+        if errors == 0:
+            apicache.completed_ok = True
+            apicache.save()
 
     # ---------------------------------------------------------------------------
     # Perform an API request and parse the returned XML via ElementTree
@@ -951,7 +1049,7 @@ class APIUpdater:
             # If the status code is bad return None
             if not r.status_code == requests.codes.ok:
                 self._total_api += (time.time() - start)
-                return (None, {})
+                return (None, {}, None)
 
         # Data is cached, use that
         else:
@@ -971,14 +1069,15 @@ class APIUpdater:
             apicache = APICache(
                 url=url,
                 parameters=params_repr,
-                cached_until = times['until'],
-                text = data,
+                cached_until=times['until'],
+                text=data,
+                completed_ok=False,
             )
             apicache.save()
         
         self._total_api += (time.time() - start)
 
-        return (root, times)
+        return (root, times, apicache)
 
 # ---------------------------------------------------------------------------
 # Turn an API date into a datetime object

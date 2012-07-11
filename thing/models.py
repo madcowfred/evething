@@ -52,6 +52,7 @@ class APICache(models.Model):
     parameters = models.CharField(max_length=1024)
     cached_until = models.DateTimeField()
     text = models.TextField()
+    completed_ok = models.BooleanField()
 
 # ---------------------------------------------------------------------------
 # Events
