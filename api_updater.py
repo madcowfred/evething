@@ -4,11 +4,14 @@ import datetime
 import os
 import requests
 import sys
+import threading
 import time
 try:
     import xml.etree.cElementTree as ET
 except:
     import xml.etree.ElementTree as ET
+
+from Queue import Queue
 from collections import OrderedDict
 from decimal import *
 
@@ -21,6 +24,12 @@ from django.core.urlresolvers import reverse
 from django.db import connection
 
 from thing.models import *
+
+
+# base headers
+HEADERS = {
+    'User-Agent': 'EVEthing-api-updater',
+}
 
 # my API proxy, you should probably either run your own or uncomment the second line
 BASE_URL = 'http://proxy.evething.org'
@@ -41,99 +50,96 @@ TRANSACTIONS_CHAR_URL = '%s/char/WalletTransactions.xml.aspx' % (BASE_URL)
 TRANSACTIONS_CORP_URL = '%s/corp/WalletTransactions.xml.aspx' % (BASE_URL)
 
 # ---------------------------------------------------------------------------
+# Simple job-consuming worker thread
+class APIWorker(threading.Thread):
+    def __init__(self, queue):
+        self.queue = queue
+        threading.Thread.__init__(self)
 
-class APIUpdater:
-    def __init__(self, debug=False):
-        self.debug = debug
+    def run(self):
+        #print '%s started' % (self.name)
+        while True:
+            job = self.queue.get()
+            # die die die
+            if job is None:
+                self.queue.task_done()
+                return
+            else:
+                job.run()
+                self.queue.task_done()
 
-        self._total_api = 0
+# ---------------------------------------------------------------------------
 
-        self.headers = {
-            'User-Agent': 'EVEthing-api-updater',
-        }
-
-    # -----------------------------------------------------------------------
-    # Do the heavy lifting
-    def go(self):
+class APIJob:
+    def __init__(self, apikey, character=None):
+        self._apikey = apikey
+        self._character = character
+    
+    # ---------------------------------------------------------------------------
+    # Perform an API request and parse the returned XML via ElementTree
+    def fetch_api(self, url, params):
         start = time.time()
 
-        # Make sure API keys are valid first
-        for apikey in APIKey.objects.select_related().filter(valid=True).order_by('key_type'):
-            self.api_check(apikey)
+        # Add the API key information
+        params['keyID'] = self._apikey.id
+        params['vCode'] = self._apikey.vcode
 
-        # Make sure account status is up to date
-        for apikey in APIKey.objects.select_related().filter(valid=True, access_mask__isnull=False):
-            self.fetch_account_status(apikey)
-
-        # Generate a character id map
-        self.char_id_map = {}
-        for character in Character.objects.all():
-            self.char_id_map[character.id] = character
-        
-        # Now we can get down to business
-        for apikey in APIKey.objects.filter(valid=True, access_mask__isnull=False):
-            # Account/Character key are basically the same thing
-            if apikey.key_type in (APIKey.ACCOUNT_TYPE, APIKey.CHARACTER_TYPE):
-                for character in apikey.character_set.all():
-                    # Fetch character sheet
-                    self.fetch_char_sheet(apikey, character)
-                    
-                    # Fetch character skill in training
-                    self.fetch_char_skill_queue(apikey, character)
-                    
-                    # Fetch wallet transactions
-                    self.fetch_transactions(apikey, character)
-                    
-                    # Fetch market orders
-                    self.fetch_orders(apikey, character)
-
-                    # Fetch assets
-                    self.fetch_assets(apikey, character)
-
-                    # Fetch asset locations
-                    self.fetch_asset_locations(apikey, character)
-
-            # Corporation key
-            elif apikey.key_type == APIKey.CORPORATION_TYPE:
-                character = apikey.corp_character
-                corporation = character.corporation
-                
-                # Update wallet information first
-                self.fetch_corp_wallets(apikey)
-                
-                # Update corporate sheet information (wallet division names)
-                self.fetch_corp_sheet(apikey)
-                
-                # Update things for each corp wallet
-                for corpwallet in CorpWallet.objects.filter(corporation=corporation):
-                    # Fetch wallet transactions
-                    self.fetch_transactions(apikey, character, corp_wallet=corpwallet)
-                
-                # Fetch market orders
-                self.fetch_orders(apikey, character)
-
-                # Fetch assets -- NYI for corps
-                #self.fetch_assets(apikey, character)
-        
-        # All done, clean up any out-of-date cached API requests
+        # Check the API cache for this URL/params combo
         now = datetime.datetime.utcnow()
-        APICache.objects.filter(cached_until__lt=now).delete()
+        params_repr = repr(sorted(params.items()))
         
-        # And dump some debug info
-        if self.debug:
-            debug = open('/tmp/api.debug', 'w')
-            debug.write('%.3fs  %d queries (%.3fs)  API: %.1fs\n\n' % (time.time() - start,
-                len(connection.queries), sum(float(q['time']) for q in connection.queries),
-                self._total_api))
-            debug.write('\n')
-            for query in connection.queries:
-               debug.write('%02.3fs  %s\n' % (float(query['time']), query['sql']))
-            debug.close()
-    
-    # -----------------------------------------------------------------------
-    # Do various API key things
-    def api_check(self, apikey):
-        root, times, apicache = self.fetch_api(API_INFO_URL, {}, apikey)
+        try:
+            apicache = APICache.objects.get(url=url, parameters=params_repr, cached_until__gt=now)
+
+        # Data is not cached, fetch new data
+        except APICache.DoesNotExist:
+            apicache = None
+            
+            # Fetch the URL
+            r = requests.post(url, params, headers=HEADERS, config={ 'max_retries': 1 })
+            data = r.text
+            
+            if settings.DEBUG:
+                print 'API: %s -> %s' % (url, datetime.datetime.utcnow() - now)
+
+            # If the status code is bad return None
+            if not r.status_code == requests.codes.ok:
+                #self._total_api += (time.time() - start)
+                return (None, {}, None)
+
+        # Data is cached, use that
+        else:
+            if settings.DEBUG:
+                print 'API: %s -> CACHED' % (url)
+            data = apicache.text
+
+        # Parse the XML
+        root = ET.fromstring(data)
+        times = {
+            'current': parse_api_date(root.find('currentTime').text),
+            'until': parse_api_date(root.find('cachedUntil').text),
+        }
+        
+        # If the data wasn't cached, cache it now
+        if apicache is None:
+            apicache = APICache(
+                url=url,
+                parameters=params_repr,
+                cached_until=times['until'],
+                text=data,
+                completed_ok=False,
+            )
+            apicache.save()
+        
+        #self._total_api += (time.time() - start)
+
+        return (root, times, apicache)
+
+# ---------------------------------------------------------------------------
+# Do various API key things
+class APICheck(APIJob):
+    def run(self):
+        root, times, apicache = self.fetch_api(API_INFO_URL, {})
         if root is None:
             #show_error('api_check', 'HTTP error', times)
             return
@@ -151,23 +157,23 @@ class APIUpdater:
             # 222 Key has expired
             # 223 Legacy API key
             if err.attrib['code'] in ('202', '203', '204', '205', '210', '212', '207', '220', '222', '223'):
-                apikey.valid = False
-                apikey.save()
+                self._apikey.valid = False
+                self._apikey.save()
 
             return
         
         # Find the key node
         key_node = root.find('result/key')
         # Update access mask
-        apikey.access_mask = int(key_node.attrib['accessMask'])
+        self._apikey.access_mask = int(key_node.attrib['accessMask'])
         # Update expiry date
         expires = key_node.attrib['expires']
         if expires:
-            apikey.expires = parse_api_date(expires)
+            self._apikey.expires = parse_api_date(expires)
         # Update key type
-        apikey.key_type = key_node.attrib['type']
+        self._apikey.key_type = key_node.attrib['type']
         # Save
-        apikey.save()
+        self._apikey.save()
         
         # Handle character key type keys
         if key_node.attrib['type'] in (APIKey.ACCOUNT_TYPE, APIKey.CHARACTER_TYPE):
@@ -185,7 +191,7 @@ class APIUpdater:
                 if characters.count() == 0:
                     character = Character(
                         id=characterID,
-                        apikey=apikey,
+                        apikey=self._apikey,
                         name=row.attrib['characterName'],
                         corporation=corp,
                         wallet_balance=0,
@@ -205,14 +211,14 @@ class APIUpdater:
                 # Character exists, update API key and corporation information
                 else:
                     character = characters[0]
-                    character.apikey = apikey
+                    character.apikey = self._apikey
                     character.corporation = corp
                 
                 # Save the character
                 character.save()
             
             # Unlink any characters that are no longer valid for this API key
-            for character in Character.objects.filter(apikey=apikey).exclude(pk__in=seen_chars):
+            for character in Character.objects.filter(apikey=self._apikey).exclude(pk__in=seen_chars):
                 character.apikey = None
                 character.save()
         
@@ -235,26 +241,27 @@ class APIUpdater:
             else:
                 character = characters[0]
             
-            apikey.corp_character = character
-            apikey.save()
+            self._apikey.corp_character = character
+            self._apikey.save()
 
         # completed ok
         apicache.completed_ok = True
         apicache.save()
-    
-    # -----------------------------------------------------------------------
-    # Fetch account status
-    def fetch_account_status(self, apikey):
+
+# ---------------------------------------------------------------------------
+# Fetch account status
+class AccountStatus(APIJob):
+    def run(self):
         # Don't check corporate keys
-        if apikey.corp_character:
+        if self._apikey.corp_character:
             return
 
         # Make sure the access mask matches
-        if (apikey.access_mask & 33554432) == 0:
+        if (self._apikey.access_mask & 33554432) == 0:
             return
 
         # Fetch the API data
-        root, times, apicache = self.fetch_api(ACCOUNT_INFO_URL, {}, apikey)
+        root, times, apicache = self.fetch_api(ACCOUNT_INFO_URL, {})
         if root is None:
             #show_error('fetch_account_status', 'HTTP error', times)
             return
@@ -269,291 +276,35 @@ class APIUpdater:
             return
 
         # Update paid_until
-        apikey.paid_until = parse_api_date(root.findtext('result/paidUntil'))
+        self._apikey.paid_until = parse_api_date(root.findtext('result/paidUntil'))
 
-        apikey.save()
+        self._apikey.save()
         
         # completed ok
         apicache.completed_ok = True
         apicache.save()
 
-    # -----------------------------------------------------------------------
-    # Fetch and add/update character sheet data
-    def fetch_char_sheet(self, apikey, character):
-        # Make sure the access mask matches
-        if (apikey.access_mask & 8) == 0:
-            return
-        
-        # Fetch the API data
-        params = { 'characterID': character.id }
-        root, times, apicache = self.fetch_api(CHAR_SHEET_URL, params, apikey)
-        if root is None:
-            #show_error('fetch_char_sheet', 'HTTP error', times)
-            return
-        
-        # cached and completed ok? pass.
-        if apicache and apicache.completed_ok:
-            return
-        
-        err = root.find('error')
-        if err is not None:
-            show_error('fetch_char_sheet', err, times)
-            return
-        
-        # Update wallet balance
-        character.wallet_balance = root.findtext('result/balance')
-        
-        # Update attributes
-        character.cha_attribute = root.findtext('result/attributes/charisma')
-        character.int_attribute = root.findtext('result/attributes/intelligence')
-        character.mem_attribute = root.findtext('result/attributes/memory')
-        character.per_attribute = root.findtext('result/attributes/perception')
-        character.wil_attribute = root.findtext('result/attributes/willpower')
-        
-        # Update attribute bonuses :ccp:
-        enh = root.find('result/attributeEnhancers')
-
-        val = enh.find('charismaBonus/augmentatorValue')
-        if val is None:
-            character.cha_bonus = 0
-        else:
-            character.cha_bonus = val.text
-
-        val = enh.find('intelligenceBonus/augmentatorValue')
-        if val is None:
-            character.int_bonus = 0
-        else:
-            character.int_bonus = val.text
-
-        val = enh.find('memoryBonus/augmentatorValue')
-        if val is None:
-            character.mem_bonus = 0
-        else:
-            character.mem_bonus = val.text
-
-        val = enh.find('perceptionBonus/augmentatorValue')
-        if val is None:
-            character.per_bonus = 0
-        else:
-            character.per_bonus = val.text
-
-        val = enh.find('willpowerBonus/augmentatorValue')
-        if val is None:
-            character.wil_bonus = 0
-        else:
-            character.wil_bonus = val.text
-
-        # Update clone information
-        character.clone_skill_points = root.findtext('result/cloneSkillPoints')
-        character.clone_name = root.findtext('result/cloneName')
-
-        # Get all of the rowsets
-        rowsets = root.findall('result/rowset')
-        
-        # First rowset is skills
-        skills = {}
-        for row in rowsets[0]:
-            skills[int(row.attrib['typeID'])] = (int(row.attrib['skillpoints']), int(row.attrib['level']))
-        
-        # Grab any already existing skills
-        for char_skill in CharacterSkill.objects.select_related('item', 'skill').filter(character=character, skill__in=skills.keys()):
-            points, level = skills[char_skill.skill.item_id]
-            if char_skill.points != points or char_skill.level != level:
-                char_skill.points = points
-                char_skill.level = level
-                char_skill.save()
-            
-            del skills[char_skill.skill.item_id]
-        
-        # Add any leftovers
-        for skill_id, (points, level) in skills.items():
-            char_skill = CharacterSkill(
-                character=character,
-                skill_id=skill_id,
-                points=points,
-                level=level,
-            )
-            char_skill.save()
-        
-        # Save character
-        character.save()
-        
-        # completed ok
-        apicache.completed_ok = True
-        apicache.save()
-    
-    # -----------------------------------------------------------------------
-    # Fetch and add/update character skill in training
-    def fetch_char_skill_queue(self, apikey, character):
-        # Make sure the access mask matches
-        if (apikey.access_mask & 262144) == 0:
-            return
-        
-        # Fetch the API data
-        params = { 'characterID': character.id }
-        root, times, apicache = self.fetch_api(SKILL_QUEUE_URL, params, apikey)
-        if root is None:
-            #show_error('fetch_char_skill_queue', 'HTTP error', times)
-            return
-        
-        # cached and completed ok? pass.
-        if apicache and apicache.completed_ok:
-            return
-        
-        err = root.find('error')
-        if err is not None:
-            show_error('fetch_char_skill_queue', err, times)
-            return
-        
-        # Delete the old queue
-        SkillQueue.objects.filter(character=character).delete()
-        
-        # Add any new skills
-        for row in root.findall('result/rowset/row'):
-            if row.attrib['startTime'] and row.attrib['endTime']:
-                sq = SkillQueue(
-                    character=character,
-                    skill_id=row.attrib['typeID'],
-                    start_time=row.attrib['startTime'],
-                    end_time=row.attrib['endTime'],
-                    start_sp=row.attrib['startSP'],
-                    end_sp=row.attrib['endSP'],
-                    to_level=row.attrib['level'],
-                )
-                sq.save()
-        
-        # completed ok
-        apicache.completed_ok = True
-        apicache.save()
-    
-    # -----------------------------------------------------------------------
-    # Fetch and add/update corporation wallets
-    def fetch_corp_wallets(self, apikey):
-        # Make sure the access mask matches
-        if (apikey.access_mask & 1) == 0:
-            return
-        
-        params = { 'characterID': apikey.corp_character_id }
-        
-        root, times, apicache = self.fetch_api(BALANCE_URL, params, apikey)
-        if root is None:
-            #show_error('fetch_corp_wallets', 'HTTP error', times)
-            return
-        
-        # cached and completed ok? pass.
-        if apicache and apicache.completed_ok:
-            return
-        
-        err = root.find('error')
-        if err is not None:
-            show_error('fetch_corp_wallets', err, times)
-            return
-        
-        corporation = apikey.corp_character.corporation
-        wallet_map = {}
-        for cw in CorpWallet.objects.filter(corporation=corporation):
-            wallet_map[cw.account_key] = cw
-        
-        for row in root.findall('result/rowset/row'):
-            accountID = int(row.attrib['accountID'])
-            accountKey = int(row.attrib['accountKey'])
-            balance = Decimal(row.attrib['balance'])
-            
-            wallet = wallet_map.get(accountKey, None)
-            # If the wallet exists, update the balance
-            if wallet is not None:
-                if balance != wallet.balance:
-                    wallet.balance = balance
-                    wallet.save()
-            # Otherwise just make a new one
-            else:
-                wallet = CorpWallet(
-                    account_id=accountID,
-                    corporation=corporation,
-                    account_key=accountKey,
-                    description='',
-                    balance=balance,
-                )
-                wallet.save()
-        
-        # completed ok
-        apicache.completed_ok = True
-        apicache.save()
-    
-    # -----------------------------------------------------------------------
-    # Fetch the corporation sheet
-    def fetch_corp_sheet(self, apikey):
-        # Make sure the access mask matches
-        if (apikey.access_mask & 8) == 0:
-            return
-        
-        params = { 'characterID': apikey.corp_character_id }
-        
-        root, times, apicache = self.fetch_api(CORP_SHEET_URL, params, apikey)
-        if root is None:
-            #show_error('fetch_corp_sheet', 'HTTP error', times)
-            return
-        
-        # cached and completed ok? pass.
-        if apicache and apicache.completed_ok:
-            return
-        
-        err = root.find('error')
-        if err is not None:
-            show_error('fetch_corp_sheet', err, times)
-            return
-        
-        corporation = apikey.corp_character.corporation
-        
-        ticker = root.find('result/ticker')
-        corporation.ticker = ticker.text
-        corporation.save()
-        
-        errors = 0
-        for rowset in root.findall('result/rowset'):
-            if rowset.attrib['name'] == 'walletDivisions':
-                wallet_map = {}
-                for cw in CorpWallet.objects.filter(corporation=corporation):
-                    wallet_map[cw.account_key] = cw
-                
-                for row in rowset.findall('row'):
-                    wallet = wallet_map.get(int(row.attrib['accountKey']), None)
-                    # If the wallet exists, update the description
-                    if wallet is not None:
-                        if wallet.description != row.attrib['description']:
-                            wallet.description = row.attrib['description']
-                            wallet.save()
-                    # If it doesn't exist, wtf?
-                    else:
-                        print 'ERROR: no matching CorpWallet object for corpID=%s accountKey=%s' % (corporation.id, row.attrib['accountKey'])
-                        errors += 1
-        
-        # completed ok
-        if errors == 0:
-            apicache.completed_ok = True
-            apicache.save()
-    
-    # -----------------------------------------------------------------------
-    # Fetch and add/update assets
-    def fetch_assets(self, apikey, character):
+# ---------------------------------------------------------------------------
+class Assets(APIJob):
+    def run(self):
         # Initialise for corporate query
-        if apikey.corp_character:
+        if self._apikey.corp_character:
             mask = 2
             url = ASSETS_CORP_URL
-            a_filter = CorporationAsset.objects.filter(corporation=apikey.corp_character.corporation)
+            a_filter = CorporationAsset.objects.filter(corporation=self._apikey.corp_character.corporation)
         # Initialise for character query
         else:
             mask = 2
             url = ASSETS_CHAR_URL
-            a_filter = CharacterAsset.objects.filter(character=character)
+            a_filter = CharacterAsset.objects.filter(character=self._character)
 
         # Make sure the access mask matches
-        if (apikey.access_mask & mask) == 0:
+        if (self._apikey.access_mask & mask) == 0:
             return
 
         # Fetch the API data
-        params = { 'characterID': character.id }
-        root, times, apicache = self.fetch_api(url, params, apikey)
+        params = { 'characterID': self._character.id }
+        root, times, apicache = self.fetch_api(url, params)
         if root is None:
             #show_error('fetch_assets', 'HTTP error', times)
             return
@@ -617,7 +368,7 @@ class APIUpdater:
                 else:
                     asset = CharacterAsset(
                         id=id,
-                        character=character,
+                        character=self._character,
                         system=data[0],
                         station=data[1],
                         parent=parent,
@@ -674,25 +425,291 @@ class APIUpdater:
             for rowset in row.findall('rowset'):
                 self.assets_recurse(rows, rowset, asset_id)
 
-    # -----------------------------------------------------------------------
-    # Fetch locations (and more importantly names) for assets
-    def fetch_asset_locations(self, apikey, character):
+# ---------------------------------------------------------------------------
+# Fetch and add/update character sheet data
+class CharacterSheet(APIJob):
+    def run(self):
+        # Make sure the access mask matches
+        if (self._apikey.access_mask & 8) == 0:
+            return
+        
+        # Fetch the API data
+        params = { 'characterID': self._character.id }
+        root, times, apicache = self.fetch_api(CHAR_SHEET_URL, params)
+        if root is None:
+            #show_error('fetch_char_sheet', 'HTTP error', times)
+            return
+        
+        # cached and completed ok? pass.
+        if apicache and apicache.completed_ok:
+            return
+        
+        err = root.find('error')
+        if err is not None:
+            print '%s %s %s' % (self._apikey.id, self._character.id, self._character.name)
+            show_error('fetch_char_sheet', err, times)
+            return
+        
+        # Update wallet balance
+        self._character.wallet_balance = root.findtext('result/balance')
+        
+        # Update attributes
+        self._character.cha_attribute = root.findtext('result/attributes/charisma')
+        self._character.int_attribute = root.findtext('result/attributes/intelligence')
+        self._character.mem_attribute = root.findtext('result/attributes/memory')
+        self._character.per_attribute = root.findtext('result/attributes/perception')
+        self._character.wil_attribute = root.findtext('result/attributes/willpower')
+        
+        # Update attribute bonuses :ccp:
+        enh = root.find('result/attributeEnhancers')
+
+        val = enh.find('charismaBonus/augmentatorValue')
+        if val is None:
+            self._character.cha_bonus = 0
+        else:
+            self._character.cha_bonus = val.text
+
+        val = enh.find('intelligenceBonus/augmentatorValue')
+        if val is None:
+            self._character.int_bonus = 0
+        else:
+            self._character.int_bonus = val.text
+
+        val = enh.find('memoryBonus/augmentatorValue')
+        if val is None:
+            self._character.mem_bonus = 0
+        else:
+            self._character.mem_bonus = val.text
+
+        val = enh.find('perceptionBonus/augmentatorValue')
+        if val is None:
+            self._character.per_bonus = 0
+        else:
+            self._character.per_bonus = val.text
+
+        val = enh.find('willpowerBonus/augmentatorValue')
+        if val is None:
+            self._character.wil_bonus = 0
+        else:
+            self._character.wil_bonus = val.text
+
+        # Update clone information
+        self._character.clone_skill_points = root.findtext('result/cloneSkillPoints')
+        self._character.clone_name = root.findtext('result/cloneName')
+
+        # Get all of the rowsets
+        rowsets = root.findall('result/rowset')
+        
+        # First rowset is skills
+        skills = {}
+        for row in rowsets[0]:
+            skills[int(row.attrib['typeID'])] = (int(row.attrib['skillpoints']), int(row.attrib['level']))
+        
+        # Grab any already existing skills
+        for char_skill in CharacterSkill.objects.select_related('item', 'skill').filter(character=self._character, skill__in=skills.keys()):
+            points, level = skills[char_skill.skill.item_id]
+            if char_skill.points != points or char_skill.level != level:
+                char_skill.points = points
+                char_skill.level = level
+                char_skill.save()
+            
+            del skills[char_skill.skill.item_id]
+        
+        # Add any leftovers
+        for skill_id, (points, level) in skills.items():
+            char_skill = CharacterSkill(
+                character=self._character,
+                skill_id=skill_id,
+                points=points,
+                level=level,
+            )
+            char_skill.save()
+        
+        # Save character
+        self._character.save()
+        
+        # completed ok
+        apicache.completed_ok = True
+        apicache.save()
+
+# ---------------------------------------------------------------------------
+# Fetch and add/update character skill queue
+class CharacterSkillQueue(APIJob):
+    def run(self):
+        # Make sure the access mask matches
+        if (self._apikey.access_mask & 262144) == 0:
+            return
+        
+        # Fetch the API data
+        params = { 'characterID': self._character.id }
+        root, times, apicache = self.fetch_api(SKILL_QUEUE_URL, params)
+        if root is None:
+            #show_error('fetch_char_skill_queue', 'HTTP error', times)
+            return
+        
+        # cached and completed ok? pass.
+        if apicache and apicache.completed_ok:
+            return
+        
+        err = root.find('error')
+        if err is not None:
+            show_error('fetch_char_skill_queue', err, times)
+            return
+        
+        # Delete the old queue
+        SkillQueue.objects.filter(character=self._character).delete()
+        
+        # Add new skills
+        for row in root.findall('result/rowset/row'):
+            if row.attrib['startTime'] and row.attrib['endTime']:
+                sq = SkillQueue(
+                    character=self._character,
+                    skill_id=row.attrib['typeID'],
+                    start_time=row.attrib['startTime'],
+                    end_time=row.attrib['endTime'],
+                    start_sp=row.attrib['startSP'],
+                    end_sp=row.attrib['endSP'],
+                    to_level=row.attrib['level'],
+                )
+                sq.save()
+        
+        # completed ok
+        apicache.completed_ok = True
+        apicache.save()
+
+# ---------------------------------------------------------------------------
+
+# ---------------------------------------------------------------------------
+
+# ---------------------------------------------------------------------------
+# Fetch and add/update corporation wallets
+class CorporationWallets(APIJob):
+    def run(self):
+        # Make sure the access mask matches
+        if (self._apikey.access_mask & 1) == 0:
+            return
+        
+        params = { 'characterID': self._apikey.corp_character_id }
+        
+        root, times, apicache = self.fetch_api(BALANCE_URL, params)
+        if root is None:
+            #show_error('fetch_corp_wallets', 'HTTP error', times)
+            return
+        
+        # cached and completed ok? pass.
+        if apicache and apicache.completed_ok:
+            return
+        
+        err = root.find('error')
+        if err is not None:
+            show_error('fetch_corp_wallets', err, times)
+            return
+        
+        corporation = self._apikey.corp_character.corporation
+        wallet_map = {}
+        for cw in CorpWallet.objects.filter(corporation=corporation):
+            wallet_map[cw.account_key] = cw
+        
+        for row in root.findall('result/rowset/row'):
+            accountID = int(row.attrib['accountID'])
+            accountKey = int(row.attrib['accountKey'])
+            balance = Decimal(row.attrib['balance'])
+            
+            wallet = wallet_map.get(accountKey, None)
+            # If the wallet exists, update the balance
+            if wallet is not None:
+                if balance != wallet.balance:
+                    wallet.balance = balance
+                    wallet.save()
+            # Otherwise just make a new one
+            else:
+                wallet = CorpWallet(
+                    account_id=accountID,
+                    corporation=corporation,
+                    account_key=accountKey,
+                    description='',
+                    balance=balance,
+                )
+                wallet.save()
+        
+        # completed ok
+        apicache.completed_ok = True
+        apicache.save()
+
+# ---------------------------------------------------------------------------
+# Fetch corporation sheet
+class CorporationSheet(APIJob):
+    def run(self):
+        # Make sure the access mask matches
+        if (self._apikey.access_mask & 8) == 0:
+            return
+        
+        params = { 'characterID': self._apikey.corp_character_id }
+        
+        root, times, apicache = self.fetch_api(CORP_SHEET_URL, params)
+        if root is None:
+            #show_error('fetch_corp_sheet', 'HTTP error', times)
+            return
+        
+        # cached and completed ok? pass.
+        if apicache and apicache.completed_ok:
+            return
+        
+        err = root.find('error')
+        if err is not None:
+            show_error('fetch_corp_sheet', err, times)
+            return
+        
+        corporation = self._apikey.corp_character.corporation
+        
+        ticker = root.find('result/ticker')
+        corporation.ticker = ticker.text
+        corporation.save()
+        
+        errors = 0
+        for rowset in root.findall('result/rowset'):
+            if rowset.attrib['name'] == 'walletDivisions':
+                wallet_map = {}
+                for cw in CorpWallet.objects.filter(corporation=corporation):
+                    wallet_map[cw.account_key] = cw
+                
+                for row in rowset.findall('row'):
+                    wallet = wallet_map.get(int(row.attrib['accountKey']), None)
+                    # If the wallet exists, update the description
+                    if wallet is not None:
+                        if wallet.description != row.attrib['description']:
+                            wallet.description = row.attrib['description']
+                            wallet.save()
+                    # If it doesn't exist, wtf?
+                    else:
+                        print 'ERROR: no matching CorpWallet object for corpID=%s accountKey=%s' % (corporation.id, row.attrib['accountKey'])
+                        errors += 1
+        
+        # completed ok
+        if errors == 0:
+            apicache.completed_ok = True
+            apicache.save()
+
+# ---------------------------------------------------------------------------
+# Fetch locations (and more importantly names) for assets
+class Locations(APIJob):
+    def run(self):
         # Initialise for character query
-        if not apikey.corp_character:
+        if not self._apikey.corp_character:
             mask = 134217728
             url = LOCATIONS_CHAR_URL
-            a_filter = CharacterAsset.objects.root_nodes().filter(character=character, singleton=True, item__item_group__category__name__in=('Celestial', 'Ship'))
+            a_filter = CharacterAsset.objects.root_nodes().filter(character=self._character, singleton=True, item__item_group__category__name__in=('Celestial', 'Ship'))
 
         # Make sure the access mask matches
-        if (apikey.access_mask & mask) == 0:
+        if (self._apikey.access_mask & mask) == 0:
             return
 
         # Fetch the API data
         params = {
-            'characterID': character.id,
+            'characterID': self._character.id,
             'IDs': ','.join(map(str, a_filter.values_list('id', flat=True))),
         }
-        root, times, apicache = self.fetch_api(url, params, apikey)
+        root, times, apicache = self.fetch_api(url, params)
         if root is None:
             #show_error('fetch_asset_locations', 'HTTP error', times)
             return
@@ -709,7 +726,7 @@ class APIUpdater:
         #open('locations.xml', 'w').write(ET.tostring(root))
 
         for row in root.findall('result/rowset/row'):
-            ca = CharacterAsset.objects.get(character=character, id=row.attrib['itemID'])
+            ca = CharacterAsset.objects.get(character=self._character, id=row.attrib['itemID'])
             if ca.name is None or ca.name != row.attrib['itemName']:
                 #print 'changing name to %r (%d)' % (row.attrib['itemName'], len(row.attrib['itemName']))
                 ca.name = row.attrib['itemName']
@@ -719,32 +736,33 @@ class APIUpdater:
         apicache.completed_ok = True
         apicache.save()
 
-    # -----------------------------------------------------------------------
-    # Fetch and add/update orders
-    def fetch_orders(self, apikey, character):
+# ---------------------------------------------------------------------------
+# Fetch and add/update market orders
+class MarketOrders(APIJob):
+    def run(self):
         # Initialise for corporate query
-        if apikey.corp_character:
+        if self._apikey.corp_character:
             mask = 4096
             url = ORDERS_CORP_URL
-            o_filter = MarketOrder.objects.filter(corp_wallet__corporation=character.corporation)
+            o_filter = MarketOrder.objects.filter(corp_wallet__corporation=self._character.corporation)
             
             wallet_map = {}
-            for cw in CorpWallet.objects.filter(corporation=character.corporation):
+            for cw in CorpWallet.objects.filter(corporation=self._character.corporation):
                 wallet_map[cw.account_key] = cw
         
         # Initialise for character query
         else:
             mask = 4096
             url = ORDERS_CHAR_URL
-            o_filter = MarketOrder.objects.filter(corp_wallet=None, character=character)
+            o_filter = MarketOrder.objects.filter(corp_wallet=None, character=self._character)
         
         # Make sure the access mask matches
-        if (apikey.access_mask & mask) == 0:
+        if (self._apikey.access_mask & mask) == 0:
             return
         
         # Fetch the API data
-        params = { 'characterID': character.id }
-        root, times, apicache = self.fetch_api(url, params, apikey)
+        params = { 'characterID': self._character.id }
+        root, times, apicache = self.fetch_api(url, params)
         if root is None:
             #show_error('fetch_orders', 'HTTP error', times)
             return
@@ -836,7 +854,7 @@ class APIUpdater:
                     expires=issued + datetime.timedelta(int(row.attrib['duration'])),
                 )
                 # Set the corp_wallet for corporation API requests
-                if apikey.corp_character:
+                if self._apikey.corp_character:
                     #order.corp_wallet = CorpWallet.objects.get(corporation=character.corporation, account_key=row.attrib['accountKey'])
                     order.corp_wallet = wallet_map.get(int(row.attrib['accountKey']))
                 order.save()
@@ -862,7 +880,7 @@ class APIUpdater:
                 order.item.name, order.character.name)
 
             event = Event(
-                user_id=apikey.user.id,
+                user_id=self._apikey.user.id,
                 issued=now,
                 text=text,
             )
@@ -875,33 +893,40 @@ class APIUpdater:
         apicache.completed_ok = True
         apicache.save()
 
-    # -----------------------------------------------------------------------
-    # Fetch transactions and update the database
-    def fetch_transactions(self, apikey, character, corp_wallet=None):
+# ---------------------------------------------------------------------------
+# Fetch wallet transactions
+class WalletTransactions(APIJob):
+    def run(self):
+        # Generate a character id map
+        self.char_id_map = {}
+        for character in Character.objects.all():
+            self.char_id_map[character.id] = character
+
+
         # Initialise stuff
-        params = { 'characterID': character.id }
+        params = { 'characterID': self._character.id }
         
         # Corporate key
-        if apikey.corp_character:
-            params['accountKey'] = corp_wallet.account_key
+        if self._apikey.corp_character:
+            params['accountKey'] = self._corp_wallet.account_key
             mask = 2097152
             url = TRANSACTIONS_CORP_URL
-            t_filter = Transaction.objects.filter(corp_wallet__corporation=character.corporation)
+            t_filter = Transaction.objects.filter(corp_wallet__corporation=self._character.corporation)
         # Character key
         else:
             mask = 4194304
             url = TRANSACTIONS_CHAR_URL
-            t_filter = Transaction.objects.filter(corp_wallet=None, character=character)
+            t_filter = Transaction.objects.filter(corp_wallet=None, character=self._character)
         
         # Make sure the access mask matches
-        if (apikey.access_mask & mask) == 0:
+        if (self._apikey.access_mask & mask) == 0:
             return
         
         # Loop until we run out of transactions
         errors = 0
         one_week_ago = None
         while True:
-            root, times, apicache = self.fetch_api(url, params, apikey)
+            root, times, apicache = self.fetch_api(url, params)
             if root is None:
                 #show_error('fetch_transactions', 'HTTP error', times)
                 return
@@ -948,7 +973,7 @@ class APIUpdater:
                 
                 # Skip corporate transactions if this is a personal call, we have no idea
                 # what wallet this transaction is related to otherwise :ccp:
-                if not apikey.corp_character and row.attrib['transactionFor'] == 'corporation':
+                if not self._apikey.corp_character and row.attrib['transactionFor'] == 'corporation':
                     continue
                 
                 # Check to see if this transaction already exists
@@ -966,14 +991,14 @@ class APIUpdater:
                 station = get_station(int(row.attrib['stationID']))
                 
                 # Work out what the character should be
-                if apikey.corp_character:
+                if self._apikey.corp_character:
                     try:
                         char = self.char_id_map[int(row.attrib['characterID'])]
                     except KeyError:
                         print repr(row.attrib)
                         raise
                 else:
-                    char = character
+                    char = self._character
                 
                 # Create a new transaction object and save it
                 quantity = int(row.attrib['quantity'])
@@ -999,8 +1024,8 @@ class APIUpdater:
                     total_price=quantity * price,
                 )
                 # Set the corp_character for corporation API requests
-                if apikey.corp_character:
-                    t.corp_wallet = corp_wallet
+                if self._apikey.corp_character:
+                    t.corp_wallet = self._corp_wallet
                 t.save()
             
             # If we got 1000 rows we should retrieve some more
@@ -1015,69 +1040,118 @@ class APIUpdater:
             apicache.completed_ok = True
             apicache.save()
 
-    # ---------------------------------------------------------------------------
-    # Perform an API request and parse the returned XML via ElementTree
-    def fetch_api(self, url, params, apikey):
+# ---------------------------------------------------------------------------
+
+class APIUpdater:
+    def __init__(self):
+        #self._total_api = 0
+
+        # job queue
+        self._job_queue = Queue()
+
+        # start our thread pool
+        self._threads = []
+        for i in range(4):
+            t = APIWorker(self._job_queue)
+            t.start()
+            self._threads.append(t)
+
+    def stop_threads(self):
+        for t in self._threads:
+            self._job_queue.put(None)
+
+        self._job_queue.join()
+
+    def go(self):
+        # Make sure API keys are valid first
+        for apikey in APIKey.objects.select_related().filter(valid=True).order_by('key_type'):
+            job = APICheck(apikey)
+            self._job_queue.put(job)
+
+        # Wait for all key checks to be completed
+        self._job_queue.join()
+
+        # Now we can get down to business
+        for apikey in APIKey.objects.filter(valid=True, access_mask__isnull=False):
+            # Make sure account status is up to date
+            job = AccountStatus(apikey)
+            self._job_queue.put(job)
+
+            # Account/Character key are basically the same thing
+            if apikey.key_type in (APIKey.ACCOUNT_TYPE, APIKey.CHARACTER_TYPE):
+                for character in apikey.character_set.all():
+                    # Fetch character sheet
+                    job = CharacterSheet(apikey, character)
+                    self._job_queue.put(job)
+
+                    # Fetch character skill queue
+                    job = CharacterSkillQueue(apikey, character)
+                    self._job_queue.put(job)
+                    
+                    # Fetch market orders
+                    job = MarketOrders(apikey, character)
+                    self._job_queue.put(job)
+                    
+                    # Fetch wallet transactions
+                    job = WalletTransactions(apikey, character)
+                    self._job_queue.put(job)
+                    
+                    # Fetch assets
+                    job = Assets(apikey, character)
+                    self._job_queue.put(job)
+
+                    # Fetch asset locations
+                    job = Locations(apikey, character)
+                    self._job_queue.put(job)
+
+            # Corporation key
+            elif apikey.key_type == APIKey.CORPORATION_TYPE:
+                character = apikey.corp_character
+                corporation = character.corporation
+                
+                # Update wallet information first
+                job = CorporationWallets(apikey)
+                self._job_queue.put(job)
+                
+                # Update corporation sheet information (wallet division names mostly)
+                job = CorporationSheet(apikey)
+                self._job_queue.put(job)
+
+                # Fetch market orders
+                job = MarketOrders(apikey, character)
+                self._job_queue.put(job)
+
+                # Fetch wallet transactions
+                for corp_wallet in CorpWallet.objects.filter(corporation=corporation):
+                    job = WalletTransactions(apikey, character)
+                    job._corp_wallet = corp_wallet
+                    self._job_queue.put(job)
+
+        # All done, shut down the threads
+        self.stop_threads()
+
+    # -----------------------------------------------------------------------
+    # Do the heavy lifting
+    def old_go(self):
         start = time.time()
 
-        # Add the API key information
-        params['keyID'] = apikey.id
-        params['vCode'] = apikey.vcode
 
-        # Check the API cache for this URL/params combo
+        # All done, clean up any out-of-date cached API requests
         now = datetime.datetime.utcnow()
-        params_repr = repr(sorted(params.items()))
+        APICache.objects.filter(cached_until__lt=now).delete()
         
-        try:
-            apicache = APICache.objects.get(url=url, parameters=params_repr, cached_until__gt=now)
-
-        # Data is not cached, fetch new data
-        except APICache.DoesNotExist:
-            apicache = None
-
-            if self.debug:
-                print 'API: %s...' % (url),
-                sys.stdout.flush()
-            
-            # Fetch the URL
-            r = requests.post(url, params, headers=self.headers, config={ 'max_retries': 1 })
-            data = r.text
-            if self.debug:
-                open('/tmp/data.debug', 'w').write(data)
-                print '%s' % (datetime.datetime.utcnow() - now)
-
-            # If the status code is bad return None
-            if not r.status_code == requests.codes.ok:
-                self._total_api += (time.time() - start)
-                return (None, {}, None)
-
-        # Data is cached, use that
-        else:
-            if self.debug:
-                print 'API: %s CACHED' % (url)
-            data = apicache.text
-
-        # Parse the XML
-        root = ET.fromstring(data)
-        times = {
-            'current': parse_api_date(root.find('currentTime').text),
-            'until': parse_api_date(root.find('cachedUntil').text),
-        }
-        
-        # If the data wasn't cached, cache it now
-        if apicache is None:
-            apicache = APICache(
-                url=url,
-                parameters=params_repr,
-                cached_until=times['until'],
-                text=data,
-                completed_ok=False,
-            )
-            apicache.save()
-        
-        self._total_api += (time.time() - start)
-
-        return (root, times, apicache)
+        # And dump some debug info
+        if self.debug:
+            debug = open('/tmp/api.debug', 'w')
+            debug.write('%.3fs  %d queries (%.3fs)  API: %.1fs\n\n' % (time.time() - start,
+                len(connection.queries), sum(float(q['time']) for q in connection.queries),
+                self._total_api))
+            debug.write('\n')
+            for query in connection.queries:
+               debug.write('%02.3fs  %s\n' % (float(query['time']), query['sql']))
+            debug.close()
+    
+    # -----------------------------------------------------------------------
 
 # ---------------------------------------------------------------------------
 # Turn an API date into a datetime object
@@ -1166,7 +1240,7 @@ if __name__ == '__main__':
 
     open(lockfile, 'w').write('meow')
     
-    updater = APIUpdater(settings.DEBUG)
+    updater = APIUpdater()
     updater.go()
 
     os.remove(lockfile)
