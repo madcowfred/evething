@@ -59,7 +59,11 @@
           <div class="row">
             <div class="span9">
               <div class="well well-small">
-                <h3>{{ mg.name }}</h3>
+                <div class="char-skill-box">
+                  <span class="char-skill-group">{{ mg.name }}</span>
+                  --
+                  <strong>{{ css|length }}</strong> skill{{ css|length|pluralize }} trained for <strong>{{ mg.z_total_sp|commas }}</strong> SP
+                </div>
                 {% for cs in css %}
                 <div>
                   {% spaceless %}
@@ -79,9 +83,6 @@
                   <div class="pull-right character-sp">Rank {{ cs.skill.rank }}</div>
                 </div>
                 {% endfor %}
-                <div class="margin-half-top">
-                  <i class="icon-chevron-right"></i>
-                  <strong>{{ css|length }}</strong> skill{{ css|length|pluralize }} trained for <strong>{{ mg.z_total_sp|commas }}</strong> SP</div>
               </div>
             </div>
           </div>

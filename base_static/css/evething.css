@@ -24,6 +24,16 @@ ul.children li {
   margin-left: 8px;
 }
 
+/* character sheet */
+.char-skill-box {
+  margin-top: 0.3em;
+  margin-bottom: 0.3em;
+}
+.char-skill-group {
+  font-size: 1.6em;
+  font-weight: bold;
+}
+
 /* table alignment, urgh */
 tr.c th,
 tr.c td { text-align: center; }
