@@ -279,11 +279,12 @@ def assets(request):
     f_comps = request.GET.getlist('comp')
     f_values = request.GET.getlist('value')
 
-    # check lengths
+    # run.
     filters = []
-
-    if len(f_types) == len(f_comps) and len(f_types) == len(f_values):
+    if len(f_types) == len(f_comps) == len(f_values):
+        # type, comparison, value
         for ft, fc, fv in zip(f_types, f_comps, f_values):
+            # character
             if ft == 'char' and fv.isdigit():
                 if fc == 'eq':
                     assets = assets.filter(character_id=fv, corporation__isnull=True)
@@ -292,8 +293,18 @@ def assets(request):
 
                 filters.append((ft, fc, int(fv)))
 
+            # corporation
+            elif ft == 'corp' and fv.isdigit():
+                if fc == 'eq':
+                    assets = assets.filter(corporation_id=fv)
+                elif fc == 'ne':
+                    assets = assets.exclude(corporation_id=fv)
+
+                filters.append((ft, fc, int(fv)))
+
+    # if no valid filters were found, add a dummy one
     if not filters:
-        filters.append(('char', 'eq', 0))
+        filters.append(('', '', ''))
 
     # initialise data structures
     ca_lookup = {}
@@ -372,11 +383,15 @@ def assets(request):
     sorted_systems = systems.items()
     sorted_systems.sort()
 
+    # list of corporations we have API keys for, ew
+    corp_ids = APIKey.objects.filter(user_id=1, corp_character__isnull=False).values_list('corp_character__corporation', flat=True)
+    corporations = Corporation.objects.filter(pk__in=corp_ids)
 
     return render_to_response(
         'thing/assets.html',
         {
             'characters': Character.objects.filter(apikey__user=request.user),
+            'corporations': corporations,
             'filters': filters,
             'total_value': total_value,
             'systems': sorted_systems,

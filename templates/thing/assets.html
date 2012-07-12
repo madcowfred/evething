@@ -5,11 +5,56 @@
 
 {% block extra_head %}
     <script type="text/javascript">
+      var characters = new Array();
+      {% for character in characters %}
+      characters[{{ forloop.counter0 }}] = new Array({{ character.id }}, "{{ character.name }}");
+      {% endfor %}
+
+      var corporations = new Array();
+      {% for corporation in corporations %}
+      corporations[{{ forloop.counter0 }}] = new Array({{ corporation.id }}, "{{ corporation.name }}");
+      {% endfor %}
+
+      var selected = new Array();
+      {% for ft, fc, fv in filters %}
+      {% if fv %}selected[{{ forloop.counter0 }}] = {{ fv }};{% endif %}
+      {% endfor %}
+
       $(document).ready(function (){
-        $(".asset-sneaky").each(function (){
-          $(this).hide();
+        // bind value loader to type boxes
+        $('#filters').on('change', '.filter-type', function() {
+          $select = $(this).nextAll('.filter-value:first');
+          $select.empty();
+
+          var $v = $(this).val();
+          if ($v == 'char') {
+            for (i = 0; i < characters.length; i++) {
+              $select.append($('<option>', { value: characters[i][0], selected: true }).text(characters[i][1]));
+            }
+          }
+          else if ($v == 'corp') {
+            for (i = 0; i < corporations.length; i++) {
+              $select.append($('<option>', { value: corporations[i][0] }).text(corporations[i][1]));
+            }
+          }
+          else {
+            $select.append($('<option>', { value: '' }).text(''));
+          }
         });
 
+        // trigger each one to force an update
+        $('.filter-type').each(function() {
+          $(this).change();
+        })
+
+        // set them to the correct values
+        var i = 0;
+        $('.filter-value').each(function() {
+          $(this).val(selected[i]);
+          i++;
+        });
+
+        // bind the asset expander buttons
         $(".asset-expand").on('click', function() {
           var $this = $(this);
           
@@ -38,7 +83,7 @@
         </div>
       </div>
       
-      <div class="row-fluid">
+      <div id="filters" class="row-fluid">
         <div class="span6">
           <h2>Assets</h2>
 
@@ -46,23 +91,25 @@
             <h4>Filters</h4>
             <fieldset>
               {% for f_type, f_comp, f_value in filters %}
-              <select name="type">
+              <select name="type" class="filter-type input-medium">
+                <option value=""></option>
                 <option value="char"{% if f_type == 'char' %} selected{% endif %}>Character</option>
+                {% if corporations|length %}
+                <option value="corp"{% if f_type == 'corp' %} selected{% endif %}>Corporation</option>
+                {% endif %}
               </select>
               <select name="comp" class="input-small">
                 <option value="eq"{% if f_comp == 'eq' %} selected{% endif %}>=</option>
                 <option value="ne"{% if f_comp == 'ne' %} selected{% endif %}>!=</option>
               </select>
-              <select name="value">
+              <select name="value" class="filter-value input-xlarge">
                 <option value=""></option>
-                {% for character in characters %}
-                <option value="{{ character.id }}"{% if f_value == character.id %} selected{% endif %}>{{ character.name }}</option>
-                {% endfor %}
               </select>
               {% endfor %}
             </fieldset>
             {% comment %}<button id="add-filter" class="btn btn-primary"><i class="icon-plus icon-white"></i> Add filter</button>{% endcomment %}
             <button type="submit" class="btn btn-primary">Apply filters</button>
+            <a href="{% url thing.views.assets %}" class="btn btn-danger">Clear filters</a>
           </form>
         </div>
       </div>
@@ -103,7 +150,7 @@
               </tr>
               {% if asset.z_contents %}
               {% for content in asset.z_contents %}
-              <tr class="asset-sneaky asset-{{ asset.id }}">
+              <tr class="asset-sneaky asset-{{ asset.id }}" style="display: none">
                 <td></td>
                 <td>
                   <i class="icon-arrow-right margin-left"></i>
