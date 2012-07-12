@@ -751,6 +751,12 @@ class Locations(APIJob):
 # Fetch and add/update market orders
 class MarketOrders(APIJob):
     def run(self):
+        # Generate a character id map
+        self.char_id_map = {}
+        for character in Character.objects.all():
+            self.char_id_map[character.id] = character
+
+        
         # Initialise for corporate query
         if self._apikey.corp_character:
             mask = 4096
