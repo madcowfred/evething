@@ -722,7 +722,7 @@ class Locations(APIJob):
         if not self._apikey.corp_character:
             mask = 134217728
             url = LOCATIONS_CHAR_URL
-            a_filter = Asset.objects.root_nodes().filter(character=self._character, singleton=True, item__item_group__category__name__in=('Celestial', 'Ship'))
+            a_filter = Asset.objects.root_nodes().filter(character=self._character, corporation__isnull=True, singleton=True, item__item_group__category__name__in=('Celestial', 'Ship'))
 
         # Make sure the access mask matches
         if (self._apikey.access_mask & mask) == 0:

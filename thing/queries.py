@@ -47,7 +47,7 @@ WHERE   blueprint_id IN (
 )
 UNION
 SELECT  item_id
-FROM    thing_characterasset ca, thing_character c, thing_apikey a
+FROM    thing_asset ca, thing_character c, thing_apikey a
 WHERE   ca.character_id = c.id
         AND c.apikey_id = a.id
         AND a.user_id = %s
@@ -67,7 +67,7 @@ WHERE   blueprint_id IN (
 )
 UNION
 SELECT  item_id
-FROM    thing_characterasset
+FROM    thing_asset
 """
 
 # This is the nasty trade timeframe thing. Be afraid.
