@@ -622,9 +622,12 @@ def character(request, character_name):
     if (not public or char.config.show_skill_queue) and queue:
         training_id = queue[0].skill.item.id
         training_level = queue[0].to_level
+        for sq in queue:
+            queue_duration = (sq.end_time - datetime.datetime.utcnow()).total_seconds()
     else:
         training_id = None
         training_level = None
+        queue_duration = None
 
     # Retrieve the list of skills and group them by market group
     skills = OrderedDict()
@@ -670,6 +673,7 @@ def character(request, character_name):
             'skill_totals': skill_totals,
             'queue': queue,
             'queue_rest': queue[1:],
+            'queue_duration': queue_duration,
         },
         context_instance=RequestContext(request)
     )
