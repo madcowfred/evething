@@ -282,11 +282,7 @@ def assets(request):
     filters = []
 
     if len(f_types) == len(f_comps) and len(f_types) == len(f_values):
-        for i in range(len(f_types)):
-            ft = f_types[i]
-            fc = f_comps[i]
-            fv = f_values[i]
-
+        for ft, fc, fv in zip(f_types, f_comps, f_values):
             if ft == 'char' and fv.isdigit():
                 if fc == 'eq':
                     assets = assets.filter(character_id=fv)
