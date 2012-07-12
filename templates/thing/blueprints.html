@@ -58,7 +58,7 @@ $(document).ready(function() {
       <div class="row-fluid">
         <div class="span2">&nbsp;</div>
         <div class="span3">
-          <form action="/blueprints/" method="GET" class="form-search">
+          <form action="{% url thing.views.blueprints %}" method="GET" class="form-search">
             <label>Runs</label>
             <input type="text" class="input-mini" name="runs" value="{{ runs }}">
             <input type="submit" class="input-mini" value="Update">
@@ -73,7 +73,7 @@ $(document).ready(function() {
       <div class="row-fluid">
         <div class="span2">&nbsp;</div>
         <div class="span8">
-          <form action="/bpcalc/" method="GET" class="form-search">
+          <form action="{% url thing.views.bpcalc %}" method="GET" class="form-search">
           <table id="blueprints-table" class="table table-striped table-bordered table-condensed">
             <thead>
               <tr class="c">
@@ -136,7 +136,7 @@ $(document).ready(function() {
           <a class="close" data-dismiss="modal"><i class="icon-remove"></i></a>
           <h3>Add Blueprint</h3>
         </div>
-        <form action="/blueprints/add/" method="GET" class="form-horizontal">
+        <form action="{% url thing.views.blueprints_add %}" method="GET" class="form-horizontal">
           <div class="modal-body">
             <fieldset>
               <div class="control-group">
