@@ -15,6 +15,18 @@ $(document).ready(function() {
     }
   );
 
+  // bind the delete buttons
+  $('.icon-trash').on('click', function() {
+    $tr = $(this).parents('tr');
+    $('#bpi_id').attr('value', $tr.find('td').eq(0).text());
+    $('#bp-del-id').text($tr.find('td').eq(0).text());
+    $('#bp-del-name').text($tr.find('td').eq(1).text());
+    $('#bp-del-type').text($tr.find('td').eq(2).text());
+    $('#bp-del-ml').text($tr.find('td').eq(3).text());
+    $('#bp-del-pl').text($tr.find('td').eq(4).text());
+    $('#del-blueprint').modal('show');
+  });
+
   // call the tablesorter plugin
   $("#blueprints-table").tablesorter({
     'headers': {
@@ -54,8 +66,7 @@ $(document).ready(function() {
         </div>
         <div class="span5">
           <div class="pull-right">
-            <a class="btn btn-success" data-toggle="modal" href="#add-blueprint"><i class="icon-plus icon-white"></i> Add</a>
-            <a class="btn btn-danger" href="#"><i class="icon-trash icon-white"></i> Delete</a>
+            <a class="btn btn-success" data-toggle="modal" href="#add-blueprint"><i class="icon-plus icon-white"></i> Add Blueprint</a>
           </div>
         </div>
       </div>
@@ -78,27 +89,27 @@ $(document).ready(function() {
                 <th>B Profit</th>
                 <th>S Make</th>
                 <th>S Profit</th>
-                <!--<th>Links</th>-->
                 <th><a href="#" id="checkall">all</a></th>
+                <th></th>
               </tr>
             </thead>
             <tbody>
               {% for bpi in bpis %}
-              <tr>
-                <td class="r">{{ bpi.id }}</td>
-                <td>{{ bpi.blueprint.item }}</td>
-                <td>{% if bpi.original %}BPO{% else %}BPC{% endif %}</td>
-                <td class="r">{{ bpi.material_level }}</td>
-                <td class="r">{{ bpi.productivity_level }}</td>
-                <td class="r">{{ bpi.z_count }}</td>
-                <td class="r">{{ bpi.z_production_time|duration }}</td>
-                <td class="r">{{ bpi.blueprint.item.sell_price|humanize }}</td>
-                <td class="r">{{ bpi.z_unit_cost_buy|humanize }}</td>
-                <td class="r">{{ bpi.z_unit_profit_buy|humanize|balance }}</td>
-                <td class="r">{{ bpi.z_unit_cost_sell|humanize }}</td>
-                <td class="r">{{ bpi.z_unit_profit_sell|humanize|balance }}</td>
-                <!--<td class="c"><a href="http://www.eve-central.com/home/quicklook.html?typeid={{ bpi.blueprint.item.id }}">EC</a></td>-->
-                <td><input type="checkbox" name="bpi" value="{{ bpi.pk }}"></td>
+              <tr class="r">
+                <td>{{ bpi.id }}</td>
+                <td class="l">{{ bpi.blueprint.item }}</td>
+                <td class="l">{% if bpi.original %}BPO{% else %}BPC{% endif %}</td>
+                <td>{{ bpi.material_level }}</td>
+                <td>{{ bpi.productivity_level }}</td>
+                <td>{{ bpi.z_count }}</td>
+                <td>{{ bpi.z_production_time|duration }}</td>
+                <td>{{ bpi.blueprint.item.sell_price|humanize }}</td>
+                <td>{{ bpi.z_unit_cost_buy|humanize }}</td>
+                <td>{{ bpi.z_unit_profit_buy|humanize|balance }}</td>
+                <td>{{ bpi.z_unit_cost_sell|humanize }}</td>
+                <td>{{ bpi.z_unit_profit_sell|humanize|balance }}</td>
+                <td class="l"><input type="checkbox" name="bpi" value="{{ bpi.pk }}"></td>
+                <td><i class="icon-trash"></i></td>
               </tr>
               {% empty %}
               <tr>
@@ -163,6 +174,24 @@ $(document).ready(function() {
           <div class="modal-footer">
             <button type="submit" class="btn btn-primary">Add</button>
             <button class="btn" data-dismiss="modal">Close</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="modal hide" id="del-blueprint">
+        <div class="modal-header">
+          <a class="close" data-dismiss="modal"><i class="icon-remove"></i></a>
+          <h3>Delete Confirmation</h3>
+        </div>
+        <form action="{% url thing.views.blueprints_del %}">
+          <input type="hidden" name="bpi_id" id="bpi_id" value="">
+          <div class="modal-body">
+            Are you sure you wish to delete blueprint #<span id="bp-del-id"></span> (<span id="bp-del-name"></span>, <span id="bp-del-type"></span>, 
+            ML <span id="bp-del-ml"></span>, PL <span id="bp-del-pl"></span>)?
+          </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-danger">Delete</button>
+            <button class="btn btn-success" data-dismiss="modal">Cancel</button>
           </div>
         </form>
       </div>

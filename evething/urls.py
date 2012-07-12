@@ -31,6 +31,7 @@ urlpatterns += patterns('thing.views',
 
     url(r'^blueprints/$', 'blueprints', name='blueprints'),
     (r'^blueprints/add/$', 'blueprints_add'),
+    (r'^blueprints/del/$', 'blueprints_del'),
 
     (r'^bpcalc/$', 'bpcalc'),
     

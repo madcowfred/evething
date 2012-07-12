@@ -25,7 +25,6 @@
   - combine API Keys into this page
   - combine Change Password into this page
 
-* Fix Blueprints page not having a working delete button
 * Multiple user accounts using keys for the same game account needs to work without weird things happening
 * Total SP on Home page
 * More prominent account expiry warnings on Home/API Keys pages
@@ -37,7 +36,7 @@
   - Corporation graph too?
 
 * api_updater:
-- make SystemEventLog objects for start/finish with basic stats so I can maybe track performance issues easier
+  - make SystemEventLog objects for start/finish with basic stats so I can maybe track performance issues easier
 
 * Documentation:
   - pages need to explain what the hell they do
