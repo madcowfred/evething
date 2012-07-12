@@ -297,12 +297,12 @@ class Assets(APIJob):
         if self._apikey.corp_character:
             mask = 2
             url = ASSETS_CORP_URL
-            a_filter = CorporationAsset.objects.filter(corporation=self._apikey.corp_character.corporation)
+            a_filter = Asset.objects.filter(corporation=self._apikey.corp_character.corporation)
         # Initialise for character query
         else:
             mask = 2
             url = ASSETS_CHAR_URL
-            a_filter = CharacterAsset.objects.filter(character=self._character)
+            a_filter = Asset.objects.filter(character=self._character)
 
         # Make sure the access mask matches
         if (self._apikey.access_mask & mask) == 0:
@@ -324,7 +324,9 @@ class Assets(APIJob):
             show_error('fetch_assets', err, times)
             return
 
-        #open('assets.xml', 'w').write(ET.tostring(root))
+        #if self._apikey.corp_character:
+        #    open('assets.xml', 'w').write(ET.tostring(root))
+        #    return
 
         # Generate an asset_id map
         asset_ids = set()
@@ -346,14 +348,16 @@ class Assets(APIJob):
                 if data[2] is not None:
                     # and the container_id doesn't exist, yet we have to do this later
                     try:
-                        parent = CharacterAsset.objects.get(pk=data[2])
-                    except CharacterAsset.DoesNotExist:
+                        parent = Asset.objects.get(pk=data[2])
+                    except Asset.DoesNotExist:
                         continue
                 # asset has no container_id
                 else:
                     parent = None
 
-                # if the asset already exists, maybe update
+                create = False
+
+                # if the asset already exists and has changed, delete it and create a new one
                 asset = asset_map.get(id, None)
                 if asset is not None:
                     if asset.system != data[0] or asset.station != data[1] or asset.parent != parent or \
@@ -361,25 +365,14 @@ class Assets(APIJob):
                        asset.raw_quantity != data[6] or asset.singleton != data[7]:
 
                         asset.delete()
-
-                        asset = CharacterAsset(
-                            id=id,
-                            character=self._character,
-                            system=data[0],
-                            station=data[1],
-                            parent=parent,
-                            item=data[3],
-                            inv_flag_id=data[4],
-                            quantity=data[5],
-                            raw_quantity=data[6],
-                            singleton=data[7],
-                        )
-                        asset.save()
-
-                        asset_map[id] = asset
-
+                        create = True
+                # doesn't exist, create a new one
                 else:
-                    asset = CharacterAsset(
+                    create = True
+
+                if create is True:
+                    #print 'create!'
+                    asset = Asset(
                         id=id,
                         character=self._character,
                         system=data[0],
@@ -391,14 +384,18 @@ class Assets(APIJob):
                         raw_quantity=data[6],
                         singleton=data[7],
                     )
+                    if self._apikey.corp_character:
+                        asset.corporation = self._apikey.corp_character.corporation
                     asset.save()
+
+                    asset_map[id] = asset
 
                 asset_ids.add(id)
                 del rows[id]
 
         # Delete any assets that we didn't see now
         a_filter.exclude(pk__in=asset_ids).delete()
-        
+
         # completed ok
         apicache.completed_ok = True
         apicache.save()
@@ -408,7 +405,16 @@ class Assets(APIJob):
         for row in rowset.findall('row'):
             # No container_id (parent)
             if 'locationID' in row.attrib:
-                location_id = row.attrib['locationID']
+                location_id = int(row.attrib['locationID'])
+
+                # :ccp: as fuck
+                # http://wiki.eve-id.net/APIv2_Corp_AssetList_XML#officeID_to_stationID_conversion
+                if 66000000 <= location_id <= 66014933:
+                    location_id -= 6000001
+                    print 'updated location_id %s' % (location_id)
+                elif 66014934 <= location_id <= 67999999:
+                    location_id -= 6000000
+
                 system = get_system(location_id)
                 station = get_station(location_id)
             else:
@@ -589,11 +595,73 @@ class CharacterSkillQueue(APIJob):
         apicache.save()
 
 # ---------------------------------------------------------------------------
+# Fetch corporation sheet
+class CorporationSheet(APIJob):
+    def run(self):
+        # Make sure the access mask matches
+        if (self._apikey.access_mask & 8) == 0:
+            return
+        
+        params = { 'characterID': self._apikey.corp_character_id }
+        
+        root, times, apicache = self.fetch_api(CORP_SHEET_URL, params)
+        if root is None:
+            #show_error('fetch_corp_sheet', 'HTTP error', times)
+            return
+        
+        # cached and completed ok? pass.
+        if apicache and apicache.completed_ok:
+            return
+        
+        err = root.find('error')
+        if err is not None:
+            show_error('fetch_corp_sheet', err, times)
+            return
+        
+        corporation = self._apikey.corp_character.corporation
+        
+        ticker = root.find('result/ticker')
+        corporation.ticker = ticker.text
+        corporation.save()
+        
+        errors = 0
+        for rowset in root.findall('result/rowset'):
+            if rowset.attrib['name'] == 'divisions':
+                rows = rowset.findall('row')
+
+                corporation.division1 = rows[0].attrib['description']
+                corporation.division2 = rows[1].attrib['description']
+                corporation.division3 = rows[2].attrib['description']
+                corporation.division4 = rows[3].attrib['description']
+                corporation.division5 = rows[4].attrib['description']
+                corporation.division6 = rows[5].attrib['description']
+                corporation.division7 = rows[6].attrib['description']
+                corporation.save()
+
+            if rowset.attrib['name'] == 'walletDivisions':
+                wallet_map = {}
+                for cw in CorpWallet.objects.filter(corporation=corporation):
+                    wallet_map[cw.account_key] = cw
+                
+                for row in rowset.findall('row'):
+                    wallet = wallet_map.get(int(row.attrib['accountKey']), None)
+                    # If the wallet exists, update the description
+                    if wallet is not None:
+                        if wallet.description != row.attrib['description']:
+                            wallet.description = row.attrib['description']
+                            wallet.save()
+                    # If it doesn't exist, wtf?
+                    else:
+                        logging.warn("No matching CorpWallet object for corpID=%s accountkey=%s", corporation.id, row.attrib['accountKey'])
+                        errors += 1
+        
+        # completed ok
+        if errors == 0:
+            apicache.completed_ok = True
+            apicache.save()
 
 # ---------------------------------------------------------------------------
-
-# ---------------------------------------------------------------------------
-# Fetch and add/update corporation wallets
+# Fetch corporation wallets
 class CorporationWallets(APIJob):
     def run(self):
         # Make sure the access mask matches
@@ -648,60 +716,6 @@ class CorporationWallets(APIJob):
         apicache.save()
 
 # ---------------------------------------------------------------------------
-# Fetch corporation sheet
-class CorporationSheet(APIJob):
-    def run(self):
-        # Make sure the access mask matches
-        if (self._apikey.access_mask & 8) == 0:
-            return
-        
-        params = { 'characterID': self._apikey.corp_character_id }
-        
-        root, times, apicache = self.fetch_api(CORP_SHEET_URL, params)
-        if root is None:
-            #show_error('fetch_corp_sheet', 'HTTP error', times)
-            return
-        
-        # cached and completed ok? pass.
-        if apicache and apicache.completed_ok:
-            return
-        
-        err = root.find('error')
-        if err is not None:
-            show_error('fetch_corp_sheet', err, times)
-            return
-        
-        corporation = self._apikey.corp_character.corporation
-        
-        ticker = root.find('result/ticker')
-        corporation.ticker = ticker.text
-        corporation.save()
-        
-        errors = 0
-        for rowset in root.findall('result/rowset'):
-            if rowset.attrib['name'] == 'walletDivisions':
-                wallet_map = {}
-                for cw in CorpWallet.objects.filter(corporation=corporation):
-                    wallet_map[cw.account_key] = cw
-                
-                for row in rowset.findall('row'):
-                    wallet = wallet_map.get(int(row.attrib['accountKey']), None)
-                    # If the wallet exists, update the description
-                    if wallet is not None:
-                        if wallet.description != row.attrib['description']:
-                            wallet.description = row.attrib['description']
-                            wallet.save()
-                    # If it doesn't exist, wtf?
-                    else:
-                        logging.warn("No matching CorpWallet object for corpID=%s accountkey=%s", corporation.id, row.attrib['accountKey'])
-                        errors += 1
-        
-        # completed ok
-        if errors == 0:
-            apicache.completed_ok = True
-            apicache.save()
-
-# ---------------------------------------------------------------------------
 # Fetch locations (and more importantly names) for assets
 class Locations(APIJob):
     def run(self):
@@ -709,10 +723,15 @@ class Locations(APIJob):
         if not self._apikey.corp_character:
             mask = 134217728
             url = LOCATIONS_CHAR_URL
-            a_filter = CharacterAsset.objects.root_nodes().filter(character=self._character, singleton=True, item__item_group__category__name__in=('Celestial', 'Ship'))
+            a_filter = Asset.objects.root_nodes().filter(character=self._character, singleton=True, item__item_group__category__name__in=('Celestial', 'Ship'))
 
         # Make sure the access mask matches
         if (self._apikey.access_mask & mask) == 0:
+            return
+
+        # Get ID list
+        ids = map(str, a_filter.values_list('id', flat=True))
+        if len(ids) == 0:
             return
 
         # Fetch the API data
@@ -737,7 +756,7 @@ class Locations(APIJob):
         #open('locations.xml', 'w').write(ET.tostring(root))
 
         for row in root.findall('result/rowset/row'):
-            ca = CharacterAsset.objects.get(character=self._character, id=row.attrib['itemID'])
+            ca = Asset.objects.get(character=self._character, id=row.attrib['itemID'])
             if ca.name is None or ca.name != row.attrib['itemName']:
                 #print 'changing name to %r (%d)' % (row.attrib['itemName'], len(row.attrib['itemName']))
                 ca.name = row.attrib['itemName']
@@ -756,7 +775,7 @@ class MarketOrders(APIJob):
         for character in Character.objects.all():
             self.char_id_map[character.id] = character
 
-        
+
         # Initialise for corporate query
         if self._apikey.corp_character:
             mask = 4096
@@ -1153,6 +1172,10 @@ class APIUpdater:
                     job = WalletTransactions(apikey, character)
                     job._corp_wallet = corp_wallet
                     self._job_queue.put(job)
+
+                # Fetch assets
+                job = Assets(apikey, character)
+                self._job_queue.put(job)
 
         # All done, shut down the threads
         self.stop_threads()

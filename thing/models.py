@@ -73,7 +73,15 @@ class Corporation(models.Model):
     id = models.IntegerField(primary_key=True)
     name = models.CharField(max_length=64)
     ticker = models.CharField(max_length=5, blank=True, null=True)
-    
+
+    division1 = models.CharField(max_length=64, blank=True, null=True)
+    division2 = models.CharField(max_length=64, blank=True, null=True)
+    division3 = models.CharField(max_length=64, blank=True, null=True)
+    division4 = models.CharField(max_length=64, blank=True, null=True)
+    division5 = models.CharField(max_length=64, blank=True, null=True)
+    division6 = models.CharField(max_length=64, blank=True, null=True)
+    division7 = models.CharField(max_length=64, blank=True, null=True)
+
     class Meta:
         ordering = ('name',)
     
@@ -532,16 +540,17 @@ class InventoryFlag(models.Model):
         elif self.name.startswith('DroneBay'):
             return 4
         else:
-            return 9
+            return self.name
 
 # ---------------------------------------------------------------------------
 
-class CharacterAsset(MPTTModel):
+class Asset(MPTTModel):
     id = models.BigIntegerField(primary_key=True)
 
     parent = TreeForeignKey('self', blank=True, null=True, related_name='children')
 
     character = models.ForeignKey(Character, blank=True, null=True)
+    corporation = models.ForeignKey(Corporation, blank=True, null=True)
     system = models.ForeignKey(System, blank=True, null=True)
     station = models.ForeignKey(Station, blank=True, null=True)
 

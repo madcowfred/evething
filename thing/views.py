@@ -9,7 +9,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import Paginator, InvalidPage, EmptyPage
 from django.db import connection
-from django.db.models import Avg, Count, Max, Min, Sum
+from django.db.models import Q, Avg, Count, Max, Min, Sum
 from django.http import Http404
 from django.shortcuts import *
 from django.template import RequestContext
@@ -271,7 +271,8 @@ def apikeys_edit(request):
 @login_required
 def assets(request):
     # apply our initial set of filters
-    assets = CharacterAsset.objects.select_related('system', 'station', 'item__item_group__category', 'character', 'inv_flag').filter(character__apikey__user=request.user)
+    assets = Asset.objects.select_related('system', 'station', 'item__item_group__category', 'character', 'corporation', 'inv_flag')
+    assets = assets.filter(character__apikey__user=request.user)
 
     # retrieve any supplied filter values
     f_types = request.GET.getlist('type')
@@ -285,9 +286,9 @@ def assets(request):
         for ft, fc, fv in zip(f_types, f_comps, f_values):
             if ft == 'char' and fv.isdigit():
                 if fc == 'eq':
-                    assets = assets.filter(character_id=fv)
+                    assets = assets.filter(character_id=fv, corporation__isnull=True)
                 elif fc == 'ne':
-                    assets = assets.exclude(character_id=fv)
+                    assets = assets.exclude(character_id=fv, corporation__isnull=True)
 
                 filters.append((ft, fc, int(fv)))
 
@@ -341,6 +342,8 @@ def assets(request):
 
             else:
                 ca.z_group = ca.inv_flag.nice_name()
+                if ca.z_group.startswith('CorpSAG') and ca.corporation:
+                    ca.z_group = getattr(ca.corporation, 'division%s' % (ca.z_group[-1]))
 
 
     # add contents to the parent total

@@ -84,7 +84,13 @@
             <tbody>
               {% for asset in asset_roots %}
               <tr>
-                <td class="assets-character">{{ asset.character.name }}</td>
+                <td class="assets-character">
+                  {% if asset.corporation %}
+                  <i class="icon-briefcase"></i> {{ asset.corporation.name }}
+                  {% else %}
+                  <i class="icon-user"></i> {{ asset.character.name }}
+                  {% endif %}
+                </td>
                 <td class="assets-item">
                   {% if asset.z_contents %}<i class="icon-plus asset-expand" data-target=".asset-{{ asset.id }}"></i> {% endif %}
                   {{ asset.item.name }}
@@ -105,7 +111,7 @@
                   {{ content.item.name }}
                 </td>
                 <td class="c">{{ content.z_group }}</td>
-                <td class="r">{{ content.quantity }}</td>
+                <td class="r">{{ content.quantity|commas }}</td>
                 <td class="r">{{ content.item.sell_price|commas }} ISK</td>
                 <td class="r">{{ content.z_total|commas }} ISK</td>
               </tr>
