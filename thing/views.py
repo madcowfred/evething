@@ -158,6 +158,8 @@ def home(request):
         for char in chars.values():
             char.z_sanitised_api = san[char.apikey.id]
 
+    # Total SP
+    total_sp = sum(getattr(c, 'z_total_sp', 0) for c in chars.values())
 
     return render_to_response(
         'thing/home.html',
@@ -165,6 +167,7 @@ def home(request):
             'sanitise': sanitise,
             'not_training': not_training,
             'total_balance': total_balance,
+            'total_sp': total_sp,
             'corporations': corporations,
             'characters': first + last,
             'events': Event.objects.filter(user=request.user)[:10]
@@ -383,8 +386,8 @@ def assets(request):
     sorted_systems = systems.items()
     sorted_systems.sort()
 
-    # list of corporations we have API keys for, ew
-    corp_ids = APIKey.objects.filter(user_id=1, corp_character__isnull=False).values_list('corp_character__corporation', flat=True)
+    # Get corporations this user has APIKeys for
+    corp_ids = APIKey.objects.select_related().filter(user=request.user.id).exclude(corp_character=None).values_list('corp_character__corporation', flat=True)
     corporations = Corporation.objects.filter(pk__in=corp_ids)
 
     return render_to_response(
