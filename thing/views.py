@@ -315,11 +315,20 @@ def assets(request):
     systems = {}
 
     for ca in assets:
-        # total value of this asset stack
-        ca.z_total = ca.quantity * ca.item.sell_price
-
         # work out if this is a system or station asset
         k = ca.system_or_station()
+
+        # zz blueprints
+        if ca.item.item_group.category.name == 'Blueprint':
+            ca.z_blueprint = ca.raw_quantity
+        else:
+            ca.z_blueprint = 0
+        
+        # total value of this asset stack
+        if ca.z_blueprint >= -1:
+            ca.z_total = ca.quantity * ca.item.sell_price
+        else:
+            ca.z_total = 0
 
         # system/station asset
         if k is not None:
@@ -346,6 +355,7 @@ def assets(request):
 
             # add this to the parent's entry in loc_totals
             loc_totals[parent.z_k] += ca.z_total
+            parent.z_total += ca.z_total
 
             # Celestials (containers) need some special casing
             if parent.item.item_group.category.name == 'Celestial':
@@ -364,8 +374,8 @@ def assets(request):
     for cas in systems.values():
         for ca in cas:
             if hasattr(ca, 'z_contents'):
-                for content in ca.z_contents:
-                    ca.z_total += content.z_total
+                #for content in ca.z_contents:
+                #    ca.z_total += content.z_total
 
                 # decorate/sort/undecorate argh
                 temp = [(c.inv_flag.sort_order(), c.item.name, c) for c in ca.z_contents]

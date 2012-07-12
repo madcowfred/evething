@@ -140,17 +140,14 @@
                 </td>
                 <td class="assets-item">
                   {% if asset.z_contents %}<i class="icon-plus asset-expand" data-target=".asset-{{ asset.id }}"></i> {% endif %}
-                  {% if asset.item.item_group.category.name == 'Blueprint' %}
-                  {{ asset.raw_quantity }}
-                  {% if asset.raw_quantity == -1 %}<i class="icon-star" rel="tooltip" title="Original"></i>{% endif %}
-                  {% if asset.raw_quantity == -2 %}<i class="icon-star-empty" rel="tooltip" title="Copy"></i>{% endif %}
-                  {% endif %}
+                  {% if asset.z_blueprint == -1 %}<i class="icon-star pull-right" rel="tooltip" title="Original"></i>{% endif %}
+                  {% if asset.z_blueprint == -2 %}<i class="icon-star-empty pull-right" rel="tooltip" title="Copy"></i>{% endif %}
                   {{ asset.item.name }}
                   {% if asset.name %} - <i>{{ asset.name }}</i>{% endif %}
                 </td>
                 <td class="assets-type c">{{ asset.item.item_group.category.name }}</td>
                 <td class="assets-quantity r">{{ asset.quantity|commas }}</td>
-                <td class="assets-value r">{{ asset.item.sell_price|commas }} ISK</td>
+                <td class="assets-value r">{% if content.z_blueprint < -1 %}0.00{% else %}{{ content.item.sell_price|commas }}{% endif %} ISK</td>
                 <td class="assets-value r">{{ asset.z_total|commas }} ISK</td>
               </tr>
               {% if asset.z_contents %}
@@ -160,15 +157,13 @@
                 <td>
                   <i class="icon-arrow-right margin-left"></i>
                   {% if content.z_locked %}<i class="icon-lock"></i>{% endif %}
-                  {% if content.item.item_group.category.name == 'Blueprint' %}
-                  {% if content.raw_quantity == -1 %}<i class="icon-star" rel="tooltip" title="Original"></i>{% endif %}
-                  {% if content.raw_quantity == -2 %}<i class="icon-star-empty" rel="tooltip" title="Copy"></i>{% endif %}
-                  {% endif %}
+                  {% if content.z_blueprint == -1 %}<i class="icon-star pull-right" rel="tooltip" title="Original"></i>{% endif %}
+                  {% if content.z_blueprint == -2 %}<i class="icon-star-empty pull-right" rel="tooltip" title="Copy"></i>{% endif %}
                   {{ content.item.name }}
                 </td>
                 <td class="c">{{ content.z_group }}</td>
                 <td class="r">{{ content.quantity|commas }}</td>
-                <td class="r">{{ content.item.sell_price|commas }} ISK</td>
+                <td class="r">{% if content.z_blueprint < -1 %}0.00{% else %}{{ content.item.sell_price|commas }}{% endif %} ISK</td>
                 <td class="r">{{ content.z_total|commas }} ISK</td>
               </tr>
               {% endfor %}
