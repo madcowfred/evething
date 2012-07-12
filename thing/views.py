@@ -446,6 +446,15 @@ def blueprints_del(request):
 
     return redirect('blueprints')
 
+@login_required
+def blueprints_edit(request):
+    bpi = get_object_or_404(BlueprintInstance, user=request.user, pk=request.GET['bpi_id'])
+    bpi.material_level = request.GET['new_ml']
+    bpi.productivity_level = request.GET['new_pl']
+    bpi.save()
+
+    return redirect('blueprints')
+
 # ---------------------------------------------------------------------------
 # Calculate blueprint production details for X number of days
 DAY = 24 * 60 * 60

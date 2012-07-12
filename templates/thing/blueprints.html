@@ -15,10 +15,20 @@ $(document).ready(function() {
     }
   );
 
+  // bind the edit buttons
+  $('.icon-pencil').on('click', function() {
+    $tr = $(this).parents('tr');
+    $('#bp-edit-bpi_id').attr('value', $tr.find('td').eq(0).text());
+    $('#bp-edit-name').val($tr.find('td').eq(1).text());
+    $('#bp-edit-ml').val($tr.find('td').eq(3).text());
+    $('#bp-edit-pl').val($tr.find('td').eq(4).text());
+    $('#edit-blueprint').modal('show');
+  });
+
   // bind the delete buttons
   $('.icon-trash').on('click', function() {
     $tr = $(this).parents('tr');
-    $('#bpi_id').attr('value', $tr.find('td').eq(0).text());
+    $('#bp-del-bpi_id').attr('value', $tr.find('td').eq(0).text());
     $('#bp-del-id').text($tr.find('td').eq(0).text());
     $('#bp-del-name').text($tr.find('td').eq(1).text());
     $('#bp-del-type').text($tr.find('td').eq(2).text());
@@ -109,7 +119,10 @@ $(document).ready(function() {
                 <td>{{ bpi.z_unit_cost_sell|humanize }}</td>
                 <td>{{ bpi.z_unit_profit_sell|humanize|balance }}</td>
                 <td class="l"><input type="checkbox" name="bpi" value="{{ bpi.pk }}"></td>
-                <td><i class="icon-trash"></i></td>
+                <td>
+                  <i class="icon-pencil"></i>
+                  <i class="icon-trash"></i>
+                </td>
               </tr>
               {% empty %}
               <tr>
@@ -178,13 +191,49 @@ $(document).ready(function() {
         </form>
       </div>
 
+      <div class="modal hide" id="edit-blueprint">
+        <div class="modal-header">
+          <a class="close" data-dismiss="modal"><i class="icon-remove"></i></a>
+          <h3>Edit Blueprint</h3>
+        </div>
+        <form action="{% url thing.views.blueprints_edit %}" class="form-horizontal">
+          <input type="hidden" name="bpi_id" id="bp-edit-bpi_id" value="">
+          <div class="modal-body">
+            <fieldset>
+              <div class="control-group">
+                <label class="control-label" for="blueprint">Blueprint</label>
+                <div class="controls">
+                  <input type="text" id="bp-edit-name" class="disabled" value="" disabled>
+                </div>
+              </div>
+              <div class="control-group">
+                <label class="control-label" for="ml">ML</label>
+                <div class="controls">
+                  <input type="text"  id="bp-edit-ml" name="new_ml" class="input-small" value="">
+                </div>
+              </div>
+              <div class="control-group">
+                <label class="control-label" for="pl">PL</label>
+                <div class="controls">
+                  <input type="text" id="bp-edit-pl" name="new_pl" class="input-small" value="">
+                </div>
+              </div>
+            </fieldset>
+          </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-danger">Save</button>
+            <button class="btn btn-success" data-dismiss="modal">Cancel</button>
+          </div>
+        </form>
+      </div>
+
       <div class="modal hide" id="del-blueprint">
         <div class="modal-header">
           <a class="close" data-dismiss="modal"><i class="icon-remove"></i></a>
           <h3>Delete Confirmation</h3>
         </div>
         <form action="{% url thing.views.blueprints_del %}">
-          <input type="hidden" name="bpi_id" id="bpi_id" value="">
+          <input type="hidden" name="bpi_id" id="bp-del-bpi_id" value="">
           <div class="modal-body">
             Are you sure you wish to delete blueprint #<span id="bp-del-id"></span> (<span id="bp-del-name"></span>, <span id="bp-del-type"></span>, 
             ML <span id="bp-del-ml"></span>, PL <span id="bp-del-pl"></span>)?
