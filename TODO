@@ -25,6 +25,11 @@
   - combine API Keys into this page
   - combine Change Password into this page
 
+* Blueprints page:
+  - Work out a way to be able to say "I want to make 100 Blackbirds and 100 Railguns to go on them" and get a BPCalc
+    page out of it.
+  - Profitability dumping to buys instead of using sells?
+
 * Multiple user accounts using keys for the same game account needs to work without weird things happening
 * Total SP on Home page
 * More prominent account expiry warnings on Home/API Keys pages
