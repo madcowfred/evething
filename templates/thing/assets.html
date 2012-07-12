@@ -147,7 +147,7 @@
                 </td>
                 <td class="assets-type c">{{ asset.item.item_group.category.name }}</td>
                 <td class="assets-quantity r">{{ asset.quantity|commas }}</td>
-                <td class="assets-value r">{% if content.z_blueprint < -1 %}0.00{% else %}{{ content.item.sell_price|commas }}{% endif %} ISK</td>
+                <td class="assets-value r">{% if asset.z_blueprint == -2 %}0.00{% else %}{{ asset.item.sell_price|commas }}{% endif %} ISK</td>
                 <td class="assets-value r">{{ asset.z_total|commas }} ISK</td>
               </tr>
               {% if asset.z_contents %}
@@ -163,7 +163,7 @@
                 </td>
                 <td class="c">{{ content.z_group }}</td>
                 <td class="r">{{ content.quantity|commas }}</td>
-                <td class="r">{% if content.z_blueprint < -1 %}0.00{% else %}{{ content.item.sell_price|commas }}{% endif %} ISK</td>
+                <td class="r">{% if content.z_blueprint == -2 %}0.00{% else %}{{ content.item.sell_price|commas }}{% endif %} ISK</td>
                 <td class="r">{{ content.z_total|commas }} ISK</td>
               </tr>
               {% endfor %}
