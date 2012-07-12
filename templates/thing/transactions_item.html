@@ -29,11 +29,11 @@
                 <td class="c">{{ transaction.corp_wallet.corporation.ticker }}</td>
                 <td class="r">{{ transaction.quantity|humanize }}</td>
                 {% if transaction.buy_transaction %}
-                <td class="r"><span class="neg">{{ transaction.price|commas }}</span></td>
-                <td class="r"><span class="neg">{{ transaction.total_price|commas }}</span></td>
+                <td class="r"><span class="neg">-{{ transaction.price|commas }}</span></td>
+                <td class="r"><span class="neg">-{{ transaction.total_price|commas }}</span></td>
                 {% else %}
-                <td class="r"><span class="pos">{{ transaction.price|commas }}</span></td>
-                <td class="r"><span class="pos">{{ transaction.total_price|commas }}</span></td>
+                <td class="r"><span class="pos">+{{ transaction.price|commas }}</span></td>
+                <td class="r"><span class="pos">+{{ transaction.total_price|commas }}</span></td>
                 {% endif %}
                 </td>
               </tr>
