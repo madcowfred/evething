@@ -411,7 +411,6 @@ class Assets(APIJob):
                 # http://wiki.eve-id.net/APIv2_Corp_AssetList_XML#officeID_to_stationID_conversion
                 if 66000000 <= location_id <= 66014933:
                     location_id -= 6000001
-                    print 'updated location_id %s' % (location_id)
                 elif 66014934 <= location_id <= 67999999:
                     location_id -= 6000000
 
