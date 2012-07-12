@@ -110,6 +110,7 @@ div.character-sp {
 }
 
 .margin-half-top { margin-top: 0.5em; }
+.margin-full-top { margin-top: 1.0em; }
 .margin-half-bot { margin-bottom: 0.5em; }
 .margin-left { margin-left: 1em; }
 
@@ -151,6 +152,9 @@ i.nomargin {
   background-image: -webkit-linear-gradient(top, #cfcfcf, #dadada);
   background-image: -o-linear-gradient(top, #cfcfcf, #dadada);
   background-image: linear-gradient(top, #cfcfcf, #dadada);
+}
+.well-info {
+  margin-bottom: 1em;
 }
 .well-small {
   padding: 6px;

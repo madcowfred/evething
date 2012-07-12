@@ -8,6 +8,35 @@
   var savedTD = null;
   var savedHTML = null;
 
+  var mask_map = Array();
+  mask_map[2] = 'AssetList';
+  mask_map[8] = 'CharacterSheet';
+  mask_map[4096] = 'MarketOrders';
+  mask_map[262144] = 'SkillQueue';
+  mask_map[4194304] = 'WalletTransactions';
+  mask_map[33554432] = 'AccountStatus';
+  mask_map[134217728] = 'Locations';
+  
+  function apikey_build() {
+    $('#apikey-required').empty();
+
+    var n = 0;
+    $('.apikey-build:checked').each(function() {
+      masks = $(this).attr('data-masks').split(';');
+      for (i in masks) {
+        mask = parseInt(masks[i]);
+        if ((n & mask) == 0) {
+          n += mask;
+          $('#apikey-required').append('<li>' + mask_map[mask] + '</li>');
+        }
+      }
+    });
+    $('#apikey-link').attr('href', 'https://support.eveonline.com/api/Key/CreatePredefined/' + n);
+    if (n == 0) {
+      $('#apikey-required').append('<li>None</li>');
+    }
+  }
+
   $(document).ready(function() {
     $('#key-table').on('click', 'a.delete-button', function(event) {
       var keyid = $('td:nth-child(2)', $(this).parents('tr')).text();
@@ -47,6 +76,10 @@
         savedHTML = null;
       }
     });
+    
+    $('#build-table').on('change', '.apikey-build', apikey_build);
+
+    apikey_build();
   });
 </script>
 {% endblock %}
@@ -124,6 +157,34 @@
             <strong>{{ message_type|capfirst }}:</strong> {{ message }}
           </div>
           {% endif %}
+
+          <div id="build-table" class="well well-info">
+            <p>
+              <strong>Note:</strong> EVEthing requires specific API key flags for various features, this table shows the supported asset flags and the features they enable.
+              Tick some boxes and the 'Create a key' link at the bottom will magically update. When adding a key in the form above, the 'Name' field is for your reference only -
+              accounts on the home page will be sorted on this field so "1 Secret spy account" will sort before "2 Obvious troll account".
+            </p>
+            
+            <div class="row-fluid margin-full-top">
+              <div class="span4">
+                <h4>Website features:</h4>
+                <input type="checkbox" class="apikey-build" data-masks="8;262144"> Skill queue monitoring<br>
+                <input type="checkbox" class="apikey-build" data-masks="33554432"> Account expiry warning<br>
+                <input type="checkbox" class="apikey-build" data-masks="4194304"> Transactions/trade summaries<br>
+                <input type="checkbox" class="apikey-build" data-masks="4096"> Market orders<br>
+                <input type="checkbox" class="apikey-build" data-masks="2;134217728"> Assets<br>
+              </div>
+
+              <div class="span4">
+                <h4>Required flags:</h4>
+                <ul id="apikey-required">
+                  <li>None</li>
+                </ul>
+              </div>
+            </div>
+            <br>
+            <a id="apikey-link" href="https://support.eveonline.com/api/Key/CreatePredefined/33816584">Create a key with these flags</a>
+          </div>
 
           <div class="modal hide" id="delete-modal">
             <form action="{% url thing.views.apikeys_delete %}" method="POST" class="form-inline">

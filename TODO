@@ -1,9 +1,9 @@
 * API Keys page:
   - minimum flags for basic functionality (skill plans, character sheets)
-  - list of other flags and what features they enable
-  - link to the API page with a minimum key flag set
   - "this key has not yet updated" or something instead of just NONE NONE NONE
   - explain how API data is pulled
+  - way to see last pull/next pull time for keys
+  - warn when a key doesn't have the required mask to pull AccountStatus (game time warnings)
 
 * Character Sheet page:
   - Possibly start all categories collapsed with "Category - 5.3 million SP - 5.7%", expandable
