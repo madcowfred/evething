@@ -126,8 +126,12 @@
                   {% spaceless %}
                   {% if apikey.valid and apikey.key_type == 'Account' %}
                   {% with apikey.get_remaining_time as remaining %}
+                  {% if remaining < 604800 %}
+                  <span class="low-game-time">{{ remaining|duration }}</span>
+                  <i class="pull-right icon-time" rel="tooltip" title="Warning: low game time remaining!"></i>
+                  {% else %}
                   {{ remaining|duration }}
-                  {% if remaining < 604800 %}<i class="pull-right icon-warning-sign"></i>{% endif %}
+                  {% endif %}
                   {% endwith %}
                   {% endif %}
                   {% endspaceless %}

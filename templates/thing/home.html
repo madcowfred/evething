@@ -67,7 +67,12 @@
           {% if character.z_notifications %}
           <div class="margin-half-top smaller">
             {% for notif in character.z_notifications %}
-            <i class="icon-{{ notif.icon }}" rel="tooltip" title="{{ notif.tooltip }}"></i> {{ notif.text }}
+            {% spaceless %}
+            <i class="icon-{{ notif.icon }}" rel="tooltip" title="{{ notif.tooltip }}"></i>
+            {% if notif.span_class %}<span class="{{ notif.span_class }}">{% endif %}
+            {{ notif.text }}
+            {% if notif.span_class %}</span>{% endif %}
+            {% endspaceless %}
             {% endfor %}
           </div>
           {% endif %}

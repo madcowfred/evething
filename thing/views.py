@@ -83,6 +83,7 @@ def home(request):
                     'icon': 'time',
                     'text': 'Expired',
                     'tooltip': 'Game time',
+                    'span_class': 'low-game-time',
                 })
 
             elif timediff < EXPIRE_WARNING:
@@ -90,6 +91,7 @@ def home(request):
                     'icon': 'time',
                     'text': shortduration(timediff),
                     'tooltip': 'Game time',
+                    'span_class': 'low-game-time',
                 })
 
         # Empty skill queue

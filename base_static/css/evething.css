@@ -95,6 +95,11 @@ td.assets-total {
 .level5 { color: #4F4FAF; }
 .black { color: #000000; }
 
+.low-game-time {
+  color: #DF2F2F;
+  font-weight: bold;
+}
+
 .training-highlight {
   color: #4FAF00;
   margin-top: 0;
