@@ -1152,6 +1152,9 @@ class APIUpdater:
             # Corporation key
             elif apikey.key_type == APIKey.CORPORATION_TYPE:
                 character = apikey.corp_character
+                if character is None:
+                    logging.warn('API key %s is a corporation key with null corp_character!', apikey.id)
+                    continue
                 corporation = character.corporation
                 
                 # Update wallet information first
