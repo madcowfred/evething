@@ -3,11 +3,20 @@ EVEthing
 ========
 
 EVEthing is a terribly named web application intended to ease the pain of managing your
-EVE space empire. It is written in Python using the Django framework, with django-mptt
-to store and handle hierarchical data.
+EVE space empire.
+
+- Written entirely in Python
+- Uses the Django web development framework, with django-mptt to store and handle hierarchical
+  data.
+- Uses the excellent `Twitter Bootstrap <http://twitter.github.com/bootstrap/>`_ layout framework.
+  With an almost default theme because colours are hard.
 
 Features
 ========
+
+- Handles all types of API key: account, character and corporation.
+
+- Only crashes occasionally, honest.
 
 - Home page: displays relevant information about all API keys related to your account.
   `Screenshot <https://github.com/madcowfred/evething/raw/master/doc-images/home.png>`_.
@@ -34,6 +43,14 @@ Features
     you can see, or a 404 error if they choose to not be public.
   + Anonymous character support, accessed via a /character_anon/blah URL. Character name
     is not shown, portrait is replaced with a placeholder.
+
+- API key management page: list keys, add keys, simple interface to generate a new key with
+  a feature set. `Screenshot <https://github.com/madcowfred/evething/raw/master/doc-images/apikeys.png>`_
+
+- Assets page: lists assets for all characters with the relevant API mask. Includes ship
+  and container names with the Locations mask. Filtering is somewhat limited and search is
+  non-existent but the basic functionality is in and working.
+  `Screenshot <https://github.com/madcowfred/evething/raw/master/doc-images/assets.png>`_
 
 Future Plans
 ============
