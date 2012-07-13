@@ -302,7 +302,7 @@ class Assets(APIJob):
         else:
             mask = 2
             url = ASSETS_CHAR_URL
-            a_filter = Asset.objects.filter(character=self._character)
+            a_filter = Asset.objects.filter(character=self._character, corporation__isnull=True)
 
         # Make sure the access mask matches
         if (self._apikey.access_mask & mask) == 0:

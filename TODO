@@ -1,5 +1,4 @@
 * API Keys page:
-  - minimum flags for basic functionality (skill plans, character sheets)
   - "this key has not yet updated" or something instead of just NONE NONE NONE
   - explain how API data is pulled
   - way to see last pull/next pull time for keys
