@@ -16,7 +16,7 @@ Features
 
 - Handles all types of API key: account, character and corporation.
 
-- Only crashes occasionally, honest.
+- Only crashes occasionally, honest. More than likely will not set your hard drive on fire.
 
 - Home page: displays relevant information about all API keys related to your account.
   `Screenshot <https://github.com/madcowfred/evething/raw/master/doc-images/home.png>`_.
