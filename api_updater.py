@@ -45,6 +45,9 @@ SKILL_QUEUE_URL = '%s/char/SkillQueue.xml.aspx' % (settings.API_HOST)
 TRANSACTIONS_CHAR_URL = '%s/char/WalletTransactions.xml.aspx' % (settings.API_HOST)
 TRANSACTIONS_CORP_URL = '%s/corp/WalletTransactions.xml.aspx' % (settings.API_HOST)
 
+# number of rows to request per WalletTransactions call, max is 2560
+TRANSACTION_ROWS = 2560
+
 # ---------------------------------------------------------------------------
 # Simple job-consuming worker thread
 class APIWorker(threading.Thread):
@@ -939,9 +942,11 @@ class WalletTransactions(APIJob):
         for character in Character.objects.all():
             self.char_id_map[character.id] = character
 
-
         # Initialise stuff
-        params = { 'characterID': self._character.id }
+        params = {
+            'characterID': self._character.id,
+            'rowCount': TRANSACTION_ROWS,
+        }
         
         # Corporate key
         if self._apikey.corp_character:
@@ -1065,9 +1070,8 @@ class WalletTransactions(APIJob):
                     t.corp_wallet = self._corp_wallet
                 t.save()
             
-            # If we got 1000 rows we should retrieve some more
-            #print 'DEBUG: rows: %d | cur: %s | owa: %s | tt: %s' % (len(rows), times['current'], one_week_ago, transaction_time)
-            if len(rows) == 1000 and transaction_time > one_week_ago:
+            # If we got MAX rows we should retrieve some more
+            if len(rows) == TRANSACTION_ROWS and transaction_time > one_week_ago:
                 params['beforeTransID'] = transaction_id
             else:
                 break
