@@ -277,7 +277,9 @@ def apikeys_edit(request):
 def assets(request):
     # apply our initial set of filters
     assets = Asset.objects.select_related('system', 'station', 'item__item_group__category', 'character', 'corporation', 'inv_flag')
-    assets = assets.filter(character__apikey__user=request.user)
+    char_filter = Q(character__apikey__user=request.user)
+    corp_filter = Q(corporation_id__in=APIKey.objects.filter(user=request.user).values('corp_character__corporation__id'))
+    assets = assets.filter(char_filter | corp_filter)
 
     # retrieve any supplied filter values
     f_types = request.GET.getlist('type')
