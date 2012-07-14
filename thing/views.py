@@ -852,8 +852,12 @@ def orders(request):
         row['slots'] = 5
         char_orders[row['character_id']] = row
 
-    # Retrieve... skills? Hrm.
-    for cs in CharacterSkill.objects.select_related().filter(character__apikey__user=request.user, skill__item__name__in=ORDER_SLOT_SKILLS.keys()):
+    # Retrieve trade skills that we're interested in
+    order_cs = CharacterSkill.objects.filter(character__apikey__user=request.user, skill__item__name__in=ORDER_SLOT_SKILLS.keys())
+    order_cs = order_cs.select_related('character__apikey', 'skill__item')
+
+    #for cs in CharacterSkill.objects.select_related().filter(character__apikey__user=request.user, skill__item__name__in=ORDER_SLOT_SKILLS.keys()):
+    for cs in order_cs:
         char_id = cs.character.id
         if char_id not in char_orders:
             continue
@@ -877,7 +881,10 @@ def orders(request):
     }
 
     # Retrieve all orders
-    orders = MarketOrder.objects.select_related('item', 'station', 'character', 'corp_wallet__corporation').filter(character__apikey__user=request.user).order_by('station__name', '-buy_order', 'item__name')
+    orders = MarketOrder.objects.select_related('item', 'station', 'character', 'corp_wallet__corporation')
+    orders = orders.filter(character__apikey__user=request.user)
+    orders = orders.order_by('station__name', '-buy_order', 'item__name')
+
     now = datetime.datetime.utcnow()
     for order in orders:
         order.z_remaining = (order.expires - now).total_seconds()
