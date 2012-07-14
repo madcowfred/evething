@@ -4,9 +4,12 @@
   - way to see last pull/next pull time for keys
   - warn when a key doesn't have the required mask to pull AccountStatus (game time warnings)
 
-* Character Sheet page:
-  - Possibly start all categories collapsed with "Category - 5.3 million SP - 5.7%", expandable
-  - Expand all/collapse all JavaScript links
+* Account Settings page:
+  - new page, add various account settings that don't exist right now
+    = number of accounts per row on home page (2, 3, 4, 6)
+    = theme selection (I assume people will want a dark theme)
+  - combine API Keys into this page
+  - combine Change Password into this page
 
 * Assets page:
   - Add a volume column
@@ -16,27 +19,41 @@
   - Work out why the initial CharacterAsset view query is so slow, 1300 rows shouldn't take half a second. Possibly
     related to the pile of horrible LEFT OUTER JOINs, try querying (items, characters, etc) separately and caching.
 
-* Account Settings page:
-  - new page, add various account settings that don't exist right now
-    = number of accounts per row on home page (2, 3, 4, 6)
-    = theme selection (I assume people will want a dark theme)
-  - combine API Keys into this page
-  - combine Change Password into this page
-
 * Blueprints page:
-  - Work out a way to be able to say "I want to make 100 Blackbirds and 100 Railguns to go on them" and get a BPCalc
+  - Work out a way to be able to say "I want to make 100 Blackbirds and 300 rigs to go on them" and get a BPCalc
     page out of it.
   - Profitability dumping to buys instead of using sells?
 
-* Multiple user accounts using keys for the same game account needs to work without weird things happening
+* Character Sheet page:
+  - Make categories expandable/collapsible
+  - Expand all/collapse all JavaScript links
+
+* Transactions:
+  - Improve pagination display, maybe << [1] 2 3 >> then << 1 [2] 3 >>, << 2 [3] 4 >> etc? Also needs to go at top
+    and bottom of pages instead of just bottom.
+  - Ability to search transactions via:
+    = partial item name
+    = date (before x, after x, between x and y)
+    = wallets?
 
 * Wallet journal:
-  - ohgod
+  - Implement database model to store
+  - Add support to api_updater
   - ISK per hour graph for mission rewards/rat bounties/etc
   - Corporation graph too?
 
 * api_updater:
   - make SystemEventLog objects for start/finish with basic stats so I can maybe track performance issues easier
 
-* Documentation:
+* documentation:
   - pages need to explain what the hell they do
+  - finish writing README, needs info and screenshots for:
+    = blueprints
+    = bpcalc
+    = orders
+    = transactions
+    = trade
+
+* misc:
+  - Multiple user accounts using keys for the same game account needs to work without weird things happening
+  - Replace Django templating engine with Jinja2 for 8-10x speedup
