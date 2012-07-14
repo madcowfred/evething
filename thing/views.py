@@ -51,7 +51,7 @@ def home(request):
     # Do skill training check - this can't be in the model because it
     # scales like crap doing individual queries
     utcnow = datetime.datetime.utcnow()
-    queues = SkillQueue.objects.select_related().filter(character__in=chars.keys(), end_time__gte=utcnow)
+    queues = SkillQueue.objects.select_related('character', 'skill__item').filter(character__in=chars, end_time__gte=utcnow)
     for sq in queues:
         char = chars[sq.character_id]
         if 'sq' not in char.z_training:
@@ -64,7 +64,7 @@ def home(request):
         char.z_training['queue_duration'] = (sq.end_time - utcnow).total_seconds()
 
     # Do total skill point aggregation
-    for cs in CharacterSkill.objects.select_related().filter(character__apikey__user=request.user).values('character').annotate(total_sp=Sum('points')):
+    for cs in CharacterSkill.objects.select_related().filter(character__in=chars).values('character').annotate(total_sp=Sum('points')):
         chars[cs['character']].z_total_sp = cs['total_sp']
 
     # Work out who is and isn't training
@@ -632,7 +632,7 @@ GROUP BY item_id
 # ---------------------------------------------------------------------------
 # Display a character page
 def character(request, character_name):
-    char = get_object_or_404(Character.objects.select_related('apikey', 'config', 'corporation'), name=character_name)
+    char = get_object_or_404(Character.objects.select_related('apikey__user', 'config', 'corporation'), name=character_name)
 
     # Check access
     public = True
@@ -722,7 +722,7 @@ def character(request, character_name):
 
 # Display an anonymized character page
 def character_anonymous(request, anon_key):
-    char = get_object_or_404(Character.objects.select_related('apikey', 'config', 'corporation'), config__anon_key=anon_key)
+    char = get_object_or_404(Character.objects.select_related('config'), config__anon_key=anon_key)
 
     # Retrieve the list of skills and group them by market group
     skills = OrderedDict()
