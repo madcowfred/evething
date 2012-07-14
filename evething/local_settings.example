@@ -21,3 +21,8 @@ INTERNAL_IPS = (
     '127.0.0.1',
     '192.168.1.20',
 )
+
+# API host to use, change this if you have an API proxy to use
+API_HOST = 'https://api.eveonline.com'
+# number of api_updater threads to start (simultaneous requests)
+API_THREADS = 4

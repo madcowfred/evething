@@ -17,9 +17,8 @@ from collections import OrderedDict
 from decimal import *
 
 # Aurgh
-from django.core.management import setup_environ
-from evething import settings
-setup_environ(settings)
+os.environ['DJANGO_SETTINGS_MODULE'] = 'evething.settings'
+from django.conf import settings
 
 from django.core.urlresolvers import reverse
 from django.db import connection
@@ -32,23 +31,19 @@ HEADERS = {
     'User-Agent': 'EVEthing-api-updater',
 }
 
-# my API proxy, you should probably either run your own or uncomment the second line
-BASE_URL = 'http://proxy.evething.org'
-#BASE_URL = 'http://api.eveonline.com'
-
-ACCOUNT_INFO_URL = '%s/account/AccountStatus.xml.aspx' % (BASE_URL)
-API_INFO_URL = '%s/account/APIKeyInfo.xml.aspx' % (BASE_URL)
-ASSETS_CHAR_URL = '%s/char/AssetList.xml.aspx' % (BASE_URL)
-ASSETS_CORP_URL = '%s/corp/AssetList.xml.aspx' % (BASE_URL)
-BALANCE_URL = '%s/corp/AccountBalance.xml.aspx' % (BASE_URL)
-CHAR_SHEET_URL = '%s/char/CharacterSheet.xml.aspx' % (BASE_URL)
-CORP_SHEET_URL = '%s/corp/CorporationSheet.xml.aspx' % (BASE_URL)
-LOCATIONS_CHAR_URL = '%s/char/Locations.xml.aspx' % (BASE_URL)
-ORDERS_CHAR_URL = '%s/char/MarketOrders.xml.aspx' % (BASE_URL)
-ORDERS_CORP_URL = '%s/corp/MarketOrders.xml.aspx' % (BASE_URL)
-SKILL_QUEUE_URL = '%s/char/SkillQueue.xml.aspx' % (BASE_URL)
-TRANSACTIONS_CHAR_URL = '%s/char/WalletTransactions.xml.aspx' % (BASE_URL)
-TRANSACTIONS_CORP_URL = '%s/corp/WalletTransactions.xml.aspx' % (BASE_URL)
+ACCOUNT_INFO_URL = '%s/account/AccountStatus.xml.aspx' % (settings.API_HOST)
+API_INFO_URL = '%s/account/APIKeyInfo.xml.aspx' % (settings.API_HOST)
+ASSETS_CHAR_URL = '%s/char/AssetList.xml.aspx' % (settings.API_HOST)
+ASSETS_CORP_URL = '%s/corp/AssetList.xml.aspx' % (settings.API_HOST)
+BALANCE_URL = '%s/corp/AccountBalance.xml.aspx' % (settings.API_HOST)
+CHAR_SHEET_URL = '%s/char/CharacterSheet.xml.aspx' % (settings.API_HOST)
+CORP_SHEET_URL = '%s/corp/CorporationSheet.xml.aspx' % (settings.API_HOST)
+LOCATIONS_CHAR_URL = '%s/char/Locations.xml.aspx' % (settings.API_HOST)
+ORDERS_CHAR_URL = '%s/char/MarketOrders.xml.aspx' % (settings.API_HOST)
+ORDERS_CORP_URL = '%s/corp/MarketOrders.xml.aspx' % (settings.API_HOST)
+SKILL_QUEUE_URL = '%s/char/SkillQueue.xml.aspx' % (settings.API_HOST)
+TRANSACTIONS_CHAR_URL = '%s/char/WalletTransactions.xml.aspx' % (settings.API_HOST)
+TRANSACTIONS_CORP_URL = '%s/corp/WalletTransactions.xml.aspx' % (settings.API_HOST)
 
 # ---------------------------------------------------------------------------
 # Simple job-consuming worker thread
@@ -1096,7 +1091,7 @@ class APIUpdater:
 
         # start our thread pool
         self._threads = []
-        for i in range(4):
+        for i in range(settings.API_THREADS):
             t = APIWorker(self._job_queue)
             t.start()
             self._threads.append(t)

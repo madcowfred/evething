@@ -14,7 +14,7 @@ from thing.models import *
 # ---------------------------------------------------------------------------
 
 SDE_FILE = 'esc10-sqlite3-v1.db'
-STATION_URL = 'http://proxy.evething.org/eve/ConquerableStationList.xml.aspx'
+STATION_URL = '%s/eve/ConquerableStationList.xml.aspx' % (settings.API_HOST)
 
 # Override volume for ships, assembled volume is mostly useless :ccp:
 PACKAGED = {
