@@ -724,10 +724,6 @@ def character(request, character_name):
 def character_anonymous(request, anon_key):
     char = get_object_or_404(Character.objects.select_related('apikey', 'config', 'corporation'), config__anon_key=anon_key)
 
-    # Make sure this character is visible
-    if not char.config.is_public:
-        raise Http404
-
     # Retrieve the list of skills and group them by market group
     skills = OrderedDict()
     skill_totals = {}

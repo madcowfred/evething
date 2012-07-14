@@ -85,7 +85,7 @@ td.assets-total {
   font-weight: bold;
 }
 
-/* various font things */
+/* various layout things */
 .fixed { font-family:Menlo,Monaco,"Courier New",monospace;font-size:12px;color:#333333; }
 
 .dot { border-bottom: 1px dotted; }
@@ -98,6 +98,10 @@ td.assets-total {
 .low-game-time {
   color: #DF2F2F;
   font-weight: bold;
+}
+
+.indent {
+  margin-left: 1.2em;
 }
 
 .training-highlight {

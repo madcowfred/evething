@@ -5,12 +5,15 @@
 
 {% block extra_head %}
   <script type="text/javascript">
+    var anon_checked = null;
+
     $(document).ready(function() {
-      settings_checkboxes();
-      anon_toggle();
-      
       $("#public-checkbox").change(settings_checkboxes);
+      settings_checkboxes();
+      
+      anon_checked = $('#anon-key').attr('checked');
       $("#anon-key").change(anon_toggle);
+      anon_toggle();
     });
 
     function settings_checkboxes() {
@@ -20,7 +23,13 @@
     }
 
     function anon_toggle() {
-      if ($("#anon-key").attr("checked") == "checked") {
+      var checked = $('#anon-key').attr('checked');
+      if (checked != anon_checked) {
+        $('#anon-key-link').remove();
+        anon_checked = checked;
+      }
+
+      if (checked == "checked") {
         $("#anon-key-text").removeAttr("disabled");
         if ($("#anon-key-text").val() == "") {
           $("#anon-key-text").val(randString(16));
@@ -55,29 +64,28 @@
                   <i class="icon icon-question-sign" rel="tooltip" title="Whether or not this character sheet is publicly accessible"></i>
                 </div>
               </label>
-              <br>
-              <label class="checkbox">
+              <label class="checkbox indent">
                 <input type="checkbox" class="disable-toggle" name="clone"{% if char.config.show_clone %} checked{% endif %}>
                 Show clone information
                 <div class="pull-right">
                   <i class="icon icon-question-sign" rel="tooltip" title="Show clone information on public sheet"></i>
                 </div>
               </label>
-              <label class="checkbox">
+              <label class="checkbox indent">
                 <input type="checkbox" class="disable-toggle" name="implants"{% if char.config.show_implants %} checked{% endif %}>
                 Show implants
                 <div class="pull-right">
                   <i class="icon icon-question-sign" rel="tooltip" title="Show implant information on public sheet"></i>
                 </div>
               </label>
-              <label class="checkbox">
+              <label class="checkbox indent">
                 <input type="checkbox" class="disable-toggle" name="queue"{% if char.config.show_skill_queue %} checked{% endif %}>
                 Show skill queue
                 <div class="pull-right">
                   <i class="icon icon-question-sign" rel="tooltip" title="Show skill queue on public sheet"></i>
                 </div>
               </label>
-              <label class="checkbox">
+              <label class="checkbox indent">
                 <input type="checkbox" class="disable-toggle" name="wallet"{% if char.config.show_wallet %} checked{% endif %}>
                 Show wallet balance
                 <div class="pull-right">
@@ -86,15 +94,15 @@
               </label>
               <br>
               <label class="checkbox">
-                <input type="checkbox" id="anon-key" class="disable-toggle" name="anon-key-toggle"{% if char.config.anon_key %} checked{% endif %}>
-                Anon key
+                <input type="checkbox" id="anon-key" name="anon-key-toggle"{% if char.config.anon_key %} checked{% endif %}>
+                Anonymous key
                 <div class="pull-right">
                   <i class="icon icon-question-sign" rel="tooltip" title="Key to use for anonymous character sheet"></i>
                 </div>
               </label>
-              <label>
-                <input type="text" id="anon-key-text" class="disable-toggle" name="anon-key" maxlength="16" value="{{ char.config.anon_key }}">
-                {% if char.config.anon_key %}<a href="{% url thing.views.character_anonymous char.config.anon_key %}">Anonymized link</a>{% endif %}
+              <label class="indent">
+                <input type="text" id="anon-key-text" name="anon-key" maxlength="16" value="{{ char.config.anon_key }}">
+                {% if char.config.anon_key %}<a id="anon-key-link" href="{% url thing.views.character_anonymous char.config.anon_key %}">Anonymized link</a>{% endif %}
               </label>
               <button type="submit" class="btn btn-primary">Save</button>
             </form>
