@@ -335,8 +335,15 @@ class Assets(APIJob):
 
         # assetID - [0]system, [1]station, [2]container_id, [3]item, [4]flag, [5]quantiy, [6]rawQuantity, [7]singleton
         errors = 0
+        last_count = 9999999999999999
         while rows:
             assets = list(rows.items())
+            # check for infinite loops
+            count = len(assets)
+            if count == last_count:
+                logging.warn('Infinite loop in assets, oops')
+                return
+            last_count = count
             
             for id, data in assets:
                 # asset has a container_id...
