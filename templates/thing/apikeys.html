@@ -119,8 +119,8 @@
                   {% endif %}
                   {% endspaceless %}
                 </td>
-                <td>{{ apikey.key_type }}</td>
-                <td>{{ apikey.access_mask }}</td>
+                <td class="c">{{ apikey.key_type }}</td>
+                <td class="r">{{ apikey.access_mask }}</td>
                 <td>{{ apikey.expires|default_if_none:"Never" }}</td>
                 <td>
                   {% spaceless %}
@@ -164,8 +164,8 @@
 
           <div id="build-table" class="well well-info">
             <p>
-              <strong>Note:</strong> EVEthing requires specific API key flags for various features, this table shows the supported asset flags and the features they enable.
-              Tick some boxes and the 'Create a key' link at the bottom will magically update. When adding a key in the form above, the 'Name' field is for your reference only -
+              <strong>Note:</strong> EVEthing requires specific API key flags for various features, tick some boxes and the 'Create a key'
+              link at the bottom will magically update. When adding a key in the form above, the 'Name' field is for your reference only -
               accounts on the home page will be sorted on this field so "1 Secret spy account" will sort before "2 Obvious troll account".
             </p>
             
