@@ -1,15 +1,18 @@
 * API Keys page:
-  - "this key has not yet updated" or something instead of just NONE NONE NONE
-  - explain how API data is pulled
-  - way to see last pull/next pull time for keys
-  - warn when a key doesn't have the required mask to pull AccountStatus (game time warnings)
+  - Display "data for this key has not yet been pulled" instead of just NONE NONE NONE
+  - Explain how API data is pulled
+  - Some way to see last pull/next pull time for keys
+  - Warn when a key doesn't have the required mask to pull AccountStatus (game time warnings)
+  - Explain that any corporation key requires you to also have an account/character key for the character or Bad
+    Things happen.
 
 * Account Settings page:
-  - new page, add various account settings that don't exist right now
-    = number of accounts per row on home page (2, 3, 4, 6)
-    = theme selection (I assume people will want a dark theme)
-  - combine API Keys into this page
-  - combine Change Password into this page
+  - New page, add various account settings that don't exist right now
+    = Number of accounts per row on home page (2, 3, 4, 6)
+    = Theme selection (I assume people will want a dark theme)
+  - Combine API Keys into this page
+  - Combine Change Password into this page
+  - Combine Event Log into this page
 
 * Assets page:
   - Add a volume column
@@ -43,17 +46,17 @@
   - Corporation graph too?
 
 * api_updater:
-  - make SystemEventLog objects for start/finish with basic stats so I can maybe track performance issues easier
+  - Make SystemEvent objects for start/finish with some sort of basic stats
 
 * documentation:
-  - pages need to explain what the hell they do
-  - finish writing README, needs info and screenshots for:
-    = blueprints
-    = bpcalc
-    = orders
-    = transactions
-    = trade
+  - Pages need to explain what the hell they do
+  - Finish writing README, needs info and screenshots for:
+    = Blueprints
+    = BPCalc
+    = Orders
+    = Transactions
+    = Trade
 
 * misc:
   - Multiple user accounts using keys for the same game account needs to work without weird things happening
-  - Replace Django templating engine with Jinja2 for 8-10x speedup
+  - Replace Django templating engine with Jinja2 for speedups
