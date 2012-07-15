@@ -1,4 +1,4 @@
-* API Keys page:
+* API Keys:
   - Display "data for this key has not yet been pulled" instead of just NONE NONE NONE
   - Explain how API data is pulled
   - Some way to see last pull/next pull time for keys
@@ -14,22 +14,33 @@
   - Combine Change Password into this page
   - Combine Event Log into this page
 
-* Assets page:
+* Assets:
   - Add a volume column
   - Improve search features:
     = Types: value, total value, containers only, group only
     = Magical JS buttons to add/remove extra search filters
   - Work out why the initial CharacterAsset view query is so slow, 1300 rows shouldn't take half a second. Possibly
     related to the pile of horrible LEFT OUTER JOINs, try querying (items, characters, etc) separately and caching.
+  - Pop-up box for ships with an EFT text block to copy into a fitting tool.
+  - Database model:
+    = Shift the primary key to an auto-generated id field
+    = Move id to asset_id and make it non-unique
 
-* Blueprints page:
+* Blueprints:
   - Work out a way to be able to say "I want to make 100 Blackbirds and 300 rigs to go on them" and get a BPCalc
-    page out of it.
+    summary page out of it.
   - Profitability dumping to buys instead of using sells?
 
-* Character Sheet page:
+* Character Sheet:
   - Make categories expandable/collapsible
   - Expand all/collapse all JavaScript links
+  - Standings tab with faction/corp/agent standings
+
+* Market Scan:
+  - Add different scan types:
+    = Assets
+    = Blueprints
+    = [All]
 
 * Transactions:
   - Improve pagination display, maybe << [1] 2 3 >> then << 1 [2] 3 >>, << 2 [3] 4 >> etc? Also needs to go at top
@@ -41,12 +52,13 @@
 
 * Wallet journal:
   - Implement database model to store
-  - Add support to api_updater
   - ISK per hour graph for mission rewards/rat bounties/etc
   - Corporation graph too?
 
 * api_updater:
-  - Make SystemEvent objects for start/finish with some sort of basic stats
+  - Make SystemEvent objects for admin-related events
+  - Standings support
+  - Wallet Journal char/corp support
 
 * documentation:
   - Pages need to explain what the hell they do
