@@ -1019,13 +1019,21 @@ class WalletTransactions(APIJob):
                 # Make the station object if it doesn't already exist
                 station = get_station(int(row.attrib['stationID']))
                 
-                # Work out what the character should be
+                # For a corporation key, make sure the character exists
                 if self._apikey.corp_character:
-                    try:
-                        char = self.char_id_map[int(row.attrib['characterID'])]
-                    except KeyError:
-                        print repr(row.attrib)
-                        raise
+                    char_id = int(row.attrib['characterID'])
+                    char = self.char_id_map.get(char_id, None)
+                    # Doesn't exist, create it
+                    if char is None:
+                        char = Character(
+                            id=char_id,
+                            apikey=None,
+                            name=row.attrib['characterName'],
+                            corporation=self._apikey.corp_character.corporation,
+                        )
+                        char.save()
+                        self.char_id_map[char_id] = char
+                # Any other key = just use the supplied character
                 else:
                     char = self._character
                 
