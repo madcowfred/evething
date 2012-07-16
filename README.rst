@@ -16,10 +16,12 @@ Features
 
 - Handles all types of API key: account, character and corporation.
 
-- Only crashes occasionally, honest. More than likely will not set your hard drive on fire.
+- Only crashes occasionally, honest.
+
+- More than likely won't set your hard drive on fire.
 
 - Home page: displays relevant information about all API keys related to your account.
-  `Screenshot <https://github.com/madcowfred/evething/raw/master/doc-images/home.png>`_.
+  `Screenshot <https://github.com/madcowfred/evething/raw/develop/doc-images/home.png>`_.
   
   + Character name, wallet balance, API key 'name' (in brackets) and total SP easily
     visible.
@@ -28,29 +30,67 @@ Features
   + Notification icons appear at the bottom of each character box and have basic
     tooltips, you can see the current types in the example screenshot.
   + Red boxes highlight accounts with no characters in training.
+  + Wallet balances for any corporation keys are displayed underneath.
 
-- Character page: displays character information similay to the in-game character sheet.
+- Character page: displays character information similar to the in-game character sheet.
   If you've ever used `eveboard <http://eveboard.com>`_ you should know what to expect.
-  `Screenshot <https://github.com/madcowfred/evething/raw/master/doc-images/character.png>`_
-  (yes, that's my character).
+  `Screenshot <https://github.com/madcowfred/evething/raw/develop/doc-images/character.png>`_
+  (yes, that's me).
 
   + Basic info: portrait, corporation, wallet balance, total SP, clone limit, attributes and
     implants.
   + Skill queue.
-  + Weird heart icons for level V skills.
+  + Filled stars for trained levels, hollow stars for partially trained levels, weird heart icons for
+    level V skills.
   + Full control over public visibility of character and of each component. If you're not
     logged in to the account that owns a character you will only see what the owner says
     you can see, or a 404 error if they choose to not be public.
-  + Anonymous character support, accessed via a /character_anon/blah URL. Character name
-    is not shown, portrait is replaced with a placeholder.
+  + Anonymous character support, accessed via a /character_anon/blah URL. Character name,
+    corporation, wallet balance and implants are not shown and your portrait is replaced
+    with a placeholder.
 
 - API key management page: list keys, add keys, simple interface to generate a new key with
-  a feature set. `Screenshot <https://github.com/madcowfred/evething/raw/master/doc-images/apikeys.png>`_
+  a feature set. `Screenshot <https://github.com/madcowfred/evething/raw/develop/doc-images/apikeys.png>`_
 
 - Assets page: lists assets for all characters with the relevant API mask. Includes ship
   and container names with the Locations mask. Filtering is somewhat limited and search is
   non-existent but the basic functionality is in and working.
-  `Screenshot <https://github.com/madcowfred/evething/raw/master/doc-images/assets.png>`_
+  `Screenshot <https://github.com/madcowfred/evething/raw/develop/doc-images/assets.png>`_
+
+- Blueprints page: lets you add/delete/edit/view blueprints you have added to the system.
+  `Screenshot <https://github.com/madcowfred/evething/raw/develop/doc-images/blueprints.png>`_
+  
+  + See useful information at a glance for every blueprint you own (assume you could be
+    bothered entering them all).
+  + Mark a selection of blueprints to use with BPCalc.
+
+- BPCalc page: displays detailed production information and allows you to filter based on
+  things. `Screenshot <https://github.com/madcowfred/evething/raw/develop/doc-images/bpcalc.png>`_
+
+  + Displays blueprints, total m3 of inputs/ouputs, expected profit values from both buys
+    and sells, and estimated weekly volume.
+  + Not particularly powerful filters on the data:
+    - Profit below a certain value
+    - Movement above a certain value (so you don't make 300% of the weekly supply)
+    - Limit slots to a certain value
+    - Remove selected blueprints
+  + Components table with IGB-clickable links for easy purchasing of items.
+
+- Orders page: displays a summary of your market orders and a detailed table.
+  `Screenshot <https://github.com/madcowfred/evething/raw/develop/doc-images/orders.png>`_
+
+  + Summary table showing active order slots and total values involved.
+  + Detailed active orders table listing all relevant information for each order, with
+    clickable item names that lead to Transactions pages.
+
+- Transactions page: displays a log of market transactions for all items or a specific
+  item. `Screenshot <https://github.com/madcowfred/evething/raw/develop/doc-images/transactions.png>`_
+
+  + All transactions page has clickable item links that lead to specific items.
+
+- Trade page: displays a summary of all transactions by month and over specific 'Campaigns'.
+  `Screenshot <https://github.com/madcowfred/evething/raw/develop/doc-images/trade.png>`_
+   
 
 Future Plans
 ============
@@ -62,9 +102,9 @@ Installation
 
 There are some common requirements for any install method, you will need:
 
-- `Python <http://www.python.org>`_ 2.6+, NOT 3.x
-- `Django <http://www.djangoproject.com>`_ 1.4+
-- `Django MPTT <https://github.com/django-mptt/django-mptt/>`_ 0.5+
+- `Python <http://www.python.org>`_ >=2.6 <3.0
+- `Django <http://www.djangoproject.com>`_ >=1.4
+- `Django MPTT <https://github.com/django-mptt/django-mptt/>`_ >=0.5
 - A database server and client library.
   
   + `SQLite <http://www.sqlite.org>`_ is the simplest and is often included with Python.
@@ -77,13 +117,14 @@ There are some common requirements for any install method, you will need:
 Local Install
 -------------
 This is for messing about with EVEthing and seeing what the hell it does, you probably
-shouldn't use this as a production site.
+don't want to use this as a real site due to issues (TODO: link to the Django page about
+this).
 
 #. Make sure you have Python 2.6+ and Django 1.4+ installed.
 #. Extract the EVEthing stuff somewhere.
-#. Copy local_settings.example to local_settings.py, then open local_settings.py
-   in some sort of text editor and edit stuff. 'sqlite' is included with Python
-   and will work, use that for the database setup.
+#. Copy evething/local_settings.example to evething/local_settings.py then open
+   evething/local_settings.py in some sort of text editor and edit stuff. 'sqlite' is
+   included with Python and is generally the easiest database to set up.
 #. Run ``python manage.py syncdb``, say yes when it asks if you want an admin user.
 #. Run ``python manage.py runserver``.
 #. Open http://localhost:8000/ in whatever browser you use.
@@ -94,5 +135,5 @@ shouldn't use this as a production site.
 
 Hosted Install
 --------------
-#. Put some Apache + mod_wsgi stuff here for the easy option.
-#. Put some nginx + uwsgi/gunicorn stuff here to scare people away.
+#. TODO: Apache + mod_wsgi information.
+#. TODO: nginx + uwsgi/gunicorn information.
