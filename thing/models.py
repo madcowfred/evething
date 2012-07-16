@@ -15,7 +15,7 @@ class UserProfile(models.Model):
     user = models.OneToOneField(User)
 
     home_chars_per_row = models.IntegerField(default=4)
-    theme = models.CharField(max_length=32, default='default')
+    theme = models.CharField(max_length=32, default='theme-default')
 
 # Magical hook so this gets called when a new user is created
 def create_user_profile(sender, instance, created, **kwargs):

@@ -9,11 +9,9 @@
     <script src="{{ STATIC_URL }}js/evething.js"></script>
     <link rel="stylesheet" href="{{ STATIC_URL }}css/bootstrap.min.css">
     <link rel="stylesheet" href="{{ STATIC_URL }}css/bootstrap-responsive.min.css">
-    {% with profile=user.get_profile %}
-    {% if profile.theme != 'default' %}
+    {% with profile=user.get_profile %}{% if profile.theme %}
     <link rel="stylesheet" href="{{ STATIC_URL}}css/{{ profile.theme }}.css" />
-    {% endif %}
-    {% endwith %}
+    {% endif %}{% endwith %}
     <link rel="stylesheet" href="{{ STATIC_URL }}css/evething.css" />
     {% block extra_head %}{% endblock %}
     <title>EVEthing: {% block title %}{% endblock %}</title>
