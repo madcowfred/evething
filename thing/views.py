@@ -195,7 +195,7 @@ def account(request):
         {
             'profile': request.user.get_profile(),
             'home_chars_per_row': (2, 3, 4, 6),
-            'themes': sorted(settings.THEMES)
+            'themes': settings.THEMES,
         },
         context_instance=RequestContext(request)
     )
