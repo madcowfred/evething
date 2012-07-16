@@ -39,7 +39,8 @@ def home(request):
     try:
         profile = request.user.get_profile()
     except UserProfile.DoesNotExist:
-        UserProfile.objects.create(user=request.user)
+        profile = UserProfile(user=request.user)
+        profile.save()
 
     now = datetime.datetime.utcnow()
     sanitise = request.GET.get('sanitise', False)
