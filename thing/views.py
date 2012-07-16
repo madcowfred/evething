@@ -5,6 +5,7 @@ import re
 from collections import OrderedDict
 #import time
 
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import Paginator, InvalidPage, EmptyPage
@@ -34,6 +35,12 @@ ORDER_SLOT_SKILLS = {
 # Home page
 @login_required
 def home(request):
+    # Create the user's profile if it doesn't already exist
+    try:
+        profile = request.user.get_profile()
+    except UserProfile.DoesNotExist:
+        UserProfile.objects.create(user=request.user)
+
     now = datetime.datetime.utcnow()
     sanitise = request.GET.get('sanitise', False)
     total_balance = 0
@@ -166,6 +173,7 @@ def home(request):
     return render_to_response(
         'thing/home.html',
         {
+            'profile': profile,
             'sanitise': sanitise,
             'not_training': not_training,
             'total_balance': total_balance,
@@ -176,6 +184,36 @@ def home(request):
         },
         context_instance=RequestContext(request)
     )
+
+# ---------------------------------------------------------------------------
+# Various account stuff
+@login_required
+def account(request):
+    return render_to_response(
+        'thing/account.html',
+        {
+            'profile': request.user.get_profile(),
+            'home_chars_per_row': (2, 3, 4, 6),
+            'themes': sorted(settings.THEMES)
+        },
+        context_instance=RequestContext(request)
+    )
+
+@login_required
+def account_settings(request):
+    profile = request.user.get_profile()
+
+    theme = request.POST.get('theme', 'default')
+    if [t[0] for t in settings.THEMES if t[0] == theme]:
+        profile.theme = theme
+
+    home_chars_per_row = int(request.POST.get('home_chars_per_row'), 0)
+    if home_chars_per_row in (2, 3, 4, 6):
+        profile.home_chars_per_row = home_chars_per_row
+
+    profile.save()
+
+    return redirect(account)
 
 # ---------------------------------------------------------------------------
 # List of API keys associated with our account
@@ -372,7 +410,6 @@ def assets(request):
                 ca.z_group = ca.inv_flag.nice_name()
                 if ca.z_group.startswith('CorpSAG') and ca.corporation:
                     ca.z_group = getattr(ca.corporation, 'division%s' % (ca.z_group[-1]))
-
 
     # add contents to the parent total
     for cas in systems.values():

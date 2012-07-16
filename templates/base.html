@@ -9,6 +9,11 @@
     <script src="{{ STATIC_URL }}js/evething.js"></script>
     <link rel="stylesheet" href="{{ STATIC_URL }}css/bootstrap.min.css">
     <link rel="stylesheet" href="{{ STATIC_URL }}css/bootstrap-responsive.min.css">
+    {% with profile=user.get_profile %}
+    {% if profile.theme != 'default' %}
+    <link rel="stylesheet" href="{{ STATIC_URL}}css/{{ profile.theme }}.css" />
+    {% endif %}
+    {% endwith %}
     <link rel="stylesheet" href="{{ STATIC_URL }}css/evething.css" />
     {% block extra_head %}{% endblock %}
     <title>EVEthing: {% block title %}{% endblock %}</title>
@@ -53,6 +58,8 @@
                   <b class="caret"></b>
                 </a>
                 <ul class="dropdown-menu">
+                  <li><a href="{% url thing.views.account %}">Account Management</a></li>
+                  <li class="divider"></li>
                   <li><a href="{% url thing.views.apikeys %}">API keys</a></li>
                   <li><a href="{% url thing.views.events %}">Event log</a></li>
                   <li class="divider"></li>

@@ -14,6 +14,8 @@ from thing.models import *
 # ---------------------------------------------------------------------------
 
 SDE_FILE = 'esc10-sqlite3-v1.db'
+
+REF_TYPES_URL = '%s/eve/RefTypes.xml.aspx' % (settings.API_HOST)
 STATION_URL = '%s/eve/ConquerableStationList.xml.aspx' % (settings.API_HOST)
 
 # Override volume for ships, assembled volume is mostly useless :ccp:

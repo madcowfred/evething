@@ -140,3 +140,8 @@ def dictlookup(d, key):
 @register.filter
 def modulus(v, d):
     return v % d
+
+# Divide
+@register.filter
+def divide(v, d):
+    return v / d

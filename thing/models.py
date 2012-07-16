@@ -1,12 +1,28 @@
 from django.contrib.auth.models import User
 from django.db import models
 from django.db.models import Q, Avg, Sum
+from django.db.models.signals import post_save
 from mptt.models import MPTTModel, TreeForeignKey
 
 import datetime
 import math
 import time
 from decimal import *
+
+# ---------------------------------------------------------------------------
+# Profile information for a user
+class UserProfile(models.Model):
+    user = models.OneToOneField(User)
+
+    home_chars_per_row = models.IntegerField(default=4)
+    theme = models.CharField(max_length=32, default='default')
+
+# Magical hook so this gets called when a new user is created
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        UserProfile.objects.create(user=instance)
+
+post_save.connect(create_user_profile, sender=User)
 
 # ---------------------------------------------------------------------------
 # API keys

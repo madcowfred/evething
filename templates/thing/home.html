@@ -25,11 +25,11 @@
         <span class="pull-right"><a href="#" onclick="toggle_tooltips();">Toggle tooltips</a></span>
       </div>
     </div>
-    {% for chars in characters|tablecols:4 %}
+    {% for chars in characters|tablecols:profile.home_chars_per_row %}
     <div class="row-fluid">
       {% for character in chars %}
       {% if character %}
-      <div class="span3">
+      <div class="span{{ 12|divide:profile.home_chars_per_row }}">
         <div class="well-small well{% if character.apikey in not_training %} alert-error{% endif %}">
           <div>
             <span class="large">

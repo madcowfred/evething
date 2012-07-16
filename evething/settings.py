@@ -140,6 +140,16 @@ LOGIN_REDIRECT_URL = '/'
 # email address that server mails appear to be from
 SERVER_EMAIL = 'evething@wafflemonster.org'
 
+# Auth profile thing
+AUTH_PROFILE_MODULE = 'thing.UserProfile'
+
+# Default themes
+THEMES = [
+    ('default', '<Default>'),
+    ('theme-cyborg.min', 'Cyborg'),
+    ('theme-slate.min', 'Slate'),
+]
+
 # load local settings
 from local_settings import *
 
