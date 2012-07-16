@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}Account Management{% endblock %}
+
+{% block extra_head %}
+  <script type="text/javascript">
+    var a = 'a';
+  </script>
+{% endblock %}
+
+{% block content %}
+      <div class="row-fluid">
+        <div class="span12">
+          <h3>Account Management</h3>
+          <ul class="nav nav-tabs">
+            <li class="active"><a href="#settings" data-toggle="tab">Settings</a></li>
+          </ul>
+
+          <div class="tab-content">
+            <div class="tab-pane active" id="settings">
+              <form action="{% url thing.views.account_settings %}" method="POST" class="form-horizontal">
+                <fieldset>
+                  {% csrf_token %}
+                  <div class="control-group">
+                    <label class="control-label" for="theme">Theme</label>
+                    <div class="controls">
+                      <select name="theme">
+                        {% for value, display in themes %}
+                        <option value="{{ value }}"{% if profile.theme == value %} selected{% endif %}>{{ display }}</option>
+                        {% endfor %}
+                      </select>
+                    </div>
+                  </div>
+                  <div class="control-group">
+                    <label class="control-label" for="home_chars_per_row">Home Chars per row</label>
+                    <div class="controls">
+                      <select name="home_chars_per_row">
+                        {% for n in home_chars_per_row %}
+                        <option value="{{ n }}"{% if profile.home_chars_per_row == n %} selected{% endif %}>{{ n }}</option>
+                        {% endfor %}
+                      </select>
+                    </div>
+                  </div>
+                  <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Save changes</button>
+                  </div>
+                </fieldset>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+{% endblock %}
