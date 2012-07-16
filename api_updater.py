@@ -198,19 +198,6 @@ class APICheck(APIJob):
                         apikey=self._apikey,
                         name=row.attrib['characterName'],
                         corporation=corp,
-                        wallet_balance=0,
-                        cha_attribute=0,
-                        cha_bonus=0,
-                        int_attribute=0,
-                        int_bonus=0,
-                        mem_attribute=0,
-                        mem_bonus=0,
-                        per_attribute=0,
-                        per_bonus=0,
-                        wil_attribute=0,
-                        wil_bonus=0,
-                        clone_name='',
-                        clone_skill_points=0,
                     )
                 # Character exists, update API key and corporation information
                 else:

@@ -131,21 +131,21 @@ class Character(models.Model):
     name = models.CharField(max_length=64)
     corporation = models.ForeignKey(Corporation)
     
-    wallet_balance = models.DecimalField(max_digits=18, decimal_places=2)
+    wallet_balance = models.DecimalField(max_digits=18, decimal_places=2, default=0.0)
     
-    cha_attribute = models.SmallIntegerField()
-    int_attribute = models.SmallIntegerField()
-    mem_attribute = models.SmallIntegerField()
-    per_attribute = models.SmallIntegerField()
-    wil_attribute = models.SmallIntegerField()
-    cha_bonus = models.SmallIntegerField()
-    int_bonus = models.SmallIntegerField()
-    mem_bonus = models.SmallIntegerField()
-    per_bonus = models.SmallIntegerField()
-    wil_bonus = models.SmallIntegerField()
+    cha_attribute = models.SmallIntegerField(default=0)
+    int_attribute = models.SmallIntegerField(default=0)
+    mem_attribute = models.SmallIntegerField(default=0)
+    per_attribute = models.SmallIntegerField(default=0)
+    wil_attribute = models.SmallIntegerField(default=0)
+    cha_bonus = models.SmallIntegerField(default=0)
+    int_bonus = models.SmallIntegerField(default=0)
+    mem_bonus = models.SmallIntegerField(default=0)
+    per_bonus = models.SmallIntegerField(default=0)
+    wil_bonus = models.SmallIntegerField(default=0)
     
-    clone_name = models.CharField(max_length=32)
-    clone_skill_points= models.IntegerField()
+    clone_name = models.CharField(max_length=32, default='')
+    clone_skill_points= models.IntegerField(default=0)
 
     skills = models.ManyToManyField('Skill', related_name='learned_by', through='CharacterSkill')
     skill_queue = models.ManyToManyField('Skill', related_name='training_by', through='SkillQueue')
@@ -153,7 +153,7 @@ class Character(models.Model):
     # industry stuff
     factory_cost = models.DecimalField(max_digits=8, decimal_places=2, default=0.0)
     factory_per_hour = models.DecimalField(max_digits=8, decimal_places=2, default=0.0)
-    sales_tax = models.DecimalField(max_digits=3, decimal_places=2, default=1.0)
+    sales_tax = models.DecimalField(max_digits=3, decimal_places=2, default=1.5)
     brokers_fee = models.DecimalField(max_digits=3, decimal_places=2, default=1.0)
     
     class Meta:
