@@ -64,16 +64,11 @@
 
 * documentation:
   - Pages need to explain what the hell they do
-  - Finish writing README, needs info and screenshots for:
-    = Blueprints
-    = BPCalc
-    = Orders
-    = Transactions
-    = Trade
 
 * misc:
   - Multiple user accounts using keys for the same game account needs to work without weird things happening
   - Replace Django templating engine with Jinja2 for speedups
+  - Get some less awful themes, oh dear
 
 * price_updater:
   - Add support for other sources of market data
