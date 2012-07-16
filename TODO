@@ -49,6 +49,7 @@
     = partial item name
     = date (before x, after x, between x and y)
     = wallets?
+  - Track other party in the transaction, new table probably?
 
 * Wallet journal:
   - Implement database model to store
@@ -59,6 +60,7 @@
   - Make SystemEvent objects for admin-related events
   - Standings support
   - Wallet Journal char/corp support
+  - Convert everything over to using Django 1.4 bulk saves
 
 * documentation:
   - Pages need to explain what the hell they do
@@ -72,3 +74,6 @@
 * misc:
   - Multiple user accounts using keys for the same game account needs to work without weird things happening
   - Replace Django templating engine with Jinja2 for speedups
+
+* price_updater:
+  - Add support for other sources of market data
