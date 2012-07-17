@@ -7,12 +7,9 @@
     Things happen.
 
 * Account Settings page:
-  - New page, add various account settings that don't exist right now
-    = Number of accounts per row on home page (2, 3, 4, 6)
-    = Theme selection (I assume people will want a dark theme)
-  - Combine API Keys into this page
-  - Combine Change Password into this page
-  - Combine Event Log into this page
+  - Move API Keys to this page
+  - Move Change Password to this page
+  - Move Event Log to this page
 
 * Assets:
   - Add a volume column
@@ -61,6 +58,7 @@
   - Standings support
   - Wallet Journal char/corp support
   - Convert everything over to using Django 1.4 bulk saves
+  - Delete 'text' field once the APIJob completes susccessfully
 
 * documentation:
   - Pages need to explain what the hell they do
@@ -69,6 +67,9 @@
   - Multiple user accounts using keys for the same game account needs to work without weird things happening
   - Replace Django templating engine with Jinja2 for speedups
   - Get some less awful themes, oh dear
+  - Skill planner
+    = First step: load .EMP files and display remaining skills (EVEmon skill plans), save as account-wide plans
+    = Hard step: implement skill planning
 
 * price_updater:
   - Add support for other sources of market data
