@@ -118,7 +118,7 @@ class APIJob:
             data = apicache.text
 
         # Parse the XML
-        root = ET.fromstring(data)
+        root = ET.fromstring(data.encode('utf-8'))
         times = {
             'current': parse_api_date(root.find('currentTime').text),
             'until': parse_api_date(root.find('cachedUntil').text),
