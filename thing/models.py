@@ -65,7 +65,7 @@ class APIKey(models.Model):
 # API cache entries
 class APICache(models.Model):
     url = models.URLField()
-    parameters = models.CharField(max_length=1024)
+    parameters = models.TextField()
     cached_until = models.DateTimeField()
     text = models.TextField()
     completed_ok = models.BooleanField()
