@@ -102,7 +102,7 @@ Installation
 
 There are some common requirements for any install method, you will need:
 
-- `Python <http://www.python.org>`_ >=2.6 <3.0
+- `Python <http://www.python.org>`_ >=2.7 <3.0
 - `Django <http://www.djangoproject.com>`_ >=1.4
 - `Django MPTT <https://github.com/django-mptt/django-mptt/>`_ >=0.5
 - A database server and client library.
@@ -120,7 +120,7 @@ This is for messing about with EVEthing and seeing what the hell it does, you pr
 don't want to use this as a real site due to issues (TODO: link to the Django page about
 this).
 
-#. Make sure you have Python 2.6+ and Django 1.4+ installed.
+#. Make sure you have Python 2.7+ and Django 1.4+ installed.
 #. Extract the EVEthing stuff somewhere.
 #. Copy evething/local_settings.example to evething/local_settings.py then open
    evething/local_settings.py in some sort of text editor and edit stuff. 'sqlite' is
