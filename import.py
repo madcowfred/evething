@@ -82,6 +82,7 @@ class Importer:
             time_func('InventoryFlag', self.import_inventoryflag)
         
         time_func('Conquerable Station', self.import_conquerable_station)
+        time_func('RefTypes', self.import_reftypes)
     
     # -----------------------------------------------------------------------
     # Regions
@@ -191,41 +192,7 @@ class Importer:
             added += 1
         
         return added
-    
-    # -----------------------------------------------------------------------
-    # Conquerable stations
-    def import_conquerable_station(self):
-        added = 0
-        
-        data = urllib2.urlopen(STATION_URL).read()
-        root = ET.fromstring(data)
-        
-        bulk_data = {}
-        # <row stationID="61000042" stationName="442-CS V - 442 S T A L I N G R A D" stationTypeID="21644" solarSystemID="30002616" corporationID="1001879801" corporationName="VVS Corporition"/>
-        for row in root.findall('result/rowset/row'):
-            bulk_data[int(row.attrib['stationID'])] = row
-        
-        data_map = Station.objects.in_bulk(bulk_data.keys())
-        
-        for id, row in bulk_data.items():
-            station = data_map.get(id, None)
-            if station is not None:
-                # update the station name
-                if station.name != row.attrib['stationName']:
-                    station.name = row.attrib['stationName']
-                    station.save()
-                continue
-            
-            station = Station(
-                id=id,
-                name=row.attrib['stationName'],
-                system_id=row.attrib['solarSystemID'],
-            )
-            station.save()
-            added += 1
-        
-        return added
-    
+
     # -----------------------------------------------------------------------
     # Market groups
     def import_marketgroup(self):
@@ -565,6 +532,73 @@ class Importer:
             added += 1
 
         return added
+
+    # -----------------------------------------------------------------------
+    # Conquerable stations
+    def import_conquerable_station(self):
+        added = 0
+        
+        data = urllib2.urlopen(STATION_URL).read()
+        root = ET.fromstring(data)
+        
+        bulk_data = {}
+        # <row stationID="61000042" stationName="442-CS V - 442 S T A L I N G R A D" stationTypeID="21644" solarSystemID="30002616" corporationID="1001879801" corporationName="VVS Corporition"/>
+        for row in root.findall('result/rowset/row'):
+            bulk_data[int(row.attrib['stationID'])] = row
+        
+        data_map = Station.objects.in_bulk(bulk_data.keys())
+        
+        for id, row in bulk_data.items():
+            station = data_map.get(id, None)
+            if station is not None:
+                # update the station name
+                if station.name != row.attrib['stationName']:
+                    station.name = row.attrib['stationName']
+                    station.save()
+                continue
+            
+            station = Station(
+                id=id,
+                name=row.attrib['stationName'],
+                system_id=row.attrib['solarSystemID'],
+            )
+            station.save()
+            added += 1
+        
+        return added
+
+    # -----------------------------------------------------------------------
+    # RefTypes (journal entries)
+    def import_reftypes(self):
+        added = 0
+
+        data = urllib2.urlopen(REF_TYPES_URL).read()
+        root = ET.fromstring(data)
+
+        bulk_data = {}
+        # <row refTypeID="0" refTypeName="Undefined" />
+        for row in root.findall('result/rowset/row'):
+            bulk_data[int(row.attrib['refTypeID'])] = row
+
+        data_map = RefType.objects.in_bulk(bulk_data.keys())
+
+        for id, row in bulk_data.items():
+            reftype = data_map.get(id)
+            if reftype is not None:
+                if reftype.name != row.attrib['refTypeName']:
+                    reftype.name = row.attrib['refTypeName']
+                    reftype.save()
+                continue
+
+            RefType.objects.create(
+                id=id,
+                name=row.attrib['refTypeName'],
+            )
+            added += 1
+
+        return added
+
+# ---------------------------------------------------------------------------
 
 if __name__ == '__main__':
     importer = Importer()

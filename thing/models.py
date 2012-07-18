@@ -517,6 +517,12 @@ class Transaction(models.Model):
     total_price = models.DecimalField(max_digits=17, decimal_places=2)
 
 # ---------------------------------------------------------------------------
+# RefTypes
+class RefType(models.Model):
+    id = models.IntegerField(primary_key=True)
+    name = models.CharField(max_length=64)
+
+# ---------------------------------------------------------------------------
 # Market orders
 class MarketOrder(models.Model):
     order_id = models.BigIntegerField(primary_key=True)
