@@ -105,6 +105,7 @@ There are some common requirements for any install method, you will need:
 - `Python <http://www.python.org>`_ >=2.7 <3.0
 - `Django <http://www.djangoproject.com>`_ >=1.4
 - `Django MPTT <https://github.com/django-mptt/django-mptt/>`_ >=0.5
+- `South <http://south.aeracode.org/>`_ >=0.7
 - A database server and client library.
   
   + `SQLite <http://www.sqlite.org>`_ is the simplest and is often included with Python.
@@ -125,13 +126,17 @@ this).
 #. Copy evething/local_settings.example to evething/local_settings.py then open
    evething/local_settings.py in some sort of text editor and edit stuff. 'sqlite' is
    included with Python and is generally the easiest database to set up.
-#. Run ``python manage.py syncdb``, say yes when it asks if you want an admin user.
-#. Run ``python manage.py runserver``.
+#. ``python manage.py syncdb``, say yes when it asks if you want an admin user.
+#. ``python manage.py migrate thing 0001 --fake`` (South is weird).
+#. ``python manage.py runserver``.
 #. Open http://localhost:8000/ in whatever browser you use.
 #. Log in as the admin user you created earlier.
 #. Click the cog in the top right then 'API keys'.
 #. Add one or more API keys.
-#. Run ``python api_updater.py`` and wait while it pulls a huge pile of information.
+#. ``python api_updater.py`` and wait while it pulls a huge pile of information.
+
+If you update EVEthing in the future, make sure you run ``python manage.py migrate thing``
+to apply any database schema changes!
 
 Hosted Install
 --------------
