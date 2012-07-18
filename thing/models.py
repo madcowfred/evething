@@ -70,6 +70,12 @@ class APICache(models.Model):
     text = models.TextField()
     completed_ok = models.BooleanField()
 
+    # called when the API call completes successfully
+    def completed(self):
+        self.completed_ok = True
+        self.text = ''
+        self.save()
+
 # ---------------------------------------------------------------------------
 # Events
 class Event(models.Model):
