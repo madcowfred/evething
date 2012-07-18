@@ -15,6 +15,7 @@ except:
 from Queue import Queue
 from collections import OrderedDict
 from decimal import *
+from urlparse import urljoin
 
 # Aurgh
 os.environ['DJANGO_SETTINGS_MODULE'] = 'evething.settings'
@@ -31,19 +32,19 @@ HEADERS = {
     'User-Agent': 'EVEthing-api-updater',
 }
 
-ACCOUNT_INFO_URL = '%s/account/AccountStatus.xml.aspx' % (settings.API_HOST)
-API_INFO_URL = '%s/account/APIKeyInfo.xml.aspx' % (settings.API_HOST)
-ASSETS_CHAR_URL = '%s/char/AssetList.xml.aspx' % (settings.API_HOST)
-ASSETS_CORP_URL = '%s/corp/AssetList.xml.aspx' % (settings.API_HOST)
-BALANCE_URL = '%s/corp/AccountBalance.xml.aspx' % (settings.API_HOST)
-CHAR_SHEET_URL = '%s/char/CharacterSheet.xml.aspx' % (settings.API_HOST)
-CORP_SHEET_URL = '%s/corp/CorporationSheet.xml.aspx' % (settings.API_HOST)
-LOCATIONS_CHAR_URL = '%s/char/Locations.xml.aspx' % (settings.API_HOST)
-ORDERS_CHAR_URL = '%s/char/MarketOrders.xml.aspx' % (settings.API_HOST)
-ORDERS_CORP_URL = '%s/corp/MarketOrders.xml.aspx' % (settings.API_HOST)
-SKILL_QUEUE_URL = '%s/char/SkillQueue.xml.aspx' % (settings.API_HOST)
-TRANSACTIONS_CHAR_URL = '%s/char/WalletTransactions.xml.aspx' % (settings.API_HOST)
-TRANSACTIONS_CORP_URL = '%s/corp/WalletTransactions.xml.aspx' % (settings.API_HOST)
+ACCOUNT_INFO_URL = '/account/AccountStatus.xml.aspx'
+API_INFO_URL = '/account/APIKeyInfo.xml.aspx'
+ASSETS_CHAR_URL = '/char/AssetList.xml.aspx'
+ASSETS_CORP_URL = '/corp/AssetList.xml.aspx'
+BALANCE_URL = '/corp/AccountBalance.xml.aspx'
+CHAR_SHEET_URL = '/char/CharacterSheet.xml.aspx'
+CORP_SHEET_URL = '/corp/CorporationSheet.xml.aspx'
+LOCATIONS_CHAR_URL = '/char/Locations.xml.aspx'
+ORDERS_CHAR_URL = '/char/MarketOrders.xml.aspx'
+ORDERS_CORP_URL = '/corp/MarketOrders.xml.aspx'
+SKILL_QUEUE_URL = '/char/SkillQueue.xml.aspx'
+TRANSACTIONS_CHAR_URL = '/char/WalletTransactions.xml.aspx'
+TRANSACTIONS_CORP_URL = '/corp/WalletTransactions.xml.aspx'
 
 # number of rows to request per WalletTransactions call, max is 2560
 TRANSACTION_ROWS = 2560
@@ -102,10 +103,11 @@ class APIJob:
         except APICache.DoesNotExist:
             apicache = None
             
-            logging.info('Fetching URL %s', url)
+            full_url = urljoin(settings.API_HOST, url)
+            logging.info('Fetching URL %s', full_url)
 
             # Fetch the URL
-            r = requests.post(url, params, headers=HEADERS, config={ 'max_retries': 1 })
+            r = requests.post(full_url, params, headers=HEADERS, config={ 'max_retries': 1 })
             data = r.text
             
             logging.info('URL retrieved in %s', datetime.datetime.utcnow() - now)
