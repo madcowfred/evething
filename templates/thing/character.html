@@ -66,28 +66,28 @@
               </label>
               <label class="checkbox indent">
                 <input type="checkbox" class="disable-toggle" name="clone"{% if char.config.show_clone %} checked{% endif %}>
-                Show clone information
+                Clone information
                 <div class="pull-right">
                   <i class="icon icon-question-sign" rel="tooltip" title="Show clone information on public sheet"></i>
                 </div>
               </label>
               <label class="checkbox indent">
                 <input type="checkbox" class="disable-toggle" name="implants"{% if char.config.show_implants %} checked{% endif %}>
-                Show implants
+                Implants
                 <div class="pull-right">
                   <i class="icon icon-question-sign" rel="tooltip" title="Show implant information on public sheet"></i>
                 </div>
               </label>
               <label class="checkbox indent">
                 <input type="checkbox" class="disable-toggle" name="queue"{% if char.config.show_skill_queue %} checked{% endif %}>
-                Show skill queue
+                Skill queue
                 <div class="pull-right">
                   <i class="icon icon-question-sign" rel="tooltip" title="Show skill queue on public sheet"></i>
                 </div>
               </label>
               <label class="checkbox indent">
                 <input type="checkbox" class="disable-toggle" name="wallet"{% if char.config.show_wallet %} checked{% endif %}>
-                Show wallet balance
+                Wallet balance
                 <div class="pull-right">
                   <i class="icon icon-question-sign" rel="tooltip" title="Show wallet balance on public sheet"></i>
                 </div>
@@ -101,7 +101,7 @@
                 </div>
               </label>
               <label class="indent">
-                <input type="text" id="anon-key-text" name="anon-key" maxlength="16" value="{{ char.config.anon_key }}">
+                <input type="text" id="anon-key-text" name="anon-key" maxlength="16" value="{{ char.config.anon_key }}" class="input-medium">
                 {% if char.config.anon_key %}<a id="anon-key-link" href="{% url thing.views.character_anonymous char.config.anon_key %}">Anonymized link</a>{% endif %}
               </label>
               <button type="submit" class="btn btn-primary">Save</button>
@@ -162,7 +162,7 @@
           {% if not public or char.config.show_skill_queue %}{% if queue %}
           <div class="row">
             <div class="span9">
-              <div class="well well-small {% if queue_duration < 86400 %}alert-error{% else %}alert-success{% endif %} black">
+              <div class="well well-small {% if queue_duration < 86400 %}alert-error{% else %}alert-success{% endif %}">
                 <h3>Skill Queue</h3>
                 <div>
                   {{ queue.0.skill.item.name }} {{ queue.0.get_roman_level }} (Rank {{ queue.0.skill.rank }}) --
