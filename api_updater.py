@@ -128,17 +128,6 @@ class APIJob:
             current = parse_api_date(self.root.find('currentTime').text)
             until = parse_api_date(self.root.find('cachedUntil').text)
 
-            error = self.root.find('error')
-            if error is not None:
-                logging.error('(%s) %s: %s | %s -> %s', self.__class__.__name__, error.attrib['code'], error.text, current, until)
-                
-                # Mark key as invalid if it's an auth error
-                if error.attrib['code'] in ('202', '203', '204', '205', '210', '212', '207', '220', '222', '223'):
-                    self.apikey.valid = False
-                    self.apikey.save()
-                
-                return False
-            
             # If the data wasn't cached, cache it now
             if apicache is None:
                 apicache = APICache(
@@ -149,6 +138,18 @@ class APIJob:
                     completed_ok=False,
                 )
                 apicache.save()
+
+            # Check for an error node in the XML
+            error = self.root.find('error')
+            if error is not None:
+                logging.error('(%s) %s: %s | %s -> %s', self.__class__.__name__, error.attrib['code'], error.text, current, until)
+                
+                # Mark key as invalid if it's an auth error
+                if error.attrib['code'] in ('202', '203', '204', '205', '210', '212', '207', '220', '222', '223'):
+                    self.apikey.valid = False
+                    self.apikey.save()
+                
+                return False
 
         self.apicache = apicache
 
