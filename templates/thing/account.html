@@ -2,16 +2,10 @@
 
 {% block title %}Account Management{% endblock %}
 
-{% block extra_head %}
-  <script type="text/javascript">
-    var a = 'a';
-  </script>
-{% endblock %}
-
 {% block content %}
       <div class="row-fluid">
         <div class="span12">
-          <h3>Account Management</h3>
+          <h2>Account Management</h2>
           <ul class="nav nav-tabs">
             <li class="active"><a href="#settings" data-toggle="tab">Settings</a></li>
           </ul>
@@ -31,8 +25,11 @@
                       </select>
                     </div>
                   </div>
+                </fieldset>
+                <fieldset>
+                  <legend>Home page</legend>
                   <div class="control-group">
-                    <label class="control-label" for="home_chars_per_row">Home Chars per row</label>
+                    <label class="control-label" for="home_chars_per_row">Characters per row</label>
                     <div class="controls">
                       <select name="home_chars_per_row">
                         {% for n in home_chars_per_row %}
@@ -41,6 +38,24 @@
                       </select>
                     </div>
                   </div>
+                  <div class="control-group">
+                    <label class="control-label" for="home_sort_order">Sort order</label>
+                    <div class="controls">
+                      <select name="home_sort_order">
+                        {% for value, name in home_sort_orders %}
+                        <option value="{{ value }}"{% if profile.home_sort_order == value %} selected{% endif %}>{{ name }}</option>
+                        {% endfor %}
+                      </select>
+                    </div>
+                  </div>
+                  <div class="control-group">
+                    <label class="control-label" for="home_sort_descending">Sort descending?</label>
+                    <div class="controls">
+                      <input type="checkbox" name="home_sort_descending"{% if profile.home_sort_descending %} checked{% endif %}>
+                    </div>
+                  </div>
+                </fieldset>
+                <fieldset>
                   <div class="form-actions">
                     <button type="submit" class="btn btn-primary">Save changes</button>
                   </div>

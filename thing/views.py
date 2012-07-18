@@ -46,11 +46,27 @@ def home(request):
     sanitise = request.GET.get('sanitise', False)
     total_balance = 0
 
-    # Grab the initial set of characters and do some stuff
+    # Work out sort order
+    char_q = Character.objects.select_related('apikey').filter(apikey__user=request.user)
+    if profile.home_sort_order == 'apikey':
+        char_q = char_q.order_by('apikey__name', 'name')
+    elif profile.home_sort_order == 'charname':
+        char_q = char_q.order_by('name')
+    elif profile.home_sort_order == 'corpname':
+        char_q = char_q.order_by('corporation__name', 'name')
+    elif profile.home_sort_order == 'wallet':
+        char_q = char_q.order_by('wallet_balance', 'name')
+    else:
+        char_q = char_q.order_by('apikey__name', 'name')
+
+    if profile.home_sort_descending:
+        char_q = char_q.reverse()
+
+    # Initialise various data structures
     api_keys = set()
     training = set()
     chars = OrderedDict()
-    for char in Character.objects.select_related('apikey').filter(apikey__user=request.user).order_by('apikey__name', 'name'):
+    for char in char_q:
         char.z_training = {}
         chars[char.id] = char
         api_keys.add(char.apikey)
@@ -74,6 +90,14 @@ def home(request):
     # Do total skill point aggregation
     for cs in CharacterSkill.objects.select_related().filter(character__in=chars).values('character').annotate(total_sp=Sum('points')):
         chars[cs['character']].z_total_sp = cs['total_sp']
+
+    # Ugh. Sort by totalsp here if we have to
+    if profile.home_sort_order == 'totalsp':
+        if profile.home_sort_descending:
+            temp = OrderedDict(sorted(chars.items(), key=lambda t: t[1].z_total_sp, reverse=True))
+        else:
+            temp = OrderedDict(sorted(chars.items(), key=lambda t: t[1].z_total_sp))
+        chars = temp
 
     # Work out who is and isn't training
     not_training = api_keys - training
@@ -195,6 +219,7 @@ def account(request):
         {
             'profile': request.user.get_profile(),
             'home_chars_per_row': (2, 3, 4, 6),
+            'home_sort_orders': UserProfile.HOME_SORT_ORDERS,
             'themes': settings.THEMES,
         },
         context_instance=RequestContext(request)
@@ -205,12 +230,18 @@ def account_settings(request):
     profile = request.user.get_profile()
 
     theme = request.POST.get('theme', 'default')
-    if [t[0] for t in settings.THEMES if t[0] == theme]:
+    if [t for t in settings.THEMES if t[0] == theme]:
         profile.theme = theme
 
     home_chars_per_row = int(request.POST.get('home_chars_per_row'), 0)
     if home_chars_per_row in (2, 3, 4, 6):
         profile.home_chars_per_row = home_chars_per_row
+
+    home_sort_order = request.POST.get('home_sort_order')
+    if [o for o in UserProfile.HOME_SORT_ORDERS if o[0] == home_sort_order]:
+        profile.home_sort_order = home_sort_order
+
+    profile.home_sort_descending = (request.POST.get('home_sort_descending', '') == 'on')
 
     profile.save()
 

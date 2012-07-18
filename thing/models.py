@@ -12,10 +12,21 @@ from decimal import *
 # ---------------------------------------------------------------------------
 # Profile information for a user
 class UserProfile(models.Model):
+    HOME_SORT_ORDERS = (
+        ('apiname', 'APIKey name'),
+        ('charname', 'Character name'),
+        ('corpname', 'Corporation name'),
+        ('totalsp', 'Total SP'),
+        ('wallet', 'Wallet balance'),
+    )
+
     user = models.OneToOneField(User)
 
-    home_chars_per_row = models.IntegerField(default=4)
     theme = models.CharField(max_length=32, default='theme-default')
+
+    home_chars_per_row = models.IntegerField(default=4)
+    home_sort_order = models.CharField(choices=HOME_SORT_ORDERS, max_length=12, default='apiname')
+    home_sort_descending = models.BooleanField(default=False)
 
 # Magical hook so this gets called when a new user is created
 def create_user_profile(sender, instance, created, **kwargs):
