@@ -200,7 +200,7 @@
                   <strong>{{ css|length }}</strong> skill{{ css|length|pluralize }} trained for <strong>{{ mg.z_total_sp|commas }}</strong> SP
                 </div>
                 {% for cs in css %}
-                <div>
+                <div class="clearfix">
                   {% spaceless %}
                   {% if cs.z_training %}<span class="training-highlight"><i class="icon-play"></i>
                   {% else %}{% if cs.level == 5 %}<span class="level5">{% endif %}
