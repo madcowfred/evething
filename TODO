@@ -33,8 +33,14 @@
   - Expand all/collapse all JavaScript links
   - Standings tab with faction/corp/agent standings
 
+* Contracts:
+  - Implement database models to store contracts and contract contents
+  - Work out how in the hell to track them for Trade
+  - Use Events for contract completion/expiry
+  - Summary table similar to orders
+
 * Market Scan:
-  - Add different scan types:
+  - Add different scan types (assets+blueprints takes forever):
     = Assets
     = Blueprints
     = [All]
@@ -43,10 +49,11 @@
   - Improve pagination display, maybe << [1] 2 3 >> then << 1 [2] 3 >>, << 2 [3] 4 >> etc? Also needs to go at top
     and bottom of pages instead of just bottom.
   - Ability to search transactions via:
+    = character
     = partial item name
     = date (before x, after x, between x and y)
     = wallets?
-  - Track other party in the transaction, new table probably?
+  - Track other party in the transaction, new Client table or something
 
 * Wallet journal:
   - Implement database model to store
