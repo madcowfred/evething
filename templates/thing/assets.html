@@ -71,6 +71,46 @@
             });
           }
         });
+
+        // bind the ship EFT fitting buttons
+        $(".icon-plane").on('click', function() {
+          var $this = $(this);
+          var data_target = $('i:nth-child(1)', $this.parent()).attr('data-target');
+
+          var parts = $.trim($(this).parent().text()).split(' - ');
+          var ship_type = $.trim(parts[0]);
+          if (parts.length == 2) {
+            ship_name = $.trim(parts[1]);
+          }
+          else {
+            ship_name = "From Assets";
+          }
+
+          $('#eft-textarea').empty();
+          $('#eft-textarea').append('[' + ship_type + ', ' + ship_name + ']\n');
+
+          var last_slot = null;
+
+          $(data_target).each(function() {
+            var slot = $.trim($('td:nth-child(3)', $(this)).text());
+            if (slot.substr(-4) == "Slot") {
+              if (last_slot && last_slot != slot) {
+                $('#eft-textarea').append('\n');
+              }
+              last_slot = slot;
+
+              var name = $.trim($('td:nth-child(2)', $(this)).text());
+              $('#eft-textarea').append(name + '\n');
+              //console.log("%s: %s", slot, name);
+            }
+          });
+
+          $('#eft-modal').modal('show');
+        });
+
+        $('#eft-modal').on('shown', function() {
+          $('#eft-textarea').select();
+        });
       });
     </script>
 {% endblock %}
@@ -145,6 +185,7 @@
                   {% if asset.z_blueprint == -2 %}<i class="icon-star-empty pull-right" rel="tooltip" title="Copy"></i>{% endif %}
                   {{ asset.item.name }}
                   {% if asset.name %} - <i>{{ asset.name }}</i>{% endif %}
+                  {% if asset.z_contents and asset.item.item_group.category.name == 'Ship' %}<i class="icon-plane pull-right"></i>{% endif %}
                 </td>
                 <td class="assets-type c">{{ asset.item.item_group.category.name }}</td>
                 <td class="assets-quantity r">{{ asset.quantity|commas }}</td>
@@ -179,6 +220,21 @@
           </table>
           {% endfor %}{% comment %}in systems{% endcomment %}
           {% endautoescape %}
+        </div>
+      </div>
+
+      <div class="modal hide" id="eft-modal">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal"><i class="icon-remove"></i></button>
+          <h3>EFT Fitting</h3>
+        </div>
+        <div class="modal-body">
+          <div class="row-fluid">
+            <div class="span12">
+              <textarea id="eft-textarea" rows="20" style="width: 98%;">
+              </textarea>
+            </div>
+          </div>
         </div>
       </div>
 {% endblock %}
