@@ -80,6 +80,7 @@ class Importer:
             time_func('Blueprint', self.import_blueprint)
             time_func('Skill', self.import_skill)
             time_func('InventoryFlag', self.import_inventoryflag)
+            time_func('NPCFaction', self.import_npcfaction)
             time_func('NPCCorporation', self.import_npccorporation)
         
         time_func('Conquerable Station', self.import_conquerable_station)
@@ -563,6 +564,41 @@ class Importer:
 
         if new:
             InventoryFlag.objects.bulk_create(new)
+
+        return added
+
+    # -----------------------------------------------------------------------
+    # NPC Factions
+    def import_npcfaction(self):
+        added = 0
+
+        self.cursor.execute('SELECT factionID, factionName FROM chrFactions')
+
+        bulk_data = {}
+        for row in self.cursor:
+            bulk_data[int(row[0])] = row[1]
+
+        data_map = Faction.objects.in_bulk(bulk_data.keys())
+
+        new = []
+        for id, name in bulk_data.items():
+            faction = data_map.get(id, None)
+            if faction is not None:
+                if faction.name != name:
+                    print '==> Renamed %r to %r' % (faction.name, name)
+                    faction.name = name
+                    faction.save()
+                continue
+
+            faction = Faction(
+                id=id,
+                name=name,
+            )
+            new.append(faction)
+            added += 1
+
+        if new:
+            Faction.objects.bulk_create(new)
 
         return added
 

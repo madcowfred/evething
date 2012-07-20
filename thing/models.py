@@ -103,6 +103,12 @@ class Event(models.Model):
         return (datetime.datetime.now() - self.issued).total_seconds()
 
 # ---------------------------------------------------------------------------
+# Factions
+class Faction(models.Model):
+    id = models.IntegerField(primary_key=True)
+    name = models.CharField(max_length=64)
+
+# ---------------------------------------------------------------------------
 # Corporations
 class Corporation(models.Model):
     id = models.IntegerField(primary_key=True)
