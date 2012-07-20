@@ -141,7 +141,7 @@ class APIJob:
             # Check for an error node in the XML
             error = self.root.find('error')
             if error is not None:
-                if self.apikey.error_displayed:
+                if apicache.error_displayed:
                     return False
 
                 logging.error('(%s) %s: %s | %s -> %s', self.__class__.__name__, error.attrib['code'], error.text, current, until)
@@ -149,8 +149,10 @@ class APIJob:
                 # Mark key as invalid if it's an auth error
                 if error.attrib['code'] in ('202', '203', '204', '205', '210', '212', '207', '220', '222', '223'):
                     self.apikey.valid = False
-                self.apikey.error_displayed = True
-                self.apikey.save()
+                    self.apikey.save()
+                
+                apicache.error_displayed = True
+                apicache.save()
                 
                 return False
 
