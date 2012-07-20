@@ -80,6 +80,7 @@ class Importer:
             time_func('Blueprint', self.import_blueprint)
             time_func('Skill', self.import_skill)
             time_func('InventoryFlag', self.import_inventoryflag)
+            time_func('NPCCorporation', self.import_npccorporation)
         
         time_func('Conquerable Station', self.import_conquerable_station)
         time_func('RefTypes', self.import_reftypes)
@@ -530,6 +531,46 @@ class Importer:
             )
             flag.save()
             added += 1
+
+        return added
+
+    # -----------------------------------------------------------------------
+    # NPC Corporations
+    def import_npccorporation(self):
+        added = 0
+
+        self.cursor.execute("""
+            SELECT  c.corporationID, i.itemName
+            FROM    crpNPCCorporations c, invNames i
+            WHERE   c.corporationID = i.itemID
+        """)
+
+        bulk_data = {}
+        for row in self.cursor:
+            bulk_data[int(row[0])] = row[1]
+
+        data_map = Corporation.objects.in_bulk(bulk_data.keys())
+
+        new = []
+        for id, name in bulk_data.items():
+            corp = data_map.get(id, None)
+            if corp is not None:
+                if corp.name != name:
+                    print '==> Renamed %r to %r' % (corp.name, name)
+                    corp.name = name
+                    corp.save()
+                continue
+
+            corp = Corporation(
+                id=id,
+                name=name,
+            )
+            new.append(corp)
+            #corp.save()
+            added += 1
+
+        if new:
+            Corporation.objects.bulk_create(new)
 
         return added
 
