@@ -172,9 +172,14 @@ class Character(models.Model):
     clone_name = models.CharField(max_length=32, default='')
     clone_skill_points= models.IntegerField(default=0)
 
+    # Skill stuff
     skills = models.ManyToManyField('Skill', related_name='learned_by', through='CharacterSkill')
     skill_queue = models.ManyToManyField('Skill', related_name='training_by', through='SkillQueue')
     
+    # Standings stuff
+    faction_standings = models.ManyToManyField('Faction', related_name='has_standings', through='FactionStanding')
+    corporation_standings = models.ManyToManyField('Corporation', related_name='has_standings', through='CorporationStanding')
+
     # industry stuff
     factory_cost = models.DecimalField(max_digits=8, decimal_places=2, default=0.0)
     factory_per_hour = models.DecimalField(max_digits=8, decimal_places=2, default=0.0)
@@ -200,6 +205,7 @@ class Character(models.Model):
     def get_total_skill_points(self):
         return CharacterSkill.objects.filter(character=self).aggregate(total_sp=Sum('points'))['total_sp']
 
+# Character configuration information
 class CharacterConfig(models.Model):
     character = models.OneToOneField(Character, unique=True, primary_key=True, related_name='config')
 
@@ -260,6 +266,20 @@ class SkillQueue(models.Model):
     def get_remaining(self):
         remaining = (self.end_time - datetime.datetime.utcnow()).total_seconds()
         return int(remaining)
+
+# Faction standings
+class FactionStanding(models.Model):
+    faction = models.ForeignKey('Faction')
+    character = models.ForeignKey('character')
+
+    standing = models.DecimalField(max_digits=4, decimal_places=2)
+
+# Corporation standings
+class CorporationStanding(models.Model):
+    corporation = models.ForeignKey('Corporation')
+    character = models.ForeignKey('character')
+
+    standing = models.DecimalField(max_digits=4, decimal_places=2)
 
 # ---------------------------------------------------------------------------
 # Regions

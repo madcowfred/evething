@@ -43,6 +43,7 @@ LOCATIONS_CHAR_URL = '/char/Locations.xml.aspx'
 ORDERS_CHAR_URL = '/char/MarketOrders.xml.aspx'
 ORDERS_CORP_URL = '/corp/MarketOrders.xml.aspx'
 SKILL_QUEUE_URL = '/char/SkillQueue.xml.aspx'
+STANDINGS_URL = '/char/Standings.xml.aspx'
 TRANSACTIONS_CHAR_URL = '/char/WalletTransactions.xml.aspx'
 TRANSACTIONS_CORP_URL = '/corp/WalletTransactions.xml.aspx'
 
@@ -831,6 +832,93 @@ class MarketOrders(APIJob):
         self.apicache.completed()
 
 # ---------------------------------------------------------------------------
+# Fetch character standings
+class Standings(APIJob):
+    def run(self):
+        if self.apikey.corp_character:
+            logging.warn('Corporate APIKey passed to Standings!')
+            return
+
+        # Make sure the access mask matches
+        if (self.apikey.access_mask & 524288) == 0:
+            return
+        
+        # Fetch the API data
+        params = { 'characterID': self.character.id }
+        if self.fetch_api(STANDINGS_URL, params) is False or self.root is None:
+            return
+        
+        # Build data maps
+        corp_map = {}
+        for cs in CorporationStanding.objects.filter(character=self.character):
+            corp_map[cs.corporation_id] = cs
+
+        faction_map = {}
+        for fs in FactionStanding.objects.filter(character=self.character):
+            faction_map[fs.faction_id] = fs
+
+        # Iterate over rowsets
+        for rowset in self.root.findall('result/characterNPCStandings/rowset'):
+            name = rowset.attrib['name']
+
+            # NYI: Agents
+            if name == 'agents':
+                continue
+
+            # Corporations
+            elif name == 'NPCCorporations':
+                new = []
+                for row in rowset.findall('row'):
+                    id = int(row.attrib['fromID'])
+                    standing = Decimal(row.attrib['standing'])
+
+                    cs = corp_map.get(id, None)
+                    # Standing doesn't exist, make a new one
+                    if cs is None:
+                        cs = CorporationStanding(
+                            character_id=self.character.id,
+                            corporation_id=id,
+                            standing=standing,
+                        )
+                        new.append(cs)
+                    # Exists, check for standings change
+                    else:
+                        if cs.standing != standing:
+                            cs.standing = standing
+                            cs.save()
+
+                if new:
+                    CorporationStanding.objects.bulk_create(new)
+
+            # Factions
+            elif name == 'factions':
+                new = []
+                for row in rowset.findall('row'):
+                    id = int(row.attrib['fromID'])
+                    standing = Decimal(row.attrib['standing'])
+
+                    fs = faction_map.get(id, None)
+                    # Standing doesn't exist, make a new one
+                    if fs is None:
+                        fs = FactionStanding(
+                            character_id=self.character.id,
+                            faction_id=id,
+                            standing=standing,
+                        )
+                        new.append(fs)
+                    # Exists, check for standings change
+                    else:
+                        if fs.standing != standing:
+                            fs.standing = standing
+                            fs.save()
+
+                if new:
+                    FactionStanding.objects.bulk_create(new)
+
+        # completed ok
+        self.apicache.completed()
+
+# ---------------------------------------------------------------------------
 # Fetch wallet transactions
 class WalletTransactions(APIJob):
     def run(self):
@@ -1047,6 +1135,10 @@ class APIUpdater:
                     job = MarketOrders(apikey, character)
                     self._job_queue.put(job)
                     
+                    # Fetch standings
+                    job = Standings(apikey, character)
+                    self._job_queue.put(job)
+
                     # Fetch wallet transactions
                     job = WalletTransactions(apikey, character)
                     self._job_queue.put(job)
@@ -1111,8 +1203,6 @@ class APIUpdater:
             for query in connection.queries:
                debug.write('%02.3fs  %s\n' % (float(query['time']), query['sql']))
             debug.close()
-    
-    # -----------------------------------------------------------------------
 
 # ---------------------------------------------------------------------------
 # Turn an API date into a datetime object
