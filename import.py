@@ -97,6 +97,7 @@ class Importer:
         
         data_map = Region.objects.in_bulk(bulk_data.keys())
         
+        new = []
         for id, data in bulk_data.items():
             if id in data_map:
                 continue
@@ -105,8 +106,11 @@ class Importer:
                 id=id,
                 name=data[0],
             )
-            region.save()
+            new.append(region)
             added += 1
+
+        if new:
+            Region.objects.bulk_create(new)
         
         return added
     
@@ -124,6 +128,7 @@ class Importer:
         
         data_map = Constellation.objects.in_bulk(bulk_data.keys())
         
+        new = []
         for id, data in bulk_data.items():
             if id in data_map or not data[0] or not data[1]:
                 continue
@@ -133,9 +138,12 @@ class Importer:
                 name=data[0],
                 region_id=data[1],
             )
-            con.save()
+            new.append(con)
             added += 1
         
+        if new:
+            Constellation.objects.bulk_create(new)
+
         return added
     
     # -----------------------------------------------------------------------
@@ -152,6 +160,7 @@ class Importer:
         
         data_map = System.objects.in_bulk(bulk_data.keys())
         
+        new = []
         for id, data in bulk_data.items():
             if id in data_map or not data[0] or not data[1]:
                 continue
@@ -161,8 +170,11 @@ class Importer:
                 name=data[0],
                 constellation_id=data[1],
             )
-            system.save()
+            new.append(system)
             added += 1
+
+        if new:
+            System.objects.bulk_create(new)
         
         return added
     
@@ -180,6 +192,7 @@ class Importer:
         
         data_map = Station.objects.in_bulk(bulk_data.keys())
         
+        new = []
         for id, data in bulk_data.items():
             if id in data_map or not data[0] or not data[1]:
                 continue
@@ -189,9 +202,12 @@ class Importer:
                 name=data[0],
                 system_id=data[1],
             )
-            station.save()
+            new.append(station)
             added += 1
         
+        if new:
+            Station.objects.bulk_create(new)
+
         return added
 
     # -----------------------------------------------------------------------
@@ -251,6 +267,7 @@ class Importer:
         
         data_map = ItemCategory.objects.in_bulk(bulk_data.keys())
         
+        new = []
         for id, data in bulk_data.items():
             if id in data_map or not data[0]:
                 continue
@@ -259,8 +276,11 @@ class Importer:
                 id=id,
                 name=data[0],
             )
-            ic.save()
+            new.append(ic)
             added += 1
+
+        if new:
+            ItemCategory.objects.bulk_create(new)
         
         return added
     
@@ -278,6 +298,7 @@ class Importer:
         
         data_map = ItemGroup.objects.in_bulk(bulk_data.keys())
         
+        new = []
         for id, data in bulk_data.items():
             if data[1]:
                 continue
@@ -295,8 +316,11 @@ class Importer:
                 name=data[0],
                 category_id=data[1],
             )
-            ig.save()
+            new.append(ig)
             added += 1
+
+        if new:
+            ItemGroup.objects.bulk_create(new)
         
         return added
     
@@ -313,6 +337,7 @@ class Importer:
         
         data_map = Item.objects.in_bulk(bulk_data.keys())
         
+        new = []
         for id, data in bulk_data.items():
             if not data[1]:
                 continue
@@ -334,8 +359,11 @@ class Importer:
                 portion_size=data[3],
                 volume=PACKAGED.get(int(data[1]), data[4]),
             )
-            item.save()
+            new.append(item)
             added += 1
+
+        if new:
+            Item.objects.bulk_create(new)
         
         return added
     
@@ -510,6 +538,7 @@ class Importer:
 
         data_map = InventoryFlag.objects.in_bulk(bulk_data.keys())
 
+        new = []
         for id, data in bulk_data.items():
             if not data[0] or not data[1]:
                 continue
@@ -529,8 +558,11 @@ class Importer:
                 name=data[0],
                 text=data[1],
             )
-            flag.save()
+            new.append(flag)
             added += 1
+
+        if new:
+            InventoryFlag.objects.bulk_create(new)
 
         return added
 
@@ -566,7 +598,6 @@ class Importer:
                 name=name,
             )
             new.append(corp)
-            #corp.save()
             added += 1
 
         if new:
@@ -589,6 +620,7 @@ class Importer:
         
         data_map = Station.objects.in_bulk(bulk_data.keys())
         
+        new = []
         for id, row in bulk_data.items():
             station = data_map.get(id, None)
             if station is not None:
@@ -603,9 +635,12 @@ class Importer:
                 name=row.attrib['stationName'],
                 system_id=row.attrib['solarSystemID'],
             )
-            station.save()
+            new.append(station)
             added += 1
         
+        if new:
+            Station.objects.bulk_create(new)
+
         return added
 
     # -----------------------------------------------------------------------
@@ -623,6 +658,7 @@ class Importer:
 
         data_map = RefType.objects.in_bulk(bulk_data.keys())
 
+        new = []
         for id, row in bulk_data.items():
             reftype = data_map.get(id)
             if reftype is not None:
@@ -631,11 +667,15 @@ class Importer:
                     reftype.save()
                 continue
 
-            RefType.objects.create(
+            reftype = RefType(
                 id=id,
                 name=row.attrib['refTypeName'],
             )
+            new.append(reftype)
             added += 1
+
+        if new:
+            RefType.objects.bulk_create(new)
 
         return added
 
