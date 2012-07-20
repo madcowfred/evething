@@ -133,21 +133,24 @@ class APIJob:
                 apicache = APICache(
                     url=url,
                     parameters=params_repr,
-                    cached_until=until,
                     text=data,
-                    completed_ok=False,
+                    cached_until=until,
                 )
                 apicache.save()
 
             # Check for an error node in the XML
             error = self.root.find('error')
             if error is not None:
+                if self.apikey.error_displayed:
+                    return False
+
                 logging.error('(%s) %s: %s | %s -> %s', self.__class__.__name__, error.attrib['code'], error.text, current, until)
-                
+
                 # Mark key as invalid if it's an auth error
                 if error.attrib['code'] in ('202', '203', '204', '205', '210', '212', '207', '220', '222', '223'):
                     self.apikey.valid = False
-                    self.apikey.save()
+                self.apikey.error_displayed = True
+                self.apikey.save()
                 
                 return False
 

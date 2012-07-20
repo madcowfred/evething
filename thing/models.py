@@ -77,9 +77,11 @@ class APIKey(models.Model):
 class APICache(models.Model):
     url = models.URLField()
     parameters = models.TextField()
-    cached_until = models.DateTimeField()
     text = models.TextField()
-    completed_ok = models.BooleanField()
+
+    cached_until = models.DateTimeField()
+    completed_ok = models.BooleanField(default=False)
+    error_displayed = models.BooleanField(default=False)
 
     # called when the API call completes successfully
     def completed(self):
