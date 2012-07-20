@@ -14,6 +14,18 @@
       anon_checked = $('#anon-key').attr('checked');
       $("#anon-key").change(anon_toggle);
       anon_toggle();
+    
+      // Javascript to enable link to tab
+      var prefix = 'tab_';
+      var hash = document.location.hash;
+      if (hash) {
+        $('.nav-tabs a[href=' + hash.replace(prefix, "") + ']').tab('show');
+      }
+      
+      // Change hash for page-reload
+      $('.nav-tabs a').on('shown', function (e) {
+        window.location.hash = e.target.hash.replace('#', '#' + prefix);
+      })
     });
 
     function settings_checkboxes() {
@@ -83,6 +95,13 @@
                 Skill queue
                 <div class="pull-right">
                   <i class="icon icon-question-sign" rel="tooltip" title="Show skill queue on public sheet"></i>
+                </div>
+              </label>
+              <label class="checkbox indent">
+                <input type="checkbox" class="disable-toggle" name="standings"{% if char.config.show_standings %} checked{% endif %}>
+                Standings
+                <div class="pull-right">
+                  <i class="icon icon-question-sign" rel="tooltip" title="Show faction/corporation standings on public sheet"></i>
                 </div>
               </label>
               <label class="checkbox indent">
@@ -190,38 +209,86 @@
           {% endif %}{% endif %}
 
           {% autoescape off %}
-          {% for mg, css in skills.items %}
-          <div class="row">
-            <div class="span9">
-              <div class="well well-small">
-                <div class="char-skill-box">
-                  <span class="char-skill-group">{{ mg.name }}</span>
-                  --
-                  <strong>{{ css|length }}</strong> skill{{ css|length|pluralize }} trained for <strong>{{ mg.z_total_sp|commas }}</strong> SP
-                </div>
-                {% for cs in css %}
-                <div class="clearfix">
-                  {% spaceless %}
-                  {% if cs.z_training %}<span class="training-highlight"><i class="icon-play"></i>
-                  {% else %}{% if cs.level == 5 %}<span class="level5">{% endif %}
-                  {% endif %}
-                  {{ cs.skill.item.name }} {{ cs.get_roman_level }}
-                  {% if cs.z_training or cs.level == 5 %}</span>{% endif %}
-                  {% endspaceless %}
-                  
-                  <div class="pull-right">
-                    {% for icon in cs.z_icons %}<i class="icon-{{ icon }} nomargin"></i>{% endfor %}
-                  </div>
+          <ul class="nav nav-tabs" id="tabs">
+            <li class="active"><a href="#skills" data-toggle="tab">Skills</a></li>
+            {% if not public or char.config.show_standings %}<li><a href="#standings" data-toggle="tab">Standings</a></li>{% endif %}
+          </ul>
 
-                  <div class="pull-right character-sp">{{ cs.skill.get_sp_at_level|commas }} SP</div>
-                  <div class="pull-right character-sp">{{ cs.points|commas }} / </div>
-                  <div class="pull-right character-sp small">Rank {{ cs.skill.rank }}</div>
+          <div class="tab-content">
+            <div class="tab-pane active" id="skills">
+              {% for mg, css in skills.items %}
+              <div class="row">
+                <div class="span9">
+                  <div class="well well-small">
+                    <div class="char-skill-box">
+                      <span class="char-skill-group">{{ mg.name }}</span>
+                      --
+                      <strong>{{ css|length }}</strong> skill{{ css|length|pluralize }} trained for <strong>{{ mg.z_total_sp|commas }}</strong> SP
+                    </div>
+                    {% for cs in css %}
+                    <div class="clearfix">
+                      {% spaceless %}
+                      {% if cs.z_training %}<span class="training-highlight"><i class="icon-play"></i>
+                      {% else %}{% if cs.level == 5 %}<span class="level5">{% endif %}
+                      {% endif %}
+                      {{ cs.skill.item.name }} {{ cs.get_roman_level }}
+                      {% if cs.z_training or cs.level == 5 %}</span>{% endif %}
+                      {% endspaceless %}
+                      
+                      <div class="pull-right">
+                        {% for icon in cs.z_icons %}<i class="icon-{{ icon }} nomargin"></i>{% endfor %}
+                      </div>
+
+                      <div class="pull-right character-sp">{{ cs.skill.get_sp_at_level|commas }} SP</div>
+                      <div class="pull-right character-sp">{{ cs.points|commas }} / </div>
+                      <div class="pull-right character-sp small">Rank {{ cs.skill.rank }}</div>
+                    </div>
+                    {% endfor %}
+                  </div>
                 </div>
-                {% endfor %}
               </div>
+              {% endfor %}
             </div>
+
+            {% if not public or char.config.show_standings %}
+            <div class="tab-pane" id="standings">
+              <table class="table table-striped table-bordered table-condensed">
+                <thead>
+                  <tr>
+                    <th colspan="2" class="large">Factions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for fs in char.factionstanding_set.select_related.all %}
+                  <tr>
+                    <td>{{ fs.faction.name }}</td>
+                    <td class="r">{{ fs.standing }}</td>
+                  </tr>
+                  {% empty %}
+                  <tr><td colspan="2">No standings.</td></tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+              <table class="table table-striped table-bordered table-condensed">
+                <thead>
+                  <tr>
+                    <th colspan="2" class="large">Corporations</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for cs in char.corporationstanding_set.select_related.all %}
+                  <tr>
+                    <td>{{ cs.corporation.name }}</td>
+                    <td class="r">{{ cs.standing }}</td>
+                  </tr>
+                  {% empty %}
+                  <tr><td colspan="2">No standings.</td></tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+            {% endif %}
           </div>
-          {% endfor %}
           {% endautoescape %}
         </div>
       </div>

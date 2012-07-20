@@ -209,12 +209,13 @@ class Character(models.Model):
 class CharacterConfig(models.Model):
     character = models.OneToOneField(Character, unique=True, primary_key=True, related_name='config')
 
-    is_public = models.BooleanField()
-    show_clone = models.BooleanField()
-    show_implants = models.BooleanField()
-    show_skill_queue = models.BooleanField()
-    show_wallet = models.BooleanField()
-    anon_key = models.CharField(max_length=16, blank=True, null=True)
+    is_public = models.BooleanField(default=False)
+    show_clone = models.BooleanField(default=False)
+    show_implants = models.BooleanField(default=False)
+    show_skill_queue = models.BooleanField(default=False)
+    show_standings = models.BooleanField(default=False)
+    show_wallet = models.BooleanField(default=False)
+    anon_key = models.CharField(max_length=16, blank=True, null=True, default='')
 
     def __unicode__(self):
         return self.character.name
@@ -274,12 +275,18 @@ class FactionStanding(models.Model):
 
     standing = models.DecimalField(max_digits=4, decimal_places=2)
 
+    class Meta:
+        ordering = ('-standing',)
+
 # Corporation standings
 class CorporationStanding(models.Model):
     corporation = models.ForeignKey('Corporation')
     character = models.ForeignKey('character')
 
     standing = models.DecimalField(max_digits=4, decimal_places=2)
+
+    class Meta:
+        ordering = ('-standing',)
 
 # ---------------------------------------------------------------------------
 # Regions

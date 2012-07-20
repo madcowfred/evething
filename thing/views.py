@@ -703,7 +703,9 @@ GROUP BY item_id
 # ---------------------------------------------------------------------------
 # Display a character page
 def character(request, character_name):
-    char = get_object_or_404(Character.objects.select_related('apikey__user', 'config', 'corporation'), name=character_name)
+    queryset = Character.objects.select_related('apikey__user', 'config', 'corporation')
+    queryset = queryset.prefetch_related('faction_standings', 'corporation_standings')
+    char = get_object_or_404(queryset, name=character_name)
 
     # Check access
     public = True
@@ -712,15 +714,7 @@ def character(request, character_name):
 
     # Check for CharacterConfig, creating an empty config if it does not exist
     if char.config is None:
-        config = CharacterConfig(
-            character=char,
-            is_public=False,
-            show_clone=False,
-            show_implants=False,
-            show_skill_queue=False,
-            show_wallet=False,
-            anon_key=None,
-        )
+        config = CharacterConfig(character=char)
         config.save()
 
         char.config = config
@@ -846,6 +840,7 @@ def character_settings(request, character_name):
     char.config.show_clone = ('clone' in request.POST)
     char.config.show_implants = ('implants' in request.POST)
     char.config.show_skill_queue = ('queue' in request.POST)
+    char.config.show_standings = ('standings' in request.POST)
     char.config.show_wallet = ('wallet' in request.POST)
 
     if 'anon-key-toggle' in request.POST:
