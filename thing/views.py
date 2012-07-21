@@ -47,30 +47,33 @@ def home(request):
     total_balance = 0
 
     # Work out sort order
-    char_q = Character.objects.select_related('apikey').filter(apikey__user=request.user)
-    if profile.home_sort_order == 'apikey':
-        char_q = char_q.order_by('apikey__name', 'name')
-    elif profile.home_sort_order == 'charname':
-        char_q = char_q.order_by('name')
-    elif profile.home_sort_order == 'corpname':
-        char_q = char_q.order_by('corporation__name', 'name')
-    elif profile.home_sort_order == 'wallet':
-        char_q = char_q.order_by('wallet_balance', 'name')
-    else:
-        char_q = char_q.order_by('apikey__name', 'name')
+    # FIXME: reimplement this
+    # char_q = Character.objects.select_related('apikey').filter(apikey__user=request.user)
+    # if profile.home_sort_order == 'apikey':
+    #     char_q = char_q.order_by('apikey__name', 'name')
+    # elif profile.home_sort_order == 'charname':
+    #     char_q = char_q.order_by('name')
+    # elif profile.home_sort_order == 'corpname':
+    #     char_q = char_q.order_by('corporation__name', 'name')
+    # elif profile.home_sort_order == 'wallet':
+    #     char_q = char_q.order_by('wallet_balance', 'name')
+    # else:
+    #     char_q = char_q.order_by('apikey__name', 'name')
 
-    if profile.home_sort_descending:
-        char_q = char_q.reverse()
+    # if profile.home_sort_descending:
+    #     char_q = char_q.reverse()
 
     # Initialise various data structures
     api_keys = set()
     training = set()
     chars = OrderedDict()
-    for char in char_q:
-        char.z_training = {}
-        chars[char.id] = char
-        api_keys.add(char.apikey)
-        total_balance += char.wallet_balance
+    for apikey in APIKey.objects.prefetch_related('characters').filter(user=request.user).exclude(key_type=APIKey.CORPORATION_TYPE):
+        api_keys.add(apikey)
+        for char in apikey.characters.all():
+            chars[char.id] = char
+            char.z_apikey = apikey
+            char.z_training = {}
+            total_balance += char.wallet_balance
 
     # Do skill training check - this can't be in the model because it
     # scales like crap doing individual queries
@@ -83,7 +86,7 @@ def home(request):
             char.z_training['skill_duration'] = (sq.end_time - utcnow).total_seconds()
             char.z_training['sp_per_hour'] = int(sq.skill.get_sp_per_minute(char) * 60)
             char.z_training['complete_per'] = sq.get_complete_percentage(now)
-            training.add(char.apikey)
+            training.add(char.z_apikey)
         
         char.z_training['queue_duration'] = (sq.end_time - utcnow).total_seconds()
 
@@ -107,8 +110,8 @@ def home(request):
         char.z_notifications = []
 
         # Game time warnings
-        if char.apikey.paid_until:
-            timediff = (char.apikey.paid_until - now).total_seconds()
+        if char.z_apikey.paid_until:
+            timediff = (char.z_apikey.paid_until - now).total_seconds()
 
             if timediff < 0:
                 char.z_notifications.append({
@@ -127,7 +130,7 @@ def home(request):
                 })
 
         # Empty skill queue
-        if char.apikey in not_training:
+        if char.z_apikey in not_training:
             char.z_notifications.append({
                 'icon': 'tasks',
                 'text': 'Empty!',
@@ -190,7 +193,7 @@ def home(request):
             san[apikey.id] = "account%d" % (i + 1)
 
         for char in chars.values():
-            char.z_sanitised_api = san[char.apikey.id]
+            char.z_sanitised_api = san[char.z_apikey.id]
 
     # Total SP
     total_sp = sum(getattr(c, 'z_total_sp', 0) for c in chars.values())
