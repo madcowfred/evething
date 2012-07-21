@@ -44,7 +44,7 @@ class APIKey(models.Model):
     
     user = models.ForeignKey(User)
     
-    id = models.IntegerField(primary_key=True, verbose_name='Key ID')
+    keyid = models.IntegerField(primary_key=True, verbose_name='Key ID')
     vcode = models.CharField(max_length=64, verbose_name='Verification code')
     name = models.CharField(max_length=64)
     
@@ -59,7 +59,7 @@ class APIKey(models.Model):
     paid_until = models.DateTimeField(null=True, blank=True)
 
     class Meta:
-        ordering = ('id',)
+        ordering = ('keyid',)
     
     def __unicode__(self):
         return '#%s (%s)' % (self.id, self.key_type)
