@@ -151,7 +151,7 @@ class CorpWallet(models.Model):
 # Characters
 class Character(models.Model):
     id = models.IntegerField(primary_key=True)
-    apikey = models.ForeignKey(APIKey, null=True, blank=True)
+    #apikey = models.ForeignKey(APIKey, null=True, blank=True)
     
     name = models.CharField(max_length=64)
     corporation = models.ForeignKey(Corporation)
