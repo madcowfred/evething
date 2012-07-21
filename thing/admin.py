@@ -20,7 +20,7 @@ class CharacterAdmin(admin.ModelAdmin):
         }),
     ]
     
-    list_display = ('name', 'corporation', 'apikey')
+    list_display = ('id', 'name', 'corporation')
 
 class CampaignAdmin(admin.ModelAdmin):
     prepopulated_fields = { 'slug': ( 'title', ) }

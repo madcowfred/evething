@@ -90,7 +90,7 @@ class APIJob:
         start = time.time()
 
         # Add the API key information
-        params['keyID'] = self.apikey.id
+        params['keyID'] = self.apikey.keyid
         params['vCode'] = self.apikey.vcode
 
         # Check the API cache for this URL/params combo
@@ -201,7 +201,7 @@ class APICheck(APIJob):
             seen_chars = []
             
             for row in key_node.findall('rowset/row'):
-                characterID = row.attrib['characterID']
+                characterID = int(row.attrib['characterID'])
                 seen_chars.append(characterID)
                 
                 # Get a corporation object
@@ -212,23 +212,22 @@ class APICheck(APIJob):
                 if characters.count() == 0:
                     character = Character(
                         id=characterID,
-                        apikey=self.apikey,
                         name=row.attrib['characterName'],
                         corporation=corp,
                     )
                 # Character exists, update API key and corporation information
                 else:
                     character = characters[0]
-                    character.apikey = self.apikey
                     character.corporation = corp
                 
                 # Save the character
                 character.save()
+
+                # Add the character to the APIKey
+                self.apikey.characters.add(character)
             
-            # Unlink any characters that are no longer valid for this API key
-            for character in Character.objects.filter(apikey=self.apikey).exclude(pk__in=seen_chars):
-                character.apikey = None
-                character.save()
+            # Remove any unseen characters from the APIKey
+            self.apikey.characters.exclude(pk__in=seen_chars).delete()
         
         # Handle corporate key
         elif key_node.attrib['type'] == APIKey.CORPORATION_TYPE:
@@ -1107,11 +1106,16 @@ class APIUpdater:
 
     def go(self):
         # Make sure API keys are valid first
+        any_valid = False
         for apikey in APIKey.objects.select_related().filter(valid=True).order_by('key_type'):
             job = APICheck(apikey)
             self._job_queue.put(job)
+            any_valid = True
 
         # Wait for all key checks to be completed
+        if not any_valid:
+            logging.info('No valid APIKeys, exiting')
+
         self._job_queue.join()
 
         # Now we can get down to business
@@ -1122,7 +1126,7 @@ class APIUpdater:
 
             # Account/Character key are basically the same thing
             if apikey.key_type in (APIKey.ACCOUNT_TYPE, APIKey.CHARACTER_TYPE):
-                for character in apikey.character_set.all():
+                for character in apikey.characters.all():
                     # Fetch character sheet
                     job = CharacterSheet(apikey, character)
                     self._job_queue.put(job)

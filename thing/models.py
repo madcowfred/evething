@@ -44,25 +44,27 @@ class APIKey(models.Model):
     
     user = models.ForeignKey(User)
     
-    keyid = models.IntegerField(primary_key=True, verbose_name='Key ID')
+    keyid = models.IntegerField(verbose_name='Key ID')
     vcode = models.CharField(max_length=64, verbose_name='Verification code')
     name = models.CharField(max_length=64)
     
+    valid = models.BooleanField(default=True)
+
     access_mask = models.BigIntegerField(null=True, blank=True)
     key_type = models.CharField(max_length=16, null=True, blank=True)
     expires = models.DateTimeField(null=True, blank=True)
-    valid = models.BooleanField(default=True)
+    paid_until = models.DateTimeField(null=True, blank=True)
+    
+    characters = models.ManyToManyField('Character', related_name='apikeys')
     
     # this is only used for corporate keys, ugh
     corp_character = models.ForeignKey('Character', null=True, blank=True, related_name='corporate_apikey')
     
-    paid_until = models.DateTimeField(null=True, blank=True)
-
     class Meta:
         ordering = ('keyid',)
     
     def __unicode__(self):
-        return '#%s (%s)' % (self.id, self.key_type)
+        return '#%s, keyId: %s (%s)' % (self.id, self.keyid, self.key_type)
 
     def get_masked_vcode(self):
         return '%s%s%s' % (self.vcode[:4], '*' * 16, self.vcode[-4:])
