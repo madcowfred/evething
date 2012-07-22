@@ -22,7 +22,7 @@ os.environ['DJANGO_SETTINGS_MODULE'] = 'evething.settings'
 from django.conf import settings
 
 from django.core.urlresolvers import reverse
-from django.db import connection
+from django.db import connection, transaction
 
 from thing.models import *
 from thing import queries
@@ -74,6 +74,7 @@ class APIWorker(threading.Thread):
                     job.run()
                 except:
                     logging.error('Trapped exception!', exc_info=sys.exc_info())
+                    transaction.rollback()
                 else:
                     with _debug_lock:
                         debug = open('/tmp/api.debug', 'a')
@@ -1298,10 +1299,10 @@ class APIUpdater:
 
 # ---------------------------------------------------------------------------
 # Turn an API date into a datetime object
-_pad_lock = threading.Lock()
+#_pad_lock = threading.Lock()
 def parse_api_date(s):
-    with _pad_lock:
-        return datetime.datetime.strptime(s, '%Y-%m-%d %H:%M:%S')
+    #with _pad_lock:
+    return datetime.datetime.strptime(s, '%Y-%m-%d %H:%M:%S')
 
 # ---------------------------------------------------------------------------
 # Spit out an error message
