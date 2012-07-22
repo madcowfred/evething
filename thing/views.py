@@ -1187,7 +1187,7 @@ def transactions_item(request, item_id, year=None, month=None, period=None, slug
         data['timeframe'] = 'all time'
     
     # Create a new paginator
-    paginator = Paginator(transactions.select_related('item', 'station', 'character', 'corp_wallet__corporation'), 100)
+    paginator = Paginator(transactions.select_related('item', 'station', 'character', 'corp_wallet__corporation', 'other_char', 'other_corp'), 100)
     
     # Make sure page request is an int, default to 1st page
     try:
