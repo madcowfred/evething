@@ -350,7 +350,7 @@ def apikeys_edit(request):
 def assets(request):
     # apply our initial set of filters
     assets = Asset.objects.select_related('system', 'station', 'item__item_group__category', 'character', 'corporation', 'inv_flag')
-    char_filter = Q(character__apikey__user=request.user)
+    char_filter = Q(character__apikeys__user=request.user)
     corp_filter = Q(corporation_id__in=APIKey.objects.filter(user=request.user).values('corp_character__corporation__id'))
     assets = assets.filter(char_filter | corp_filter)
 
@@ -479,7 +479,7 @@ def assets(request):
     return render_to_response(
         'thing/assets.html',
         {
-            'characters': Character.objects.filter(apikey__user=request.user),
+            'characters': Character.objects.filter(apikeys__user=request.user),
             'corporations': corporations,
             'filters': filters,
             'total_value': total_value,
@@ -895,9 +895,9 @@ def events(request):
 @login_required
 def market_scan(request):
     cursor = connection.cursor()
+    cursor.execute(queries.user_item_ids, (request.user.id, request.user.id, request.user.id))
 
     item_ids = []
-    cursor.execute(queries.user_item_ids, (request.user.id, request.user.id, request.user.id))
     for row in cursor:
         item_ids.append(row[0])
 
@@ -922,7 +922,7 @@ def orders(request):
         char_orders[row['character_id']] = row
 
     # Retrieve trade skills that we're interested in
-    order_cs = CharacterSkill.objects.filter(character__apikey__user=request.user, skill__item__name__in=ORDER_SLOT_SKILLS.keys())
+    order_cs = CharacterSkill.objects.filter(character__apikeys__user=request.user, skill__item__name__in=ORDER_SLOT_SKILLS.keys())
     order_cs = order_cs.select_related('character__apikey', 'skill__item')
 
     #for cs in CharacterSkill.objects.select_related().filter(character__apikey__user=request.user, skill__item__name__in=ORDER_SLOT_SKILLS.keys()):
@@ -951,7 +951,7 @@ def orders(request):
 
     # Retrieve all orders
     orders = MarketOrder.objects.select_related('item', 'station', 'character', 'corp_wallet__corporation')
-    orders = orders.filter(character__apikey__user=request.user)
+    orders = orders.filter(character__apikeys__user=request.user)
     orders = orders.order_by('station__name', '-buy_order', 'item__name')
 
     now = datetime.datetime.utcnow()
@@ -988,7 +988,7 @@ def trade(request):
     #data['net_asset_value'] = data['wallet_balance'] + data['sell_total'] + data['escrow_total']
     
     # Transaction stuff oh god
-    transactions = Transaction.objects.filter(character__apikey__user=request.user)
+    transactions = Transaction.objects.filter(character__apikeys__user=request.user)
     
     t_check = []
     # All
@@ -1045,7 +1045,7 @@ def trade_timeframe(request, year=None, month=None, period=None, slug=None):
     }
     
     # Get a QuerySet of transactions by this user
-    transactions = Transaction.objects.filter(character__apikey__user=request.user)
+    transactions = Transaction.objects.filter(character__apikeys__user=request.user)
     
     # Year/Month
     if year and month:
@@ -1128,7 +1128,9 @@ def trade_timeframe(request, year=None, month=None, period=None, slug=None):
 @login_required
 def transactions(request):
     # Get a QuerySet of transactions by this user
-    transactions = Transaction.objects.select_related('corp_wallet__corporation', 'item', 'station', 'character').filter(character__apikey__user=request.user).order_by('-date')
+    transactions = Transaction.objects.select_related('corp_wallet__corporation', 'item', 'station', 'character')
+    transactions = transactions.filter(character__apikeys__user=request.user)
+    transactions = transactions.order_by('-date')
     
     # Create a new paginator
     paginator = Paginator(transactions, 100)
@@ -1161,7 +1163,7 @@ def transactions_item(request, item_id, year=None, month=None, period=None, slug
     data = {}
     
     # Get a QuerySet of transactions by this user
-    transactions = Transaction.objects.filter(character__apikey__user=request.user).order_by('-date')
+    transactions = Transaction.objects.filter(character__apikeys__user=request.user).order_by('-date')
     
     # If item_id is an integer we should filter on that item_id
     if item_id.isdigit():
