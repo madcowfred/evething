@@ -22,7 +22,7 @@ os.environ['DJANGO_SETTINGS_MODULE'] = 'evething.settings'
 from django.conf import settings
 
 from django.core.urlresolvers import reverse
-from django.db import connection, transaction
+from django.db import connection, transaction, IntegrityError
 
 from thing.models import *
 from thing import queries
@@ -1033,10 +1033,14 @@ class WalletTransactions(APIJob):
                 client_id = int(row.attrib['clientID'])
                 client = simple_map.get(client_id, corp_map.get(client_id, None))
                 if client is None:
-                    client = SimpleCharacter.objects.create(
-                        id=client_id,
-                        name=row.attrib['clientName']
-                    )
+                    try:
+                        client = SimpleCharacter.objects.create(
+                            id=client_id,
+                            name=row.attrib['clientName']
+                        )
+                    except IntegrityError:
+                        client = SimpleCharacter.objects.get(id=client_id)
+
                     simple_map[client_id] = client
 
                 # Check to see if this transaction already exists
