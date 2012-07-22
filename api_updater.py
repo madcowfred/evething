@@ -198,11 +198,10 @@ class APICheck(APIJob):
         
         # Handle character key type keys
         if key_node.attrib['type'] in (APIKey.ACCOUNT_TYPE, APIKey.CHARACTER_TYPE):
-            seen_chars = []
+            seen_chars = {}
             
             for row in key_node.findall('rowset/row'):
                 characterID = int(row.attrib['characterID'])
-                seen_chars.append(characterID)
                 
                 # Get a corporation object
                 corp = get_corporation(row.attrib['corporationID'], row.attrib['corporationName'])
@@ -222,12 +221,16 @@ class APICheck(APIJob):
                 
                 # Save the character
                 character.save()
-
-                # Add the character to the APIKey
-                self.apikey.characters.add(character)
+                seen_chars[character.id] = character
             
-            # Remove any unseen characters from the APIKey
-            self.apikey.characters.exclude(pk__in=seen_chars).delete()
+            # Iterate over all APIKeys with this (keyid, vcode) combo
+            for ak in APIKey.objects.filter(keyid=self.apikey.keyid, vcode=self.apikey.vcode):
+                print self.apikey.keyid, self.apikey.vcode
+                # Add characters to this APIKey
+                ak.characters.add(*seen_chars.values())
+
+                # Remove any unseen characters from the APIKey
+                ak.characters.exclude(pk__in=seen_chars.keys()).delete()
         
         # Handle corporate key
         elif key_node.attrib['type'] == APIKey.CORPORATION_TYPE:
@@ -1106,8 +1109,14 @@ class APIUpdater:
 
     def go(self):
         # Make sure API keys are valid first
+        seen_keys = set()
         any_valid = False
         for apikey in APIKey.objects.select_related().filter(valid=True).order_by('key_type'):
+            # Don't visit keyid/vcode combos that we've already visited
+            if (apikey.keyid, apikey.vcode) in seen_keys:
+                continue
+            seen_keys.add((apikey.keyid, apikey.vcode))
+
             job = APICheck(apikey)
             self._job_queue.put(job)
             any_valid = True
@@ -1115,11 +1124,18 @@ class APIUpdater:
         # Wait for all key checks to be completed
         if not any_valid:
             logging.info('No valid APIKeys, exiting')
+            return
 
         self._job_queue.join()
 
         # Now we can get down to business
+        seen_keys = set()
         for apikey in APIKey.objects.filter(valid=True, access_mask__isnull=False):
+            # Don't visit keyid/vcode combos that we've already visited
+            if (apikey.keyid, apikey.vcode) in seen_keys:
+                continue
+            seen_keys.add((apikey.keyid, apikey.vcode))
+
             # Make sure account status is up to date
             job = AccountStatus(apikey)
             self._job_queue.put(job)
