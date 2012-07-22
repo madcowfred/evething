@@ -5,6 +5,7 @@
   - Warn when a key doesn't have the required mask to pull AccountStatus (game time warnings)
   - Explain that any corporation key requires you to also have an account/character key for the character or Bad
     Things happen.
+    = Maybe fixed this?
 
 * Account Settings page:
   - Move API Keys to this page
@@ -32,7 +33,7 @@
 * Character Sheet:
   - Make categories expandable/collapsible
   - Expand all/collapse all JavaScript links
-  - Standings tab with faction/corp/agent standings
+  - Standings tab needs agent standings
 
 * Contracts:
   - Implement database models to store contracts and contract contents
@@ -44,6 +45,7 @@
   - Fix several mobile browser bugs:
     = The body: padding-top CSS is not required on Android default browser at the very least
     = Links disappear completely on Android default browser
+    = Home page does not do responsive things with at least theme-slate
 
 * Market Scan:
   - Add different scan types (assets+blueprints takes forever):
@@ -68,16 +70,13 @@
 
 * api_updater:
   - Make SystemEvent objects for admin-related events
-  - Standings support
   - Wallet Journal char/corp support
   - Convert everything over to using Django 1.4 bulk saves
-  - Delete 'text' field once the APIJob completes susccessfully
 
 * documentation:
   - Pages need to explain what the hell they do
 
 * misc:
-  - Multiple user accounts using keys for the same game account needs to work without weird things happening
   - Replace Django templating engine with Jinja2 for speedups
   - Get some less awful themes, oh dear
   - Skill planner
