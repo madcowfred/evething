@@ -225,7 +225,6 @@ class APICheck(APIJob):
             
             # Iterate over all APIKeys with this (keyid, vcode) combo
             for ak in APIKey.objects.filter(keyid=self.apikey.keyid, vcode=self.apikey.vcode):
-                print self.apikey.keyid, self.apikey.vcode
                 # Add characters to this APIKey
                 ak.characters.add(*seen_chars.values())
 
