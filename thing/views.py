@@ -706,14 +706,17 @@ GROUP BY item_id
 # ---------------------------------------------------------------------------
 # Display a character page
 def character(request, character_name):
-    queryset = Character.objects.select_related('apikey__user', 'config', 'corporation')
-    queryset = queryset.prefetch_related('faction_standings', 'corporation_standings')
+    queryset = Character.objects.select_related('config', 'corporation')
+    queryset = queryset.prefetch_related('apikeys', 'faction_standings', 'corporation_standings')
     char = get_object_or_404(queryset, name=character_name)
 
     # Check access
-    public = True
-    if request.user.is_authenticated() and request.user.id == char.apikey.user.id:
-        public = False
+    public = False
+    if request.user.is_authenticated():
+        for apikey in char.apikeys.all():
+            if request.user.id == apikey.user.id:
+                public = True
+                break
 
     # Check for CharacterConfig, creating an empty config if it does not exist
     if char.config is None:
