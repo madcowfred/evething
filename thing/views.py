@@ -350,8 +350,8 @@ def apikeys_edit(request):
 def assets(request):
     # apply our initial set of filters
     assets = Asset.objects.select_related('system', 'station', 'item__item_group__category', 'character', 'corporation', 'inv_flag')
-    char_filter = Q(character__apikeys__user=request.user)
-    corp_filter = Q(corporation_id__in=APIKey.objects.filter(user=request.user).values('corp_character__corporation__id'))
+    char_filter = Q(character__apikeys__user=request.user, corporation__isnull=True)
+    corp_filter = Q(corporation__in=APIKey.objects.filter(user=request.user).values('corp_character__corporation__id'))
     assets = assets.filter(char_filter | corp_filter)
 
     # retrieve any supplied filter values
