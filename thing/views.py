@@ -1128,7 +1128,7 @@ def trade_timeframe(request, year=None, month=None, period=None, slug=None):
 @login_required
 def transactions(request):
     # Get a QuerySet of transactions by this user
-    transactions = Transaction.objects.select_related('corp_wallet__corporation', 'item', 'station', 'character')
+    transactions = Transaction.objects.select_related('corp_wallet__corporation', 'item', 'station', 'character', 'other_char', 'other_corp')
     transactions = transactions.filter(character__apikeys__user=request.user)
     transactions = transactions.order_by('-date')
     

@@ -25,6 +25,7 @@ from django.core.urlresolvers import reverse
 from django.db import connection
 
 from thing.models import *
+from thing import queries
 
 
 # base headers
@@ -67,10 +68,29 @@ class APIWorker(threading.Thread):
                 self.queue.task_done()
                 return
             else:
+                start = time.time()
+
                 try:
                     job.run()
                 except:
                     logging.error('Trapped exception!', exc_info=sys.exc_info())
+                else:
+                    with _debug_lock:
+                        debug = open('/tmp/api.debug', 'a')
+                        debug.write('\n|| %s ||\n' % (job.__class__.__name__))
+                        debug.write('%.3fs  %d queries (%.3fs)  API: %.2fs\n' % (time.time() - start,
+                            len(connection.queries), sum(float(q['time']) for q in connection.queries),
+                            job.api_total_time
+                        ))
+                        debug.write('\n')
+                        for query in connection.queries:
+                            if query['sql'].startswith('INSERT INTO "thing_apicache"'):
+                                debug.write('%02.3fs  INSERT INTO "thing_apicache" ...\n' % (float(query['time']),))
+                            else:
+                                debug.write('%02.3fs  %s\n' % (float(query['time']), query['sql']))
+                        debug.close()
+
+                        connection.queries = []
 
                 self.queue.task_done()
 
@@ -83,12 +103,12 @@ class APIJob:
 
         self.root = None
         self.apicache = None
+
+        self.api_total_time = 0.0
     
     # ---------------------------------------------------------------------------
     # Perform an API request and parse the returned XML via ElementTree
     def fetch_api(self, url, params):
-        start = time.time()
-
         # Add the API key information
         params['keyID'] = self.apikey.keyid
         params['vCode'] = self.apikey.vcode
@@ -108,14 +128,17 @@ class APIJob:
             logging.info('Fetching URL %s', full_url)
 
             # Fetch the URL
+            start = time.time()
+            
             r = requests.post(full_url, params, headers=HEADERS, config={ 'max_retries': 1 })
             data = r.text
             
-            logging.info('URL retrieved in %s', datetime.datetime.utcnow() - now)
+            duration = time.time() - start
+            self.api_total_time += duration
+            logging.info('URL retrieved in %.2fs', duration)
 
             # If the status code is bad return False
             if not r.status_code == requests.codes.ok:
-                #self._total_api += (time.time() - start)
                 return False
 
         # Data is cached, use that
@@ -193,8 +216,6 @@ class APICheck(APIJob):
             self.apikey.expires = parse_api_date(expires)
         # Update key type
         self.apikey.key_type = key_node.attrib['type']
-        # Save
-        self.apikey.save()
         
         # Handle character key type keys
         if key_node.attrib['type'] in (APIKey.ACCOUNT_TYPE, APIKey.CHARACTER_TYPE):
@@ -251,7 +272,9 @@ class APICheck(APIJob):
                 character = characters[0]
             
             self.apikey.corp_character = character
-            self.apikey.save()
+        
+        # Save any APIKey changes
+        self.apikey.save()
 
         # completed ok
         self.apicache.completed()
@@ -668,7 +691,7 @@ class Locations(APIJob):
         # Fetch the API data
         params = {
             'characterID': self.character.id,
-            'IDs': ','.join(map(str, a_filter.values_list('id', flat=True))),
+            'IDs': ','.join(map(str, ids)),
         }
         if self.fetch_api(url, params) is False or self.root is None:
             return
@@ -923,6 +946,8 @@ class Standings(APIJob):
 # Fetch wallet transactions
 class WalletTransactions(APIJob):
     def run(self):
+        start = time.time()
+
         # Generate a character id map
         self.char_id_map = {}
         for character in Character.objects.all():
@@ -951,18 +976,16 @@ class WalletTransactions(APIJob):
             return
 
         # Loop until we run out of transactions
+        cursor = connection.cursor()
         one_week_ago = datetime.datetime.utcnow() - datetime.timedelta(7)
+        new = []
+
         while True:
             if self.fetch_api(url, params) is False or self.root is None:
-                return
+                break
             
-            #err = self.root.find('error')
-            #if err is not None:
-            #    # Fuck it, the API flat out lies about cache times
-            #    if err.attrib['code'] not in ('101', '103'):
-            #        show_error('fetch_transactions', err, times)
-            #    break
-            
+            start = time.time()
+
             errors = 0
             
             rows = self.root.findall('result/rowset/row')
@@ -972,89 +995,124 @@ class WalletTransactions(APIJob):
                 break
             
             # Make a transaction id:row map
-            t_map = OrderedDict()
+            bulk_data = {}
+            client_ids = set()
             for row in rows:
                 transaction_id = int(row.attrib['transactionID'])
-                transaction_time = parse_api_date(row.attrib['transactionDateTime'])
-                t_map[transaction_id] = (transaction_time, row)
-            
-            # Query those transaction ids and delete any we've already seen
-            for trans in t_filter.filter(transaction_id__in=t_map.keys()):
-                if trans.transaction_id in t_map:
-                    del t_map[trans.transaction_id]
-                else:
-                    logging.warn("transaction_id not in t_map, what in the fuck?")
-                    errors += 1
+                bulk_data[transaction_id] = row
+                client_ids.add(int(row.attrib['clientID']))
+
+            t1 = time.time()
+            logging.info('WalletTransactions bulk_data took %.3fs', t1 - start)
+
+            t_map = {}
+            for t in t_filter.filter(transaction_id__in=bulk_data.keys()).values('id', 'transaction_id', 'other_char_id', 'other_corp_id'):
+                t_map[t['transaction_id']] = t
+
+            t2 = time.time()
+            logging.info('WalletTransactions t_map took %.3fs', t2 - t1)
+
+            # Fetch simplechars and corporations for clients
+            simple_map = SimpleCharacter.objects.in_bulk(client_ids)
+            corp_map = Corporation.objects.in_bulk(client_ids)
+
+            t3 = time.time()
+            logging.info('WalletTransactions client maps took %.3fs', t3 - t2)
             
             # Now iterate over the leftovers
-            for transaction_id, (transaction_time, row) in t_map.items():
+            for transaction_id, row in bulk_data.items():
                 # Initalise some variables
-                #transaction_time = parse_api_date(row.attrib['transactionDateTime'])
+                transaction_time = parse_api_date(row.attrib['transactionDateTime'])
                 
                 # Skip corporate transactions if this is a personal call, we have no idea
                 # what wallet this transaction is related to otherwise :ccp:
-                if not self.apikey.corp_character and row.attrib['transactionFor'] == 'corporation':
+                if row.attrib['transactionFor'] == 'corporation' and not self.apikey.corp_character:
                     continue
                 
+                client_id = int(row.attrib['clientID'])
+                client = simple_map.get(client_id, corp_map.get(client_id, None))
+                if client is None:
+                    client = SimpleCharacter.objects.create(
+                        id=client_id,
+                        name=row.attrib['clientName']
+                    )
+                    simple_map[client_id] = client
+
                 # Check to see if this transaction already exists
-                #if transactions.filter(transaction_id=transaction_id, date=transaction_time).count():
-                #    continue
-                
-                # Make sure the item typeID is valid
-                #items = Item.objects.filter(pk=row.attrib['typeID'])
-                #if items.count() == 0:
-                #    print "ERROR: item with typeID '%s' does not exist, what the fuck?" % (row.attrib['typeID'])
-                #    print '>> attrib = %r' % (row.attrib)
-                #    continue
-                
-                # Make the station object if it doesn't already exist
-                station = get_station(int(row.attrib['stationID']))
-                
-                # For a corporation key, make sure the character exists
-                if self.apikey.corp_character:
-                    char_id = int(row.attrib['characterID'])
-                    char = self.char_id_map.get(char_id, None)
-                    # Doesn't exist, create it
-                    if char is None:
-                        char = Character(
-                            id=char_id,
-                            apikey=None,
-                            name=row.attrib['characterName'],
-                            corporation=self.apikey.corp_character.corporation,
-                        )
-                        char.save()
-                        self.char_id_map[char_id] = char
-                # Any other key = just use the supplied character
+                t = t_map.get(transaction_id, None)
+                if t is None:
+                    # Make sure the item typeID is valid
+                    #items = Item.objects.filter(pk=row.attrib['typeID'])
+                    #if items.count() == 0:
+                    #    print "ERROR: item with typeID '%s' does not exist, what the fuck?" % (row.attrib['typeID'])
+                    #    print '>> attrib = %r' % (row.attrib)
+                    #    continue
+                    
+                    # Make the station object if it doesn't already exist
+                    station = get_station(int(row.attrib['stationID']))
+                    
+                    # For a corporation key, make sure the character exists
+                    if self.apikey.corp_character:
+                        char_id = int(row.attrib['characterID'])
+                        char = self.char_id_map.get(char_id, None)
+                        # Doesn't exist, create it
+                        if char is None:
+                            char = Character(
+                                id=char_id,
+                                name=row.attrib['characterName'],
+                                corporation=self.apikey.corp_character.corporation,
+                            )
+                            char.save()
+                            self.char_id_map[char_id] = char
+                    # Any other key = just use the supplied character
+                    else:
+                        char = self.character
+                    
+                    # Create a new transaction object and save it
+                    quantity = int(row.attrib['quantity'])
+                    price = Decimal(row.attrib['price'])
+                    buy_transaction = (row.attrib['transactionType'] == 'buy')
+
+                    try:
+                        item = get_item(row.attrib['typeID'])
+                    except Item.DoesNotExist:
+                        logging.warn("Item #%s apparently doesn't exist", row.attrib['typeID'])
+                        errors += 1
+                        continue
+
+                    t = Transaction(
+                        station=station,
+                        item=get_item(row.attrib['typeID']),
+                        character=char,
+                        transaction_id=transaction_id,
+                        date=transaction_time,
+                        buy_transaction=buy_transaction,
+                        quantity=quantity,
+                        price=price,
+                        total_price=quantity * price,
+                    )
+                    # Set the corp_character for corporation API requests
+                    if self.apikey.corp_character:
+                        t.corp_wallet = self._corp_wallet
+                    # Set whichever client type is relevant
+                    if isinstance(client, SimpleCharacter):
+                        t.other_char_id = client.id
+                    else:
+                        t.other_corp_id = client.id
+                    #t.save()
+                    new.append(t)
+
+                # Transaction exists, check the other_ fields
                 else:
-                    char = self.character
-                
-                # Create a new transaction object and save it
-                quantity = int(row.attrib['quantity'])
-                price = Decimal(row.attrib['price'])
-                buy_transaction = (row.attrib['transactionType'] == 'buy')
+                    if t['other_char_id'] is None and t['other_corp_id'] is None:
+                        if isinstance(client, SimpleCharacter):
+                            cursor.execute('UPDATE thing_transaction SET other_char_id = %s WHERE id = %s', (client.id, t['id']))
+                        else:
+                            cursor.execute('UPDATE thing_transaction SET other_corp_id = %s WHERE id = %s', (client.id, t['id']))
+                        logging.info('Updated other_ field of transaction %s', t['id'])
 
-                try:
-                    item = get_item(row.attrib['typeID'])
-                except Item.DoesNotExist:
-                    logging.warn("Item #%s apparently doesn't exist", row.attrib['typeID'])
-                    errors += 1
-                    continue
-
-                t = Transaction(
-                    station=station,
-                    character=char,
-                    item=get_item(row.attrib['typeID']),
-                    transaction_id=transaction_id,
-                    date=transaction_time,
-                    buy_transaction=buy_transaction,
-                    quantity=quantity,
-                    price=price,
-                    total_price=quantity * price,
-                )
-                # Set the corp_character for corporation API requests
-                if self.apikey.corp_character:
-                    t.corp_wallet = self._corp_wallet
-                t.save()
+            t4 = time.time()
+            logging.info('WalletTransactions loop took %.3fs', t4 - t3)
             
             # completed ok
             if errors == 0:
@@ -1065,6 +1123,13 @@ class WalletTransactions(APIJob):
                 params['beforeTransID'] = transaction_id
             else:
                 break
+
+        # Create any new transaction objects
+        t5 = time.time()
+        Transaction.objects.bulk_create(new)
+        logging.info('WalletTransactions insert took %.2fs', time.time() - t5)
+
+        logging.info('WalletTransactions took %.2fs', time.time() - start)
         
 
 # ---------------------------------------------------------------------------
@@ -1076,6 +1141,7 @@ class CleanupCache(APIJob):
 
 # ---------------------------------------------------------------------------
 
+_debug_lock = threading.Lock()
 class APIUpdater:
     def __init__(self):
         #self._total_api = 0
@@ -1100,6 +1166,10 @@ class APIUpdater:
             t.start()
             self._threads.append(t)
 
+        # zero out api.debug
+        if settings.DEBUG:
+            open('/tmp/api.debug', 'w')
+
     def stop_threads(self):
         for t in self._threads:
             self._job_queue.put(None)
@@ -1107,6 +1177,8 @@ class APIUpdater:
         self._job_queue.join()
 
     def go(self):
+        start = time.time()
+
         # Make sure API keys are valid first
         seen_keys = set()
         any_valid = False
@@ -1129,7 +1201,12 @@ class APIUpdater:
 
         # Now we can get down to business
         seen_keys = set()
-        for apikey in APIKey.objects.filter(valid=True, access_mask__isnull=False):
+        
+        apikeys = APIKey.objects.select_related('corp_character__corporation')
+        apikeys = apikeys.prefetch_related('characters', 'corp_character__corporation__corpwallet_set')
+        apikeys = apikeys.filter(valid=True, access_mask__isnull=False)
+
+        for apikey in apikeys:
             # Don't visit keyid/vcode combos that we've already visited
             if (apikey.keyid, apikey.vcode) in seen_keys:
                 continue
@@ -1191,7 +1268,7 @@ class APIUpdater:
                 self._job_queue.put(job)
 
                 # Fetch wallet transactions
-                for corp_wallet in CorpWallet.objects.filter(corporation=corporation):
+                for corp_wallet in corporation.corpwallet_set.all():#CorpWallet.objects.filter(corporation=corporation):
                     job = WalletTransactions(apikey, character)
                     job._corp_wallet = corp_wallet
                     self._job_queue.put(job)
@@ -1207,21 +1284,17 @@ class APIUpdater:
         # All done, wait for jobs to complete then shut down the threads
         self.stop_threads()
 
-    # -----------------------------------------------------------------------
-    # Do the heavy lifting
-    def old_go(self):
-        start = time.time()
-
-        # And dump some debug info
-        if self.debug:
-            debug = open('/tmp/api.debug', 'w')
-            debug.write('%.3fs  %d queries (%.3fs)  API: %.1fs\n\n' % (time.time() - start,
-                len(connection.queries), sum(float(q['time']) for q in connection.queries),
-                self._total_api))
-            debug.write('\n')
-            for query in connection.queries:
-               debug.write('%02.3fs  %s\n' % (float(query['time']), query['sql']))
-            debug.close()
+        if settings.DEBUG:
+            with _debug_lock:
+                debug = open('/tmp/api.debug', 'a')
+                debug.write('\n|| APIUpdater ||\n')
+                debug.write('%.3fs  %d queries (%.3fs)\n' % (time.time() - start,
+                    len(connection.queries), sum(float(q['time']) for q in connection.queries)
+                ))
+                debug.write('\n')
+                for query in connection.queries:
+                   debug.write('%02.3fs  %s\n' % (float(query['time']), query['sql']))
+                debug.close()
 
 # ---------------------------------------------------------------------------
 # Turn an API date into a datetime object
@@ -1260,19 +1333,18 @@ def get_item(item_id):
 # Caching corporation fetcher, adds new corporations to the database
 _corp_cache = {}
 def get_corporation(corp_id, corp_name):
-    if corp_id not in _corp_cache:
-        corps = Corporation.objects.filter(pk=corp_id)
-        # Corporation already exists
-        if corps.count() > 0:
-            corp = corps[0]
+    corp = _corp_cache.get(corp_id, None)
+    if corp is None:
+        try:
+            corp = Corporation.objects.get(pk=corp_id)
         # Corporation doesn't exist, make a new object and save it
-        else:
+        except Corporation.DoesNotExist:
             corp = Corporation(id=corp_id, name=corp_name)
             corp.save()
         
         _corp_cache[corp_id] = corp
     
-    return _corp_cache[corp_id]
+    return corp
 
 # ---------------------------------------------------------------------------
 # Caching system fetcher

@@ -151,6 +151,10 @@ class CorpWallet(models.Model):
 
 # ---------------------------------------------------------------------------
 # Characters
+class SimpleCharacter(models.Model):
+    id = models.IntegerField(primary_key=True)
+    name = models.CharField(max_length=64)
+
 class Character(models.Model):
     id = models.IntegerField(primary_key=True)
     #apikey = models.ForeignKey(APIKey, null=True, blank=True)
@@ -548,12 +552,14 @@ class Campaign(models.Model):
 # Wallet transactions
 class Transaction(models.Model):
     station = models.ForeignKey(Station)
-    character = models.ForeignKey(Character)
     item = models.ForeignKey(Item)
-    
+
+    character = models.ForeignKey(Character)
     corp_wallet = models.ForeignKey(CorpWallet, null=True, blank=True)
-    
-    transaction_id = models.BigIntegerField()
+    other_char = models.ForeignKey(SimpleCharacter, null=True, blank=True)
+    other_corp = models.ForeignKey(Corporation, null=True, blank=True)
+
+    transaction_id = models.BigIntegerField(db_index=True)
     date = models.DateTimeField(db_index=True)
     buy_transaction = models.BooleanField()
     quantity = models.IntegerField()
