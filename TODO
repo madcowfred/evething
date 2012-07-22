@@ -40,6 +40,11 @@
   - Use Events for contract completion/expiry
   - Summary table similar to orders
 
+* Home:
+  - Fix several mobile browser bugs:
+    = The body: padding-top CSS is not required on Android default browser at the very least
+    = Links disappear completely on Android default browser
+
 * Market Scan:
   - Add different scan types (assets+blueprints takes forever):
     = Assets
@@ -78,6 +83,13 @@
   - Skill planner
     = First step: load .EMP files and display remaining skills (EVEmon skill plans), save as account-wide plans
     = Hard step: implement skill planning
+  - Email warnings
+    = Let user configure email address (save to auth_user email field?)
+      # Implement email verification because people are idiots
+    = Configurable:
+      # Frequency (once, hourly, daily)
+        % Will need a new database model to store events that have been issued
+      # Things to email about (insufficient clone, room in skill queue, account not in training, account time <10 days)
 
 * price_updater:
   - Add support for other sources of market data

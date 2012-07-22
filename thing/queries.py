@@ -23,10 +23,11 @@ SELECT  mo.character_id,
         COALESCE(SUM(CASE mo.buy_order WHEN false THEN 1 END), 0) AS sell_orders,
         COALESCE(SUM(CASE mo.buy_order WHEN false THEN mo.total_price END), 0) AS total_sells,
         COALESCE(SUM(mo.escrow), 0) AS total_escrow
-FROM    thing_marketorder mo, thing_character c, thing_apikey ak
+FROM    thing_marketorder mo, thing_character c, thing_apikey_characters ac, thing_apikey a
 WHERE   mo.character_id = c.id
-        AND c.apikey_id = ak.id
-        AND ak.user_id = %s
+        AND c.id = ac.character_id
+        AND ac.apikey_id = a.id
+        AND a.user_id = %s
 GROUP BY mo.character_id, c.name
 ORDER BY c.name
 """
@@ -47,9 +48,10 @@ WHERE   blueprint_id IN (
 )
 UNION
 SELECT  item_id
-FROM    thing_asset ca, thing_character c, thing_apikey a
+FROM    thing_asset ca, thing_character c, thing_apikey_characters ac, thing_apikey a
 WHERE   ca.character_id = c.id
-        AND c.apikey_id = a.id
+        AND c.id = ac.character_id
+        AND ac.apikey_id = a.id
         AND a.user_id = %s
 """
 

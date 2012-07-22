@@ -47,30 +47,33 @@ def home(request):
     total_balance = 0
 
     # Work out sort order
-    char_q = Character.objects.select_related('apikey').filter(apikey__user=request.user)
-    if profile.home_sort_order == 'apikey':
-        char_q = char_q.order_by('apikey__name', 'name')
-    elif profile.home_sort_order == 'charname':
-        char_q = char_q.order_by('name')
-    elif profile.home_sort_order == 'corpname':
-        char_q = char_q.order_by('corporation__name', 'name')
-    elif profile.home_sort_order == 'wallet':
-        char_q = char_q.order_by('wallet_balance', 'name')
-    else:
-        char_q = char_q.order_by('apikey__name', 'name')
+    # FIXME: reimplement this
+    # char_q = Character.objects.select_related('apikey').filter(apikey__user=request.user)
+    # if profile.home_sort_order == 'apikey':
+    #     char_q = char_q.order_by('apikey__name', 'name')
+    # elif profile.home_sort_order == 'charname':
+    #     char_q = char_q.order_by('name')
+    # elif profile.home_sort_order == 'corpname':
+    #     char_q = char_q.order_by('corporation__name', 'name')
+    # elif profile.home_sort_order == 'wallet':
+    #     char_q = char_q.order_by('wallet_balance', 'name')
+    # else:
+    #     char_q = char_q.order_by('apikey__name', 'name')
 
-    if profile.home_sort_descending:
-        char_q = char_q.reverse()
+    # if profile.home_sort_descending:
+    #     char_q = char_q.reverse()
 
     # Initialise various data structures
     api_keys = set()
     training = set()
     chars = OrderedDict()
-    for char in char_q:
-        char.z_training = {}
-        chars[char.id] = char
-        api_keys.add(char.apikey)
-        total_balance += char.wallet_balance
+    for apikey in APIKey.objects.prefetch_related('characters').filter(user=request.user).exclude(key_type=APIKey.CORPORATION_TYPE):
+        api_keys.add(apikey)
+        for char in apikey.characters.all():
+            chars[char.id] = char
+            char.z_apikey = apikey
+            char.z_training = {}
+            total_balance += char.wallet_balance
 
     # Do skill training check - this can't be in the model because it
     # scales like crap doing individual queries
@@ -83,7 +86,7 @@ def home(request):
             char.z_training['skill_duration'] = (sq.end_time - utcnow).total_seconds()
             char.z_training['sp_per_hour'] = int(sq.skill.get_sp_per_minute(char) * 60)
             char.z_training['complete_per'] = sq.get_complete_percentage(now)
-            training.add(char.apikey)
+            training.add(char.z_apikey)
         
         char.z_training['queue_duration'] = (sq.end_time - utcnow).total_seconds()
 
@@ -107,8 +110,8 @@ def home(request):
         char.z_notifications = []
 
         # Game time warnings
-        if char.apikey.paid_until:
-            timediff = (char.apikey.paid_until - now).total_seconds()
+        if char.z_apikey.paid_until:
+            timediff = (char.z_apikey.paid_until - now).total_seconds()
 
             if timediff < 0:
                 char.z_notifications.append({
@@ -127,7 +130,7 @@ def home(request):
                 })
 
         # Empty skill queue
-        if char.apikey in not_training:
+        if char.z_apikey in not_training:
             char.z_notifications.append({
                 'icon': 'tasks',
                 'text': 'Empty!',
@@ -190,7 +193,7 @@ def home(request):
             san[apikey.id] = "account%d" % (i + 1)
 
         for char in chars.values():
-            char.z_sanitised_api = san[char.apikey.id]
+            char.z_sanitised_api = san[char.z_apikey.id]
 
     # Total SP
     total_sp = sum(getattr(c, 'z_total_sp', 0) for c in chars.values())
@@ -281,14 +284,14 @@ def apikeys_add(request):
         request.session['message'] = 'KeyID or vCode is invalid!'
 
     else:
-        if APIKey.objects.filter(id=request.POST.get('keyid', 0)).count():
+        if APIKey.objects.filter(user=request.user, keyid=request.POST.get('keyid', 0)).count():
             request.session['message_type'] = 'error'
-            request.session['message'] = 'An API key with that KeyID already exists!'
+            request.session['message'] = 'You already have an API key with that KeyID!'
 
         else:
             apikey = APIKey(
                 user_id=request.user.id,
-                id=keyid,
+                keyid=keyid,
                 vcode=vcode,
                 name=name,
             )
@@ -305,7 +308,7 @@ def apikeys_delete(request):
     #print request.POST.items()
 
     try:
-        apikey = APIKey.objects.get(user=request.user.id, id=request.POST.get('keyid', '0'))
+        apikey = APIKey.objects.get(user=request.user.id, id=request.POST.get('apikey_id', '0'))
     
     except APIKey.DoesNotExist:
         request.session['message_type'] = 'error'
@@ -347,8 +350,8 @@ def apikeys_edit(request):
 def assets(request):
     # apply our initial set of filters
     assets = Asset.objects.select_related('system', 'station', 'item__item_group__category', 'character', 'corporation', 'inv_flag')
-    char_filter = Q(character__apikey__user=request.user)
-    corp_filter = Q(corporation_id__in=APIKey.objects.filter(user=request.user).values('corp_character__corporation__id'))
+    char_filter = Q(character__apikeys__user=request.user, corporation__isnull=True)
+    corp_filter = Q(corporation__in=APIKey.objects.filter(user=request.user).values('corp_character__corporation__id'))
     assets = assets.filter(char_filter | corp_filter)
 
     # retrieve any supplied filter values
@@ -476,7 +479,7 @@ def assets(request):
     return render_to_response(
         'thing/assets.html',
         {
-            'characters': Character.objects.filter(apikey__user=request.user),
+            'characters': Character.objects.filter(apikeys__user=request.user),
             'corporations': corporations,
             'filters': filters,
             'total_value': total_value,
@@ -703,13 +706,13 @@ GROUP BY item_id
 # ---------------------------------------------------------------------------
 # Display a character page
 def character(request, character_name):
-    queryset = Character.objects.select_related('apikey__user', 'config', 'corporation')
-    queryset = queryset.prefetch_related('faction_standings', 'corporation_standings')
+    queryset = Character.objects.select_related('config', 'corporation')
+    queryset = queryset.prefetch_related('apikeys', 'faction_standings', 'corporation_standings')
     char = get_object_or_404(queryset, name=character_name)
 
     # Check access
     public = True
-    if request.user.is_authenticated() and request.user.id == char.apikey.user.id:
+    if request.user.is_authenticated() and char.apikeys.filter(user=request.user):
         public = False
 
     # Check for CharacterConfig, creating an empty config if it does not exist
@@ -834,7 +837,7 @@ def character_anonymous(request, anon_key):
 ANON_KEY_RE = re.compile(r'^[a-z0-9]+$')
 @login_required
 def character_settings(request, character_name):
-    char = get_object_or_404(Character, name=character_name, apikey__user=request.user)
+    char = get_object_or_404(Character, name=character_name, apikeys__user=request.user)
 
     char.config.is_public = ('public' in request.POST)
     char.config.show_clone = ('clone' in request.POST)
@@ -892,9 +895,9 @@ def events(request):
 @login_required
 def market_scan(request):
     cursor = connection.cursor()
+    cursor.execute(queries.user_item_ids, (request.user.id, request.user.id, request.user.id))
 
     item_ids = []
-    cursor.execute(queries.user_item_ids, (request.user.id, request.user.id, request.user.id))
     for row in cursor:
         item_ids.append(row[0])
 
@@ -919,7 +922,7 @@ def orders(request):
         char_orders[row['character_id']] = row
 
     # Retrieve trade skills that we're interested in
-    order_cs = CharacterSkill.objects.filter(character__apikey__user=request.user, skill__item__name__in=ORDER_SLOT_SKILLS.keys())
+    order_cs = CharacterSkill.objects.filter(character__apikeys__user=request.user, skill__item__name__in=ORDER_SLOT_SKILLS.keys())
     order_cs = order_cs.select_related('character__apikey', 'skill__item')
 
     #for cs in CharacterSkill.objects.select_related().filter(character__apikey__user=request.user, skill__item__name__in=ORDER_SLOT_SKILLS.keys()):
@@ -948,7 +951,7 @@ def orders(request):
 
     # Retrieve all orders
     orders = MarketOrder.objects.select_related('item', 'station', 'character', 'corp_wallet__corporation')
-    orders = orders.filter(character__apikey__user=request.user)
+    orders = orders.filter(character__apikeys__user=request.user)
     orders = orders.order_by('station__name', '-buy_order', 'item__name')
 
     now = datetime.datetime.utcnow()
@@ -985,7 +988,7 @@ def trade(request):
     #data['net_asset_value'] = data['wallet_balance'] + data['sell_total'] + data['escrow_total']
     
     # Transaction stuff oh god
-    transactions = Transaction.objects.filter(character__apikey__user=request.user)
+    transactions = Transaction.objects.filter(character__apikeys__user=request.user)
     
     t_check = []
     # All
@@ -1042,7 +1045,7 @@ def trade_timeframe(request, year=None, month=None, period=None, slug=None):
     }
     
     # Get a QuerySet of transactions by this user
-    transactions = Transaction.objects.filter(character__apikey__user=request.user)
+    transactions = Transaction.objects.filter(character__apikeys__user=request.user)
     
     # Year/Month
     if year and month:
@@ -1125,7 +1128,9 @@ def trade_timeframe(request, year=None, month=None, period=None, slug=None):
 @login_required
 def transactions(request):
     # Get a QuerySet of transactions by this user
-    transactions = Transaction.objects.select_related('corp_wallet__corporation', 'item', 'station', 'character').filter(character__apikey__user=request.user).order_by('-date')
+    transactions = Transaction.objects.select_related('corp_wallet__corporation', 'item', 'station', 'character')
+    transactions = transactions.filter(character__apikeys__user=request.user)
+    transactions = transactions.order_by('-date')
     
     # Create a new paginator
     paginator = Paginator(transactions, 100)
@@ -1158,7 +1163,7 @@ def transactions_item(request, item_id, year=None, month=None, period=None, slug
     data = {}
     
     # Get a QuerySet of transactions by this user
-    transactions = Transaction.objects.filter(character__apikey__user=request.user).order_by('-date')
+    transactions = Transaction.objects.filter(character__apikeys__user=request.user).order_by('-date')
     
     # If item_id is an integer we should filter on that item_id
     if item_id.isdigit():
