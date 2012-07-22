@@ -284,14 +284,14 @@ def apikeys_add(request):
         request.session['message'] = 'KeyID or vCode is invalid!'
 
     else:
-        if APIKey.objects.filter(id=request.POST.get('keyid', 0)).count():
+        if APIKey.objects.filter(user=request.user, keyid=request.POST.get('keyid', 0)).count():
             request.session['message_type'] = 'error'
-            request.session['message'] = 'An API key with that KeyID already exists!'
+            request.session['message'] = 'You already have an API key with that KeyID!'
 
         else:
             apikey = APIKey(
                 user_id=request.user.id,
-                id=keyid,
+                keyid=keyid,
                 vcode=vcode,
                 name=name,
             )
@@ -308,7 +308,7 @@ def apikeys_delete(request):
     #print request.POST.items()
 
     try:
-        apikey = APIKey.objects.get(user=request.user.id, id=request.POST.get('keyid', '0'))
+        apikey = APIKey.objects.get(user=request.user.id, id=request.POST.get('apikey_id', '0'))
     
     except APIKey.DoesNotExist:
         request.session['message_type'] = 'error'
