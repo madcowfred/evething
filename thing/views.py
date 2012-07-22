@@ -711,12 +711,9 @@ def character(request, character_name):
     char = get_object_or_404(queryset, name=character_name)
 
     # Check access
-    public = False
-    if request.user.is_authenticated():
-        for apikey in char.apikeys.all():
-            if request.user.id == apikey.user.id:
-                public = True
-                break
+    public = True
+    if request.user.is_authenticated() and char.apikeys.filter(user=request.user):
+        public = False
 
     # Check for CharacterConfig, creating an empty config if it does not exist
     if char.config is None:
@@ -840,7 +837,7 @@ def character_anonymous(request, anon_key):
 ANON_KEY_RE = re.compile(r'^[a-z0-9]+$')
 @login_required
 def character_settings(request, character_name):
-    char = get_object_or_404(Character, name=character_name, apikey__user=request.user)
+    char = get_object_or_404(Character, name=character_name, apikeys__user=request.user)
 
     char.config.is_public = ('public' in request.POST)
     char.config.show_clone = ('clone' in request.POST)
