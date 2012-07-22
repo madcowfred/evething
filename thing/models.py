@@ -222,6 +222,13 @@ class CharacterConfig(models.Model):
     def __unicode__(self):
         return self.character.name
 
+# Magical hook so this gets called when a new user is created
+def create_characterconfig(sender, instance, created, **kwargs):
+    if created:
+        CharacterConfig.objects.create(character=instance)
+
+post_save.connect(create_characterconfig, sender=Character)
+
 # Character skills
 class CharacterSkill(models.Model):
     character = models.ForeignKey('Character')
