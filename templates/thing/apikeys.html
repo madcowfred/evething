@@ -40,8 +40,8 @@
 
   $(document).ready(function() {
     $('#key-table').on('click', 'a.delete-button', function(event) {
-      var keyid = $('td:nth-child(2)', $(this).parents('tr')).attr('data-id');
-      var keyname = $('td:nth-child(4)', $(this).parents('tr')).text();
+      var keyid = $('td:nth-child(3)', $(this).parents('tr')).attr('data-id');
+      var keyname = $('td:nth-child(5)', $(this).parents('tr')).text();
       $('#delete-keyid-input').val(keyid);
       $('#keyid').text(keyid);
       $('#keyname').text(keyname);
