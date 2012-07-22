@@ -48,9 +48,10 @@ WHERE   blueprint_id IN (
 )
 UNION
 SELECT  item_id
-FROM    thing_asset ca, thing_character c, thing_apikey a
+FROM    thing_asset ca, thing_character c, thing_apikey_characters ac, thing_apikey a
 WHERE   ca.character_id = c.id
-        AND c.apikey_id = a.id
+        AND c.id = ac.character_id
+        AND ac.apikey_id = a.id
         AND a.user_id = %s
 """
 
