@@ -996,12 +996,10 @@ class WalletTransactions(APIJob):
                 break
             
             # Make a transaction id:row map
-            bulk_data = {}
+            bulk_data = OrderedDict()
             client_ids = set()
-            last_id = None
             for row in rows:
                 transaction_id = int(row.attrib['transactionID'])
-                last_id = transaction_id
                 bulk_data[transaction_id] = row
                 client_ids.add(int(row.attrib['clientID']))
 
@@ -1126,8 +1124,8 @@ class WalletTransactions(APIJob):
                 self.apicache.completed()
 
             # If we got MAX rows we should retrieve some more
-            if len(rows) == TRANSACTION_ROWS and transaction_time > one_week_ago:
-                params['beforeTransID'] = last_id
+            if len(bulk_data) == TRANSACTION_ROWS:
+                params['beforeTransID'] = transaction_id
             else:
                 break
 
