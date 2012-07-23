@@ -22,7 +22,7 @@
               </tr>
             </thead>
             <tbody>
-              {% for transaction in transactions.object_list %}
+              {% for transaction in transactions %}
               <tr>
                 <td class="c">{{ transaction.date|date:"Y-m-d H:i" }}</td>
                 <td>{{ transaction.station.short_name }}</td>

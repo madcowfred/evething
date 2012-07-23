@@ -1127,14 +1127,16 @@ def trade_timeframe(request, year=None, month=None, period=None, slug=None):
 # Transaction list
 @login_required
 def transactions(request):
-    # Get a QuerySet of transactions by this user
-    transactions = Transaction.objects.select_related('corp_wallet__corporation', 'item', 'station', 'character', 'other_char', 'other_corp')
-    transactions = transactions.filter(character__apikeys__user=request.user)
-    transactions = transactions.order_by('-date')
-    
+    # Get a QuerySet of transactions IDs by this user
+    transaction_ids = Transaction.objects.filter(character__apikeys__user=request.user)
+    transaction_ids = transaction_ids.order_by('-date')
+
+    # Get only the ids, at this point joining the rest is unnecessary
+    transaction_ids = transaction_ids.values_list('pk', flat=True)
+
     # Create a new paginator
-    paginator = Paginator(transactions, 100)
-    
+    paginator = Paginator(transaction_ids, 100)
+
     # Make sure page request is an int, default to 1st page
     try:
         page = int(request.GET.get('page', '1'))
@@ -1143,10 +1145,15 @@ def transactions(request):
     
     # If page request is out of range, deliver last page of results
     try:
-        transactions = paginator.page(page)
+        paginated_ids = paginator.page(page)
     except (EmptyPage, InvalidPage):
-        transactions = paginator.page(paginator.num_pages)
-    
+        paginated_ids = paginator.page(paginator.num_pages)
+
+    # Actually execute the query to avoid a nested subquery
+    paginated_ids = list(paginated_ids.object_list.all())
+    transactions = Transaction.objects.filter(pk__in=paginated_ids).select_related('corp_wallet__corporation', 'item', 'station', 'character', 'other_char', 'other_corp')
+    #transactions = transactions.order_by('-date')
+
     # Render template
     return render_to_response(
         'thing/transactions.html',
@@ -1155,6 +1162,35 @@ def transactions(request):
         },
         context_instance=RequestContext(request)
     )
+
+    # # Get a QuerySet of transactions by this user
+    # transactions = Transaction.objects.select_related('corp_wallet__corporation', 'item', 'station', 'character', 'other_char', 'other_corp')
+    # transactions = transactions.filter(character__apikeys__user=request.user)
+    # transactions = transactions.order_by('-date')
+
+    # # Create a new paginator
+    # paginator = Paginator(transactions, 100)
+    
+    # # Make sure page request is an int, default to 1st page
+    # try:
+    #     page = int(request.GET.get('page', '1'))
+    # except ValueError:
+    #     page = 1
+    
+    # # If page request is out of range, deliver last page of results
+    # try:
+    #     transactions = paginator.page(page)
+    # except (EmptyPage, InvalidPage):
+    #     transactions = paginator.page(paginator.num_pages)
+    
+    # # Render template
+    # return render_to_response(
+    #     'thing/transactions.html',
+    #     {
+    #         'transactions': transactions,
+    #     },
+    #     context_instance=RequestContext(request)
+    # )
 
 # ---------------------------------------------------------------------------
 # Transaction details for last x days for specific item
