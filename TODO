@@ -54,14 +54,13 @@
     = [All]
 
 * Transactions:
-  - Improve pagination display, maybe << [1] 2 3 >> then << 1 [2] 3 >>, << 2 [3] 4 >> etc? Also needs to go at top
-    and bottom of pages instead of just bottom.
   - Ability to search transactions via:
     = character
     = partial item name
     = date (before x, after x, between x and y)
     = wallets?
-  - Track other party in the transaction, new Client table or something
+    = client
+  - Clickable Client column to filter further
 
 * Wallet journal:
   - Implement database model to store
@@ -72,6 +71,7 @@
   - Make SystemEvent objects for admin-related events
   - Wallet Journal char/corp support
   - Convert everything over to using Django 1.4 bulk saves
+    = Standings, WalletTransactions done
 
 * documentation:
   - Pages need to explain what the hell they do
