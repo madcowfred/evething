@@ -1,9 +1,11 @@
-# make a copy of this as local_settings.py and edit that
+# make a copy of this file as local_settings.py and edit that
 import settings
 
+# switch this to True if you want to see crash information
+# NEVER LEAVE THIS ON FOR A PUBLIC SITE
 DEBUG = False
-#DEBUG = True
 
+# database configuration
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
@@ -15,14 +17,19 @@ DATABASES = {
     }
 }
 
-MEDIA_ROOT = '/home/freddie/source/python/evething/media'
+# change this to the public facing directory for static files, needed for
+# 'manage.py collectstatic' to work
+STATIC_ROOT = '/www/evething.home/static'
+# override the default '/static/' for static files
+#STATIC_URL = 'http://static.evething.home'
 
+# API host to use, change this if you have an API proxy handy
+API_HOST = 'https://api.eveonline.com'
+# number of api_updater threads to use (simultaneous requests)
+API_THREADS = 4
+
+# IP addresses that will see some extra DEBUG info
 INTERNAL_IPS = (
     '127.0.0.1',
     '192.168.1.20',
 )
-
-# API host to use, change this if you have an API proxy to use
-API_HOST = 'https://api.eveonline.com'
-# number of api_updater threads to start (simultaneous requests)
-API_THREADS = 4
