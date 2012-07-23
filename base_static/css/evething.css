@@ -30,6 +30,9 @@ ul.children li {
   font-size: 1.6em;
   font-weight: bold;
 }
+.skill-hover {
+  border-bottom: 1px dotted;
+}
 
 /* table alignment, urgh */
 tr.c th,
