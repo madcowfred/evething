@@ -564,7 +564,6 @@ def blueprints_edit(request):
 
 # ---------------------------------------------------------------------------
 # Calculate blueprint production details for X number of days
-DAY = 24 * 60 * 60
 @login_required
 def bpcalc(request):
     # Get a valid number of days
@@ -625,7 +624,7 @@ GROUP BY item_id
             
             # Work out how many runs fit into the number of days provided
             pt = bpi.calc_production_time()
-            runs = int((DAY * days) / pt)
+            runs = int((ONE_DAY * days) / pt)
             
             # Skip really long production items
             if runs == 0:
