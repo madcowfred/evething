@@ -8,7 +8,7 @@ from collections import OrderedDict
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
-from django.core.paginator import Paginator, InvalidPage, EmptyPage
+from django.core.paginator import Paginator, EmptyPage, InvalidPage, PageNotAnInteger
 from django.db import connection
 from django.db.models import Q, Avg, Count, Max, Min, Sum
 from django.http import Http404
@@ -1145,52 +1145,53 @@ def transactions(request):
     
     # If page request is out of range, deliver last page of results
     try:
-        paginated_ids = paginator.page(page)
-    except (EmptyPage, InvalidPage):
-        paginated_ids = paginator.page(paginator.num_pages)
+        paginated = paginator.page(request.GET.get('page'))
+    except PageNotAnInteger:
+        # Page is not an integer, use first page
+        paginated = paginator.page(1)
+    except EmptyPage:
+        # Page is out of range, deliver last page
+        paginated = paginator.page(paginator.num_pages)
 
     # Actually execute the query to avoid a nested subquery
-    paginated_ids = list(paginated_ids.object_list.all())
+    paginated_ids = list(paginated.object_list.all())
     transactions = Transaction.objects.filter(pk__in=paginated_ids).select_related('corp_wallet__corporation', 'item', 'station', 'character', 'other_char', 'other_corp')
-    #transactions = transactions.order_by('-date')
+    transactions = transactions.order_by('-date')
+
+    # Do page number things
+    hp = paginated.has_previous()
+    hn = paginated.has_next()
+    prev = []
+    next = []
+
+    if hp:
+        # prev and next, use 1 of each
+        if hn:
+            prev.append(paginated.previous_page_number())
+            next.append(paginated.next_page_number())
+        # no next, add up to 2 previous links
+        else:
+            for i in range(paginated.number - 1, 0, -1)[:2]:
+                prev.append(i)
+    else:
+        # no prev, add up to 2 next links
+        for i in range(paginated.number + 1, paginator.num_pages)[:2]:
+            next.append(i)
+
+    print prev
+    print next
 
     # Render template
     return render_to_response(
         'thing/transactions.html',
         {
             'transactions': transactions,
+            'paginated': paginated,
+            'next': next,
+            'prev': prev,
         },
         context_instance=RequestContext(request)
     )
-
-    # # Get a QuerySet of transactions by this user
-    # transactions = Transaction.objects.select_related('corp_wallet__corporation', 'item', 'station', 'character', 'other_char', 'other_corp')
-    # transactions = transactions.filter(character__apikeys__user=request.user)
-    # transactions = transactions.order_by('-date')
-
-    # # Create a new paginator
-    # paginator = Paginator(transactions, 100)
-    
-    # # Make sure page request is an int, default to 1st page
-    # try:
-    #     page = int(request.GET.get('page', '1'))
-    # except ValueError:
-    #     page = 1
-    
-    # # If page request is out of range, deliver last page of results
-    # try:
-    #     transactions = paginator.page(page)
-    # except (EmptyPage, InvalidPage):
-    #     transactions = paginator.page(paginator.num_pages)
-    
-    # # Render template
-    # return render_to_response(
-    #     'thing/transactions.html',
-    #     {
-    #         'transactions': transactions,
-    #     },
-    #     context_instance=RequestContext(request)
-    # )
 
 # ---------------------------------------------------------------------------
 # Transaction details for last x days for specific item

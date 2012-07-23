@@ -55,16 +55,18 @@
           </table>
           <div class="pagination pagination-centered">
             <ul>
-              {% if transactions.has_previous %}
-              <li><a href="?page={{ transactions.previous_page_number }}">Prev</a></li>
+              {% if paginated.has_previous %}
+              <li><a href="?page={{ paginated.previous_page_number }}">&laquo;</a></li>
+              {% for p in prev %}<li><a href="?page={{ p }}">{{ p }}</a></li>{% endfor %}
               {% else %}
-              <li class="disabled"><a href="#">Prev</a></li>
+              <li class="disabled"><a href="#">&laquo;</a></li>
               {% endif %}
-              <li class="active"><a href="#">{{ transactions.number }}</a></li>
-              {% if transactions.has_next %}
-              <li><a href="?page={{ transactions.next_page_number }}">Next</a></li>
+              <li class="active"><a href="#">{{ paginated.number }}</a></li>
+              {% if paginated.has_next %}
+              {% for n in next %}<li><a href="?page={{ n }}">{{ n }}</a></li>{% endfor %}
+              <li><a href="?page={{ paginated.next_page_number }}">&raquo;</a></li>
               {% else %}
-              <li class="disabled"><a href="#">Next</a></li>
+              <li class="disabled"><a href="#">&raquo;</a></li>
               {% endif %}
             </ul>
           </div>
