@@ -454,7 +454,9 @@ class Importer:
 
         skills = {}
         self.cursor.execute("""
-            SELECT DISTINCT invTypes.typeID, CAST(dgmTypeAttributes.valueFloat AS integer) AS rank
+            SELECT  DISTINCT invTypes.typeID,
+                    CAST(dgmTypeAttributes.valueFloat AS integer) AS rank,
+                    invTypes.description
             FROM    invTypes
             INNER JOIN invGroups ON (invTypes.groupID = invGroups.groupID)
             INNER JOIN dgmTypeAttributes ON (invTypes.typeID = dgmTypeAttributes.typeID)
@@ -465,7 +467,10 @@ class Importer:
             ORDER BY invTypes.typeID
         """)
         for row in self.cursor:
-            skills[row[0]] = { 'rank': row[1], }
+            skills[row[0]] = {
+                'rank': row[1],
+                'description': row[2].strip(),
+            }
 
         # Primary/secondary attributes
         self.cursor.execute("""
@@ -495,7 +500,17 @@ class Importer:
 
         for id, data in skills.items():
             # TODO: add value verification
-            if id in skill_map:
+            skill = skill_map.get(id, None)
+            if skill is not None:
+                if skill.rank != data['rank'] or skill.description != data['description'] or \
+                   skill.primary_attribute != data['pri'] or skill.secondary_attribute != data['sec']:
+
+                    skill.rank = data['rank']
+                    skill.description = data['description']
+                    skill.primary_attribute = data['pri']
+                    skill.secondary_attribute = data['sec']
+                    skill.save()
+                    print '==> Updated skill details for #%d' % (id)
                 continue
 
             skill = Skill(

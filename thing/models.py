@@ -476,6 +476,7 @@ class Skill(models.Model):
 
     item = models.OneToOneField(Item, primary_key=True)
     rank = models.SmallIntegerField()
+    description = models.TextField()
     primary_attribute = models.SmallIntegerField(choices=ATTRIBUTE_CHOICES)
     secondary_attribute = models.SmallIntegerField(choices=ATTRIBUTE_CHOICES)
 
