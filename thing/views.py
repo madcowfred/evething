@@ -753,6 +753,7 @@ def character(request, character_name):
         # level 5 skill = all hearts
         if cs.level == 5:
             cs.z_icons.extend(['heart'] * 5)
+            cs.z_class = "level5"
         # 0-4 = stars
         else:
             for i in range(cs.level):
@@ -764,6 +765,7 @@ def character(request, character_name):
 
         if cs.skill.item.id == training_id:
             cs.z_training = True
+            cs.z_class = "training-highlight"
 
         # then fill out the rest with minus
         cs.z_icons.extend(['minus'] * (5 - len(cs.z_icons)))

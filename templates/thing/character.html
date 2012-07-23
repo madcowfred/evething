@@ -14,7 +14,10 @@
       anon_checked = $('#anon-key').attr('checked');
       $("#anon-key").change(anon_toggle);
       anon_toggle();
-    
+      
+      // hover thing for skill descriptions
+      $('span[rel="popover"]').popover({ animation: false });
+
       // Javascript to enable link to tab
       var prefix = 'tab_';
       var hash = document.location.hash;
@@ -228,11 +231,9 @@
                     {% for cs in css %}
                     <div class="clearfix">
                       {% spaceless %}
-                      {% if cs.z_training %}<span class="training-highlight"><i class="icon-play"></i>
-                      {% else %}{% if cs.level == 5 %}<span class="level5">{% endif %}
-                      {% endif %}
-                      {{ cs.skill.item.name }} {{ cs.get_roman_level }}
-                      {% if cs.z_training or cs.level == 5 %}</span>{% endif %}
+                      <span href="#" class="skill-hover{% if cs.z_class %} {{ cs.z_class }}{% endif %}" rel="popover" title="{{ cs.skill.item.name }}" data-content="{{ cs.skill.description }}">
+                        {{ cs.skill.item.name }} {{ cs.get_roman_level }}
+                      </span>
                       {% endspaceless %}
                       
                       <div class="pull-right">
