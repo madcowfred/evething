@@ -305,8 +305,6 @@ def apikeys_add(request):
 # Delete an API key
 @login_required
 def apikeys_delete(request):
-    #print request.POST.items()
-
     try:
         apikey = APIKey.objects.get(user=request.user.id, id=request.POST.get('apikey_id', '0'))
     
@@ -319,7 +317,7 @@ def apikeys_delete(request):
         request.session['message'] = 'API key %s deleted successfully!' % (apikey.id)
         
         # remove this APIKey from any existing Character objects
-        Character.objects.filter(apikey=apikey).update(apikey=None)
+        #Character.objects.filter(apikey=apikey).update(apikey=None)
         # delete the APIKey
         apikey.delete()
 
