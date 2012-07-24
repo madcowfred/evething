@@ -1,5 +1,6 @@
 from django.conf import settings
-from django.conf.urls.defaults import *
+#from django.conf.urls.defaults import *
+from coffin.conf.urls.defaults import *
 from django.contrib.auth.views import login, logout
 
 

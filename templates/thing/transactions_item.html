@@ -24,10 +24,10 @@
             <tbody>
               {% for transaction in transactions.object_list %}
               <tr>
-                <td class="c">{{ transaction.date|date:"Y-m-d H:i" }}</td>
+                <td class="c">{{ transaction.date|date("Y-m-d H:i") }}</td>
                 <td>{{ transaction.station.short_name }}</td>
                 <td>{{ transaction.character.name }}</td>
-                <td class="c">{{ transaction.corp_wallet.corporation.ticker }}</td>
+                <td class="c">{% if transaction.corp_wallet %}{{ transaction.corp_wallet.corporation.ticker }}{% endif %}</td>
                 <td>
                   {% if transaction.other_char or transaction.other_corp %}
                   {% if transaction.other_char %}
@@ -46,7 +46,7 @@
                 {% endif %}
                 </td>
               </tr>
-              {% empty %}
+              {% else %}
               <tr>
                 <td>No transactions for this item.</td>
               </tr>

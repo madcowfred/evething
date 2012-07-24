@@ -26,7 +26,7 @@
               <div class="row">
                 <div class="span4">
                   <ul class="unstyled">
-                    <li><strong>Total SP:</strong> {{ char.get_total_skill_points|commas }}</li>
+                    <li><strong>Total SP:</strong> {{ char.get_total_skill_points()|commas }}</li>
                   </ul>
                 </div>
                 <div class="span3 pull-right">
@@ -63,8 +63,7 @@
             </div>
           </div>
           
-          {% autoescape off %}
-          {% for mg, css in skills.items %}
+          {% for mg, css in skills.items() %}
           <div class="row">
             <div class="span9">
               <div class="well well-small">
@@ -77,7 +76,7 @@
                 <div>
                   {% spaceless %}
                   <span class="skill-hover{% if cs.level == 5 %} level5{% endif %}" rel="popover" title="{{ cs.skill.item.name }}" data-content="{{ cs.skill.description }}">
-                    {{ cs.skill.item.name }} {{ cs.get_roman_level }}
+                    {{ cs.skill.item.name }} {{ cs.get_roman_level() }}
                   </span>
                   {% endspaceless %}
                   
@@ -85,7 +84,7 @@
                     {% for icon in cs.z_icons %}<i class="icon-{{ icon }} nomargin"></i>{% endfor %}
                   </div>
 
-                  <div class="pull-right character-sp">{{ cs.skill.get_sp_at_level|commas }} SP</div>
+                  <div class="pull-right character-sp">{{ cs.skill.get_sp_at_level()|commas }} SP</div>
                   <div class="pull-right character-sp">{{ cs.points|commas }} / </div>
                   <div class="pull-right character-sp">Rank {{ cs.skill.rank }}</div>
                 </div>
@@ -94,7 +93,6 @@
             </div>
           </div>
           {% endfor %}
-          {% endautoescape %}
         </div>
       </div>
 

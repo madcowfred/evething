@@ -109,9 +109,9 @@
               {% for apikey in apikeys %}
               <tr>
                 <td class="r">{{ apikey.id }}</td>
-                <td class="c"><i class="icon-{{ apikey.valid|yesno:"ok,remove" }}"></i></td>
+                <td class="c"><i class="icon-{% if apikey.valid %}ok{% else %}remove{% endif %}"></i></td>
                 <td class="r" data-id="{{ apikey.id }}">{% if sanitise %}123456{% else %}{{ apikey.keyid }}{% endif %}</td>
-                <td class="fixed c">{% if sanitise %}ABcd****************wxYZ{% else %}{{ apikey.get_masked_vcode }}{% endif %}</td>
+                <td class="fixed c">{% if sanitise %}ABcd****************wxYZ{% else %}{{ apikey.get_masked_vcode() }}{% endif %}</td>
                 <td>
                   {% spaceless %}
                   {% if sanitise %}
@@ -124,11 +124,11 @@
                 </td>
                 <td class="c">{{ apikey.key_type }}</td>
                 <td class="r">{{ apikey.access_mask }}</td>
-                <td>{{ apikey.expires|default_if_none:"Never" }}</td>
+                <td>{{ apikey.expires|default_if_none("Never") }}</td>
                 <td>
                   {% spaceless %}
                   {% if apikey.valid and apikey.key_type == 'Account' %}
-                  {% with apikey.get_remaining_time as remaining %}
+                  {% with apikey.get_remaining_time() as remaining %}
                   {% if remaining < 604800 %}
                   <span class="low-game-time">
                     {% if remaining < 0 %}

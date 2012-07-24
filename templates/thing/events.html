@@ -19,11 +19,11 @@
             <tbody>
               {% for event in events.object_list %}
               <tr>
-                <td class="c">{{ event.issued|date:"Y-m-d H:i" }}</td>
-                <td class="r">{{ event.get_age|duration }}</td>
+                <td class="c">{{ event.issued|date("Y-m-d H:i") }}</td>
+                <td class="r">{{ event.get_age()|duration }}</td>
                 <td>{{ event.text|safe }}</td>
               </tr>
-              {% empty %}
+              {% else %}
               <tr>
                 <td colspan="3">No events found.</td>
               </tr>
@@ -32,14 +32,14 @@
           </table>
           <div class="pagination pagination-centered">
             <ul>
-              {% if events.has_previous %}
-              <li><a href="?page={{ events.previous_page_number }}">Prev</a></li>
+              {% if events.has_previous() %}
+              <li><a href="?page={{ events.previous_page_number() }}">Prev</a></li>
               {% else %}
               <li class="disabled"><a href="#">Prev</a></li>
               {% endif %}
               <li class="active"><a href="#">{{ events.number }}</a></li>
-              {% if events.has_next %}
-              <li><a href="?page={{ events.next_page_number }}">Next</a></li>
+              {% if events.has_next() %}
+              <li><a href="?page={{ events.next_page_number() }}">Next</a></li>
               {% else %}
               <li class="disabled"><a href="#">Next</a></li>
               {% endif %}
