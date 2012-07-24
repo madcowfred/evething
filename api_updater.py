@@ -76,22 +76,23 @@ class APIWorker(threading.Thread):
                     logging.error('Trapped exception!', exc_info=sys.exc_info())
                     transaction.rollback()
                 else:
-                    with _debug_lock:
-                        debug = open('/tmp/api.debug', 'a')
-                        debug.write('\n|| %s ||\n' % (job.__class__.__name__))
-                        debug.write('%.3fs  %d queries (%.3fs)  API: %.2fs\n' % (time.time() - start,
-                            len(connection.queries), sum(float(q['time']) for q in connection.queries),
-                            job.api_total_time
-                        ))
-                        debug.write('\n')
-                        for query in connection.queries:
-                            if query['sql'].startswith('INSERT INTO "thing_apicache"'):
-                                debug.write('%02.3fs  INSERT INTO "thing_apicache" ...\n' % (float(query['time']),))
-                            else:
-                                debug.write('%02.3fs  %s\n' % (float(query['time']), query['sql']))
-                        debug.close()
+                    if settings.DEBUG:
+                        with _debug_lock:
+                            debug = open('/tmp/api.debug', 'a')
+                            debug.write('\n|| %s ||\n' % (job.__class__.__name__))
+                            debug.write('%.3fs  %d queries (%.3fs)  API: %.2fs\n' % (time.time() - start,
+                                len(connection.queries), sum(float(q['time']) for q in connection.queries),
+                                job.api_total_time
+                            ))
+                            debug.write('\n')
+                            for query in connection.queries:
+                                if query['sql'].startswith('INSERT INTO "thing_apicache"'):
+                                    debug.write('%02.3fs  INSERT INTO "thing_apicache" ...\n' % (float(query['time']),))
+                                else:
+                                    debug.write('%02.3fs  %s\n' % (float(query['time']), query['sql']))
+                            debug.close()
 
-                        connection.queries = []
+                            connection.queries = []
 
                 self.queue.task_done()
 
