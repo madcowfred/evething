@@ -6,13 +6,11 @@
 {% block extra_head %}
     <script type="text/javascript">
       var characters = new Array();
-      {% for character in characters %}
-      characters[{{ forloop.counter0 }}] = new Array({{ character.id }}, "{{ character.name }}");
+      {% for character in characters %}characters[{{ forloop.counter0 }}] = new Array({{ character.id }}, "{{ character.name }}");
       {% endfor %}
 
       var corporations = new Array();
-      {% for corporation in corporations %}
-      corporations[{{ forloop.counter0 }}] = new Array({{ corporation.id }}, "{{ corporation.name }}");
+      {% for corporation in corporations %}corporations[{{ forloop.counter0 }}] = new Array({{ corporation.id }}, "{{ corporation.name }}");
       {% endfor %}
 
       var selected = new Array();
@@ -183,42 +181,40 @@
                   {% if asset.z_contents %}<i class="icon-plus asset-expand" data-target=".asset-{{ asset.id }}"></i> {% endif %}
                   {% if asset.z_blueprint == -1 %}<i class="icon-star pull-right" rel="tooltip" title="Original"></i>{% endif %}
                   {% if asset.z_blueprint == -2 %}<i class="icon-star-empty pull-right" rel="tooltip" title="Copy"></i>{% endif %}
-                  {{ asset.item.name }}
+                  {{ asset.z_item.name }}
                   {% if asset.name %} - <i>{{ asset.name }}</i>{% endif %}
-                  {% if asset.z_contents and asset.item.item_group.category.name == 'Ship' %}<i class="icon-plane pull-right"></i>{% endif %}
+                  {% if asset.z_contents and asset.z_item.item_group.category.name == 'Ship' %}<i class="icon-plane pull-right"></i>{% endif %}
                 </td>
-                <td class="assets-type c">{{ asset.item.item_group.category.name }}</td>
+                <td class="assets-type c">{{ asset.z_item.item_group.category.name }}</td>
                 <td class="assets-quantity r">{{ asset.quantity|commas }}</td>
-                <td class="assets-value r">{% if asset.z_blueprint == -2 %}0.00{% else %}{{ asset.item.sell_price|commas }}{% endif %}</td>
+                <td class="assets-value r">{% if asset.z_blueprint == -2 %}0.00{% else %}{{ asset.z_item.sell_price|commas }}{% endif %}</td>
                 <td class="assets-value r">{{ asset.z_total|commas }}</td>
               </tr>
               {% if asset.z_contents %}
               {% for content in asset.z_contents %}
-              <tr class="asset-sneaky asset-{{ asset.id }}" style="display: none">
+              <tr class="asset-sneaky asset-{{ asset.id }}">
                 <td></td>
                 <td>
                   <i class="icon-arrow-right margin-left"></i>
                   {% if content.z_locked %}<i class="icon-lock"></i>{% endif %}
-                  {% if content.z_blueprint == -1 %}<i class="icon-star pull-right" rel="tooltip" title="Original"></i>{% endif %}
-                  {% if content.z_blueprint == -2 %}<i class="icon-star-empty pull-right" rel="tooltip" title="Copy"></i>{% endif %}
-                  {{ content.item.name }}
+                  {% if content.z_blueprint == -1 %}<i class="icon-star pull-right" rel="tooltip" title="Original"></i>{% else %}
+                  {% if content.z_blueprint == -2 %}<i class="icon-star-empty pull-right" rel="tooltip" title="Copy"></i>{% endif %}{% endif %}
+                  {{ content.z_item.name }}
                 </td>
                 <td class="c">{{ content.z_group }}</td>
                 <td class="r">{{ content.quantity|commas }}</td>
-                <td class="r">{% if content.z_blueprint == -2 %}0.00{% else %}{{ content.item.sell_price|commas }}{% endif %}</td>
+                <td class="r">{% if content.z_blueprint == -2 %}0.00{% else %}{{ content.z_item.sell_price|commas }}{% endif %}</td>
                 <td class="r">{{ content.z_total|commas }}</td>
-              </tr>
-              {% endfor %}
+              </tr>{% endfor %}
               {% if asset.z_mod == 1 %}<tr></tr>{% endif %}
-              {% endif %}
-              {% endfor %}
+              {% endif %}{% endfor %}
               <tr>
                 <td colspan="4"></td>
                 <td class="assets-total r" colspan="2">{{ loc_totals|dictlookup:system_name|commas }}</td>
               </tr>
             </tbody>
           </table>
-          {% endfor %}{% comment %}in systems{% endcomment %}
+          {% endfor %}
           {% endautoescape %}
         </div>
       </div>

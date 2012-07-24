@@ -84,6 +84,9 @@ td.assets-value {
 td.assets-total {
   font-weight: bold;
 }
+tr.asset-sneaky {
+  display: none;
+}
 
 /* various layout things */
 .fixed { font-family:Menlo,Monaco,"Courier New",monospace;font-size:12px;color:#333333; }

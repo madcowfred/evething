@@ -347,7 +347,7 @@ def apikeys_edit(request):
 @login_required
 def assets(request):
     # apply our initial set of filters
-    assets = Asset.objects.select_related('system', 'station', 'item__item_group__category', 'character', 'corporation', 'inv_flag')
+    assets = Asset.objects.select_related('system', 'station', 'character', 'corporation', 'inv_flag')
     char_filter = Q(character__apikeys__user=request.user, corporation__isnull=True)
     corp_filter = Q(corporation__in=APIKey.objects.filter(user=request.user).values('corp_character__corporation__id'))
     assets = assets.filter(char_filter | corp_filter)
@@ -384,24 +384,34 @@ def assets(request):
     if not filters:
         filters.append(('', '', ''))
 
+    # get item_ids first
+    item_ids = set()
+    for a in assets:
+        item_ids.add(a.item_id)
+
+    # fetch all items
+    items = Item.objects.select_related().in_bulk(item_ids)
+
     # initialise data structures
     ca_lookup = {}
     loc_totals = {}
     systems = {}
 
     for ca in assets:
+        ca.z_item = items[ca.item_id]
+
         # work out if this is a system or station asset
         k = ca.system_or_station()
 
         # zz blueprints
-        if ca.item.item_group.category.name == 'Blueprint':
+        if ca.z_item.item_group.category.name == 'Blueprint':
             ca.z_blueprint = ca.raw_quantity
         else:
             ca.z_blueprint = 0
         
         # total value of this asset stack
         if ca.z_blueprint >= -1:
-            ca.z_total = ca.quantity * ca.item.sell_price
+            ca.z_total = ca.quantity * ca.z_item.sell_price
         else:
             ca.z_total = 0
 
@@ -433,11 +443,11 @@ def assets(request):
             parent.z_total += ca.z_total
 
             # Celestials (containers) need some special casing
-            if parent.item.item_group.category.name == 'Celestial':
+            if parent.z_item.item_group.category.name == 'Celestial':
                 if ca.inv_flag.name == 'Locked':
                     ca.z_locked = True
 
-                ca.z_group = ca.item.item_group.category.name
+                ca.z_group = ca.z_item.item_group.category.name
 
             else:
                 ca.z_group = ca.inv_flag.nice_name()
@@ -452,7 +462,7 @@ def assets(request):
                 #    ca.z_total += content.z_total
 
                 # decorate/sort/undecorate argh
-                temp = [(c.inv_flag.sort_order(), c.item.name, c) for c in ca.z_contents]
+                temp = [(c.inv_flag.sort_order(), c.z_item.name, c) for c in ca.z_contents]
                 temp.sort()
                 ca.z_contents = [s[2] for s in temp]
 
@@ -463,7 +473,7 @@ def assets(request):
 
     # decorate/sort/undecorate for our strange sort requirements :(
     for system_name in systems:
-        temp = [(ca.character.name.lower(), ca.is_leaf_node(), ca.item.name, ca.name, ca) for ca in systems[system_name]]
+        temp = [(ca.character.name.lower(), ca.is_leaf_node(), ca.z_item.name, ca.name, ca) for ca in systems[system_name]]
         temp.sort()
         systems[system_name] = [s[4] for s in temp]
 
