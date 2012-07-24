@@ -141,9 +141,9 @@
                   <p><strong>Corp:</strong> {{ char.corporation.name }}</p>
                   {% if not public or char.config.show_wallet %}<p><strong>Wallet:</strong> {{ char.wallet_balance|commas }} ISK</p>{% endif %}
                   <ul class="unstyled">
-                    <li><strong>Total SP:</strong> {{ char.get_total_skill_points|commas }}</li>
+                    <li><strong>Total SP:</strong> {{ char.get_total_skill_points()|commas }}</li>
                     {% if not public or char.config.show_clone %}
-                    <li><strong>Clone limit:</strong> {{ char.clone_skill_points|commas }} ({{ char.get_short_clone_name }})</li>
+                    <li><strong>Clone limit:</strong> {{ char.clone_skill_points|commas }} ({{ char.get_short_clone_name() }})</li>
                     {% endif %}
                   </ul>
                 </div>
@@ -187,12 +187,12 @@
               <div class="well well-small {% if queue_duration < 86400 %}alert-error{% else %}alert-success{% endif %}">
                 <h3>Skill Queue</h3>
                 <div>
-                  {{ queue.0.skill.item.name }} {{ queue.0.get_roman_level }} (Rank {{ queue.0.skill.rank }}) --
-                  {{ queue.0.get_remaining|duration }} remaining
-                  <div class="pull-right">{{ queue.0.end_time|date:"Y-m-d H:i:s" }} UTC</div>
+                  {{ queue.0.skill.item.name }} {{ queue.0.get_roman_level() }} (Rank {{ queue.0.skill.rank }}) --
+                  {{ queue.0.get_remaining()|duration }} remaining
+                  <div class="pull-right">{{ queue.0.end_time|date("Y-m-d H:i:s") }} UTC</div>
                   <div style="width: 100%">
                     <div class="progress progress-striped{% if queue_duration < 86400 %} progress-danger{% endif%} margin-half-top">
-                      <div class="bar" style="width: {{ queue.0.get_complete_percentage }}%">{{ queue.0.get_complete_percentage }}%</div>
+                      <div class="bar" style="width: {{ queue.0.get_complete_percentage() }}%">{{ queue.0.get_complete_percentage() }}%</div>
                     </div>
                   </div>
                 </div>
@@ -200,8 +200,8 @@
                 <div class="margin-half-top">
                   {% for sq in queue_rest %}
                   <div>
-                    {{ sq.skill.item.name }} {{ sq.get_roman_level }} (Rank {{ sq.skill.rank }})
-                    <div class="pull-right">{{ sq.end_time|date:"Y-m-d H:i:s" }} UTC</div>
+                    {{ sq.skill.item.name }} {{ sq.get_roman_level() }} (Rank {{ sq.skill.rank }})
+                    <div class="pull-right">{{ sq.end_time|date("Y-m-d H:i:s") }} UTC</div>
                   </div>
                   {% endfor %}
                 </div>
@@ -211,7 +211,6 @@
           </div>
           {% endif %}{% endif %}
 
-          {% autoescape off %}
           <ul class="nav nav-tabs" id="tabs">
             <li class="active"><a href="#skills" data-toggle="tab">Skills</a></li>
             {% if not public or char.config.show_standings %}<li><a href="#standings" data-toggle="tab">Standings</a></li>{% endif %}
@@ -219,7 +218,7 @@
 
           <div class="tab-content">
             <div class="tab-pane active" id="skills">
-              {% for mg, css in skills.items %}
+              {% for mg, css in skills.items() %}
               <div class="row">
                 <div class="span9">
                   <div class="well well-small">
@@ -232,7 +231,7 @@
                     <div class="clearfix">
                       {% spaceless %}
                       <span href="#" class="skill-hover{% if cs.z_class %} {{ cs.z_class }}{% endif %}" rel="popover" title="{{ cs.skill.item.name }}" data-content="{{ cs.skill.description }}">
-                        {{ cs.skill.item.name }} {{ cs.get_roman_level }}
+                        {{ cs.skill.item.name }} {{ cs.get_roman_level() }}
                       </span>
                       {% endspaceless %}
                       
@@ -240,7 +239,7 @@
                         {% for icon in cs.z_icons %}<i class="icon-{{ icon }} nomargin"></i>{% endfor %}
                       </div>
 
-                      <div class="pull-right character-sp">{{ cs.skill.get_sp_at_level|commas }} SP</div>
+                      <div class="pull-right character-sp">{{ cs.skill.get_sp_at_level()|commas }} SP</div>
                       <div class="pull-right character-sp">{{ cs.points|commas }} / </div>
                       <div class="pull-right character-sp small">Rank {{ cs.skill.rank }}</div>
                     </div>
@@ -260,12 +259,12 @@
                   </tr>
                 </thead>
                 <tbody>
-                  {% for fs in char.factionstanding_set.select_related.all %}
+                  {% for fs in char.factionstanding_set.select_related().all() %}
                   <tr>
                     <td>{{ fs.faction.name }}</td>
                     <td class="r">{{ fs.standing }}</td>
                   </tr>
-                  {% empty %}
+                  {% else %}
                   <tr><td colspan="2">No standings.</td></tr>
                   {% endfor %}
                 </tbody>
@@ -277,12 +276,12 @@
                   </tr>
                 </thead>
                 <tbody>
-                  {% for cs in char.corporationstanding_set.select_related.all %}
+                  {% for cs in char.corporationstanding_set.select_related().all() %}
                   <tr>
                     <td>{{ cs.corporation.name }}</td>
                     <td class="r">{{ cs.standing }}</td>
                   </tr>
-                  {% empty %}
+                  {% else %}
                   <tr><td colspan="2">No standings.</td></tr>
                   {% endfor %}
                 </tbody>
@@ -290,7 +289,6 @@
             </div>
             {% endif %}
           </div>
-          {% endautoescape %}
         </div>
       </div>
 

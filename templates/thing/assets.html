@@ -6,16 +6,16 @@
 {% block extra_head %}
     <script type="text/javascript">
       var characters = new Array();
-      {% for character in characters %}characters[{{ forloop.counter0 }}] = new Array({{ character.id }}, "{{ character.name }}");
+      {% for character in characters %}characters[{{ loop.index0 }}] = new Array({{ character.id }}, "{{ character.name }}");
       {% endfor %}
 
       var corporations = new Array();
-      {% for corporation in corporations %}corporations[{{ forloop.counter0 }}] = new Array({{ corporation.id }}, "{{ corporation.name }}");
+      {% for corporation in corporations %}corporations[{{ loop.index0 }}] = new Array({{ corporation.id }}, "{{ corporation.name }}");
       {% endfor %}
 
       var selected = new Array();
       {% for ft, fc, fv in filters %}
-      {% if fv %}selected[{{ forloop.counter0 }}] = {{ fv }};{% endif %}
+      {% if fv %}selected[{{ loop.index0 }}] = {{ fv }};{% endif %}
       {% endfor %}
 
       $(document).ready(function (){
@@ -145,7 +145,6 @@
               </select>
               {% endfor %}
             </fieldset>
-            {% comment %}<button id="add-filter" class="btn btn-primary"><i class="icon-plus icon-white"></i> Add filter</button>{% endcomment %}
             <button type="submit" class="btn btn-primary">Apply filters</button>
             <a href="{% url thing.views.assets %}" class="btn btn-danger">Clear filters</a>
           </form>
@@ -155,7 +154,6 @@
       <div class="row-fluid">
         <div class="span10">
           <p><strong>Total asset value:</strong> {{ total_value|commas }}</p>
-          {% autoescape off %}
           {% for system_name, asset_roots in systems %}
           <table class="table table-striped table-bordered table-condensed">
             <thead>
@@ -210,12 +208,11 @@
               {% endif %}{% endfor %}
               <tr>
                 <td colspan="4"></td>
-                <td class="assets-total r" colspan="2">{{ loc_totals|dictlookup:system_name|commas }}</td>
+                <td class="assets-total r" colspan="2">{{ loc_totals|dictlookup(system_name)|commas }}</td>
               </tr>
             </tbody>
           </table>
           {% endfor %}
-          {% endautoescape %}
         </div>
       </div>
 

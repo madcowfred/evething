@@ -106,6 +106,8 @@ There are some common requirements for any install method, you will need:
 - `Django <http://www.djangoproject.com>`_ >=1.4
 - `Django MPTT <https://github.com/django-mptt/django-mptt/>`_ >=0.5
 - `South <http://south.aeracode.org/>`_ >=0.7
+- `Coffin <https://github.com/coffin/coffin/>`_ >=0.3
+- `Jinja2 <http://jinja.pocoo.org/>`_ >=2.6
 - A database server and client library.
   
   + `SQLite <http://www.sqlite.org>`_ is the simplest and is often included with Python.

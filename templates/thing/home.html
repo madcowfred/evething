@@ -25,11 +25,11 @@
         <span class="pull-right"><a href="#" onclick="toggle_tooltips();">Toggle tooltips</a></span>
       </div>
     </div>
-    {% for chars in characters|tablecols:profile.home_chars_per_row %}
+    {% for chars in characters|tablecols(profile.home_chars_per_row) %}
     <div class="row-fluid">
       {% for character in chars %}
       {% if character %}
-      <div class="span{{ 12|divide:profile.home_chars_per_row }}">
+      <div class="span{{ 12 // profile.home_chars_per_row }}">
         <div class="well-small well{% if character.z_apikey in not_training %} alert-error{% endif %}">
           <div>
             <span class="large">
@@ -38,7 +38,7 @@
               </a>
             </span>
             <span class="small pull-right">
-              [{{ character.z_sanitised_api|default:character.z_apikey.name }}]
+              [{{ character.z_sanitised_api|default(character.z_apikey.name) }}]
             </span>
           </div>
 
@@ -51,7 +51,7 @@
 
           {% if character.z_training %}
           <div class="margin-half-top">
-            <span>{{ character.z_training.sq.skill.item.name }} {{ character.z_training.sq.get_roman_level }}</span>
+            <span>{{ character.z_training.sq.skill.item.name }} {{ character.z_training.sq.get_roman_level() }}</span>
             <span class="small">(Rank {{ character.z_training.sq.skill.rank }})</span>
             <br>
             <em class="small">{{ character.z_training.skill_duration|shortduration }} @ {{ character.z_training.sp_per_hour }} SP/hr</em>
@@ -99,7 +99,7 @@
             </tr>
           </thead>
           <tbody>
-            {% for wallet in corporation.corpwallet_set.all %}
+            {% for wallet in corporation.corpwallet_set.all() %}
             <tr>
               <td>{{ wallet.description }}</td>
               <td class="r">{{ wallet.balance|commas }}</td>
@@ -119,7 +119,7 @@
       <h4>Event log</h4>
       <ul>
         {% for event in events %}
-        <li>{{ event.get_age|duration }} ago <strong>/</strong> {{ event.text|safe }}</li>
+        <li>{{ event.get_age()|duration }} ago <strong>/</strong> {{ event.text|safe }}</li>
         {% endfor %}
       </ul>
       <span><a href="{% url thing.views.events %}">See all</a></span>

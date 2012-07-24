@@ -10,7 +10,7 @@
     <link rel="icon" href="{{ STATIC_URL }}favicon.ico">
     <link rel="stylesheet" href="{{ STATIC_URL }}css/bootstrap.min.css">
     <link rel="stylesheet" href="{{ STATIC_URL }}css/bootstrap-responsive.min.css">
-    {% with profile=user.get_profile %}{% if profile.theme %}
+    {% with user.get_profile() as profile %}{% if profile.theme %}
     <link rel="stylesheet" href="{{ STATIC_URL}}css/{{ profile.theme }}.css" />
     {% endif %}{% endwith %}
     <link rel="stylesheet" href="{{ STATIC_URL }}css/evething.css" />

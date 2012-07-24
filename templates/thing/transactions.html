@@ -41,10 +41,10 @@
             <tbody>
               {% for transaction in transactions %}
               <tr>
-                <td class="c">{{ transaction.date|date:"Y-m-d H:i" }}</td>
+                <td class="c">{{ transaction.date|date("Y-m-d H:i") }}</td>
                 <td>{{ transaction.station.short_name }}</td>
                 <td>{{ transaction.character.name }}</td>
-                <td class="c">{{ transaction.corp_wallet.corporation.ticker }}</td>
+                <td class="c">{% if transaction.corp_wallet %}{{ transaction.corp_wallet.corporation.ticker }}{% endif %}</td>
                 <td>
                   {% if transaction.other_char or transaction.other_corp %}
                   {% if transaction.other_char %}
@@ -53,7 +53,7 @@
                   <i class="icon-briefcase"></i> {{ transaction.other_corp.name }}
                   {% endif %}{%endif %}
                 </td>
-                <td><a href="{% url transactions-all transaction.item.id 'all' %}">{{ transaction.item }}</a></td>
+                <td><a href="{{ 'transactions-all'|url(transaction.item.id, 'all') }}">{{ transaction.item }}</a></td>
                 <td class="r">{{ transaction.quantity|humanize }}</td>
                 {% if transaction.buy_transaction %}
                 <td class="r"><span class="neg">-{{ transaction.price|commas }}</span></td>
@@ -63,7 +63,7 @@
                 <td class="r"><span class="pos">+{{ transaction.total_price|commas }}</span></td>
                 {% endif %}
               </tr>
-              {% empty %}
+              {% else %}
               <tr>
                 <td colspan="9">No matching transactions.</td>
               </tr>

@@ -8,7 +8,7 @@
       $('#scan-total').text(type_ids.length);
     });
     
-    var type_ids = [{{ item_ids|join:',' }}];
+    var type_ids = [{{ item_ids|join(',') }}];
     index = 0;
     is_scanning = false;
     delay = 3000;

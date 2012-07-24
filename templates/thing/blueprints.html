@@ -124,15 +124,15 @@ $(document).ready(function() {
                   <i class="icon-trash"></i>
                 </td>
               </tr>
-              {% empty %}
+              {% else %}
               <tr>
-                <td colspan="13">No blueprints defined.</td>
+                <td colspan="14">No blueprints defined.</td>
               </tr>
               {% endfor %}
             </tbody>
             <tfoot>
               <tr>
-                <td colspan="13" class="r">
+                <td colspan="14" class="r">
                   <label>Days</label>
                   <input type="text" class="input-mini" name="days" value="7" size="2">
                   <input type="submit" class="input-mini" value="BPCalc">
