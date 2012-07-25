@@ -64,8 +64,7 @@
           <div class="thumbnail">
             <img src="http://image.eveonline.com/Character/{{ char.id }}_256.jpg">
           </div>
-          
-          {% if not public %}
+          {%- if not public %}
           <br>
           <div class="well">
             <h3>Settings</h3>
@@ -129,7 +128,7 @@
               <button type="submit" class="btn btn-primary">Save</button>
             </form>
           </div>
-          {% endif %}
+          {%- endif %}
         </div>
         
         <div class="span9">
