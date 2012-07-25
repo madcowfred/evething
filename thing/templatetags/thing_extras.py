@@ -128,20 +128,3 @@ def tablecols(data, cols):
             row.append([])
         rows.append(row)
     return rows
-
-
-# look up value key in dictionary d
-@register.filter
-def dictlookup(d, key):
-    return d[key]
-
-
-# Modulus
-@register.filter
-def modulus(v, d):
-    return v % d
-
-# Divide
-@register.filter
-def divide(v, d):
-    return v / d
