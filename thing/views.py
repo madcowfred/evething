@@ -353,6 +353,7 @@ def assets(request):
     char_filter = Q(character__apikeys__user=request.user, corporation__isnull=True)
     corp_filter = Q(corporation__in=APIKey.objects.filter(user=request.user).values('corp_character__corporation__id'))
     assets = assets.filter(char_filter | corp_filter)
+    assets = assets.distinct()
 
     # retrieve any supplied filter values
     f_types = request.GET.getlist('type')
