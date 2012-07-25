@@ -336,7 +336,7 @@ class Assets(APIJob):
             asset_map[asset.id] = asset
 
         # ACTIVATE RECURSION :siren:
-        rows = {}
+        rows = OrderedDict()
         self.assets_recurse(rows, self.root.find('result/rowset'), None)
 
         # assetID - [0]system, [1]station, [2]container_id, [3]item, [4]flag, [5]quantiy, [6]rawQuantity, [7]singleton
@@ -351,6 +351,7 @@ class Assets(APIJob):
                 return
             last_count = count
             
+            # data = [system, station, container_id, item, flag, quantity, rawQuantity, singleton]
             for id, data in assets:
                 # asset has a container_id...
                 if data[2] is not None:
@@ -1028,7 +1029,7 @@ class WalletTransactions(APIJob):
                 
                 # Skip corporate transactions if this is a personal call, we have no idea
                 # what wallet this transaction is related to otherwise :ccp:
-                if row.attrib['transactionFor'] == 'corporation' and not self.apikey.corp_character:
+                if row.attrib['transactionFor'].lower() == 'corporation' and not self.apikey.corp_character:
                     continue
                 
                 client_id = int(row.attrib['clientID'])
