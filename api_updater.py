@@ -969,7 +969,7 @@ class WalletTransactions(APIJob):
             params['accountKey'] = self._corp_wallet.account_key
             mask = 2097152
             url = TRANSACTIONS_CORP_URL
-            t_filter = Transaction.objects.filter(corp_wallet__corporation=self.character.corporation)
+            t_filter = Transaction.objects.filter(corp_wallet=self._corp_wallet)
         # Character key
         else:
             mask = 4194304
@@ -982,7 +982,6 @@ class WalletTransactions(APIJob):
 
         # Loop until we run out of transactions
         cursor = connection.cursor()
-        one_week_ago = datetime.datetime.utcnow() - datetime.timedelta(7)
         new = []
 
         while True:
