@@ -1,13 +1,39 @@
 {% extends "base.html" %}
 
+{% block extra_head %}
+      <script type="text/javascript">
+        $(document).ready(function() {
+          // Javascript to enable link to tab
+          var prefix = 'tab_';
+          var hash = document.location.hash;
+          if (hash) {
+            $('.nav-tabs a[href=' + hash.replace(prefix, "") + ']').tab('show');
+          }
+          
+          // Change hash for page-reload
+          $('.nav-tabs a').on('shown', function (e) {
+            window.location.hash = e.target.hash.replace('#', '#' + prefix);
+          })
+        });
+      </script>
+{% endblock %}
+
 {% block title %}Account Management{% endblock %}
 
 {% block content %}
       <div class="row-fluid">
         <div class="span12">
           <h2>Account Management</h2>
+          
+          {% if message %}
+          <div class="alert alert-{{ message_type }}">
+            <strong>{{ message_type|capfirst }}:</strong> {{ message }}
+          </div>
+          {% endif %}
+
           <ul class="nav nav-tabs">
             <li class="active"><a href="#settings" data-toggle="tab">Settings</a></li>
+            <li><a href="#password" data-toggle="tab">Password</a></li>
           </ul>
 
           <div class="tab-content">
@@ -58,6 +84,37 @@
                 <fieldset>
                   <div class="form-actions">
                     <button type="submit" class="btn btn-primary">Save changes</button>
+                  </div>
+                </fieldset>
+              </form>
+            </div>
+
+            <div class="tab-pane" id="password">
+              <form action="{% url thing.views.account_change_password %}" method="POST" class="form-horizontal">
+                <fieldset>
+                  {% csrf_token %}
+                  <div class="control-group">
+                    <label class="control-label" for="old_password">Old password</label>
+                    <div class="controls">
+                      <input type="password" name="old_password">
+                    </div>
+                  </div>
+                  <div class="control-group">
+                    <label class="control-label" for="new_password">New password</label>
+                    <div class="controls">
+                      <input type="password" name="new_password">
+                    </div>
+                  </div>
+                  <div class="control-group">
+                    <label class="control-label" for="confirm_password">Confirm password</label>
+                    <div class="controls">
+                      <input type="password" name="confirm_password">
+                    </div>
+                  </div>
+                </fieldset>
+                <fieldset>
+                  <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Change password</button>
                   </div>
                 </fieldset>
               </form>

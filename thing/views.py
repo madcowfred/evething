@@ -9,11 +9,13 @@ from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import Paginator, EmptyPage, InvalidPage, PageNotAnInteger
+from django.core.urlresolvers import reverse
 from django.db import connection
 from django.db.models import Q, Avg, Count, Max, Min, Sum
 from django.http import Http404
 from django.shortcuts import redirect, get_object_or_404
 from django.template import RequestContext
+from django.views.decorators.debug import sensitive_post_parameters, sensitive_variables
 
 from coffin.shortcuts import *
 
@@ -214,9 +216,18 @@ def home(request):
 # Various account stuff
 @login_required
 def account(request):
+    if 'message' in request.session:
+        message = request.session.pop('message')
+        message_type = request.session.pop('message_type')
+    else:
+        message = None
+        message_type = None
+
     return render_to_response(
         'thing/account.html',
         {
+            'message': message,
+            'message_type': message_type,
             'profile': request.user.get_profile(),
             'home_chars_per_row': (2, 3, 4, 6),
             'home_sort_orders': UserProfile.HOME_SORT_ORDERS,
@@ -224,6 +235,40 @@ def account(request):
         },
         context_instance=RequestContext(request)
     )
+
+@sensitive_post_parameters()
+@sensitive_variables()
+@login_required
+def account_change_password(request):
+    old_password = request.POST['old_password']
+    new_password = request.POST['new_password']
+    confirm_password = request.POST['confirm_password']
+
+    # Password checks out ok
+    if request.user.check_password(old_password):
+        # New passwords match
+        if new_password == confirm_password:
+            # Length seems ok
+            if len(new_password) >= 4:
+                request.session['message_type'] = 'success'
+                request.session['message'] = 'Password changed successfully.'
+
+                request.user.set_password(new_password)
+                request.user.save()
+            # Too short
+            else:
+                request.session['message_type'] = 'error'
+                request.session['message'] = 'Password must be at least 4 characters long!'
+        # Passwords don't match
+        else:
+            request.session['message_type'] = 'error'
+            request.session['message'] = 'New passwords do not match!'
+    # Old password is incorrect
+    else:
+        request.session['message_type'] = 'error'
+        request.session['message'] = 'Old password is incorrect!'
+
+    return redirect('%s#tab_password' % (reverse(account)))
 
 @login_required
 def account_settings(request):
