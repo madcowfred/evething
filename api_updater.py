@@ -767,10 +767,11 @@ class MarketOrders(APIJob):
                        volRemaining != order.volume_remaining or \
                        escrow != order.escrow or \
                        price != order.price:
-                        order.issued = parse_api_date(row.attrib['issued'])
-                        order.volume_remaining = int(row.attrib['volRemaining'])
-                        order.escrow = Decimal(row.attrib['escrow'])
-                        order.price = Decimal(row.attrib['price'])
+                        order.issued = issued
+                        order.expires = issued + datetime.timedelta(int(row.attrib['duration']))
+                        order.volume_remaining = volRemaining
+                        order.escrow = escrow
+                        order.price = price
                         order.total_price = order.volume_remaining * order.price
                         order.save()
                     
@@ -782,10 +783,11 @@ class MarketOrders(APIJob):
             
             # Doesn't exist and is active, make a new order
             elif row.attrib['orderState'] == '0':
-                if row.attrib['bid'] == '0':
-                    buy_order = False
-                else:
-                    buy_order = True
+                buy_order = (row.attrib['bid'] == '1')
+                #if row.attrib['bid'] == '0':
+                #    buy_order = False
+                #else:
+                #    buy_order = True
                 
                 # Make sure the character charID is valid
                 char = self.char_id_map.get(int(row.attrib['charID']))
