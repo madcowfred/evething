@@ -48,23 +48,6 @@ def home(request):
     sanitise = request.GET.get('sanitise', False)
     total_balance = 0
 
-    # Work out sort order
-    # FIXME: reimplement this
-    # char_q = Character.objects.select_related('apikey').filter(apikey__user=request.user)
-    # if profile.home_sort_order == 'apikey':
-    #     char_q = char_q.order_by('apikey__name', 'name')
-    # elif profile.home_sort_order == 'charname':
-    #     char_q = char_q.order_by('name')
-    # elif profile.home_sort_order == 'corpname':
-    #     char_q = char_q.order_by('corporation__name', 'name')
-    # elif profile.home_sort_order == 'wallet':
-    #     char_q = char_q.order_by('wallet_balance', 'name')
-    # else:
-    #     char_q = char_q.order_by('apikey__name', 'name')
-
-    # if profile.home_sort_descending:
-    #     char_q = char_q.reverse()
-
     # Initialise various data structures
     api_keys = set()
     training = set()
@@ -95,14 +78,6 @@ def home(request):
     # Do total skill point aggregation
     for cs in CharacterSkill.objects.select_related().filter(character__in=chars).values('character').annotate(total_sp=Sum('points')):
         chars[cs['character']].z_total_sp = cs['total_sp']
-
-    # Ugh. Sort by totalsp here if we have to
-    if profile.home_sort_order == 'totalsp':
-        if profile.home_sort_descending:
-            temp = OrderedDict(sorted(chars.items(), key=lambda t: t[1].z_total_sp, reverse=True))
-        else:
-            temp = OrderedDict(sorted(chars.items(), key=lambda t: t[1].z_total_sp))
-        chars = temp
 
     # Work out who is and isn't training
     not_training = api_keys - training
@@ -178,9 +153,29 @@ def home(request):
             })
 
 
+    # Work out sort order
+    char_list = chars.values()
+    if profile.home_sort_order == 'apiname':
+        temp = [(c.z_apikey.name, c.name.lower(), c) for c in char_list]
+    elif profile.home_sort_order == 'charname':
+        temp = [(c.name.lower(), c) for c in char_list]
+    elif profile.home_sort_order == 'corpname':
+        temp = [(c.corporation.name.lower(), c.name.lower(), c) for c in char_list]
+    elif profile.home_sort_order == 'totalsp':
+        temp = [(c.z_total_sp, c) for c in char_list]
+    elif profile.home_sort_order == 'wallet':
+        temp = [(c.wallet_balance, c.name.lower(), c) for c in char_list]
+
+    temp.sort()
+    if profile.home_sort_descending:
+        temp.reverse()
+
+    char_list = [s[-1] for s in temp]
+    
+
     # Make separate lists of training and not training characters
-    first = [char for char in chars.values() if char.z_training]
-    last = [char for char in chars.values() if not char.z_training]
+    first = [char for char in char_list if char.z_training]
+    last = [char for char in char_list if not char.z_training]
 
     # Get corporations this user has APIKeys for
     corp_ids = APIKey.objects.select_related().filter(user=request.user.id).exclude(corp_character=None).values_list('corp_character__corporation', flat=True)
