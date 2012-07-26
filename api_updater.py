@@ -982,7 +982,6 @@ class WalletTransactions(APIJob):
 
         # Loop until we run out of transactions
         cursor = connection.cursor()
-        new = []
 
         while True:
             if self.fetch_api(url, params) is False or self.root is None:
@@ -1024,6 +1023,7 @@ class WalletTransactions(APIJob):
             logging.info('WalletTransactions client maps took %.3fs', t3 - t2)
             
             # Now iterate over the leftovers
+            new = []
             for transaction_id, row in bulk_data.items():
                 # Initalise some variables
                 transaction_time = parse_api_date(row.attrib['transactionDateTime'])
@@ -1122,6 +1122,11 @@ class WalletTransactions(APIJob):
             t4 = time.time()
             logging.info('WalletTransactions loop took %.3fs', t4 - t3)
             
+            # Create any new transaction objects
+            t5 = time.time()
+            Transaction.objects.bulk_create(new)
+            logging.info('WalletTransactions insert took %.2fs', time.time() - t5)
+
             # completed ok
             if errors == 0:
                 self.apicache.completed()
@@ -1131,12 +1136,7 @@ class WalletTransactions(APIJob):
                 params['beforeTransID'] = transaction_id
             else:
                 break
-
-        # Create any new transaction objects
-        t5 = time.time()
-        Transaction.objects.bulk_create(new)
-        logging.info('WalletTransactions insert took %.2fs', time.time() - t5)
-
+        
         logging.info('WalletTransactions took %.2fs', time.time() - start)
         
 
