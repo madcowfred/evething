@@ -41,17 +41,10 @@
             </ul>
 
             <ul class="nav pull-right">
-              <li class="navbar-text">
-                {% if user.is_authenticated() -%}
-                {{ user.username }}
-                {%- else -%}
-                <a href="{% url auth_login %}">Login</a>
-                {%- endif %}
-              </li>
               {% if user.is_authenticated() -%}
               <li class="dropdown">
                 <a class="dropdown-toggle" data-toggle="dropdown" href="#">
-                  <i class="icon-cog icon-white"></i>
+                  {{ user.username }}
                   <b class="caret"></b>
                 </a>
                 <ul class="dropdown-menu">
@@ -62,6 +55,10 @@
                   <li class="divider"></li>
                   <li><a href="{% url auth_logout %}">Logout</a>
                 </ul>
+              </li>
+              {%- else -%}
+              <li class="navbar-text">
+                <a href="{% url auth_login %}">Login</a>
               </li>
               {%- endif %}
             </ul>

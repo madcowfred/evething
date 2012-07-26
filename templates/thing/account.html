@@ -25,15 +25,15 @@
         <div class="span12">
           <h2>Account Management</h2>
           
-          {% if message %}
+          {% if message -%}
           <div class="alert alert-{{ message_type }}">
             <strong>{{ message_type|capfirst }}:</strong> {{ message }}
           </div>
-          {% endif %}
+          {%- endif %}
 
           <ul class="nav nav-tabs">
             <li class="active"><a href="#settings" data-toggle="tab">Settings</a></li>
-            <li><a href="#password" data-toggle="tab">Password</a></li>
+            <li><a href="#password" data-toggle="tab">Change Password</a></li>
           </ul>
 
           <div class="tab-content">
