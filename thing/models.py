@@ -670,6 +670,9 @@ class SkillPlan(models.Model):
     name = models.CharField(max_length=64)
     is_public = models.BooleanField(default=False)
 
+    class Meta:
+        ordering = ('name',)
+
     def __unicode__(self):
         return '%s - %s' % (self.user.username, self.name)
 

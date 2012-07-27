@@ -1,9 +1,9 @@
 import calendar
 import datetime
+import gzip
 import operator
 import re
 from collections import OrderedDict
-#import time
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
@@ -232,6 +232,7 @@ def account(request):
             'home_chars_per_row': (2, 3, 4, 6),
             'home_sort_orders': UserProfile.HOME_SORT_ORDERS,
             'themes': settings.THEMES,
+            'skillplans': SkillPlan.objects.filter(user=request.user),
         },
         context_instance=RequestContext(request)
     )

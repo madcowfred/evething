@@ -22,7 +22,7 @@
 
 {% block content %}
       <div class="row-fluid">
-        <div class="span12">
+        <div class="span10">
           <h2>Account Management</h2>
           
           {% if message -%}
@@ -33,6 +33,7 @@
 
           <ul class="nav nav-tabs">
             <li class="active"><a href="#settings" data-toggle="tab">Settings</a></li>
+            <li><a href="#skillplans" data-toggle="tab">Skill Plans</a></li>
             <li><a href="#password" data-toggle="tab">Change Password</a></li>
           </ul>
 
@@ -87,6 +88,28 @@
                   </div>
                 </fieldset>
               </form>
+            </div>
+
+            <div class="tab-pane" id="skillplans">
+              <table class="table table-striped table-bordered table-condensed">
+                <thead>
+                  <tr>
+                    <th>Plan Name</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for skillplan in skillplans -%}
+                  <tr>
+                    <td>{{ skillplan.name }}</td>
+                    <td>
+                      <i class="icon-pencil"></i>
+                      <i class="icon-trash"></i>
+                    </td>
+                  </tr>
+                  {%- endfor %}
+                </tbody>
+              </table>
             </div>
 
             <div class="tab-pane" id="password">
