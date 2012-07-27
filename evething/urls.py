@@ -24,6 +24,7 @@ urlpatterns += patterns('thing.views',
     (r'^account/$', 'account'),
     (r'^account/change_password/$', 'account_change_password'),
     (r'^account/settings/$', 'account_settings'),
+    (r'^account/skillplan_add/$', 'account_skillplan_add'),
 
     url(r'^apikeys/$', 'apikeys', name='apikeys'),
     (r'^apikeys/add/$', 'apikeys_add'),

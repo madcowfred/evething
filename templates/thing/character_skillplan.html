@@ -65,7 +65,7 @@
                   </strong>
                 </td>
                 {%- else %}
-                <td><i class="icon-{% if entry.z_trained %}ok{% else %}remove{% endif %}"></i></td>
+                <td class="sp-trained"><i class="icon-{% if entry.z_trained %}ok{% else %}remove{% endif %}"></i></td>
                 <td class="l">
                   {{ entry.sp_skill.skill.item.name }} {{ entry.sp_skill.level|roman }}
                   {% if entry.z_injected -%}
@@ -75,9 +75,9 @@
                   {%- endif %}
                 </td>
                 <td class="sp-group">{{ entry.sp_skill.skill.item.item_group }}</td>
-                <td>{{ entry.sp_skill.skill.get_primary_attribute_display() }}</td>
-                <td>{{ entry.sp_skill.skill.get_secondary_attribute_display() }}</td>
-                <td>{{ entry.z_spph|commas }}</td>
+                <td class="sp-small">{{ entry.sp_skill.skill.get_primary_attribute_display() }}</td>
+                <td class="sp-small">{{ entry.sp_skill.skill.get_secondary_attribute_display() }}</td>
+                <td class="sp-small">{{ entry.z_spph|commas }}</td>
                 <td class="r sp-time">{{ entry.z_remaining|duration }}</td>
                 {%- endif %}
               </tr>

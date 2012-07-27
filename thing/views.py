@@ -19,8 +19,10 @@ from django.views.decorators.debug import sensitive_post_parameters, sensitive_v
 
 from coffin.shortcuts import *
 
-from thing.models import *
 from thing import queries
+from thing.forms import *
+from thing.models import *
+from thing.stuff import *
 from thing.templatetags.thing_extras import commas, duration, shortduration
 
 # ---------------------------------------------------------------------------
@@ -292,6 +294,22 @@ def account_settings(request):
     profile.save()
 
     return redirect(account)
+
+@login_required
+def account_skillplan_add(request):
+    if request.method == 'POST':
+        form = UploadSkillPlanForm(request.POST, request.FILES)
+        if form.is_valid():
+            handle_skillplan_upload(request)
+            return redirect('%s#tab_skillplans' % (reverse(account)))
+        else:
+            request.session['message_type'] = 'error'
+            request.session['message'] = 'Form validation failed!'
+    else:
+        request.session['message_type'] = 'error'
+        request.session['message'] = "That doesn't look like a POST request!"
+
+    return redirect('%s#tab_skillplans' % (reverse(account)))
 
 # ---------------------------------------------------------------------------
 # List of API keys associated with our account
@@ -1335,9 +1353,6 @@ def transactions(request):
         # no prev, add up to 2 next links
         for i in range(paginated.number + 1, paginator.num_pages)[:2]:
             next.append(i)
-
-    print prev
-    print next
 
     # Render template
     return render_to_response(

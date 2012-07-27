@@ -89,11 +89,17 @@ tr.asset-sneaky {
 }
 
 /* skillplan layout */
+td.sp-trained {
+  width: 3em;
+}
 td.sp-group {
   width: 15em;
 }
+td.sp-small {
+  width: 4.5em;
+}
 td.sp-time {
-  width: 8em;
+  width: 8.5em;
 }
 
 /* various layout things */
