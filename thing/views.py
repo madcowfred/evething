@@ -333,6 +333,27 @@ def account_skillplan_delete(request):
 
     return redirect('%s#tab_skillplans' % (reverse(account)))
 
+@login_required
+def account_skillplan_toggle_public(request, skillplan_id):
+    try:
+        skillplan = SkillPlan.objects.get(user=request.user, id=skillplan_id)
+    
+    except SkillPlan.DoesNotExist:
+        request.session['message_type'] = 'error'
+        request.session['message'] = 'You do not own that skill plan!'
+    
+    else:
+        skillplan.is_public = not skillplan.is_public
+        skillplan.save()
+        if skillplan.is_public:
+            now = 'public'
+        else:
+            now = 'private'
+
+        request.session['message_type'] = 'success'
+        request.session['message'] = 'Skill plan "%s" is now %s.' % (skillplan.name, now)
+
+    return redirect('%s#tab_skillplans' % (reverse(account)))
 
 # ---------------------------------------------------------------------------
 # List of API keys associated with our account

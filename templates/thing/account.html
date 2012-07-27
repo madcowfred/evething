@@ -134,6 +134,11 @@
                     <tr>
                       <td>{{ skillplan.name }}</td>
                       <td>
+                        <a class="btn btn-{% if skillplan.is_public %}success{% else %}danger{% endif %}" href="{% url thing.views.account_skillplan_toggle_public skillplan.id %}">
+                          Make {% if skillplan.is_public %}private{% else %}public{% endif %}
+                        </a>
+                      </td>
+                      <td>
                         <i class="icon-pencil"></i>
                         <a class="delete-skillplan" data-toggle="modal" href="#delete-skillplan-modal" data-id="{{ skillplan.id }}"><i class="icon-trash"></i></a>
                       </td>
