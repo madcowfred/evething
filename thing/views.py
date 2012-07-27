@@ -311,6 +311,29 @@ def account_skillplan_add(request):
 
     return redirect('%s#tab_skillplans' % (reverse(account)))
 
+@login_required
+def account_skillplan_delete(request):
+    try:
+        skillplan = SkillPlan.objects.get(user=request.user, id=request.POST.get('skillplan_id', '0'))
+    
+    except SkillPlan.DoesNotExist:
+        request.session['message_type'] = 'error'
+        request.session['message'] = 'You do not own that skill plan!'
+    
+    else:
+        request.session['message_type'] = 'success'
+        request.session['message'] = 'Skill plan "%s" deleted successfully!' % (skillplan.name)
+        
+        # Delete all of the random things for this skillplan
+        entries = SPEntry.objects.filter(skill_plan=skillplan)
+        SPRemap.objects.filter(pk__in=[e.sp_remap_id for e in entries if e.sp_remap_id]).delete()
+        SPSkill.objects.filter(pk__in=[e.sp_skill_id for e in entries if e.sp_skill_id]).delete()
+        entries.delete()
+        skillplan.delete()
+
+    return redirect('%s#tab_skillplans' % (reverse(account)))
+
+
 # ---------------------------------------------------------------------------
 # List of API keys associated with our account
 @login_required
