@@ -140,7 +140,12 @@
             <h4>My Skill Plans</h4>
             <ul class="unstyled">
               {% for sp in user_plans -%}
-              <li><a href="{{ 'thing.views.character_skillplan'|url(char.name, sp.id) }}">{{ sp.name }}</a></li>
+              <li>
+                <i class="icon-chevron-right"></i>
+                <a href="{{ 'thing.views.character_skillplan'|url(char.name, sp.id) }}">
+                  {{ sp.name }}
+                </a>
+              </li>
               {%- endfor %}
             </ul>
             {%- endif %}
@@ -149,7 +154,7 @@
             <ul class="unstyled">
               {% for sp in public_plans -%}
               <li>
-                <i class="icon-road"></i>
+                <i class="icon-chevron-right"></i>
                 <a href="{{ 'thing.views.character_skillplan'|url(char.name, sp.id) }}">
                   {% if authed -%}
                   [{{ sp.user.username }}]
