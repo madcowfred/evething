@@ -987,6 +987,7 @@ def character_skillplan(request, character_name, skillplan_id):
     # Make sure we can access the character object
     public = True
 
+    # If the user is logged in, check if the character belongs to them
     if request.user.is_authenticated():
         try:
             character = Character.objects.get(name=character_name, apikeys__user=request.user)
@@ -994,15 +995,17 @@ def character_skillplan(request, character_name, skillplan_id):
             pass
         else:
             public = False
+            skillplan = get_object_or_404(SkillPlan.objects.prefetch_related('entries'), pk=skillplan_id)
 
+    # Not logged in
     if public is True:
         try:
             character = Character.objects.get(name=character_name, config__is_public=True)
         except Character.DoesNotExist:
             raise Http404
-    
-    # And the skillplan object
-    skillplan = get_object_or_404(SkillPlan.objects.prefetch_related('entries'), pk=skillplan_id)
+        else:
+            # And the skillplan object
+            skillplan = get_object_or_404(SkillPlan.objects.prefetch_related('entries'), pk=skillplan_id, is_public=True)
 
     # Check our GET variables
     implants = request.GET.get('implants', '0')
