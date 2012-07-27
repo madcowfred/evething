@@ -825,6 +825,11 @@ def character(request, character_name):
         skills[cur].append(cs)
         cur.z_total_sp += cs.points
 
+    
+    user_plans = SkillPlan.objects.filter(user=request.user)
+    public_plans = SkillPlan.objects.exclude(user=request.user).filter(is_public=True)
+
+
     # Render template
     return render_to_response(
         'thing/character.html',
@@ -837,6 +842,8 @@ def character(request, character_name):
             'queue': queue,
             'queue_rest': queue[1:],
             'queue_duration': queue_duration,
+            'user_plans': user_plans,
+            'public_plans': public_plans,
         },
         context_instance=RequestContext(request)
     )
@@ -911,6 +918,104 @@ def character_settings(request, character_name):
     char.config.save()
 
     return redirect(char)
+
+# ---------------------------------------------------------------------------
+# Display a SkillPlan for a character
+@login_required
+def character_skillplan(request, character_name, skillplan_id):
+    # Make sure we can access the character object
+    public = True
+    try:
+        character = Character.objects.get(name=character_name, apikeys__user=request.user)
+    except Character.DoesNotExist:
+        try:
+            character = Character.objects.get(name=character_name, config__is_public=True)
+        except Character.DoesNotExist:
+            raise Http404
+    else:
+        public = False
+    
+    # And the skillplan object
+    skillplan = get_object_or_404(SkillPlan.objects.prefetch_related('entries'), Q(user=request.user) | Q(is_public=True), pk=skillplan_id)
+
+    # Check our GET variables
+    implants = request.GET.get('implants', '0')
+    if implants.isdigit() and 0 <= int(implants) <= 5:
+        implants = int(implants)
+    else:
+        implants = 0
+
+    ignore_trained = ('ignore_trained' in request.GET)
+
+    # Build a CharacterSkill lookup dictionary
+    learned = {}
+    for cs in CharacterSkill.objects.filter(character=character).select_related():
+        learned[cs.skill.item.id] = cs
+
+    # Iterate over all entries in this skill plan
+    entries = []
+    remap_stats = {}
+    total_remaining = 0.0
+    for entry in skillplan.entries.select_related('sp_remap', 'sp_skill__skill__item__item_group'):
+        # It's a remap entry
+        if entry.sp_remap is not None:
+            remap_stats = dict(
+                int_attribute=entry.sp_remap.int_stat,
+                mem_attribute=entry.sp_remap.mem_stat,
+                per_attribute=entry.sp_remap.per_stat,
+                wil_attribute=entry.sp_remap.wil_stat,
+                cha_attribute=entry.sp_remap.cha_stat,
+            )
+
+        # It's a skill entry
+        if entry.sp_skill is not None:
+            skill = entry.sp_skill.skill
+
+            # If this skill is already learned
+            cs = learned.get(skill.item.id, None)
+            if cs is not None:
+                # Mark it as injected if level 0
+                if cs.level == 0:
+                    entry.z_injected = True
+                
+                # It might already be trained
+                if cs.level >= entry.sp_skill.level:
+                    entry.z_trained = True
+                    if ignore_trained:
+                        continue
+            else:
+                entry.z_buy = True
+
+            # Calculate SP/hr
+            if remap_stats:
+                entry.z_sppm = skill.get_sppm_stats(remap_stats, implants)
+            else:
+                if public is True:
+                    entry.z_sppm = skill.get_sp_per_minute(character, force_bonus=implants)
+                else:
+                    entry.z_sppm = skill.get_sp_per_minute(character)
+            
+            entry.z_spph = int(entry.z_sppm * 60)
+
+            # Calculate time remaining
+            entry.z_remaining = (skill.get_sp_at_level(entry.sp_skill.level) - skill.get_sp_at_level(entry.sp_skill.level - 1)) / entry.z_sppm * 60
+            if not hasattr(entry, 'z_trained'):
+                total_remaining += entry.z_remaining
+
+        entries.append(entry)
+
+    return render_to_response(
+        'thing/character_skillplan.html',
+        {
+            'ignore_trained': ignore_trained,
+            'implants': implants,
+            'char': character,
+            'skillplan': skillplan,
+            'entries': entries,
+            'total_remaining': total_remaining,
+        },
+        context_instance=RequestContext(request)
+    )
 
 # ---------------------------------------------------------------------------
 # Events

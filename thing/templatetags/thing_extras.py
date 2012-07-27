@@ -128,3 +128,8 @@ def tablecols(data, cols):
             row.append([])
         rows.append(row)
     return rows
+
+
+@register.filter
+def roman(s):
+    return ['', 'I', 'II', 'III', 'IV', 'V'][int(s)]

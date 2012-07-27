@@ -88,6 +88,14 @@ tr.asset-sneaky {
   display: none;
 }
 
+/* skillplan layout */
+td.sp-group {
+  width: 15em;
+}
+td.sp-time {
+  width: 8em;
+}
+
 /* various layout things */
 .fixed { font-family:Menlo,Monaco,"Courier New",monospace;font-size:12px;color:#333333; }
 

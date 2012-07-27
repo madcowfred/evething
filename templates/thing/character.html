@@ -129,6 +129,27 @@
             </form>
           </div>
           {%- endif %}
+          
+          {% if user.is_authenticated() and (user_plans or public_plans) -%}
+          <div class="well">
+            {% if user_plans -%}
+            <h3>My Skill Plans</h3>
+            <ul>
+              {% for sp in user_plans -%}
+              <li><a href="{{ 'thing.views.character_skillplan'|url(char.name, sp.id) }}">{{ sp.name }}</a></li>
+              {%- endfor %}
+            </ul>
+            {%- endif %}
+            {% if public_plans -%}
+            <h3>Public Skill Plans</h3>
+            <ul>
+              {% for sp in public_plans -%}
+              <li><a href="{{ 'thing.views.character_skillplan'|url(char.name, sp.id) }}">{{ sp }}</a></li>
+              {%- endfor %}
+            </ul>
+            {%- endif %}
+          </div>
+          {%- endif %}
         </div>
         
         <div class="span9">

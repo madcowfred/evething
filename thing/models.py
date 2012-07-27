@@ -490,12 +490,25 @@ class Skill(models.Model):
         else:
             return int(math.ceil(2 ** ((2.5 * level) - 2.5) * 250 * self.rank))
 
-    def get_sp_per_minute(self, character):
+    def get_sp_per_minute(self, character, force_bonus=None):
         pri_attrs = Skill.ATTRIBUTE_MAP[self.primary_attribute]
         sec_attrs = Skill.ATTRIBUTE_MAP[self.secondary_attribute]
 
-        pri = getattr(character, pri_attrs[0]) + getattr(character, pri_attrs[1])
-        sec = getattr(character, sec_attrs[0]) + getattr(character, sec_attrs[1])
+        if force_bonus is None:
+            pri = getattr(character, pri_attrs[0]) + getattr(character, pri_attrs[1])
+            sec = getattr(character, sec_attrs[0]) + getattr(character, sec_attrs[1])
+        else:
+            pri = getattr(character, pri_attrs[0]) + force_bonus
+            sec = getattr(character, sec_attrs[0]) + force_bonus
+
+        return pri + (sec / 2.0)
+
+    def get_sppm_stats(self, stats, bonus):
+        pri_attrs = Skill.ATTRIBUTE_MAP[self.primary_attribute]
+        sec_attrs = Skill.ATTRIBUTE_MAP[self.secondary_attribute]
+
+        pri = stats.get(pri_attrs[0]) + bonus
+        sec = stats.get(sec_attrs[0]) + bonus
 
         return pri + (sec / 2.0)
 

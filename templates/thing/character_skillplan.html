@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block extra_head %}
+      <script type="text/javascript">
+  // aaa
+        $(document).ready(function() {
+        });
+      </script>
+{% endblock %}
+
+{% block title %}Skill Plan: {{ char.name }}, {{ skillplan.name }}{% endblock %}
+
+{% block content %}
+      <div class="row-fluid">
+        <div class="span9">
+          <h2>Skill Plan</h2>
+
+          <ul class="unstyled">
+            <li><strong>Character</strong>: {{ char.name }}</li>
+            <li><strong>Skill Plan</strong>: {{ skillplan.name }}</li>
+          </ul>
+
+          <form class="form-inline" action="">
+            <label class="select">
+              <select name="implants">
+                <option value="0"{% if implants == 0 %} selected{% endif %}>No implants</option>
+                <option value="2"{% if implants == 2 %} selected{% endif %}>+2 implants</option>
+                <option value="3"{% if implants == 3 %} selected{% endif %}>+3 implants</option>
+                <option value="4"{% if implants == 4 %} selected{% endif %}>+4 implants</option>
+                <option value="5"{% if implants == 5 %} selected{% endif %}>+5 implants</option>
+              </select>
+            </label>
+            &nbsp;
+            <label class="checkbox">
+              <input type="checkbox" name="ignore_trained"{% if ignore_trained %} checked{% endif %}> Ignore trained skills
+            </label>
+            &nbsp;
+            <button type="submit" class="btn">Apply</button>
+          </form>
+
+          <table class="table table-striped table-bordered table-condensed">
+            <thead>
+              <tr class="c">
+                <th></th>
+                <th>Skill</th>
+                <th>Group</th>
+                <th>Pri</th>
+                <th>Sec</th>
+                <th>SP/hr</th>
+                <th>Time</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for entry in entries -%}
+              <tr class="c">
+                {% if entry.sp_remap -%}
+                <td></td>
+                <td class="l" colspan="6">
+                  <i class="icon-user"></i> Remap to
+                  <strong>{{ entry.sp_remap.int_stat }}</strong> Int /
+                  <strong>{{ entry.sp_remap.mem_stat }}</strong> Mem /
+                  <strong>{{ entry.sp_remap.per_stat }}</strong> Per /
+                  <strong>{{ entry.sp_remap.wil_stat }}</strong> Wil /
+                  <strong>{{ entry.sp_remap.cha_stat }}</strong> Cha
+                  </strong>
+                </td>
+                {%- else %}
+                <td><i class="icon-{% if entry.z_trained %}ok{% else %}remove{% endif %}"></i></td>
+                <td class="l">
+                  {{ entry.sp_skill.skill.item.name }} {{ entry.sp_skill.level|roman }}
+                  {% if entry.z_injected -%}
+                  <i class="icon-thumbs-up pull-right" rel="tooltip" title="Skillbook is injected"</i>
+                  {%- elif entry.z_buy %}
+                  <i class="icon-shopping-cart pull-right" rel="tooltip" title="Skillbook not injected"</i>
+                  {%- endif %}
+                </td>
+                <td class="sp-group">{{ entry.sp_skill.skill.item.item_group }}</td>
+                <td>{{ entry.sp_skill.skill.get_primary_attribute_display() }}</td>
+                <td>{{ entry.sp_skill.skill.get_secondary_attribute_display() }}</td>
+                <td>{{ entry.z_spph|commas }}</td>
+                <td class="r sp-time">{{ entry.z_remaining|duration }}</td>
+                {%- endif %}
+              </tr>
+              {%- else %}
+              <tr>
+                <td></td>
+                <td colspan="6">This skill plan is empty.</td>
+              </tr>
+              {%- endfor %}
+            </tbody>
+            {% if entries -%}
+            <tfoot>
+              <tr>
+                <td></td>
+                <td colspan="6" class="r"><strong>Total time remaining</strong>: {{ total_remaining|duration }}</td>
+              </tr>
+            </tfoot>
+            {%- endif %}
+          </table>
+        </div>
+      </div>
+{% endblock %}
+
