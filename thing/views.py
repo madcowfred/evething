@@ -962,22 +962,26 @@ def character_settings(request, character_name):
 
 # ---------------------------------------------------------------------------
 # Display a SkillPlan for a character
-@login_required
 def character_skillplan(request, character_name, skillplan_id):
     # Make sure we can access the character object
     public = True
-    try:
-        character = Character.objects.get(name=character_name, apikeys__user=request.user)
-    except Character.DoesNotExist:
+
+    if request.user.is_authenticated():
+        try:
+            character = Character.objects.get(name=character_name, apikeys__user=request.user)
+        except Character.DoesNotExist:
+            pass
+        else:
+            public = False
+
+    if public is True:
         try:
             character = Character.objects.get(name=character_name, config__is_public=True)
         except Character.DoesNotExist:
             raise Http404
-    else:
-        public = False
     
     # And the skillplan object
-    skillplan = get_object_or_404(SkillPlan.objects.prefetch_related('entries'), Q(user=request.user) | Q(is_public=True), pk=skillplan_id)
+    skillplan = get_object_or_404(SkillPlan.objects.prefetch_related('entries'), pk=skillplan_id)
 
     # Check our GET variables
     implants = request.GET.get('implants', '0')
