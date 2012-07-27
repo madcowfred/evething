@@ -663,6 +663,53 @@ class Asset(MPTTModel):
 #        return '%s' % (self.name)
 
 # ---------------------------------------------------------------------------
+# Skill plan storage disaster
+class SkillPlan(models.Model):
+    user = models.ForeignKey(User)
+
+    name = models.CharField(max_length=64)
+    is_public = models.BooleanField(default=False)
+
+    def __unicode__(self):
+        return '%s - %s' % (self.user.username, self.name)
+
+class SPEntry(models.Model):
+    skill_plan = models.ForeignKey(SkillPlan, related_name='entries')
+
+    position = models.IntegerField()
+
+    sp_remap = models.ForeignKey('SPRemap', blank=True, null=True)
+    sp_skill = models.ForeignKey('SPSkill', blank=True, null=True)
+
+    class Meta:
+        ordering = ('position',)
+
+    def __unicode__(self):
+        if self.sp_remap is None:
+            return str(self.sp_skill)
+        else:
+            return str(self.sp_remap)
+
+class SPRemap(models.Model):
+    int_stat = models.IntegerField()
+    mem_stat = models.IntegerField()
+    per_stat = models.IntegerField()
+    wil_stat = models.IntegerField()
+    cha_stat = models.IntegerField()
+
+    def __unicode__(self):
+        return 'Int: %d, Mem: %d, Per: %d, Wil: %d, Cha: %d' % (self.int_stat, self.mem_stat,
+            self.per_stat, self.wil_stat, self.cha_stat)
+
+class SPSkill(models.Model):
+    skill = models.ForeignKey(Skill)
+    level = models.IntegerField()
+    priority = models.IntegerField()
+
+    def __unicode__(self):
+        return '%s, level %d, priority %d' % (self.skill.item.name, self.level, self.priority)
+
+# ---------------------------------------------------------------------------
 # Industry jobs
 # fixme: implement POS support, oh god
 #class IndustryJob(models.Model):
