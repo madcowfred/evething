@@ -888,9 +888,13 @@ def character(request, character_name):
         cur.z_total_sp += cs.points
 
     
-    user_plans = SkillPlan.objects.filter(user=request.user)
-    public_plans = SkillPlan.objects.exclude(user=request.user).filter(is_public=True)
-
+    if request.user.is_authenticated():
+        user_plans = SkillPlan.objects.filter(user=request.user)
+        public_plans = SkillPlan.objects.exclude(user=request.user).filter(is_public=True)
+    else:
+        user_plans = []
+        public_plans = SkillPlan.objects.filter(is_public=True)
+    
 
     # Render template
     return render_to_response(
