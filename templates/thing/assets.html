@@ -6,11 +6,11 @@
 {% block extra_head %}
     <script type="text/javascript">
       var characters = new Array();
-      {% for character in characters %}characters[{{ loop.index0 }}] = new Array({{ character.id }}, "{{ character.name }}");
+      {% for character in characters %}characters[{{ loop.index0 }}] = new Array({{ character.id }}, "{{ character.name|safe }}");
       {% endfor %}
 
       var corporations = new Array();
-      {% for corporation in corporations %}corporations[{{ loop.index0 }}] = new Array({{ corporation.id }}, "{{ corporation.name }}");
+      {% for corporation in corporations %}corporations[{{ loop.index0 }}] = new Array({{ corporation.id }}, "{{ corporation.name|safe }}");
       {% endfor %}
 
       var selected = new Array();
