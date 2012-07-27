@@ -13,7 +13,14 @@
           // Change hash for page-reload
           $('.nav-tabs a').on('shown', function (e) {
             window.location.hash = e.target.hash.replace('#', '#' + prefix);
-          })
+          });
+
+          $('.delete-skillplan').on('click', function(event) {
+            var sp_id = $(this).attr('data-id');
+            var sp_name = $('td:nth-child(1)', $(this).parents('tr')).text();
+            $('#delete-skillplan-id').val(sp_id);
+            $('#delete-skillplan-name').text(sp_name);
+          });
         });
       </script>
 {% endblock %}
@@ -22,7 +29,7 @@
 
 {% block content %}
       <div class="row-fluid">
-        <div class="span12">
+        <div class="span10">
           <h2>Account Management</h2>
           
           {% if message -%}
@@ -33,6 +40,7 @@
 
           <ul class="nav nav-tabs">
             <li class="active"><a href="#settings" data-toggle="tab">Settings</a></li>
+            <li><a href="#skillplans" data-toggle="tab">Skill Plans</a></li>
             <li><a href="#password" data-toggle="tab">Change Password</a></li>
           </ul>
 
@@ -89,6 +97,57 @@
               </form>
             </div>
 
+            <div class="tab-pane" id="skillplans">
+              <div class="span6">
+                <h3>Add new skill plan</h3>
+                <form class="well" action="{% url thing.views.account_skillplan_add %}" method="POST" enctype="multipart/form-data">
+                  {% csrf_token %}
+                  <fieldset>
+                    <div class="control-group">
+                      <label class="control-label" for="name">Plan name</label>
+                      <div class="controls">
+                        <input type="text" class="input-large" name="name">
+                      </div>
+                    </div>
+                    <div class="control-group">
+                      <label class="control-label" for="file">.EMP file</label>
+                      <div class="controls">
+                        <input class="input-file" name="file" type="file">
+                      </div>
+                    </div>
+                  </fieldset>
+                  <fieldset>
+                    <div class="form-actions" style="margin-bottom: 0; padding-bottom: 0;">
+                      <button type="submit" class="btn btn-primary">Upload</button>
+                    </div>
+                  </fieldset>
+                </form>
+
+                <table class="table table-striped table-bordered table-condensed">
+                  <thead>
+                    <tr>
+                      <th colspan="2" class="large">Existing skill plans</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for skillplan in skillplans -%}
+                    <tr>
+                      <td>{{ skillplan.name }}</td>
+                      <td>
+                        <i class="icon-pencil"></i>
+                        <a class="delete-skillplan" data-toggle="modal" href="#delete-skillplan-modal" data-id="{{ skillplan.id }}"><i class="icon-trash"></i></a>
+                      </td>
+                    </tr>
+                    {%- else %}
+                    <tr>
+                      <td>You have no skill plans.</td>
+                    </tr>
+                    {%- endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
             <div class="tab-pane" id="password">
               <form action="{% url thing.views.account_change_password %}" method="POST" class="form-horizontal">
                 <fieldset>
@@ -119,6 +178,26 @@
                 </fieldset>
               </form>
             </div>
+
+          <div class="modal hide" id="delete-skillplan-modal">
+            <form action="{% url thing.views.account_skillplan_delete %}" method="POST" class="form-inline">
+              {% csrf_token %}
+              <input type="hidden" name="skillplan_id" value="" id="delete-skillplan-id">
+              <div class="modal-header">
+                <a class="close" data-dismiss="modal">×</a>
+                <h3>Delete Confirmation</h3>
+              </div>
+              <div class="modal-body">
+                <p>
+                  Are you sure you wish to delete the skill plan named "<span id="delete-skillplan-name"></span>"?
+                </p>
+              </div>
+              <div class="modal-footer">
+                <button class="btn btn-success" data-dismiss="modal"><i class="icon-remove icon-white"></i> No</button>
+                <button type="submit" class="btn btn-danger"><i class="icon-ok icon-white"></i> Yes</button>
+              </div>
+            </form>
+          </div>
           </div>
         </div>
       </div>

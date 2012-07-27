@@ -490,12 +490,25 @@ class Skill(models.Model):
         else:
             return int(math.ceil(2 ** ((2.5 * level) - 2.5) * 250 * self.rank))
 
-    def get_sp_per_minute(self, character):
+    def get_sp_per_minute(self, character, force_bonus=None):
         pri_attrs = Skill.ATTRIBUTE_MAP[self.primary_attribute]
         sec_attrs = Skill.ATTRIBUTE_MAP[self.secondary_attribute]
 
-        pri = getattr(character, pri_attrs[0]) + getattr(character, pri_attrs[1])
-        sec = getattr(character, sec_attrs[0]) + getattr(character, sec_attrs[1])
+        if force_bonus is None:
+            pri = getattr(character, pri_attrs[0]) + getattr(character, pri_attrs[1])
+            sec = getattr(character, sec_attrs[0]) + getattr(character, sec_attrs[1])
+        else:
+            pri = getattr(character, pri_attrs[0]) + force_bonus
+            sec = getattr(character, sec_attrs[0]) + force_bonus
+
+        return pri + (sec / 2.0)
+
+    def get_sppm_stats(self, stats, bonus):
+        pri_attrs = Skill.ATTRIBUTE_MAP[self.primary_attribute]
+        sec_attrs = Skill.ATTRIBUTE_MAP[self.secondary_attribute]
+
+        pri = stats.get(pri_attrs[0]) + bonus
+        sec = stats.get(sec_attrs[0]) + bonus
 
         return pri + (sec / 2.0)
 
@@ -661,6 +674,56 @@ class Asset(MPTTModel):
 
 #    def __unicode__(self):
 #        return '%s' % (self.name)
+
+# ---------------------------------------------------------------------------
+# Skill plan storage disaster
+class SkillPlan(models.Model):
+    user = models.ForeignKey(User)
+
+    name = models.CharField(max_length=64)
+    is_public = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ('name',)
+
+    def __unicode__(self):
+        return '%s - %s' % (self.user.username, self.name)
+
+class SPEntry(models.Model):
+    skill_plan = models.ForeignKey(SkillPlan, related_name='entries')
+
+    position = models.IntegerField()
+
+    sp_remap = models.ForeignKey('SPRemap', blank=True, null=True)
+    sp_skill = models.ForeignKey('SPSkill', blank=True, null=True)
+
+    class Meta:
+        ordering = ('position',)
+
+    def __unicode__(self):
+        if self.sp_remap is None:
+            return str(self.sp_skill)
+        else:
+            return str(self.sp_remap)
+
+class SPRemap(models.Model):
+    int_stat = models.IntegerField()
+    mem_stat = models.IntegerField()
+    per_stat = models.IntegerField()
+    wil_stat = models.IntegerField()
+    cha_stat = models.IntegerField()
+
+    def __unicode__(self):
+        return 'Int: %d, Mem: %d, Per: %d, Wil: %d, Cha: %d' % (self.int_stat, self.mem_stat,
+            self.per_stat, self.wil_stat, self.cha_stat)
+
+class SPSkill(models.Model):
+    skill = models.ForeignKey(Skill)
+    level = models.IntegerField()
+    priority = models.IntegerField()
+
+    def __unicode__(self):
+        return '%s, level %d, priority %d' % (self.skill.item.name, self.level, self.priority)
 
 # ---------------------------------------------------------------------------
 # Industry jobs

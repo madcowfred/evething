@@ -24,6 +24,8 @@ urlpatterns += patterns('thing.views',
     (r'^account/$', 'account'),
     (r'^account/change_password/$', 'account_change_password'),
     (r'^account/settings/$', 'account_settings'),
+    (r'^account/skillplan/add/$', 'account_skillplan_add'),
+    (r'^account/skillplan/delete/$', 'account_skillplan_delete'),
 
     url(r'^apikeys/$', 'apikeys', name='apikeys'),
     (r'^apikeys/add/$', 'apikeys_add'),
@@ -41,6 +43,7 @@ urlpatterns += patterns('thing.views',
     
     url(r'^character/(?P<character_name>[\w\'\- ]+)/$', 'character', name='character'),
     (r'^character/(?P<character_name>[\w\'\- ]+)/settings/', 'character_settings'),
+    (r'^character/(?P<character_name>[\w\'\- ]+)/skillplan/(?P<skillplan_id>\d+)$', 'character_skillplan'),
     url(r'^character_anon/(?P<anon_key>[a-z0-9]+)/$', 'character_anonymous', name='character_anonymous'),
     
     (r'^events/$', 'events'),
