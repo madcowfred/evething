@@ -3,24 +3,27 @@
   - Explain how API data is pulled
   - Some way to see last pull/next pull time for keys
   - Warn when a key doesn't have the required mask to pull AccountStatus (game time warnings)
-  - Explain that any corporation key requires you to also have an account/character key for the character or Bad
-    Things happen.
-    = Maybe fixed this?
 
-* Account Settings page:
+* Account Management:
   - Move API Keys to this page
-  - Move Change Password to this page
   - Move Event Log to this page
   - Add a way to create Campaigns
+  - Clean up Skill Plans tab, kinda ugly
+  - Skill Plans need to be renameable
 
 * Assets:
   - Add a volume column
   - Improve search features:
-    = Types: value, total value, containers only, group only
+    = Types:
+      # Value
+      # Total value
+      # Containers only toggle?
+      # Item group
+      # Station name
+      # System name
     = Magical JS buttons to add/remove extra search filters
   - Work out why the initial CharacterAsset view query is so slow, 1300 rows shouldn't take half a second. Possibly
     related to the pile of horrible LEFT OUTER JOINs, try querying (items, characters, etc) separately and caching.
-  - Pop-up box for ships with an EFT text block to copy into a fitting tool.
   - Database model:
     = Shift the primary key to an auto-generated id field
     = Move id to asset_id and make it non-unique
@@ -34,6 +37,8 @@
   - Make categories expandable/collapsible
   - Expand all/collapse all JavaScript links
   - Standings tab needs agent standings
+  - Anonymous character sheet needs skill plan support
+  - Ability to see a post-plan character sheet?
 
 * Contracts:
   - Implement database models to store contracts and contract contents
@@ -52,6 +57,10 @@
     = Assets
     = Blueprints
     = [All]
+
+* Skill Plans
+  - Implement skill plan creation (hahahaha oh god)
+  - Needs to be a distinction between "publicly accessible for my character" and "globally accessible to everyone"
 
 * Transactions:
   - Ability to search transactions via:
@@ -77,11 +86,7 @@
   - Pages need to explain what the hell they do
 
 * misc:
-  - Replace Django templating engine with Jinja2 for speedups
   - Get some less awful themes, oh dear
-  - Skill planner
-    = First step: load .EMP files and display remaining skills (EVEmon skill plans), save as account-wide plans
-    = Hard step: implement skill planning
   - Email warnings
     = Let user configure email address (save to auth_user email field?)
       # Implement email verification because people are idiots
