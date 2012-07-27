@@ -995,7 +995,7 @@ def character_skillplan(request, character_name, skillplan_id):
             pass
         else:
             public = False
-            skillplan = get_object_or_404(SkillPlan.objects.prefetch_related('entries'), pk=skillplan_id)
+            skillplan = get_object_or_404(SkillPlan.objects.prefetch_related('entries'), Q(is_public=True) | Q(user=request.user), pk=skillplan_id)
 
     # Not logged in
     if public is True:
