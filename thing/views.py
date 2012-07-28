@@ -166,7 +166,7 @@ def home(request):
     elif profile.home_sort_order == 'corpname':
         temp = [(c.corporation.name.lower(), c.name.lower(), c) for c in char_list]
     elif profile.home_sort_order == 'totalsp':
-        temp = [(c.z_total_sp, c) for c in char_list]
+        temp = [(getattr(c, 'z_total_sp', 0), c) for c in char_list]
     elif profile.home_sort_order == 'wallet':
         temp = [(c.wallet_balance, c.name.lower(), c) for c in char_list]
 
