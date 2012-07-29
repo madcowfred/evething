@@ -88,6 +88,20 @@ tr.asset-sneaky {
   display: none;
 }
 
+/* bpcalc layout */
+td.bpc-tiny {
+  width: 1em;
+}
+td.bpc-small {
+  width: 4em;
+}
+td.bpc-medium {
+  width: 5.5em;
+}
+td.bpc-large {
+  width: 8em;
+}
+
 /* skillplan layout */
 td.sp-trained {
   width: 3em;

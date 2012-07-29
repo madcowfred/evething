@@ -687,6 +687,8 @@ def bpcalc(request):
     # Initialise variabls
     bpis = []
     bpi_totals = {
+        'input_m3': Decimal('0.0'),
+        'output_m3': Decimal('0.0'),
         'total_sell': Decimal('0.0'),
         'buy_build': Decimal('0.0'),
         'buy_profit': Decimal('0.0'),
@@ -774,6 +776,8 @@ def bpcalc(request):
                     bpi.z_volume_percent = (bpi.z_built / bpi.z_volume_week * 100).quantize(Decimal('.1'))
 
                 # Update totals
+                bpi_totals['input_m3'] += bpi.z_input_m3
+                bpi_totals['output_m3'] += bpi.z_output_m3
                 bpi_totals['total_sell'] += bpi.z_total_sell
                 bpi_totals['buy_build'] += bpi.z_buy_build
                 bpi_totals['buy_profit'] += bpi.z_buy_profit
