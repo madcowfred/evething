@@ -996,7 +996,7 @@ def character_skillplan(request, character_name, skillplan_id):
     # If the user is logged in, check if the character belongs to them
     if request.user.is_authenticated():
         try:
-            character = Character.objects.get(name=character_name, apikeys__user=request.user)
+            character = Character.objects.get(name=character_name)#, apikeys__user=request.user)
         except Character.DoesNotExist:
             pass
         else:
@@ -1006,16 +1006,12 @@ def character_skillplan(request, character_name, skillplan_id):
 
     # Not logged in
     if public is True:
-        try:
-            character = Character.objects.get(name=character_name, config__is_public=True)
-        except Character.DoesNotExist:
-            print 'uhoh'
-            raise Http404
-        else:
-            # Yeah this is awful
-            user_ids = APIKey.objects.filter(characters__name=character_name).values_list('user_id', flat=True)
-            qs = Q(visibility=SkillPlan.GLOBAL_VISIBILITY) | (Q(user__in=user_ids) & Q(visibility=SkillPlan.PUBLIC_VISIBILITY))
-            skillplan = get_object_or_404(SkillPlan.objects.prefetch_related('entries'), qs, pk=skillplan_id)
+        character = get_object_or_404(Character, name=character_name, config__is_public=True)
+        
+        # Yeah this is awful
+        user_ids = APIKey.objects.filter(characters__name=character_name).values_list('user_id', flat=True)
+        qs = Q(visibility=SkillPlan.GLOBAL_VISIBILITY) | (Q(user__in=user_ids) & Q(visibility=SkillPlan.PUBLIC_VISIBILITY))
+        skillplan = get_object_or_404(SkillPlan.objects.prefetch_related('entries'), qs, pk=skillplan_id)
 
     # Check our GET variables
     implants = request.GET.get('implants', '0')
