@@ -678,10 +678,19 @@ class Asset(MPTTModel):
 # ---------------------------------------------------------------------------
 # Skill plan storage disaster
 class SkillPlan(models.Model):
+    PRIVATE_VISIBILITY = 1
+    PUBLIC_VISIBILITY = 2
+    GLOBAL_VISIBILITY = 3
+    VISIBILITY_CHOICES = (
+        (PRIVATE_VISIBILITY, 'Private'),
+        (PUBLIC_VISIBILITY, 'Public'),
+        (GLOBAL_VISIBILITY, 'Global'),
+    )
+
     user = models.ForeignKey(User)
 
     name = models.CharField(max_length=64)
-    is_public = models.BooleanField(default=False)
+    visibility = models.IntegerField(default=1, choices=VISIBILITY_CHOICES)
 
     class Meta:
         ordering = ('name',)

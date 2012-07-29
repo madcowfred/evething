@@ -26,7 +26,7 @@ urlpatterns += patterns('thing.views',
     (r'^account/settings/$', 'account_settings'),
     (r'^account/skillplan/add/$', 'account_skillplan_add'),
     (r'^account/skillplan/delete/$', 'account_skillplan_delete'),
-    (r'^account/skillplan/toggle_public/(?P<skillplan_id>\d+)/$', 'account_skillplan_toggle_public'),
+    (r'^account/skillplan/edit/$', 'account_skillplan_edit'),
 
     url(r'^apikeys/$', 'apikeys', name='apikeys'),
     (r'^apikeys/add/$', 'apikeys_add'),

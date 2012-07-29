@@ -14,12 +14,21 @@
           $('.nav-tabs a').on('shown', function (e) {
             window.location.hash = e.target.hash.replace('#', '#' + prefix);
           });
+          
+          $('.edit-skillplan').on('click', function(event) {
+            var sp_id = $(this).parents('tr').attr('data-id');
+            var sp_name = $('td:nth-child(2)', $(this).parents('tr')).text();
+            var sp_vis = $(this).parents('tr').attr('data-vis');
+            $('#edit-skillplan-id').val(sp_id);
+            $('#edit-skillplan-name').val(sp_name);
+            $('#edit-skillplan-visibility').val(sp_vis);
+          });
 
           $('.delete-skillplan').on('click', function(event) {
-            var sp_id = $(this).attr('data-id');
-            var sp_name = $('td:nth-child(1)', $(this).parents('tr')).text();
+            var sp_id = $(this).parents('tr').attr('data-id');
+            var sp_name = $('td:nth-child(2)', $(this).parents('tr')).text();
             $('#delete-skillplan-id').val(sp_id);
-            $('#delete-skillplan-name').text(sp_name);
+            $('#delete-skillplan-name').val(sp_name);
           });
         });
       </script>
@@ -123,29 +132,30 @@
                   </fieldset>
                 </form>
 
+                <h4>Existing skill plans</h4>
                 <table class="table table-striped table-bordered table-condensed">
                   <thead>
-                    <tr>
-                      <th colspan="2" class="large">Existing skill plans</th>
+                    <tr class="c">
+                      <th>ID</th>
+                      <th>Name</th>
+                      <th>Visibility</th>
+                      <th></th>
                     </tr>
                   </thead>
                   <tbody>
                     {% for skillplan in skillplans -%}
-                    <tr>
+                    <tr data-id="{{ skillplan.id }}" data-vis="{{ skillplan.visibility }}">
+                      <td class="r sp-trained">{{ skillplan.id }}</td>
                       <td>{{ skillplan.name }}</td>
-                      <td>
-                        <a class="btn btn-{% if skillplan.is_public %}success{% else %}danger{% endif %}" href="{% url thing.views.account_skillplan_toggle_public skillplan.id %}">
-                          Make {% if skillplan.is_public %}private{% else %}public{% endif %}
-                        </a>
-                      </td>
-                      <td>
-                        <i class="icon-pencil"></i>
-                        <a class="delete-skillplan" data-toggle="modal" href="#delete-skillplan-modal" data-id="{{ skillplan.id }}"><i class="icon-trash"></i></a>
+                      <td class="c sp-time">{{ skillplan.get_visibility_display() }}</td>
+                      <td class="c sp-trained">
+                        <a class="edit-skillplan" data-toggle="modal" href="#edit-skillplan-modal"><i class="icon-pencil"></i></a>
+                        <a class="delete-skillplan" data-toggle="modal" href="#delete-skillplan-modal"><i class="icon-trash"></i></a>
                       </td>
                     </tr>
                     {%- else %}
                     <tr>
-                      <td>You have no skill plans.</td>
+                      <td colspan="4">You have no skill plans.</td>
                     </tr>
                     {%- endfor %}
                   </tbody>
@@ -184,25 +194,63 @@
               </form>
             </div>
 
-          <div class="modal hide" id="delete-skillplan-modal">
-            <form action="{% url thing.views.account_skillplan_delete %}" method="POST" class="form-inline">
-              {% csrf_token %}
-              <input type="hidden" name="skillplan_id" value="" id="delete-skillplan-id">
-              <div class="modal-header">
-                <a class="close" data-dismiss="modal">×</a>
-                <h3>Delete Confirmation</h3>
-              </div>
-              <div class="modal-body">
-                <p>
-                  Are you sure you wish to delete the skill plan named "<span id="delete-skillplan-name"></span>"?
-                </p>
-              </div>
-              <div class="modal-footer">
-                <button class="btn btn-success" data-dismiss="modal"><i class="icon-remove icon-white"></i> No</button>
-                <button type="submit" class="btn btn-danger"><i class="icon-ok icon-white"></i> Yes</button>
-              </div>
-            </form>
-          </div>
+            <div class="modal hide" id="edit-skillplan-modal">
+              <form action="{% url thing.views.account_skillplan_edit %}" method="POST" class="form-horizontal">
+                {% csrf_token %}
+                <input type="hidden" name="skillplan_id" value="" id="edit-skillplan-id">
+                <div class="modal-header">
+                  <a class="close" data-dismiss="modal">×</a>
+                  <h3>Edit Skill Plan</h3>
+                </div>
+                <div class="modal-body">
+                  <fieldset>
+                    <div class="control-group">
+                      <label class="control-label" for="blueprint">Name</label>
+                      <div class="controls">
+                        <input type="text" id="edit-skillplan-name" name="name" value="">
+                      </div>
+                    </div>
+                    <div class="control-group">
+                      <label class="control-label" for="ml">Visibility</label>
+                      <div class="controls">
+                        <select id="edit-skillplan-visibility" name="visibility">
+                          {% for value, text in visibilities -%}
+                          <option value="{{ value }}">{{ text }}</option>
+                          {%- endfor %}
+                        </select>
+                        <p class="help-block">Private: visibile only to your user account.</p>
+                        <p class="help-block">Public: visibile to anyone on <u>your</u> character pages.</p>
+                        <p class="help-block">Global: visibile to anyone on any character page.</p>
+                      </div>
+                    </div>
+                  </fieldset>
+                </div>
+                <div class="modal-footer">
+                  <button class="btn btn-danger" data-dismiss="modal"><i class="icon-remove icon-white"></i> Cancel</button>
+                  <button type="submit" class="btn btn-success"><i class="icon-ok icon-white"></i> Save</button>
+                </div>
+              </form>
+            </div>
+
+            <div class="modal hide" id="delete-skillplan-modal">
+              <form action="{% url thing.views.account_skillplan_delete %}" method="POST" class="form-inline">
+                {% csrf_token %}
+                <input type="hidden" name="skillplan_id" value="" id="delete-skillplan-id">
+                <div class="modal-header">
+                  <a class="close" data-dismiss="modal">×</a>
+                  <h3>Delete Confirmation</h3>
+                </div>
+                <div class="modal-body">
+                  <p>
+                    Are you sure you wish to delete the skill plan named "<span id="delete-skillplan-name"></span>"?
+                  </p>
+                </div>
+                <div class="modal-footer">
+                  <button class="btn btn-success" data-dismiss="modal"><i class="icon-remove icon-white"></i> No</button>
+                  <button type="submit" class="btn btn-danger"><i class="icon-ok icon-white"></i> Yes</button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       </div>

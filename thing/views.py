@@ -235,6 +235,7 @@ def account(request):
             'home_sort_orders': UserProfile.HOME_SORT_ORDERS,
             'themes': settings.THEMES,
             'skillplans': SkillPlan.objects.filter(user=request.user),
+            'visibilities': SkillPlan.VISIBILITY_CHOICES
         },
         context_instance=RequestContext(request)
     )
@@ -334,24 +335,21 @@ def account_skillplan_delete(request):
     return redirect('%s#tab_skillplans' % (reverse(account)))
 
 @login_required
-def account_skillplan_toggle_public(request, skillplan_id):
+def account_skillplan_edit(request):
     try:
-        skillplan = SkillPlan.objects.get(user=request.user, id=skillplan_id)
+        skillplan = SkillPlan.objects.get(user=request.user, id=request.POST.get('skillplan_id', '0'))
     
     except SkillPlan.DoesNotExist:
         request.session['message_type'] = 'error'
         request.session['message'] = 'You do not own that skill plan!'
     
     else:
-        skillplan.is_public = not skillplan.is_public
+        skillplan.name = request.POST['name']
+        skillplan.visibility = request.POST['visibility']
         skillplan.save()
-        if skillplan.is_public:
-            now = 'public'
-        else:
-            now = 'private'
 
         request.session['message_type'] = 'success'
-        request.session['message'] = 'Skill plan "%s" is now %s.' % (skillplan.name, now)
+        request.session['message'] = 'Skill plan "%s" edited successfully!' % (skillplan.name)
 
     return redirect('%s#tab_skillplans' % (reverse(account)))
 
