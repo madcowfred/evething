@@ -1034,6 +1034,10 @@ def character_skillplan(request, character_name, skillplan_id):
     for entry in skillplan.entries.select_related('sp_remap', 'sp_skill__skill__item__item_group'):
         # It's a remap entry
         if entry.sp_remap is not None:
+            # Delete the previous remap if it's two in a row, that makes no sense
+            if entries and entries[-1].sp_remap is not None:
+                entries.pop()
+            
             remap_stats = dict(
                 int_attribute=entry.sp_remap.int_stat,
                 mem_attribute=entry.sp_remap.mem_stat,
