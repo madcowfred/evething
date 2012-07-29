@@ -886,7 +886,7 @@ def character(request, character_name):
         cur.z_total_sp += cs.points
 
     
-    user_ids = APIKey.objects.filter(characters__name='Dinara Falorn').values_list('user_id', flat=True)
+    user_ids = APIKey.objects.filter(characters__name=character_name).values_list('user_id', flat=True)
 
     if request.user.is_authenticated():
         user_plans = SkillPlan.objects.filter(user=request.user)
