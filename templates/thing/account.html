@@ -109,7 +109,7 @@
             <div class="tab-pane" id="skillplans">
               <div class="span6">
                 <h3>Add new skill plan</h3>
-                <form class="well" action="{% url thing.views.account_skillplan_add %}" method="POST" enctype="multipart/form-data">
+                <form class="well form-horizontal" action="{% url thing.views.account_skillplan_add %}" method="POST" enctype="multipart/form-data">
                   {% csrf_token %}
                   <fieldset>
                     <div class="control-group">
@@ -122,6 +122,16 @@
                       <label class="control-label" for="file">.EMP file</label>
                       <div class="controls">
                         <input class="input-file" name="file" type="file">
+                      </div>
+                    </div>
+                    <div class="control-group">
+                      <label class="control-label" for="visibility">Visibility</label>
+                      <div class="controls">
+                        <select name="visibility">
+                          {% for value, text in visibilities -%}
+                          <option value="{{ value }}">{{ text }}</option>
+                          {%- endfor %}
+                        </select>
                       </div>
                     </div>
                   </fieldset>

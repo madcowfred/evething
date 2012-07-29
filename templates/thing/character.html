@@ -141,20 +141,28 @@
             <ul class="unstyled">
               {% for sp in user_plans -%}
               <li>
-                <i class="icon-chevron-right"></i>
-                <a href="{{ 'thing.views.character_skillplan'|url(char.name, sp.id) }}">
-                  {{ sp.name }}
-                </a>
+                {%- if sp.visibility == 1 -%}
+                <i class="icon-lock" rel="tooltip" title="Private"></i>
+                {%- elif sp.visibility == 2 %}
+                <i class="icon-eye-open" rel="tooltip" title="Public"></i>
+                {%- else %}
+                <i class="icon-globe" rel="tooltip" title="Global"></i>
+                {%- endif %}
+                <a href="{{ 'thing.views.character_skillplan'|url(char.name, sp.id) }}">{{ sp.name }}</a>
               </li>
               {%- endfor %}
             </ul>
             {%- endif %}
             {% if public_plans -%}
-            <h4>Public Skill Plans</h4>
+            <h4>Global Skill Plans</h4>
             <ul class="unstyled">
               {% for sp in public_plans -%}
               <li>
-                <i class="icon-chevron-right"></i>
+                {%- if sp.visibility == 2 %}
+                <i class="icon-eye-open" rel="tooltip" title="Public"></i>
+                {%- else %}
+                <i class="icon-globe" rel="tooltip" title="Global"></i>
+                {%- endif %}
                 <a href="{{ 'thing.views.character_skillplan'|url(char.name, sp.id) }}">
                   {% if authed -%}
                   [{{ sp.user.username }}]
