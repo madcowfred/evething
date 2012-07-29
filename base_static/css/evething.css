@@ -168,6 +168,9 @@ i.nomargin {
 .modal-footer {
   padding: 8px 9px 9px;
 }
+.form-horizontal .control-group {
+  margin-bottom: 8px;
+}
 
 /* tablesorter styles */
 table .header {
