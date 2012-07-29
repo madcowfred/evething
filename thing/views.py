@@ -893,7 +893,7 @@ def character(request, character_name):
         qs = Q(visibility=SkillPlan.GLOBAL_VISIBILITY) | (Q(user__in=user_ids) & Q(visibility=SkillPlan.PUBLIC_VISIBILITY))
         public_plans = SkillPlan.objects.exclude(user=request.user).filter(qs).order_by('user__username', 'name')
     else:
-        user_plans = SkillPlan.objects.filter(user__in=user_ids, visibility=SkillPlan.PUBLIC_VISIBILITY)
+        user_plans = []
         public_plans = SkillPlan.objects.filter(visibility=SkillPlan.GLOBAL_VISIBILITY)
 
 
