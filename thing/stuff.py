@@ -12,6 +12,7 @@ from thing.models import *
 def handle_skillplan_upload(request):
     name = request.POST['name'].strip()
     uf = request.FILES['file']
+    visibility = request.POST['visibility']
 
     # Check that this name is unique for the user
     if SkillPlan.objects.filter(user=request.user, name=name).count() > 0:
@@ -48,6 +49,7 @@ def handle_skillplan_upload(request):
     skillplan = SkillPlan.objects.create(
         user=request.user,
         name=name,
+        visibility=visibility,
     )
     
     parse_emp_plan(skillplan, root)

@@ -235,6 +235,7 @@ def account(request):
             'home_sort_orders': UserProfile.HOME_SORT_ORDERS,
             'themes': settings.THEMES,
             'skillplans': SkillPlan.objects.filter(user=request.user),
+            'visibilities': SkillPlan.VISIBILITY_CHOICES
         },
         context_instance=RequestContext(request)
     )
@@ -334,24 +335,21 @@ def account_skillplan_delete(request):
     return redirect('%s#tab_skillplans' % (reverse(account)))
 
 @login_required
-def account_skillplan_toggle_public(request, skillplan_id):
+def account_skillplan_edit(request):
     try:
-        skillplan = SkillPlan.objects.get(user=request.user, id=skillplan_id)
+        skillplan = SkillPlan.objects.get(user=request.user, id=request.POST.get('skillplan_id', '0'))
     
     except SkillPlan.DoesNotExist:
         request.session['message_type'] = 'error'
         request.session['message'] = 'You do not own that skill plan!'
     
     else:
-        skillplan.is_public = not skillplan.is_public
+        skillplan.name = request.POST['name']
+        skillplan.visibility = request.POST['visibility']
         skillplan.save()
-        if skillplan.is_public:
-            now = 'public'
-        else:
-            now = 'private'
 
         request.session['message_type'] = 'success'
-        request.session['message'] = 'Skill plan "%s" is now %s.' % (skillplan.name, now)
+        request.session['message'] = 'Skill plan "%s" edited successfully!' % (skillplan.name)
 
     return redirect('%s#tab_skillplans' % (reverse(account)))
 
@@ -888,12 +886,15 @@ def character(request, character_name):
         cur.z_total_sp += cs.points
 
     
+    user_ids = APIKey.objects.filter(characters__name='Dinara Falorn').values_list('user_id', flat=True)
+
     if request.user.is_authenticated():
         user_plans = SkillPlan.objects.filter(user=request.user)
-        public_plans = SkillPlan.objects.exclude(user=request.user).filter(is_public=True).order_by('user__username', 'name')
+        qs = Q(visibility=SkillPlan.GLOBAL_VISIBILITY) | (Q(user__in=user_ids) & Q(visibility=SkillPlan.PUBLIC_VISIBILITY))
+        public_plans = SkillPlan.objects.exclude(user=request.user).filter(qs).order_by('user__username', 'name')
     else:
-        user_plans = []
-        public_plans = SkillPlan.objects.filter(is_public=True)
+        user_plans = SkillPlan.objects.filter(user__in=user_ids, visibility=SkillPlan.PUBLIC_VISIBILITY)
+        public_plans = SkillPlan.objects.filter(visibility=SkillPlan.GLOBAL_VISIBILITY)
 
 
     # Render template
@@ -988,7 +989,8 @@ def character_settings(request, character_name):
 # ---------------------------------------------------------------------------
 # Display a SkillPlan for a character
 def character_skillplan(request, character_name, skillplan_id):
-    # Make sure we can access the character object
+    user_ids = APIKey.objects.filter(characters__name=character_name).values_list('user_id', flat=True)
+
     public = True
 
     # If the user is logged in, check if the character belongs to them
@@ -999,17 +1001,21 @@ def character_skillplan(request, character_name, skillplan_id):
             pass
         else:
             public = False
-            skillplan = get_object_or_404(SkillPlan.objects.prefetch_related('entries'), Q(is_public=True) | Q(user=request.user), pk=skillplan_id)
+            qs = Q(visibility=SkillPlan.GLOBAL_VISIBILITY) | Q(user=request.user) | (Q(user__in=user_ids) & Q(visibility=SkillPlan.PUBLIC_VISIBILITY))
+            skillplan = get_object_or_404(SkillPlan.objects.prefetch_related('entries'), qs, pk=skillplan_id)
 
     # Not logged in
     if public is True:
         try:
             character = Character.objects.get(name=character_name, config__is_public=True)
         except Character.DoesNotExist:
+            print 'uhoh'
             raise Http404
         else:
-            # And the skillplan object
-            skillplan = get_object_or_404(SkillPlan.objects.prefetch_related('entries'), pk=skillplan_id, is_public=True)
+            # Yeah this is awful
+            user_ids = APIKey.objects.filter(characters__name=character_name).values_list('user_id', flat=True)
+            qs = Q(visibility=SkillPlan.GLOBAL_VISIBILITY) | (Q(user__in=user_ids) & Q(visibility=SkillPlan.PUBLIC_VISIBILITY))
+            skillplan = get_object_or_404(SkillPlan.objects.prefetch_related('entries'), qs, pk=skillplan_id)
 
     # Check our GET variables
     implants = request.GET.get('implants', '0')
