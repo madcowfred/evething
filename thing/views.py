@@ -680,10 +680,10 @@ def blueprints_edit(request):
 def bpcalc(request):
     # Get a valid number of days
     try:
-        days = int(request.GET.get('days', '7'))
+        days = max(1, int(request.GET.get('days', '7')))
     except ValueError:
         days = 7
-    
+
     # Initialise variabls
     bpis = []
     bpi_totals = {
@@ -811,6 +811,7 @@ def bpcalc(request):
             'bpi_totals': bpi_totals,
             'components': component_list,
             'comp_totals': comp_totals,
+            'days': days,
         },
         context_instance=RequestContext(request)
     )
