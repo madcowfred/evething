@@ -28,7 +28,7 @@
             var sp_id = $(this).parents('tr').attr('data-id');
             var sp_name = $('td:nth-child(2)', $(this).parents('tr')).text();
             $('#delete-skillplan-id').val(sp_id);
-            $('#delete-skillplan-name').val(sp_name);
+            $('#delete-skillplan-name').text(sp_name);
           });
         });
       </script>
@@ -124,8 +124,12 @@
                       <td>{{ skillplan.name }}</td>
                       <td class="c sp-time">{{ skillplan.get_visibility_display() }}</td>
                       <td class="c sp-trained">
-                        <a class="edit-skillplan" data-toggle="modal" href="#edit-skillplan-modal"><i class="icon-pencil"></i></a>
-                        <a class="delete-skillplan" data-toggle="modal" href="#delete-skillplan-modal"><i class="icon-trash"></i></a>
+                        <a class="edit-skillplan" data-toggle="modal" href="#edit-skillplan-modal">
+                          <img src="{{ STATIC_URL }}icons/pencil.png">
+                        </a>
+                        <a class="delete-skillplan" data-toggle="modal" href="#delete-skillplan-modal">
+                          <img src="{{ STATIC_URL }}icons/bin.png">
+                        </a>
                       </td>
                     </tr>
                     {%- else %}
@@ -211,7 +215,7 @@
                 {% csrf_token %}
                 <input type="hidden" name="skillplan_id" value="" id="edit-skillplan-id">
                 <div class="modal-header">
-                  <a class="close" data-dismiss="modal">×</a>
+                  <a class="close" data-dismiss="modal"><img src="{{ STATIC_URL }}icons/cross.png"></a>
                   <h3>Edit Skill Plan</h3>
                 </div>
                 <div class="modal-body">
@@ -238,8 +242,8 @@
                   </fieldset>
                 </div>
                 <div class="modal-footer">
-                  <button class="btn btn-danger" data-dismiss="modal"><i class="icon-remove icon-white"></i> Cancel</button>
-                  <button type="submit" class="btn btn-success"><i class="icon-ok icon-white"></i> Save</button>
+                  <button class="btn btn-danger" data-dismiss="modal">Cancel</button>
+                  <button type="submit" class="btn btn-success">Save</button>
                 </div>
               </form>
             </div>
@@ -249,7 +253,7 @@
                 {% csrf_token %}
                 <input type="hidden" name="skillplan_id" value="" id="delete-skillplan-id">
                 <div class="modal-header">
-                  <a class="close" data-dismiss="modal">×</a>
+                  <a class="close" data-dismiss="modal"><img src="{{ STATIC_URL }}icons/cross.png"></a>
                   <h3>Delete Confirmation</h3>
                 </div>
                 <div class="modal-body">
@@ -258,8 +262,8 @@
                   </p>
                 </div>
                 <div class="modal-footer">
-                  <button class="btn btn-success" data-dismiss="modal"><i class="icon-remove icon-white"></i> No</button>
-                  <button type="submit" class="btn btn-danger"><i class="icon-ok icon-white"></i> Yes</button>
+                  <button class="btn btn-danger" data-dismiss="modal">No</button>
+                  <button type="submit" class="btn btn-success">Yes</button>
                 </div>
               </form>
             </div>
