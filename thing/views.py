@@ -143,7 +143,7 @@ def home(request):
                     t.append(skill.get_secondary_attribute_display())
 
                 char.z_notifications.append({
-                    'icon': 'text_letter_omega',
+                    'icon': 'plugin_error',
                     'text': ', '.join(t),
                     'tooltip': 'Missing stat implants for currently training skill!',
                 })
