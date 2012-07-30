@@ -56,14 +56,14 @@
         $(".asset-expand").on('click', function() {
           var $this = $(this);
           
-          if ($this.hasClass('icon-plus')) {
-            $this.removeClass('icon-plus').addClass('icon-minus');
+          if (/add\./.test($this.attr('src'))) {
+            $this.attr('src', $this.attr('src').replace('add.', 'delete.'));
             $($this.attr('data-target')).each(function() {
               $(this).show();
             });
           }
           else {
-            $this.removeClass('icon-minus').addClass('icon-plus');
+            $this.attr('src', $this.attr('src').replace('delete.', 'add.'));
             $($this.attr('data-target')).each(function() {
               $(this).hide();
             });
@@ -71,9 +71,9 @@
         });
 
         // bind the ship EFT fitting buttons
-        $(".icon-plane").on('click', function() {
+        $(".asset-eft").on('click', function() {
           var $this = $(this);
-          var data_target = $('i:nth-child(1)', $this.parent()).attr('data-target');
+          var data_target = $('img:nth-child(1)', $this.parent()).attr('data-target');
 
           var parts = $.trim($(this).parent().text()).split(' - ');
           var ship_type = $.trim(parts[0]);
@@ -114,13 +114,6 @@
 {% endblock %}
 
 {% block content %}
-      <div class="row-fluid">
-        <div class="span8 alert alert-error">
-          <i class="icon-info-sign"></i> <strong>WORK IN PROGRESS:</strong> this is pretty obviously a work in
-          progress, more filter types need to be added and stuff.
-        </div>
-      </div>
-      
       <div id="filters" class="row-fluid">
         <div class="span6">
           <h2>Assets</h2>
@@ -170,22 +163,21 @@
               <tr>
                 <td class="assets-character">
                   {% if asset.corporation -%}
-                  <i class="icon-briefcase"></i> {{ asset.corporation.name }}
-                  {% else -%}
-                  <i class="icon-user"></i> {{ asset.character.name }}
+                  <img src="{{ STATIC_URL }}icons/briefcase.png"> {{ asset.corporation.name }}
+                  {%- else %}
+                  <img src="{{ STATIC_URL }}icons/user.png"> {{ asset.character.name }}
                   {%- endif %}
                 </td>
                 <td class="assets-item">
                   {% if asset.z_contents -%}
-                  <i class="icon-plus asset-expand" data-target=".asset-{{ asset.id }}"></i>
+                  <img src="{{ STATIC_URL }}icons/add.png" class="asset-expand" data-target=".asset-{{ asset.id }}">
                   {%- if asset.z_item.item_group.category.name == 'Ship' %}
-                  <i class="icon-plane pull-right"></i>
-                  {%- endif %}
-                  {%- endif %}
-                  {%- if asset.z_blueprint == -1 %}
-                  <i class="icon-star pull-right" rel="tooltip" title="Original"></i>
+                  <img src="{{ STATIC_URL }}icons/wrench.png" class="pull-right asset-eft">
+                  {%- endif %}{% endif %}
+                  {% if asset.z_blueprint == -1 -%}
+                  <img src="{{ STATIC_URL }}icons/page.png" class="pull-right" rel="tooltip" title="Blueprint original">
                   {%- elif asset.z_blueprint == -2 %}
-                  <i class="icon-star-empty pull-right" rel="tooltip" title="Copy"></i>
+                  <img src="{{ STATIC_URL }}icons/page_copy.png" class="pull-right" rel="tooltip" title="Blueprint copy">
                   {%- endif -%}
                   {{ asset.z_item.name }}
                   {%- if asset.name %} - <i>{{ asset.name }}</i>{% endif %}
@@ -200,12 +192,12 @@
               <tr class="asset-sneaky asset-{{ asset.id }}">
                 <td></td>
                 <td>
-                  <i class="icon-arrow-right margin-left"></i>
-                  {%- if content.z_locked %}<i class="icon-lock"></i>{% endif %}
+                  <img src="{{ STATIC_URL }}icons/bullet_go.png">
+                  {%- if content.z_locked %}<img src="{{ STATIC_URL }}icons/lock.png">{% endif %}
                   {%- if content.z_blueprint == -1 %}
-                  <i class="icon-star pull-right" rel="tooltip" title="Original"></i>
+                  <img src="{{ STATIC_URL }}icons/page.png" class="pull-right" rel="tooltip" title="Blueprint original">
                   {%- elif content.z_blueprint == -2 %}
-                  <i class="icon-star-empty pull-right" rel="tooltip" title="Copy"></i>
+                  <img src="{{ STATIC_URL }}icons/page_copy.png" class="pull-right" rel="tooltip" title="Blueprint copy">
                   {%- endif %}
                   {{ content.z_item.name }}
                 </td>
@@ -229,7 +221,7 @@
 
       <div class="modal hide" id="eft-modal">
         <div class="modal-header">
-          <button type="button" class="close" data-dismiss="modal"><i class="icon-remove"></i></button>
+          <button type="button" class="close" data-dismiss="modal"><img src="{{ STATIC_URL }}icons/cross.png"></button>
           <h3>EFT Fitting</h3>
         </div>
         <div class="modal-body">
