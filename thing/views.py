@@ -870,28 +870,31 @@ def character(request, character_name):
         cs.z_icons = []
         # level 5 skill = all hearts
         if cs.level == 5:
-            cs.z_icons.extend(['heart'] * 5)
+            cs.z_icons.extend(['rainbow'] * 5)
             cs.z_class = "level5"
         # 0-4 = stars
         else:
             for i in range(cs.level):
-                cs.z_icons.append('star')
+                cs.z_icons.append('weather_sun')
 
-        # partially trained and currently training skills get a partial star
-        if cs.points > cs.skill.get_sp_at_level(cs.level) or cs.skill.item.id == training_id:
-            cs.z_icons.append('star-empty')
-
+        # training skill can have some lightning
         if cs.skill.item.id == training_id:
+            cs.z_icons.append('weather_lightning')
             cs.z_training = True
             cs.z_class = "training-highlight"
 
+        # partially trained and currently training skills get a partial star
+        elif cs.points > cs.skill.get_sp_at_level(cs.level):
+            cs.z_icons.append('weather_cloudy')
+
         # then fill out the rest with minus
-        cs.z_icons.extend(['minus'] * (5 - len(cs.z_icons)))
+        cs.z_icons.extend(['weather_clouds'] * (5 - len(cs.z_icons)))
 
         skills[cur].append(cs)
         cur.z_total_sp += cs.points
 
     
+    # Retrieve skillplans
     user_ids = APIKey.objects.filter(characters__name=character_name).values_list('user_id', flat=True)
 
     if request.user.is_authenticated():
@@ -901,6 +904,15 @@ def character(request, character_name):
     else:
         user_plans = []
         public_plans = SkillPlan.objects.filter(visibility=SkillPlan.GLOBAL_VISIBILITY)
+
+    # Appliy some icons to them
+    for sp in list(user_plans) + list(public_plans):
+        if sp.visibility == SkillPlan.PRIVATE_VISIBILITY:
+            sp.z_icon = 'lock'
+        elif sp.visibility == SkillPlan.PUBLIC_VISIBILITY:
+            sp.z_icon = 'eye'
+        elif sp.visibility == SkillPlan.GLOBAL_VISIBILITY:
+            sp.z_icon = 'world'
 
 
     # Render template
@@ -939,7 +951,7 @@ def character_anonymous(request, anon_key):
         cs.z_icons = []
         # level 5 skill = all hearts
         if cs.level == 5:
-            cs.z_icons.extend(['heart'] * 5)
+            cs.z_icons.extend(['rainbow'] * 5)
         # 0-4 = stars
         else:
             for i in range(cs.level):
