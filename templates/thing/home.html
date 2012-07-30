@@ -4,16 +4,23 @@
 {% block title %}Home{% endblock %}
 
 {% block extra_head %}
-  <script type="text/javascript">
-  function toggle_tooltips() {
-    $('i').each(function() {
-      $this = $(this);
-      if ($this.attr('rel') == 'tooltip') {
-        $this.tooltip('toggle');
-      }
-    });
-  }
-  </script>
+      <script type="text/javascript">
+        $(document).ready(function() {
+          $("[rel=tooltip]").each(function () {
+            $(this).data('tooltip').options.placement = 'right';
+          });
+          //tooltip({ placement: 'right' });
+        });
+
+        function toggle_tooltips() {
+          $('i').each(function() {
+            $this = $(this);
+            if ($this.attr('rel') == 'tooltip') {
+              $this.tooltip('toggle');
+            }
+          });
+        }
+      </script>
 {% endblock %}
 
 {% block content %}
@@ -67,7 +74,7 @@
           {% if character.z_notifications %}
           <div class="margin-half-top smaller">
             {% for notif in character.z_notifications %}
-            <i class="icon-{{ notif.icon }}" rel="tooltip" title="{{ notif.tooltip }}"></i>
+            <img src="{{ STATIC_URL }}icons/{{ notif.icon }}.png" rel="tooltip" title="{{ notif.tooltip }}">
             {% if notif.span_class %}<span class="{{ notif.span_class }}">{% endif %}
             {{ notif.text }}
             {% if notif.span_class %}</span>{% endif %}

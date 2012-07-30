@@ -75,42 +75,42 @@
                 <input type="checkbox" id="public-checkbox" name="public"{% if char.config.is_public %} checked{% endif %}>
                 Publicly visible
                 <div class="pull-right">
-                  <i class="icon icon-question-sign" rel="tooltip" title="Whether or not this character sheet is publicly accessible"></i>
+                  <img src="{{ STATIC_URL }}icons/information.png" rel="tooltip" title="Whether or not this character sheet is publicly accessible"></i>
                 </div>
               </label>
               <label class="checkbox indent">
                 <input type="checkbox" class="disable-toggle" name="clone"{% if char.config.show_clone %} checked{% endif %}>
                 Clone information
                 <div class="pull-right">
-                  <i class="icon icon-question-sign" rel="tooltip" title="Show clone information on public sheet"></i>
+                  <img src="{{ STATIC_URL }}icons/information.png" rel="tooltip" title="Show clone information on public sheet"></i>
                 </div>
               </label>
               <label class="checkbox indent">
                 <input type="checkbox" class="disable-toggle" name="implants"{% if char.config.show_implants %} checked{% endif %}>
                 Implants
                 <div class="pull-right">
-                  <i class="icon icon-question-sign" rel="tooltip" title="Show implant information on public sheet"></i>
+                  <img src="{{ STATIC_URL }}icons/information.png" rel="tooltip" title="Show implant information on public sheet"></i>
                 </div>
               </label>
               <label class="checkbox indent">
                 <input type="checkbox" class="disable-toggle" name="queue"{% if char.config.show_skill_queue %} checked{% endif %}>
                 Skill queue
                 <div class="pull-right">
-                  <i class="icon icon-question-sign" rel="tooltip" title="Show skill queue on public sheet"></i>
+                  <img src="{{ STATIC_URL }}icons/information.png" rel="tooltip" title="Show skill queue on public sheet"></i>
                 </div>
               </label>
               <label class="checkbox indent">
                 <input type="checkbox" class="disable-toggle" name="standings"{% if char.config.show_standings %} checked{% endif %}>
                 Standings
                 <div class="pull-right">
-                  <i class="icon icon-question-sign" rel="tooltip" title="Show faction/corporation standings on public sheet"></i>
+                  <img src="{{ STATIC_URL }}icons/information.png" rel="tooltip" title="Show faction/corporation standings on public sheet"></i>
                 </div>
               </label>
               <label class="checkbox indent">
                 <input type="checkbox" class="disable-toggle" name="wallet"{% if char.config.show_wallet %} checked{% endif %}>
                 Wallet balance
                 <div class="pull-right">
-                  <i class="icon icon-question-sign" rel="tooltip" title="Show wallet balance on public sheet"></i>
+                  <img src="{{ STATIC_URL }}icons/information.png" rel="tooltip" title="Show wallet balance on public sheet"></i>
                 </div>
               </label>
               <br>
@@ -118,7 +118,7 @@
                 <input type="checkbox" id="anon-key" name="anon-key-toggle"{% if char.config.anon_key %} checked{% endif %}>
                 Anonymous key
                 <div class="pull-right">
-                  <i class="icon icon-question-sign" rel="tooltip" title="Key to use for anonymous character sheet"></i>
+                  <img src="{{ STATIC_URL }}icons/information.png" rel="tooltip" title="Key to use for anonymous character sheet"></i>
                 </div>
               </label>
               <label class="indent">
@@ -141,13 +141,7 @@
             <ul class="unstyled">
               {% for sp in user_plans -%}
               <li>
-                {%- if sp.visibility == 1 -%}
-                <i class="icon-lock" rel="tooltip" title="Private"></i>
-                {%- elif sp.visibility == 2 %}
-                <i class="icon-eye-open" rel="tooltip" title="Public"></i>
-                {%- else %}
-                <i class="icon-globe" rel="tooltip" title="Global"></i>
-                {%- endif %}
+                <img src="{{ STATIC_URL }}icons/{{ sp.z_icon }}.png">
                 <a href="{{ 'thing.views.character_skillplan'|url(char.name, sp.id) }}">{{ sp.name }}</a>
               </li>
               {%- endfor %}
@@ -158,11 +152,7 @@
             <ul class="unstyled">
               {% for sp in public_plans -%}
               <li>
-                {%- if sp.visibility == 2 %}
-                <i class="icon-eye-open" rel="tooltip" title="Public"></i>
-                {%- else %}
-                <i class="icon-globe" rel="tooltip" title="Global"></i>
-                {%- endif %}
+                <img src="{{ STATIC_URL }}icons/{{ sp.z_icon }}.png">
                 <a href="{{ 'thing.views.character_skillplan'|url(char.name, sp.id) }}">
                   {% if authed -%}
                   [{{ sp.user.username }}]
@@ -275,14 +265,15 @@
                     </div>
                     {% for cs in css %}
                     <div class="clearfix">
-                      {% spaceless %}
+                      {%- if cs.z_training %}<img src="{{ STATIC_URL }}icons/flag_green.png">{% endif %}
                       <span href="#" class="skill-hover{% if cs.z_class %} {{ cs.z_class }}{% endif %}" rel="popover" title="{{ cs.skill.item.name }}" data-content="{{ cs.skill.description }}">
                         {{ cs.skill.item.name }} {{ cs.get_roman_level() }}
                       </span>
-                      {% endspaceless %}
                       
                       <div class="pull-right">
-                        {% for icon in cs.z_icons %}<i class="icon-{{ icon }} nomargin"></i>{% endfor %}
+                        {%- for icon in cs.z_icons %}
+                        <img class="icon" src="{{ STATIC_URL }}icons/{{ icon }}.png">
+                        {%- endfor -%}
                       </div>
 
                       <div class="pull-right character-sp">{{ cs.skill.get_sp_at_level()|commas }} SP</div>
