@@ -24,14 +24,12 @@ urlpatterns += patterns('thing.views',
     (r'^account/$', 'account'),
     (r'^account/change_password/$', 'account_change_password'),
     (r'^account/settings/$', 'account_settings'),
+    (r'^account/apikey/add/$', 'account_apikey_add'),
+    (r'^account/apikey/delete/$', 'account_apikey_delete'),
+    (r'^account/apikey/edit/$', 'account_apikey_edit'),
     (r'^account/skillplan/add/$', 'account_skillplan_add'),
     (r'^account/skillplan/delete/$', 'account_skillplan_delete'),
     (r'^account/skillplan/edit/$', 'account_skillplan_edit'),
-
-    url(r'^apikeys/$', 'apikeys', name='apikeys'),
-    (r'^apikeys/add/$', 'apikeys_add'),
-    (r'^apikeys/delete/$', 'apikeys_delete'),
-    (r'^apikeys/edit/$', 'apikeys_edit'),
 
     (r'^assets/$', 'assets'),
 

@@ -50,7 +50,6 @@
                 <ul class="dropdown-menu">
                   <li><a href="{% url thing.views.account %}">Account Management</a></li>
                   <li class="divider"></li>
-                  <li><a href="{% url thing.views.apikeys %}">API keys</a></li>
                   <li><a href="{% url thing.views.events %}">Event log</a></li>
                   <li class="divider"></li>
                   {% if user.is_staff -%}
