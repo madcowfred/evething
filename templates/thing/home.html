@@ -6,19 +6,21 @@
 {% block extra_head %}
       <script type="text/javascript">
         $(document).ready(function() {
+          // make tooltips appear to the right of icons
           $("[rel=tooltip]").each(function () {
             $(this).data('tooltip').options.placement = 'right';
           });
-          //tooltip({ placement: 'right' });
         });
 
+        var tooltips_on = false;
         function toggle_tooltips() {
-          $('i').each(function() {
-            $this = $(this);
-            if ($this.attr('rel') == 'tooltip') {
-              $this.tooltip('toggle');
-            }
+          $("[rel=tooltip]").each(function () {
+            if (tooltips_on)
+              $(this).tooltip('hide');
+            else
+              $(this).tooltip('show');
           });
+          tooltips_on = !tooltips_on;
         }
       </script>
 {% endblock %}
@@ -29,7 +31,11 @@
         <span><strong>Total Balance:</strong> {{ total_balance|commas }} ISK</span>
         <span class="divider">/</span>
         <span><strong>Total SP:</strong> {{ total_sp|commas }}</span>
-        <span class="pull-right"><a href="#" onclick="toggle_tooltips();">Toggle tooltips</a></span>
+        <span class="pull-right">
+          <a href="#" onclick="toggle_tooltips();">
+            <img src="{{ STATIC_URL }}icons/comments.png">
+          </a>
+        </span>
       </div>
     </div>
     {% for chars in characters|tablecols(profile.home_chars_per_row) %}
