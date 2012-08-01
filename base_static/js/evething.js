@@ -1,73 +1,73 @@
 $(document).ready(function() {
-	// highlight currently active link
-	var path = window.location.pathname;
-	$('#nav-list li a').each(function() {
-		if ($(this).attr('href') == path) {
-			$(this).parent().addClass('active');
-		}
-	});
+    // highlight currently active link
+    var path = window.location.pathname;
+    $('#nav-list li a').each(function() {
+        if ($(this).attr('href') == path) {
+            $(this).parent().addClass('active');
+        }
+    });
 
-	// activate bootstrap tooltips
-	$("[rel=tooltip]").tooltip();
-	// activate bootstrap dropdowns
-	$('.dropdown-toggle').dropdown();
+    // activate bootstrap tooltips
+    $("[rel=tooltip]").tooltip();
+    // activate bootstrap dropdowns
+    $('.dropdown-toggle').dropdown();
 });
 
 
 
 $.tablesorter.addParser({
-	id: 'human',
-	is: function(s) {
-		return /^[0-9\,\.]+[KMB]?$/.test(s);
-	},
-	format: function(s) {
-		var s = s.replace(/\,/g,'');
-		var l = s.length - 1;
-		var c = s.charAt(l);
-		if (c == 'K') {
-			return s.substr(0, l) * 1000;
-		}
-		else if (c == 'M') {
-			return s.substr(0, l) * 1000000;
-		}
-		else if (c == 'B') {
-			return s.substr(0, l) * 1000000000;
-		}
-		else {
-			return s;
-		}
-	},
-	type: 'numeric',
+    id: 'human',
+    is: function(s) {
+        return /^[0-9\,\.]+[KMB]?$/.test(s);
+    },
+    format: function(s) {
+        var s = s.replace(/\,/g,'');
+        var l = s.length - 1;
+        var c = s.charAt(l);
+        if (c == 'K') {
+            return s.substr(0, l) * 1000;
+        }
+        else if (c == 'M') {
+            return s.substr(0, l) * 1000000;
+        }
+        else if (c == 'B') {
+            return s.substr(0, l) * 1000000000;
+        }
+        else {
+            return s;
+        }
+    },
+    type: 'numeric',
 });
 
 
 function parseUri (str) {
-	var	o   = parseUri.options,
-		m   = o.parser[o.strictMode ? "strict" : "loose"].exec(str),
-		uri = {},
-		i   = 14;
+    var    o   = parseUri.options,
+        m   = o.parser[o.strictMode ? "strict" : "loose"].exec(str),
+        uri = {},
+        i   = 14;
 
-	while (i--) uri[o.key[i]] = m[i] || "";
+    while (i--) uri[o.key[i]] = m[i] || "";
 
-	uri[o.q.name] = {};
-	uri[o.key[12]].replace(o.q.parser, function ($0, $1, $2) {
-		if ($1) uri[o.q.name][$1] = $2;
-	});
+    uri[o.q.name] = {};
+    uri[o.key[12]].replace(o.q.parser, function ($0, $1, $2) {
+        if ($1) uri[o.q.name][$1] = $2;
+    });
 
-	return uri;
+    return uri;
 };
 
 parseUri.options = {
-	strictMode: false,
-	key: ["source","protocol","authority","userInfo","user","password","host","port","relative","path","directory","file","query","anchor"],
-	q:   {
-		name:   "queryKey",
-		parser: /(?:^|&)([^&=]*)=?([^&]*)/g
-	},
-	parser: {
-		strict: /^(?:([^:\/?#]+):)?(?:\/\/((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?))?((((?:[^?#\/]*\/)*)([^?#]*))(?:\?([^#]*))?(?:#(.*))?)/,
-		loose:  /^(?:(?![^:@]+:[^:@\/]*@)([^:\/?#.]+):)?(?:\/\/)?((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?)(((\/(?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/
-	}
+    strictMode: false,
+    key: ["source","protocol","authority","userInfo","user","password","host","port","relative","path","directory","file","query","anchor"],
+    q:   {
+        name:   "queryKey",
+        parser: /(?:^|&)([^&=]*)=?([^&]*)/g
+    },
+    parser: {
+        strict: /^(?:([^:\/?#]+):)?(?:\/\/((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?))?((((?:[^?#\/]*\/)*)([^?#]*))(?:\?([^#]*))?(?:#(.*))?)/,
+        loose:  /^(?:(?![^:@]+:[^:@\/]*@)([^:\/?#.]+):)?(?:\/\/)?((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?)(((\/(?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/
+    }
 };
 
 
