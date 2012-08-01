@@ -183,7 +183,7 @@
 
             {# apikeys: content -#}
             <div class="tab-pane" id="apikeys">
-              <div class="span10">
+              <div class="span12">
                 <table class="table table-striped table-bordered table-condensed" id="key-table">
                   <thead>
                     <tr class="c">
@@ -194,7 +194,7 @@
                       <th>Name</th>
                       <th>Type</th>
                       <th>Mask</th>
-                      <th>Expires</th>
+                      <th>Key Expires</th>
                       <th>Account Time</th>
                       <th></th>
                     </tr>
@@ -218,21 +218,21 @@
                       </td>
                       <td class="c">{{ apikey.key_type }}</td>
                       <td class="r">{{ apikey.access_mask }}</td>
-                      <td>{{ apikey.expires|default_if_none("Never") }}</td>
-                      <td>
+                      <td class="c">{{ apikey.expires|default_if_none("Never") }}</td>
+                      <td class="r">
                         {% if apikey.valid and apikey.key_type == 'Account' -%}
                         {%- with apikey.get_remaining_time() as remaining %}
-                        {%- if remaining < 604800 %}
+                        {%- if remaining < 864000 %}
+                        <img class="pull-left" src="{{ STATIC_URL }}icons/clock_red.png" rel="tooltip" title="Warning: low game time remaining!">
                         <span class="low-game-time">
                           {% if remaining < 0 -%}
                           Expired!
                           {%- else %}
-                          {{ remaining|duration }}
+                          {{ remaining|duration_right }}
                           {%- endif %}
                         </span>
-                        <img src="{{ STATIC_URL }}icons/clock_red.png" rel="tooltip" title="Warning: low game time remaining!">
                         {% else -%}
-                        {{ remaining|duration }}
+                        {{ remaining|duration_right }}
                         {%- endif %}
                         {%- endwith %}
                         {%- endif %}
@@ -258,8 +258,7 @@
                 <div id="build-table" class="well well-info">
                   <p>
                     <strong>Note:</strong> EVEthing requires specific API key flags for various features, tick some boxes and the 'Create a key'
-                    link at the bottom will magically update. When adding a key in the form above, the 'Name' field is for your reference only -
-                    accounts on the home page will be sorted on this field so "1 Secret spy account" will sort before "2 Obvious troll account".
+                    link at the bottom will magically update. When adding a key the 'Name' field is for your reference only.
                   </p>
                   
                   <div class="row-fluid margin-full-top">

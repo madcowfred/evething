@@ -81,6 +81,24 @@ def duration(s):
     
     return ' '.join(parts)
 
+@register.filter
+def duration_right(s):
+    m, s = divmod(s, 60)
+    h, m = divmod(m, 60)
+    d, h = divmod(h, 24)
+    
+    parts = []
+    if d:
+        parts.append('%dd' % (d))
+    if h or d:
+        parts.append('%02dh' % (h))
+    if m or h or d:
+        parts.append('%02dm' % (m))
+    parts.append('%02ds' % (s))
+    
+    return ' '.join(parts)
+
+
 # Turn a duration in seconds into a shorter human readable string
 @register.filter
 def shortduration(s):
