@@ -189,6 +189,9 @@ i.nomargin {
 .form-horizontal .control-group {
   margin-bottom: 8px;
 }
+legend {
+  margin-bottom: 0;
+}
 
 /* tablesorter styles */
 table .header {
