@@ -234,6 +234,7 @@ def account(request):
             'home_chars_per_row': (2, 3, 4, 6),
             'home_sort_orders': UserProfile.HOME_SORT_ORDERS,
             'themes': settings.THEMES,
+            'apikeys': APIKey.objects.filter(user=request.user).order_by('-valid', 'key_type', 'name'),
             'skillplans': SkillPlan.objects.filter(user=request.user),
             'visibilities': SkillPlan.VISIBILITY_CHOICES
         },
@@ -296,6 +297,81 @@ def account_settings(request):
 
     return redirect(account)
 
+# ---------------------------------------------------------------------------
+# Add an API key
+@login_required
+def account_apikey_add(request):
+    keyid = request.POST.get('keyid', '0')
+    vcode = request.POST.get('vcode', '')
+    name = request.POST.get('name', '')
+
+    if not keyid.isdigit():
+        request.session['message_type'] = 'error'
+        request.session['message'] = 'KeyID is not an integer!'
+    elif int(keyid) < 1:
+        request.session['message_type'] = 'error'
+        request.session['message'] = 'KeyID must be >= 1!'
+    elif len(vcode) != 64:
+        request.session['message_type'] = 'error'
+        request.session['message'] = 'vCode must be 64 characters long!'
+    else:
+        if APIKey.objects.filter(user=request.user, keyid=request.POST.get('keyid', 0)).count():
+            request.session['message_type'] = 'error'
+            request.session['message'] = 'You already have an API key with that KeyID!'
+
+        else:
+            apikey = APIKey(
+                user_id=request.user.id,
+                keyid=keyid,
+                vcode=vcode,
+                name=name,
+            )
+            apikey.save()
+
+            request.session['message_type'] = 'success'
+            request.session['message'] = 'API key added successfully!'
+
+    return redirect('%s#tab_apikeys' % (reverse(account)))
+
+# Delete an API key
+@login_required
+def account_apikey_delete(request):
+    try:
+        apikey = APIKey.objects.get(user=request.user.id, id=request.POST.get('apikey_id', '0'))
+    
+    except APIKey.DoesNotExist:
+        request.session['message_type'] = 'error'
+        request.session['message'] = 'You do not have an API key with that KeyID!'
+    
+    else:
+        request.session['message_type'] = 'success'
+        request.session['message'] = 'API key %s deleted successfully!' % (apikey.id)
+        
+        apikey.delete()
+
+    return redirect('%s#tab_apikeys' % (reverse(account)))
+
+# Edit an API key
+@login_required
+def account_apikey_edit(request):
+    try:
+        apikey = APIKey.objects.get(user=request.user.id, id=request.POST.get('apikey_id', '0'))
+
+    except APIKey.DoesNotExist:
+        request.session['message_type'] = 'error'
+        request.session['message'] = 'You do not have an API key with that KeyID!'
+    
+    else:
+        request.session['message_type'] = 'success'
+        request.session['message'] = 'API key %s edited successfully!' % (apikey.id)
+
+        apikey.name = request.POST.get('name', '')
+        apikey.save()
+
+    return redirect('%s#tab_apikeys' % (reverse(account)))
+
+# ---------------------------------------------------------------------------
+# Add a skillplan
 @login_required
 def account_skillplan_add(request):
     if request.method == 'POST':
@@ -312,6 +388,7 @@ def account_skillplan_add(request):
 
     return redirect('%s#tab_skillplans' % (reverse(account)))
 
+# Delete a skillplan
 @login_required
 def account_skillplan_delete(request):
     try:
@@ -334,6 +411,7 @@ def account_skillplan_delete(request):
 
     return redirect('%s#tab_skillplans' % (reverse(account)))
 
+# Edit a skillplan
 @login_required
 def account_skillplan_edit(request):
     try:
@@ -352,98 +430,6 @@ def account_skillplan_edit(request):
         request.session['message'] = 'Skill plan "%s" edited successfully!' % (skillplan.name)
 
     return redirect('%s#tab_skillplans' % (reverse(account)))
-
-# ---------------------------------------------------------------------------
-# List of API keys associated with our account
-@login_required
-def apikeys(request):
-    if 'message' in request.session:
-        message = request.session.pop('message')
-        message_type = request.session.pop('message_type')
-    else:
-        message = None
-        message_type = None
-
-    return render_to_response(
-        'thing/apikeys.html',
-        {
-            'apikeys': APIKey.objects.filter(user=request.user.id).order_by('-valid', 'key_type', 'name'),
-            'sanitise': request.GET.get('sanitise', False),
-            'message': message,
-            'message_type': message_type,
-        },
-        context_instance=RequestContext(request)
-    )
-
-# Add an API key
-@login_required
-def apikeys_add(request):
-    keyid = request.POST.get('keyid', '0')
-    vcode = request.POST.get('vcode', '')
-    name = request.POST.get('name', '')
-
-    if not keyid.isdigit() or int(keyid) < 1 or len(vcode) != 64:
-        request.session['message_type'] = 'error'
-        request.session['message'] = 'KeyID or vCode is invalid!'
-
-    else:
-        if APIKey.objects.filter(user=request.user, keyid=request.POST.get('keyid', 0)).count():
-            request.session['message_type'] = 'error'
-            request.session['message'] = 'You already have an API key with that KeyID!'
-
-        else:
-            apikey = APIKey(
-                user_id=request.user.id,
-                keyid=keyid,
-                vcode=vcode,
-                name=name,
-            )
-            apikey.save()
-
-            request.session['message_type'] = 'success'
-            request.session['message'] = 'API key added successfully!'
-
-    return redirect('apikeys')
-
-# Delete an API key
-@login_required
-def apikeys_delete(request):
-    try:
-        apikey = APIKey.objects.get(user=request.user.id, id=request.POST.get('apikey_id', '0'))
-    
-    except APIKey.DoesNotExist:
-        request.session['message_type'] = 'error'
-        request.session['message'] = 'You do not have an API key with that KeyID!'
-    
-    else:
-        request.session['message_type'] = 'success'
-        request.session['message'] = 'API key %s deleted successfully!' % (apikey.id)
-        
-        # remove this APIKey from any existing Character objects
-        #Character.objects.filter(apikey=apikey).update(apikey=None)
-        # delete the APIKey
-        apikey.delete()
-
-    return redirect('apikeys')
-
-# Edit an API key
-@login_required
-def apikeys_edit(request):
-    try:
-        apikey = APIKey.objects.get(user=request.user.id, id=request.POST.get('apikey_id', '0'))
-
-    except APIKey.DoesNotExist:
-        request.session['message_type'] = 'error'
-        request.session['message'] = 'You do not have an API key with that KeyID!'
-    
-    else:
-        request.session['message_type'] = 'success'
-        request.session['message'] = 'API key %s edited successfully!' % (apikey.id)
-
-        apikey.name = request.POST.get('name', '')
-        apikey.save()
-
-    return redirect('apikeys')
 
 # ---------------------------------------------------------------------------
 # Assets
