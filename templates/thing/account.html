@@ -202,24 +202,30 @@
                   <tbody>
                     {% for apikey in apikeys %}
                     <tr>
-                      <td class="r">{{ apikey.id }}</td>
-                      <td class="c">
+                      <td class="r api-id">{{ apikey.id }}</td>
+                      <td class="c api-icon">
                         {% if apikey.valid -%}
                         <img src="{{ STATIC_URL }}icons/tick.png">
                         {%- else %}
                         <img src="{{ STATIC_URL }}icons/cross.png">
                         {%- endif %}
                       </td>
-                      <td class="r" data-id="{{ apikey.id }}">{{ apikey.keyid }}</td>
-                      <td class="fixed c">{{ apikey.get_masked_vcode() }}</td>
+                      <td class="r api-keyid" data-id="{{ apikey.id }}">{{ apikey.keyid }}</td>
+                      <td class="c fixed api-vcode">{{ apikey.get_masked_vcode() }}</td>
                       <td>
                         {{ apikey.name }}
                         <a href="#" class="apikey-edit"><img src="{{ STATIC_URL }}icons/pencil.png" class="pull-right"></a>
                       </td>
-                      <td class="c">{{ apikey.key_type }}</td>
-                      <td class="r">{{ apikey.access_mask }}</td>
-                      <td class="c">{{ apikey.expires|default_if_none("Never") }}</td>
-                      <td class="r">
+                      <td class="c api-type">{{ apikey.key_type }}</td>
+                      <td class="r api-mask">{{ apikey.access_mask }}</td>
+                      <td class="c api-expires">
+                        {% if apikey.expires -%}
+                        {{ apikey.expires|date("Y-m-d") }}
+                        {%- else %}
+                        Never
+                        {%- endif %}
+                      </td>
+                      <td class="r api-time">
                         {% if apikey.valid and apikey.key_type == 'Account' -%}
                         {%- with apikey.get_remaining_time() as remaining %}
                         {%- if remaining < 864000 %}
@@ -237,7 +243,7 @@
                         {%- endwith %}
                         {%- endif %}
                       </td>
-                      <td class="c">
+                      <td class="c api-icon">
                         {% if apikey.valid %}
                         <a class="apikey-delete" data-toggle="modal" href="#delete-apikey-modal"><img src="{{ STATIC_URL }}icons/bin.png"></a>
                         {% endif %}
@@ -272,7 +278,7 @@
                         <li><input type="checkbox" class="apikey-build" data-masks="4096"> Market orders</li>
                         <li><input type="checkbox" class="apikey-build" data-masks="2;134217728"> Assets</li>
                       </ul>
-                      <a id="apikey-link" href="https://support.eveonline.com/api/Key/CreatePredefined/33816584" target="_blank">Create a new key with these flags</a>
+                      <a class="btn btn-primary" id="apikey-link" href="https://support.eveonline.com/api/Key/CreatePredefined/33816584" target="_blank">Create new key</a>
                     </div>
 
                     <div class="span4">

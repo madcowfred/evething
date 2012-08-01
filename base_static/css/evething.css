@@ -92,6 +92,32 @@ tr.asset-sneaky {
   display: none;
 }
 
+/* account:apikeys */
+td.api-id {
+  width: 2.7em;
+}
+td.api-keyid {
+  width: 4.5em;
+}
+td.api-vcode {
+  width: 16em;
+}
+td.api-type {
+  width: 6.5em;
+}
+td.api-mask {
+  width: 6em;
+}
+td.api-expires {
+  width: 7em;
+}
+td.api-time {
+  width: 10em;
+}
+td.api-icon {
+  width: 2em;
+}
+
 /* bpcalc layout */
 td.bpc-tiny {
   width: 1em;
