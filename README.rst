@@ -6,10 +6,9 @@ EVEthing is a terribly named web application intended to ease the pain of managi
 EVE space empire.
 
 - Written entirely in Python
-- Uses the Django web development framework, with django-mptt to store and handle hierarchical
+- Uses the Django web development framework with django-mptt to store and handle hierarchical
   data.
-- Uses the excellent `Twitter Bootstrap <http://twitter.github.com/bootstrap/>`_ layout framework.
-  With an almost default theme because colours are hard.
+- Uses the excellent `Twitter Bootstrap <http://twitter.github.com/bootstrap/>`_ CSS framework.
 
 Features
 ========
@@ -96,6 +95,11 @@ Future Plans
 ============
 
 - Take over the universe.
+- Skill plan creation.
+- Wallet Journal tracking.
+- Contract tracking.
+- Industry Job tracking.
+- CREST integration once CCP actually releases something.
 
 Installation
 ============
@@ -108,8 +112,8 @@ There are some common requirements for any install method, you will need:
 - `South <http://south.aeracode.org/>`_ >=0.7
 - `Coffin <https://github.com/coffin/coffin/>`_ >=0.3
 - `Jinja2 <http://jinja.pocoo.org/>`_ >=2.6
+- The current EVE database dump (SQLite format) from `here <http://zofu.no-ip.de/>`_.
 - A database server and client library.
-  
   + `SQLite <http://www.sqlite.org>`_ is the simplest and is often included with Python.
   + `MySQL <http://www.mysql.com>`_ is another option and highly likely to be available on
     shared hosting. You will need the `MySQLdb <http://mysql-python.sourceforge.net/MySQLdb.html>`_
@@ -117,30 +121,63 @@ There are some common requirements for any install method, you will need:
   + `PostgreSQL <http://www.postgresql.org>`_ is the last option and would be my choice.
     You will need the `psycopg <http://initd.org/psycopg/>`_ client library.
 
-Local Install
--------------
-This is for messing about with EVEthing and seeing what the hell it does, you probably
-don't want to use this as a real site due to issues (TODO: link to the Django page about
-this).
-
-#. Make sure you have Python 2.7+ and Django 1.4+ installed.
+Common Install Steps
+--------------------
 #. Extract the EVEthing stuff somewhere.
 #. Copy evething/local_settings.example to evething/local_settings.py then open
-   evething/local_settings.py in some sort of text editor and edit stuff. 'sqlite' is
-   included with Python and is generally the easiest database to set up.
-#. ``python manage.py syncdb``, say yes when it asks if you want an admin user.
-#. ``python manage.py migrate thing 0001 --fake`` (South is weird).
-#. ``python manage.py runserver``.
-#. Open http://localhost:8000/ in whatever browser you use.
-#. Log in as the admin user you created earlier.
-#. Click the cog in the top right then 'API keys'.
-#. Add one or more API keys.
-#. ``python api_updater.py`` and wait while it pulls a huge pile of information.
+   evething/local_settings.py in some sort of text editor and edit setings.
+#. ``python manage.py syncdb``, say yes and fill in useful information when it asks if you
+   would like to create an admin user.
+#. ``python manage.py migrate thing --fake`` (so South knows what state the database is
+   in for future migrations).
+#. ``python import.py`` to import the initial data from the database dump.
 
 If you update EVEthing in the future, make sure you run ``python manage.py migrate thing``
 to apply any database schema changes!
 
-Hosted Install
+Common Post-install Steps
+-------------------------
+#. Log in as the admin user you created earlier.
+#. Click the username dropdown in the top right and head to Account Management.
+#. Add one or more API keys.
+#. ``python api_updater.py`` and wait while it pulls a huge pile of information.
+
+Local Install
+-------------
+This is for messing about with EVEthing and seeing what the hell it does, never use this for a
+publicly accessible site (see: `Django docs <https://docs.djangoproject.com/en/dev/ref/django-admin/#runserver-port-or-address-port>`_).
+
+#. ``python manage.py runserver``.
+#. Open http://localhost:8000/ in a web browser.
+
+Apache Install
 --------------
-#. TODO: Apache + mod_wsgi information.
-#. TODO: nginx + uwsgi/gunicorn information.
+You will need to install Apache and `mod_wsgi <http://code.google.com/p/modwsgi/>`_.
+
+#. Make a directory somewhere to act as the site root (and possibly contain static files).
+   Do NOT use the same directory you placed the EVEthing files earlier.
+#. Add a vhost to your Apache config with these extra directives:::
+
+   Alias /static/ /www/whatever/static/
+
+   <Directory /www/whatever>
+       Order allow,deny
+       Allow from all
+   </DIrectory>
+
+   WSGIDaemonProcess evething threads=2 user=nobody
+   WSGIProcessGroup evething
+
+   WSGIScriptAlias / /path/to/evething/wsgi.py
+
+   <Directory /path/to/evething>
+       <Files wsgi.py>
+           Order allow,deny
+           Allow from all
+       </Files>
+   </Directory>
+
+#. Reload Apache config.
+#. Open http://whatever/ in a web browser.
+#. To force an EVEthing reload later (updated code or changed config) simply ``touch wsgi.py``
+   in the EVEthing directory.
