@@ -829,10 +829,20 @@ def character(request, character_name):
     # If it's for public access, make sure this character is visible
     if public and not char.config.is_public:
         raise Http404
-    
+
+    return character_common(request, char, public=public)
+
+# Display an anonymized character page
+def character_anonymous(request, anon_key):
+    char = get_object_or_404(Character.objects.select_related('config'), config__anon_key=anon_key)
+
+    return character_common(request, char, anonymous=True)
+
+# Common code for character views
+def character_common(request, char, public=True, anonymous=False):
     # Retrieve skill queue
     queue = SkillQueue.objects.select_related('skill__item', 'character__corporation').filter(character=char, end_time__gte=datetime.datetime.utcnow()).order_by('end_time')
-    if (not public or char.config.show_skill_queue) and queue:
+    if (public is False or anonymous is True or char.config.show_skill_queue) and queue:
         training_id = queue[0].skill.item.id
         training_level = queue[0].to_level
         for sq in queue:
@@ -854,26 +864,25 @@ def character(request, character_name):
             skills[cur] = []
 
         cs.z_icons = []
-        # level 5 skill = all hearts
+        # level 5 skill = 5 special icons
         if cs.level == 5:
             cs.z_icons.extend(['rainbow'] * 5)
             cs.z_class = "level5"
-        # 0-4 = stars
+        # 0-4 = n icons
         else:
-            for i in range(cs.level):
-                cs.z_icons.append('weather_sun')
+            cs.z_icons.extend(['weather_sun'] * cs.level)
 
-        # training skill can have some lightning
-        if cs.skill.item.id == training_id:
+        # training skill can have a training icon
+        if anonymous is False and cs.skill.item.id == training_id:
             cs.z_icons.append('weather_lightning')
             cs.z_training = True
             cs.z_class = "training-highlight"
 
-        # partially trained and currently training skills get a partial star
+        # partially trained skills get a partial icon
         elif cs.points > cs.skill.get_sp_at_level(cs.level):
             cs.z_icons.append('weather_cloudy')
 
-        # then fill out the rest with minus
+        # then fill out the rest with empty icons
         cs.z_icons.extend(['weather_clouds'] * (5 - len(cs.z_icons)))
 
         skills[cur].append(cs)
@@ -881,9 +890,9 @@ def character(request, character_name):
 
     
     # Retrieve skillplans
-    user_ids = APIKey.objects.filter(characters__name=character_name).values_list('user_id', flat=True)
+    user_ids = APIKey.objects.filter(characters__name=char.name).values_list('user_id', flat=True)
 
-    if request.user.is_authenticated():
+    if anonymous is False and request.user.is_authenticated():
         user_plans = SkillPlan.objects.filter(user=request.user)
         qs = Q(visibility=SkillPlan.GLOBAL_VISIBILITY) | (Q(user__in=user_ids) & Q(visibility=SkillPlan.PUBLIC_VISIBILITY))
         public_plans = SkillPlan.objects.exclude(user=request.user).filter(qs).order_by('user__username', 'name')
@@ -907,6 +916,7 @@ def character(request, character_name):
         {
             'char': char,
             'public': public,
+            'anonymous': anonymous,
             'skill_loop': range(1, 6),
             'skills': skills,
             'skill_totals': skill_totals,
@@ -915,52 +925,6 @@ def character(request, character_name):
             'queue_duration': queue_duration,
             'user_plans': user_plans,
             'public_plans': public_plans,
-        },
-        context_instance=RequestContext(request)
-    )
-
-# Display an anonymized character page
-def character_anonymous(request, anon_key):
-    char = get_object_or_404(Character.objects.select_related('config'), config__anon_key=anon_key)
-
-    # Retrieve the list of skills and group them by market group
-    skills = OrderedDict()
-    skill_totals = {}
-    cur = None
-    for cs in CharacterSkill.objects.select_related('skill__item__market_group').filter(character=char).order_by('skill__item__market_group__name', 'skill__item__name'):
-        mg = cs.skill.item.market_group
-        if mg != cur:
-            cur = mg
-            cur.z_total_sp = 0
-            skills[cur] = []
-
-        cs.z_icons = []
-        # level 5 skill = all hearts
-        if cs.level == 5:
-            cs.z_icons.extend(['rainbow'] * 5)
-        # 0-4 = stars
-        else:
-            for i in range(cs.level):
-                cs.z_icons.append('star')
-
-        # partially trained skills get a partial star
-        if cs.points > cs.skill.get_sp_at_level(cs.level):
-            cs.z_icons.append('star-empty')
-
-        # then fill out the rest with minus
-        cs.z_icons.extend(['minus'] * (5 - len(cs.z_icons)))
-
-        skills[cur].append(cs)
-        cur.z_total_sp += cs.points
-
-    # Render template
-    return render_to_response(
-        'thing/character_anonymous.html',
-        {
-            'char': char,
-            'skill_loop': range(1, 6),
-            'skills': skills,
-            'skill_totals': skill_totals,
         },
         context_instance=RequestContext(request)
     )
