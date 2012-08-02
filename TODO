@@ -5,11 +5,8 @@
   - Warn when a key doesn't have the required mask to pull AccountStatus (game time warnings)
 
 * Account Management:
-  - Move API Keys to this page
   - Move Event Log to this page
   - Add a way to create Campaigns
-  - Clean up Skill Plans tab, kinda ugly
-  - Skill Plans need to be renameable
 
 * Assets:
   - Add a volume column
@@ -32,10 +29,6 @@
   - Work out a way to be able to say "I want to make 100 Blackbirds and 300 rigs to go on them" and get a BPCalc
     summary page out of it.
   - Profitability dumping to buys instead of using sells?
-  - Fix column sorting yet again
-
-* BPCalc:
-  - '% Volume' column is reflecting weekly volume, not <days> volume
 
 * Character Sheet:
   - Make categories expandable/collapsible
@@ -43,6 +36,7 @@
   - Standings tab needs agent standings
   - Anonymous character sheet needs skill plan support
   - Ability to see a post-plan character sheet?
+  - Merge character_anon view code and template
 
 * Contracts:
   - Implement database models to store contracts and contract contents
@@ -65,7 +59,7 @@
 * Skill Plans
   - Implement skill plan creation (hahahaha oh god)
     = Skill model needs to track pre-requisites
-    = Use AJAX and modal windows for add/delete/re-order
+    = Use AJAX and modal windows for add/delete/re-order?
     = Step 1: basic adding of skills with pre-requisites
     = Step 2: deletion of skills with pre-requisites and a useful "are you sure?" prompt
     = Step 3: re-ordering of entries
@@ -73,8 +67,6 @@
         % UPDATE thing_entry SET position = position + 1 WHERE skillplan_id = n AND (position >= 2 AND position <= 1)
         % UPDATE thing_entry SET position = 2 WHERE id = n
       # Complex updating - deal with pre-requisites, urgh
-  - Needs to be a distinction between "publicly accessible for my character" and "globally accessible to everyone"
-  - Plans need to be renameable
 
 * Transactions:
   - Ability to search transactions via:
