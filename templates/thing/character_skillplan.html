@@ -8,7 +8,7 @@
       </script>
 {% endblock %}
 
-{% block title %}Skill Plan: {{ char.name }}, {{ skillplan.name }}{% endblock %}
+{% block title %}Skill Plan: {% if anonymous %}{{ char.config.anon_key }}{% else %}{{ char.name }}{% endif %}, {{ skillplan.name }}{% endblock %}
 
 {% block content %}
       <div class="row-fluid">
@@ -16,7 +16,14 @@
           <h2>Skill Plan</h2>
 
           <ul class="unstyled">
-            <li><strong>Character</strong>: <a href="{% url thing.views.character char.name %}">{{ char.name }}</a></li>
+            <li>
+              <strong>Character</strong>:
+              {% if anonymous -%}
+              <a href="{% url thing.views.character_anonymous char.config.anon_key %}">{{ char.config.anon_key }}</a>
+              {%- else -%}
+              <a href="{% url thing.views.character char.name %}">{{ char.name }}</a>
+              {%- endif %}
+            </li>
             <li><strong>Skill Plan</strong>: {{ skillplan.name }}</li>
           </ul>
 

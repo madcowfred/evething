@@ -981,6 +981,16 @@ def character_skillplan(request, character_name, skillplan_id):
         qs = Q(visibility=SkillPlan.GLOBAL_VISIBILITY) | (Q(user__in=user_ids) & Q(visibility=SkillPlan.PUBLIC_VISIBILITY))
         skillplan = get_object_or_404(SkillPlan.objects.prefetch_related('entries'), qs, pk=skillplan_id)
 
+    return character_skillplan_common(request, character, skillplan, public=public)
+
+# Display a SkillPlan for an anonymous character
+def character_anonymous_skillplan(request, anon_key, skillplan_id):
+    character = get_object_or_404(Character.objects.select_related('config'), config__anon_key=anon_key)
+    skillplan = get_object_or_404(SkillPlan.objects.prefetch_related('entries'), pk=skillplan_id, visibility=SkillPlan.GLOBAL_VISIBILITY)
+
+    return character_skillplan_common(request, character, skillplan, anonymous=True)
+
+def character_skillplan_common(request, character, skillplan, public=True, anonymous=False):
     # Check our GET variables
     implants = request.GET.get('implants', '0')
     if implants.isdigit() and 0 <= int(implants) <= 5:
@@ -1037,7 +1047,7 @@ def character_skillplan(request, character_name, skillplan_id):
             if remap_stats:
                 entry.z_sppm = skill.get_sppm_stats(remap_stats, implants)
             else:
-                if public is True:
+                if public is True or anonymous is True:
                     entry.z_sppm = skill.get_sp_per_minute(character, force_bonus=implants)
                 else:
                     entry.z_sppm = skill.get_sp_per_minute(character)
@@ -1056,6 +1066,7 @@ def character_skillplan(request, character_name, skillplan_id):
         {
             'ignore_trained': ignore_trained,
             'implants': implants,
+            'anonymous': anonymous,
             'char': character,
             'skillplan': skillplan,
             'entries': entries,

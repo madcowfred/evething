@@ -44,13 +44,14 @@ urlpatterns += patterns('thing.views',
     (r'^character/(?P<character_name>[\w\'\- ]+)/settings/', 'character_settings'),
     (r'^character/(?P<character_name>[\w\'\- ]+)/skillplan/(?P<skillplan_id>\d+)$', 'character_skillplan'),
     url(r'^character_anon/(?P<anon_key>[a-z0-9]+)/$', 'character_anonymous', name='character_anonymous'),
+    (r'^character_anon/(?P<anon_key>[a-z0-9]+)/skillplan/(?P<skillplan_id>\d+)$', 'character_anonymous_skillplan'),
     
     (r'^events/$', 'events'),
     
     (r'^orders/$', 'orders'),
     
     (r'^market_scan/$', 'market_scan'),
-
+    
     (r'^trade/$', 'trade'),
     (r'^trade/(?P<year>\d{4})-(?P<month>\d{2})/$', 'trade_timeframe'),
     (r'^trade/(?P<period>all)/$', 'trade_timeframe'),
