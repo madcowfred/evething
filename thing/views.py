@@ -49,7 +49,6 @@ def home(request):
         profile.save()
 
     now = datetime.datetime.utcnow()
-    sanitise = request.GET.get('sanitise', False)
     total_balance = 0
 
     # Initialise various data structures
@@ -186,16 +185,6 @@ def home(request):
     corporations = Corporation.objects.filter(pk__in=corp_ids)
 
 
-    # Sanitise if required
-    if sanitise:
-        san = {}
-        for i, apikey in enumerate(sorted(api_keys, key=operator.attrgetter('name'))):
-            apikey.z_sanitised_name = "account%d" % (i + 1)
-            san[apikey.id] = "account%d" % (i + 1)
-
-        for char in chars.values():
-            char.z_sanitised_api = san[char.z_apikey.id]
-
     # Total SP
     total_sp = sum(getattr(c, 'z_total_sp', 0) for c in chars.values())
 
@@ -203,7 +192,6 @@ def home(request):
         'thing/home.html',
         {
             'profile': profile,
-            'sanitise': sanitise,
             'not_training': not_training,
             'total_balance': total_balance,
             'total_sp': total_sp,
