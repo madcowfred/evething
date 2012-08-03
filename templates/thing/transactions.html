@@ -39,7 +39,8 @@
               </tr>
             </thead>
             <tbody>
-              {% for transaction in transactions %}
+              {% with user.get_profile().show_item_icons as show_item_icons -%}
+              {% for transaction in transactions -%}
               <tr>
                 <td class="c">{{ transaction.date|date("Y-m-d H:i") }}</td>
                 <td>{{ transaction.station.short_name }}</td>
@@ -48,25 +49,31 @@
                 <td>
                   {% if transaction.other_char -%}
                   <img src="{{ STATIC_URL }}icons/user_gray.png">{{ transaction.other_char.name }}
-                  {%- elif transaction.other_corp %}
-                  <img src="{{ STATIC_URL }}icons/briefcase.png"></i> {{ transaction.other_corp.name }}
+                  {%- elif transaction.other_corp -%}
+                  <img src="{{ STATIC_URL }}icons/briefcase.png">{{ transaction.other_corp.name }}
                   {%- endif %}
                 </td>
-                <td><a href="{{ 'transactions-all'|url(transaction.item.id, 'all') }}">{{ transaction.item }}</a></td>
+                <td>
+                  {% if show_item_icons -%}
+                  <img src="http://image.eveonline.com/Type/{{ transaction.item.id }}_32.png" height="20" width="20">
+                  {%- endif %}
+                  <a href="{{ 'transactions-all'|url(transaction.item.id, 'all') }}">{{ transaction.item }}</a>
+                </td>
                 <td class="r">{{ transaction.quantity|humanize }}</td>
-                {% if transaction.buy_transaction %}
+                {% if transaction.buy_transaction -%}
                 <td class="r"><span class="neg">-{{ transaction.price|commas }}</span></td>
                 <td class="r"><span class="neg">-{{ transaction.total_price|commas }}</span></td>
-                {% else %}
+                {%- else -%}
                 <td class="r"><span class="pos">+{{ transaction.price|commas }}</span></td>
                 <td class="r"><span class="pos">+{{ transaction.total_price|commas }}</span></td>
-                {% endif %}
+                {%- endif %}
               </tr>
-              {% else %}
+              {%- else -%}
               <tr>
                 <td colspan="9">No matching transactions.</td>
               </tr>
-              {% endfor %}
+              {%- endfor %}
+              {%- endwith %}
             </tbody>
           </table>
           <div class="pagination pagination-centered">

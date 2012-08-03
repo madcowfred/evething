@@ -267,6 +267,8 @@ def account_change_password(request):
 def account_settings(request):
     profile = request.user.get_profile()
 
+    profile.show_item_icons = (request.POST.get('show_item_icons', '') == 'on')
+
     theme = request.POST.get('theme', 'default')
     if [t for t in settings.THEMES if t[0] == theme]:
         profile.theme = theme
