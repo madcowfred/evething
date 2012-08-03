@@ -488,8 +488,12 @@ def assets(request):
             ca.z_blueprint = 0
         
         # total value of this asset stack
-        if ca.z_blueprint >= -1:
+        if ca.z_blueprint > 0:
             ca.z_total = ca.quantity * ca.z_item.sell_price
+        # BPOs use the base price
+        elif ca.z_blueprint == -1:
+            ca.z_total = ca.quantity * ca.z_item.base_price
+        # BPCs count as 0 value
         else:
             ca.z_total = 0
 

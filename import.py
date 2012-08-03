@@ -330,7 +330,7 @@ class Importer:
     def import_item(self):
         added = 0
         
-        self.cursor.execute('SELECT typeID, typeName, groupID, marketGroupID, portionSize, volume FROM invTypes')
+        self.cursor.execute('SELECT typeID, typeName, groupID, marketGroupID, portionSize, volume, basePrice FROM invTypes')
         
         bulk_data = {}
         for row in self.cursor:
@@ -343,12 +343,20 @@ class Importer:
             if not data[1]:
                 continue
             
-            # handle renamed items
+            portion_size = Decimal(data[3])
+            volume = PACKAGED.get(data[1], Decimal(str(data[4])))
+            base_price = Decimal(data[5])
+
+            # handle modified items
             item = data_map.get(id, None)
             if item is not None:
-                if item.name != data[0]:
-                    print '==> Renamed %r to %r' % (item.name, data[0])
+                if item.name != data[0] or item.portion_size != portion_size or item.volume != volume or \
+                   item.base_price != base_price:
+                    print '==> Updated data for #%s (%r)' % (item.id, item.name)
                     item.name = data[0]
+                    item.portion_size = portion_size
+                    item.volume = volume
+                    item.base_price = base_price
                     item.save()
                 continue
             
@@ -357,8 +365,9 @@ class Importer:
                 name=data[0],
                 item_group_id=data[1],
                 market_group_id=data[2],
-                portion_size=data[3],
-                volume=PACKAGED.get(int(data[1]), data[4]),
+                portion_size=portion_size,
+                volume=volume,
+                base_price=base_price,
             )
             new.append(item)
             added += 1
