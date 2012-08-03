@@ -649,7 +649,7 @@ class InventoryFlag(models.Model):
             return self.name
 
 # ---------------------------------------------------------------------------
-
+# Assets
 class Asset(MPTTModel):
     id = models.BigIntegerField(primary_key=True)
 
@@ -677,6 +677,39 @@ class Asset(MPTTModel):
 
 #    def __unicode__(self):
 #        return '%s' % (self.name)
+
+# ---------------------------------------------------------------------------
+# Contracts
+class Contract(models.Model):
+    id = models.IntegerField(primary_key=True)
+
+    issuer_char = models.ForeignKey(SimpleCharacter, related_name="contract_issuers")
+    issuer_corp = models.ForeignKey(Corporation, related_name="contract_issuers")
+    assignee_char = models.ForeignKey(SimpleCharacter, blank=True, null=True, related_name="contract_assignees")
+    assignee_corp = models.ForeignKey(Corporation, blank=True, null=True, related_name="contract_assignees")
+    acceptor_char = models.ForeignKey(SimpleCharacter, blank=True, null=True, related_name="contract_acceptors")
+    acceptor_corp = models.ForeignKey(Corporation, blank=True, null=True, related_name="contract_acceptors")
+
+    start_station = models.ForeignKey(Station, blank=True, null=True, related_name="contract_starts")
+    end_station = models.ForeignKey(Station, blank=True, null=True, related_name="contract_ends")
+
+    type = models.CharField(max_length=16)
+    status = models.CharField(max_length=24)
+    title = models.CharField(max_length=64)
+    for_corp = models.BooleanField()
+    public = models.BooleanField()
+
+    date_issued = models.DateTimeField()
+    date_expired = models.DateTimeField()
+    date_accepted = models.DateTimeField()
+    date_completed = models.DateTimeField()
+    num_days = models.IntegerField()
+
+    price = models.DecimalField(max_digits=15, decimal_places=2)
+    reward = models.DecimalField(max_digits=15, decimal_places=2)
+    collateral = models.DecimalField(max_digits=15, decimal_places=2)
+    buyout = models.DecimalField(max_digits=15, decimal_places=2)
+    volume = models.DecimalField(max_digits=16, decimal_places=4)
 
 # ---------------------------------------------------------------------------
 # Skill plan storage disaster
