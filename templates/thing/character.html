@@ -272,7 +272,7 @@
             </div>
           </div>
 
-          {% if queue and (not public or char.config.show_skill_queue) -%}
+          {% if queue and (anonymous or not public or char.config.show_skill_queue) -%}
           <div class="row">
             <div class="span9">
               <div class="well well-small {% if queue_duration < 86400 %}alert-error{% else %}alert-success{% endif %}">
