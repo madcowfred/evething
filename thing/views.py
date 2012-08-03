@@ -694,16 +694,10 @@ def bpcalc(request):
         one_month_ago = datetime.datetime.utcnow() - datetime.timedelta(30)
         
         if item_ids:
-            query = """
-    SELECT  item_id, CAST(SUM(movement) / 30 * 7 AS decimal(18,2))
-    FROM    thing_pricehistory
-    WHERE   item_id IN (%s)
-            AND date >= %%s
-    GROUP BY item_id
-            """ % (', '.join(map(str, item_ids)))
+            query = queries.bpcalc_movement % (', '.join(map(str, item_ids)))
             
             cursor = connection.cursor()
-            cursor.execute(query, (one_month_ago,))
+            cursor.execute(query, (days, one_month_ago,))
             move_map = {}
             for row in cursor:
                 move_map[row[0]] = row[1]

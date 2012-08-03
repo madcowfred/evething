@@ -32,6 +32,15 @@ GROUP BY mo.character_id, c.name
 ORDER BY c.name
 """
 
+# BPCalc movement calculation
+bpcalc_movement = """
+SELECT  item_id, CAST(SUM(movement) / 30 * %%s AS decimal(18,2))
+FROM    thing_pricehistory
+WHERE   item_id IN (%s)
+        AND date >= %%s
+GROUP BY item_id
+"""
+
 # item_ids for a specific user's BlueprintInstance objects and related components
 user_item_ids = """
 SELECT  bp.item_id
