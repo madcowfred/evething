@@ -990,7 +990,7 @@ def character_skillplan_common(request, character, skillplan, public=True, anony
     else:
         implants = 0
 
-    ignore_trained = ('ignore_trained' in request.GET)
+    show_trained = ('show_trained' in request.GET)
 
     # Build a CharacterSkill lookup dictionary
     learned = {}
@@ -1029,9 +1029,11 @@ def character_skillplan_common(request, character, skillplan, public=True, anony
                 
                 # It might already be trained
                 if cs.level >= entry.sp_skill.level:
-                    entry.z_trained = True
-                    if ignore_trained:
+                    # If we don't care about trained skills, skip this skill entirely
+                    if not show_trained:
                         continue
+
+                    entry.z_trained = True
             else:
                 entry.z_buy = True
 
@@ -1056,7 +1058,7 @@ def character_skillplan_common(request, character, skillplan, public=True, anony
     return render_to_response(
         'thing/character_skillplan.html',
         {
-            'ignore_trained': ignore_trained,
+            'show_trained': show_trained,
             'implants': implants,
             'anonymous': anonymous,
             'char': character,
