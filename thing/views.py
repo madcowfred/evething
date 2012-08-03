@@ -1194,7 +1194,8 @@ def trade(request):
     #data['net_asset_value'] = data['wallet_balance'] + data['sell_total'] + data['escrow_total']
     
     # Transaction stuff oh god
-    transactions = Transaction.objects.filter(character__apikeys__user=request.user)
+    characters = list(Character.objects.filter(apikeys__user=request.user.id).values_list('id', flat=True))
+    transactions = Transaction.objects.filter(character_id__in=characters)
     
     t_check = []
     # All
@@ -1334,7 +1335,8 @@ def trade_timeframe(request, year=None, month=None, period=None, slug=None):
 @login_required
 def transactions(request):
     # Get a QuerySet of transactions IDs by this user
-    transaction_ids = Transaction.objects.filter(character__apikeys__user=request.user)
+    characters = list(Character.objects.filter(apikeys__user=request.user.id).values_list('id', flat=True))
+    transaction_ids = Transaction.objects.filter(character_id__in=characters)
     transaction_ids = transaction_ids.order_by('-date')
 
     # Get only the ids, at this point joining the rest is unnecessary
