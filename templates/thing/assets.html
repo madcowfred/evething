@@ -184,7 +184,17 @@
                 </td>
                 <td class="assets-type c">{{ asset.z_item.item_group.category.name }}</td>
                 <td class="assets-quantity r">{{ asset.quantity|commas }}</td>
-                <td class="assets-value r">{% if asset.z_blueprint == -2 %}0.00{% else %}{{ asset.z_item.sell_price|commas }}{% endif %}</td>
+                <td class="assets-value r">
+                  {% if asset.z_blueprint == -1 -%}
+                  <img src="{{ STATIC_URL }}icons/information.png" class="pull-left" rel="tooltip" title="BPOs use NPC base price because valuing blueprints is non-trivial">
+                  ~{{ asset.z_item.base_price|commas}}
+                  {%- elif asset.z_blueprint == -2 -%}
+                  <img src="{{ STATIC_URL }}icons/information.png" class="pull-left" rel="tooltip" title="BPCs are valued at 0 because valuing blueprints is non-trivial">
+                  0.00
+                  {%- else -%}
+                  {{ asset.z_item.sell_price|commas }}
+                  {%- endif %}
+                </td>
                 <td class="assets-value r">{{ asset.z_total|commas }}</td>
               </tr>
               {% if asset.z_contents -%}
@@ -203,7 +213,17 @@
                 </td>
                 <td class="c">{{ content.z_group }}</td>
                 <td class="r">{{ content.quantity|commas }}</td>
-                <td class="r">{% if content.z_blueprint == -2 %}0.00{% else %}{{ content.z_item.sell_price|commas }}{% endif %}</td>
+                <td class="assets-value r">
+                  {% if content.z_blueprint == -1 -%}
+                  <img src="{{ STATIC_URL }}icons/information.png" class="pull-left" rel="tooltip" title="BPOs use NPC base price because valuing blueprints is non-trivial">
+                  ~{{ content.z_item.base_price|commas}}
+                  {%- elif content.z_blueprint == -2 -%}
+                  <img src="{{ STATIC_URL }}icons/information.png" class="pull-left" rel="tooltip" title="BPCs are valued at 0 because valuing blueprints is non-trivial">
+                  0.00
+                  {%- else -%}
+                  {{ content.z_item.sell_price|commas }}
+                  {%- endif %}
+                </td>
                 <td class="r">{{ content.z_total|commas }}</td>
               </tr>
               {%- endfor %}
