@@ -856,6 +856,11 @@ class CorporationSheet(APIJob):
         
         ticker = self.root.find('result/ticker')
         corporation.ticker = ticker.text
+
+        allianceID = self.root.find('result/allianceID')
+        if allianceID == '0':
+            allianceID = None
+        corporation.alliance_id = allianceID
         corporation.save()
         
         errors = 0
@@ -872,7 +877,7 @@ class CorporationSheet(APIJob):
                 corporation.division7 = rows[6].attrib['description']
                 corporation.save()
 
-            if rowset.attrib['name'] == 'walletDivisions':
+            elif rowset.attrib['name'] == 'walletDivisions':
                 wallet_map = {}
                 for cw in CorpWallet.objects.filter(corporation=corporation):
                     wallet_map[cw.account_key] = cw

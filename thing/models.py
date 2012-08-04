@@ -113,11 +113,20 @@ class Faction(models.Model):
     name = models.CharField(max_length=64)
 
 # ---------------------------------------------------------------------------
+# Alliances
+class Alliance(models.Model):
+    id = models.IntegerField(primary_key=True)
+    name = models.CharField(max_length=64)
+    short_name = models.CharField(max_length=5)
+
+# ---------------------------------------------------------------------------
 # Corporations
 class Corporation(models.Model):
     id = models.IntegerField(primary_key=True)
     name = models.CharField(max_length=64)
     ticker = models.CharField(max_length=5, blank=True, null=True)
+
+    alliance = models.ForeignKey(Alliance, blank=True, null=True)
 
     division1 = models.CharField(max_length=64, blank=True, null=True)
     division2 = models.CharField(max_length=64, blank=True, null=True)

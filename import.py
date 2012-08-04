@@ -15,6 +15,7 @@ from thing.models import *
 
 SDE_FILE = 'esc10-sqlite3-v1.db'
 
+ALLIANCE_URL = '%s/eve/AllianceList.xml.aspx?version=1' % (settings.API_HOST)
 REF_TYPES_URL = '%s/eve/RefTypes.xml.aspx' % (settings.API_HOST)
 STATION_URL = '%s/eve/ConquerableStationList.xml.aspx' % (settings.API_HOST)
 
@@ -83,6 +84,7 @@ class Importer:
             time_func('NPCFaction', self.import_npcfaction)
             time_func('NPCCorporation', self.import_npccorporation)
         
+        time_func('Alliance', self.import_alliance)
         time_func('Conquerable Station', self.import_conquerable_station)
         time_func('RefTypes', self.import_reftypes)
     
@@ -662,6 +664,39 @@ class Importer:
 
         if new:
             Corporation.objects.bulk_create(new)
+
+        return added
+
+    # -----------------------------------------------------------------------
+    # Alliances
+    def import_alliance(self):
+        added = 0
+
+        data = urllib2.urlopen(ALLIANCE_URL).read()
+        root = ET.fromstring(data)
+
+        bulk_data = {}
+        for row in root.findall('result/rowset/row'):
+            bulk_data[int(row.attrib['allianceID'])] = row
+
+        data_map = Alliance.objects.in_bulk(bulk_data.keys())
+
+        new = []
+        # <row name="Goonswarm Federation" shortName="CONDI" allianceID="1354830081" executorCorpID="1344654522" memberCount="8960" startDate="2010-06-01 05:36:00"/>
+        for id, row in bulk_data.items():
+            alliance = data_map.get(id, None)
+            if alliance is not None:
+                continue
+
+            new.append(Alliance(
+                id=id,
+                name=row.attrib['name'],
+                short_name=row.attrib['shortName'],
+            ))
+            added += 1
+
+        if new:
+            Alliance.objects.bulk_create(new)
 
         return added
 
