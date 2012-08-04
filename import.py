@@ -697,16 +697,17 @@ class Importer:
                 new.append(alliance)
                 added += 1
 
-            # update any corporations in this alliance
+        if new:
+            Alliance.objects.bulk_create(new)
+
+        # update any corporations in each alliance
+        for id, row in bulk_data.items():
             corp_ids = []
             for corp_row in row.findall('rowset/row'):
                 corp_ids.append(int(corp_row.attrib['corporationID']))
 
             Corporation.objects.filter(pk__in=corp_ids).update(alliance=id)
             Corporation.objects.filter(alliance_id=id).exclude(pk__in=corp_ids).update(alliance=None)
-
-        if new:
-            Alliance.objects.bulk_create(new)
 
         return added
 
