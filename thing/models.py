@@ -681,7 +681,7 @@ class Asset(MPTTModel):
 # ---------------------------------------------------------------------------
 # Contracts
 class Contract(models.Model):
-    id = models.IntegerField(primary_key=True)
+    contract_id = models.IntegerField(db_index=True)
 
     issuer_char = models.ForeignKey(SimpleCharacter, related_name="contract_issuers")
     issuer_corp = models.ForeignKey(Corporation, related_name="contract_issuers")
@@ -701,8 +701,8 @@ class Contract(models.Model):
 
     date_issued = models.DateTimeField()
     date_expired = models.DateTimeField()
-    date_accepted = models.DateTimeField()
-    date_completed = models.DateTimeField()
+    date_accepted = models.DateTimeField(blank=True, null=True)
+    date_completed = models.DateTimeField(blank=True, null=True)
     num_days = models.IntegerField()
 
     price = models.DecimalField(max_digits=15, decimal_places=2)
