@@ -711,6 +711,9 @@ class Contract(models.Model):
     buyout = models.DecimalField(max_digits=15, decimal_places=2)
     volume = models.DecimalField(max_digits=16, decimal_places=4)
 
+    class Meta:
+        ordering = ('-date_issued',)
+
 # ---------------------------------------------------------------------------
 # Skill plan storage disaster
 class SkillPlan(models.Model):
