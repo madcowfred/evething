@@ -589,11 +589,6 @@ class Contracts(APIJob):
     def run(self):
         now = datetime.datetime.now()
 
-        # Generate a character id map
-        self.char_id_map = {}
-        for character in Character.objects.all():
-            self.char_id_map[character.id] = character
-
 
         # Initialise for corporate query
         if self.apikey.corp_character:
@@ -626,6 +621,11 @@ class Contracts(APIJob):
 
         if self.fetch_api(url, params) is False or self.root is None:
             return
+
+
+        # Retrieve a list of this user's characters and corporations
+        user_chars = list(Character.objects.filter(apikeys__user=self.apikey.user).values_list('id', flat=True))
+        user_corps = list(APIKey.objects.filter(user=self.apikey.user).exclude(corp_character=None).values_list('corp_character__corporation__id', flat=True))
 
 
         # First we need to get all of the acceptor and assignee IDs
@@ -797,7 +797,7 @@ class Contracts(APIJob):
                 # Contract exists, maybe update stuff
                 if contract is not None:
                     if contract.status != row.attrib['status']:
-                        text = 'Contract #%d (%s, %s) changed status from %s to %s' % (
+                        text = "Contract #%d (%s, %s) changed status from '%s' to '%s'" % (
                             contract.contract_id, contract.type, contract.start_station.short_name,
                             contract.status, row.attrib['status'])
                         
@@ -814,7 +814,7 @@ class Contracts(APIJob):
 
                 # Contract does not exist, make a new one
                 else:
-                    new_contracts.append(Contract(
+                    contract = Contract(
                         contract_id=contractID,
                         issuer_char=char_map[int(row.attrib['issuerID'])],
                         issuer_corp=corp_map[int(row.attrib['issuerCorpID'])],
@@ -840,7 +840,21 @@ class Contracts(APIJob):
                         collateral=Decimal(row.attrib['collateral']),
                         buyout=Decimal(row.attrib['buyout']),
                         volume=Decimal(row.attrib['volume']),
-                    ))
+                    )
+                    new_contracts.append(contract)
+
+                    if contract.status in ('Outstanding', 'InProgress'):
+                        if assigneeID in user_chars or assigneeID in user_corps:
+                            text = "Contract #%d (%s, %s) was created from '%s' to '%s' with status '%s'" % (
+                                contract.contract_id, contract.type, contract.start_station.short_name,
+                                contract.get_issuer_name(), contract.get_assignee_name(), contract.status)
+                            
+                            new_events.append(Event(
+                                user_id=self.apikey.user.id,
+                                issued=now,
+                                text=text,
+                            ))
+
             
             # And save the damn things
             Contract.objects.bulk_create(new_contracts)
@@ -848,7 +862,7 @@ class Contracts(APIJob):
 
         
         # completed ok
-        #self.apicache.completed()
+        self.apicache.completed()
 
 # ---------------------------------------------------------------------------
 # Fetch corporation sheet
