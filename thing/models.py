@@ -22,13 +22,23 @@ class UserProfile(models.Model):
 
     user = models.OneToOneField(User)
 
+    # Global options
     theme = models.CharField(max_length=32, default='theme-default')
+    show_clock = models.BooleanField(default=True)
+    show_item_icons = models.BooleanField(default=False)
+    show_assets = models.BooleanField(default=True)
+    show_blueprints = models.BooleanField(default=True)
+    show_contracts = models.BooleanField(default=True)
+    show_orders = models.BooleanField(default=True)
+    show_trade = models.BooleanField(default=True)
+    show_transactions = models.BooleanField(default=True)
+    show_market_scan = models.BooleanField(default=True)
 
+    # Home view options
     home_chars_per_row = models.IntegerField(default=4)
     home_sort_order = models.CharField(choices=HOME_SORT_ORDERS, max_length=12, default='apiname')
     home_sort_descending = models.BooleanField(default=False)
 
-    show_item_icons = models.BooleanField(default=False)
 
 # Magical hook so this gets called when a new user is created
 def create_user_profile(sender, instance, created, **kwargs):

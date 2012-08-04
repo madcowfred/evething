@@ -267,11 +267,19 @@ def account_change_password(request):
 def account_settings(request):
     profile = request.user.get_profile()
 
-    profile.show_item_icons = (request.POST.get('show_item_icons', '') == 'on')
-
     theme = request.POST.get('theme', 'default')
     if [t for t in settings.THEMES if t[0] == theme]:
         profile.theme = theme
+
+    profile.show_clock = (request.POST.get('show_clock', '') == 'on')
+    profile.show_item_icons = (request.POST.get('show_item_icons', '') == 'on')
+    profile.show_assets = (request.POST.get('show_assets', '') == 'on')
+    profile.show_blueprints = (request.POST.get('show_blueprints', '') == 'on')
+    profile.show_contracts = (request.POST.get('show_contracts', '') == 'on')
+    profile.show_orders = (request.POST.get('show_orders', '') == 'on')
+    profile.show_trade = (request.POST.get('show_trade', '') == 'on')
+    profile.show_transactions = (request.POST.get('show_transactions', '') == 'on')
+    profile.show_market_scan = (request.POST.get('show_market_scan', '') == 'on')
 
     home_chars_per_row = int(request.POST.get('home_chars_per_row'), 0)
     if home_chars_per_row in (2, 3, 4, 6):
