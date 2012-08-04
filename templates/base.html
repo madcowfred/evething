@@ -42,6 +42,10 @@
             </ul>
 
             <ul class="nav pull-right">
+              <li class="navbar-text">
+                <span id="utc-time"></span> UTC
+              </li>
+              <li class="divider-vertical"></li>
               {% if user.is_authenticated() -%}
               <li class="dropdown">
                 <a class="dropdown-toggle" data-toggle="dropdown" href="#">

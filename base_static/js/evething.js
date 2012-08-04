@@ -7,11 +7,26 @@ $(document).ready(function() {
         }
     });
 
-    // activate bootstrap tooltips
+    // activate bootstraptooltips
     $("[rel=tooltip]").tooltip();
     // activate bootstrap dropdowns
     $('.dropdown-toggle').dropdown();
+
+    setClock();
+    window.setInterval(setClock, 1000);
 });
+
+function setClock() {
+    // set up the clock
+    var time = new Date();
+    var h = time.getUTCHours();
+    if (h < 10)
+        h = "0" + h;
+    var m = time.getUTCMinutes();
+    if (m < 10)
+        m = "0" + m;
+    $('#utc-time').text(h + ":" + m);
+}
 
 
 
