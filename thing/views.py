@@ -1070,8 +1070,8 @@ def character_skillplan_common(request, character, skillplan, public=True, anony
 @login_required
 def contracts(request):
     characters = list(Character.objects.filter(apikeys__user=request.user.id).values_list('id', flat=True))
-    apikeys = APIKey.objects.filter(user=request.user).exclude(corp_character=None).values('corp_character__corporation__id')
-    corporations = list(Corporation.objects.filter(pk__in=apikeys).values_list('id', flat=True))
+    corporations = list(APIKey.objects.filter(user=request.user).exclude(corp_character=None).values_list('corp_character__corporation__id', flat=True))
+    #corporations = list(Corporation.objects.filter(pk__in=apikeys).values_list('id', flat=True))
 
     # Whee~
     contracts = Contract.objects.select_related('issuer_char', 'issuer_corp', 'assignee_char', 'assignee_corp',
@@ -1084,9 +1084,13 @@ def contracts(request):
         )
         |
         (
-            Q(issuer_corp_id__in=corporations, for_corp=True) |
-            Q(assignee_corp_id__in=corporations) |
-            Q(acceptor_corp_id__in=corporations)
+            (
+                Q(issuer_corp_id__in=corporations) |
+                Q(assignee_corp_id__in=corporations) |
+                Q(acceptor_corp_id__in=corporations)
+            )
+            &
+            Q(for_corp=True)
         )
     )
 
