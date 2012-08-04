@@ -13,6 +13,7 @@
         mask_map[524288] = 'Standings';
         mask_map[4194304] = 'WalletTransactions';
         mask_map[33554432] = 'AccountStatus';
+        mask_map[67108864] = 'Contracts';
         mask_map[134217728] = 'Locations';
 
         function apikey_build() {
@@ -283,6 +284,7 @@
                         <li><input type="checkbox" class="apikey-build" data-masks="4194304"> Wallet transactions</li>
                         <li><input type="checkbox" class="apikey-build" data-masks="4096"> Market orders</li>
                         <li><input type="checkbox" class="apikey-build" data-masks="2;134217728"> Assets</li>
+                        <li><input type="checkbox" class="apikey-build" data-masks="67108864"> Contracts</li>
                       </ul>
                       <a class="btn btn-primary" id="apikey-link" href="https://support.eveonline.com/api/Key/CreatePredefined/33816584" target="_blank">Create new key</a>
                     </div>
