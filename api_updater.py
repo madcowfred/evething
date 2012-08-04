@@ -775,15 +775,15 @@ class Contracts(APIJob):
                     acceptor_corp = corp_map[acceptorID]
 
                 dateIssued = parse_api_date(row.attrib['dateIssued'])
-                dateExpired = parse_api_date(row.attrib['dateIssued'])
+                dateExpired = parse_api_date(row.attrib['dateExpired'])
                 
-                dateAccepted = row.attrib['dateIssued']
+                dateAccepted = row.attrib['dateAccepted']
                 if dateAccepted:
                     dateAccepted = parse_api_date(dateAccepted)
                 else:
                     dateAccepted = None
 
-                dateCompleted = row.attrib['dateIssued']
+                dateCompleted = row.attrib['dateCompleted']
                 if dateCompleted:
                     dateCompleted = parse_api_date(dateCompleted)
                 else:
