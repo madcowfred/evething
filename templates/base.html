@@ -29,13 +29,12 @@
               {%- if user.is_authenticated() -%}
               <li><a href="{% url thing.views.assets %}">Assets</a></li>
               <li><a href="{% url thing.views.blueprints %}">Blueprints</a></li>
+              <li><a href="{% url thing.views.contracts %}"><img src="{{ STATIC_URL }}icons/asterisk_yellow.png"> Contracts</a></li>
               <li><a href="{% url thing.views.orders %}">Orders</a></li>
               <li><a href="{% url thing.views.trade %}">Trade</a></li>
               <li><a href="{% url thing.views.transactions %}">Transactions</a></li>
               <li class="divider-vertical"></li>
               <li><a href="{% url thing.views.market_scan %}">Market Scan</a></li>
-              <li class="divider-vertical"></li>
-              <li><a href="{% url thing.views.contracts %}"><img src="{{ STATIC_URL }}icons/asterisk_yellow.png"> Contracts</a></li>
               {%- endif %}
             </ul>
 
