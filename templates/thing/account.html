@@ -137,7 +137,9 @@
                   <div class="control-group">
                     <label class="control-label" for="show_item_icons">Show item icons</label>
                     <div class="controls">
-                      <input type="checkbox" name="show_item_icons"{% if profile.show_item_icons %} checked{% endif %}>
+                      <label class="checkbox">
+                        <input type="checkbox" name="show_item_icons"{% if profile.show_item_icons %} checked{% endif %}>
+                      </label>
                     </div>
                   </div>
                   <div class="control-group">
@@ -176,7 +178,9 @@
                   <div class="control-group">
                     <label class="control-label" for="home_sort_descending">Sort descending?</label>
                     <div class="controls">
-                      <input type="checkbox" name="home_sort_descending"{% if profile.home_sort_descending %} checked{% endif %}>
+                      <label class="checkbox">
+                        <input type="checkbox" name="home_sort_descending"{% if profile.home_sort_descending %} checked{% endif %}>
+                      </label>
                     </div>
                   </div>
                 </fieldset>
