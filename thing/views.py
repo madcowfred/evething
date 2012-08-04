@@ -1078,9 +1078,13 @@ def contracts(request):
         'acceptor_char', 'acceptor_corp', 'start_station', 'end_station')
     contracts = contracts.filter(
         (
-            Q(issuer_char_id__in=characters, for_corp=False) |
-            Q(assignee_char_id__in=characters) |
-            Q(acceptor_char_id__in=characters)
+            (
+                Q(issuer_char_id__in=characters) |
+                Q(assignee_char_id__in=characters) |
+                Q(acceptor_char_id__in=characters)
+            )
+            &
+            Q(for_corp=False)
         )
         |
         (
