@@ -48,7 +48,10 @@
                   {{ contract.status }}
                 </td>
                 <td class="con-issuer">
-                  {% if contract.assignee_corp -%}
+                  {% if contract.assignee_alliance -%}
+                  <img src="{{ STATIC_URL }}icons/group.png">
+                  {{ contract.assignee_alliance.name }}
+                  {%- elif contract.assignee_corp -%}
                   <img src="{{ STATIC_URL }}icons/briefcase.png">
                   {{ contract.assignee_corp.name }}
                   {%- elif contract.assignee_char -%}
