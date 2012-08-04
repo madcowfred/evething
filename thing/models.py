@@ -77,6 +77,7 @@ class APIKey(models.Model):
         else:
             return 0
 
+# ---------------------------------------------------------------------------
 # API cache entries
 class APICache(models.Model):
     url = models.URLField()
