@@ -645,6 +645,11 @@ class Contracts(APIJob):
             # non-corp keys don't care about corp orders
             if not self.apikey.corp_character and row.attrib['forCorp'] == '1':
                 continue
+            # corp keys don't care about orders they didn't issue - another fun
+            # bug where corp keys see alliance contracts they didn't make  :ccp:
+            if self.apikey.corp_character and int(row.attrib['issuerCorpID']) != self.apikey.corp_character.corporation.id:
+                logging.info('Skipping non-corp contract :ccp:')
+                continue
 
             contract_ids.add(int(row.attrib['contractID']))
             
