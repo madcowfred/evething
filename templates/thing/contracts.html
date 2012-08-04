@@ -35,7 +35,7 @@
                 <td class="con-date">{{ contract.date_issued }}</td>
                 <td class="con-issuer">
                   {% if contract.for_corp -%}
-                  <img src="{{ STATIC_URL }}icons/briefcase.png">
+                  <img src="{{ STATIC_URL }}icons/building.png">
                   {{ contract.issuer_corp.name }}
                   {%- else -%}
                   <img src="{{ STATIC_URL }}icons/user.png">
@@ -52,7 +52,7 @@
                   <img src="{{ STATIC_URL }}icons/group.png">
                   {{ contract.assignee_alliance.name }}
                   {%- elif contract.assignee_corp -%}
-                  <img src="{{ STATIC_URL }}icons/briefcase.png">
+                  <img src="{{ STATIC_URL }}icons/building.png">
                   {{ contract.assignee_corp.name }}
                   {%- elif contract.assignee_char -%}
                   <img src="{{ STATIC_URL }}icons/user.png">
@@ -64,7 +64,7 @@
                 </td>
                 <td class="con-issuer">
                   {% if contract.acceptor_corp -%}
-                  <img src="{{ STATIC_URL }}icons/briefcase.png">
+                  <img src="{{ STATIC_URL }}icons/building.png">
                   {{ contract.acceptor_corp.name }}
                   {%- elif contract.acceptor_char -%}
                   <img src="{{ STATIC_URL }}icons/user.png">
