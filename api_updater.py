@@ -38,7 +38,10 @@ API_INFO_URL = '/account/APIKeyInfo.xml.aspx'
 ASSETS_CHAR_URL = '/char/AssetList.xml.aspx'
 ASSETS_CORP_URL = '/corp/AssetList.xml.aspx'
 BALANCE_URL = '/corp/AccountBalance.xml.aspx'
+CHAR_NAME_URL = '/eve/CharacterName.xml.aspx'
 CHAR_SHEET_URL = '/char/CharacterSheet.xml.aspx'
+CONTRACTS_CHAR_URL = '/char/Contracts.xml.aspx'
+CONTRACTS_CORP_URL = '/corp/Contracts.xml.aspx'
 CORP_SHEET_URL = '/corp/CorporationSheet.xml.aspx'
 LOCATIONS_CHAR_URL = '/char/Locations.xml.aspx'
 ORDERS_CHAR_URL = '/char/MarketOrders.xml.aspx'
@@ -110,10 +113,11 @@ class APIJob:
     
     # ---------------------------------------------------------------------------
     # Perform an API request and parse the returned XML via ElementTree
-    def fetch_api(self, url, params):
+    def fetch_api(self, url, params, use_auth=True, log_error=True):
         # Add the API key information
-        params['keyID'] = self.apikey.keyid
-        params['vCode'] = self.apikey.vcode
+        if use_auth:
+            params['keyID'] = self.apikey.keyid
+            params['vCode'] = self.apikey.vcode
 
         # Check the API cache for this URL/params combo
         now = datetime.datetime.utcnow()
@@ -170,7 +174,8 @@ class APIJob:
                 if apicache.error_displayed:
                     return False
 
-                logging.error('(%s) %s: %s | %s -> %s', self.__class__.__name__, error.attrib['code'], error.text, current, until)
+                if log_error:
+                    logging.error('(%s) %s: %s | %s -> %s', self.__class__.__name__, error.attrib['code'], error.text, current, until)
 
                 # Mark key as invalid if it's an auth error
                 if error.attrib['code'] in ('202', '203', '204', '205', '210', '212', '207', '220', '222', '223'):
@@ -576,6 +581,260 @@ class CharacterSkillQueue(APIJob):
         
         # completed ok
         self.apicache.completed()
+
+# ---------------------------------------------------------------------------
+# Fetch contracts
+_contracts_lock = threading.Lock()
+class Contracts(APIJob):
+    def run(self):
+        now = datetime.datetime.now()
+
+        # Generate a character id map
+        self.char_id_map = {}
+        for character in Character.objects.all():
+            self.char_id_map[character.id] = character
+
+
+        # Initialise for corporate query
+        if self.apikey.corp_character:
+            mask = 8388608
+            url = CONTRACTS_CORP_URL
+            params = {}
+            c_filter = Contract.objects.filter(
+                Q(issuer_corp_id=self.character.corporation.id) |
+                Q(assignee_corp_id=self.character.corporation.id) |
+                Q(acceptor_corp_id=self.character.corporation.id),
+                for_corp=True,
+            )
+        
+        # Initialise for character query
+        else:
+            mask = 67108864
+            url = CONTRACTS_CHAR_URL
+            params = { 'characterID': self.character.id }
+            c_filter = Contract.objects.filter(
+                Q(issuer_char_id=self.character.id) |
+                Q(assignee_char_id=self.character.id) |
+                Q(acceptor_char_id=self.character.id),
+                for_corp=False,
+            )
+
+
+        if self.fetch_api(url, params) is False or self.root is None:
+            return
+
+
+        # First we need to get all of the acceptor and assignee IDs
+        contract_ids = set()
+        station_ids = set()
+        lookup_ids = set()
+        contract_rows = []
+        # <row contractID="58108507" issuerID="2004011913" issuerCorpID="751993277" assigneeID="401273477"
+        #      acceptorID="0" startStationID="60014917" endStationID="60003760" type="Courier" status="Outstanding"
+        #      title="" forCorp="0" availability="Private" dateIssued="2012-08-02 06:50:29" dateExpired="2012-08-09 06:50:29"
+        #      dateAccepted="" numDays="7" dateCompleted="" price="0.00" reward="3000000.00" collateral="0.00" buyout="0.00"
+        #      volume="10000"/>
+        for row in self.root.findall('result/rowset/row'):
+            # corp keys don't care about non-corp orders
+            if self.apikey.corp_character and row.attrib['forCorp'] == '0':
+                continue
+            # non-corp keys don't care about corp orders
+            if not self.apikey.corp_character and row.attrib['forCorp'] == '1':
+                continue
+
+            contract_ids.add(int(row.attrib['contractID']))
+            
+            station_ids.add(int(row.attrib['startStationID']))
+            station_ids.add(int(row.attrib['endStationID']))
+
+            lookup_ids.add(int(row.attrib['issuerID']))
+            lookup_ids.add(int(row.attrib['issuerCorpID']))
+
+            if row.attrib['assigneeID'] != '0':
+                lookup_ids.add(int(row.attrib['assigneeID']))
+            if row.attrib['acceptorID'] != '0':
+                lookup_ids.add(int(row.attrib['acceptorID']))
+            contract_rows.append(row)
+
+        # Fetch existing chars and corps
+        char_map = SimpleCharacter.objects.in_bulk(lookup_ids)
+        corp_map = Corporation.objects.in_bulk(lookup_ids)
+        new_ids = list(lookup_ids.difference(char_map, corp_map))
+
+        new_chars = []
+        new_corps = []
+
+        # Go look up all of those names now
+        lookup_map = {}
+        for i in range(0, len(new_ids), 250):
+            params = { 'ids': ','.join(map(str, new_ids[i:i+250])) }
+            if self.fetch_api(CHAR_NAME_URL, params, use_auth=False) is False or self.root is None:
+                return
+
+            # <row name="Tazuki Falorn" characterID="1759080617"/>
+            for row in self.root.findall('result/rowset/row'):
+                id = int(row.attrib['characterID'])
+                name = row.attrib['name']
+
+                # Must be a corporation if it has 3 or more spaces
+                if name.count(' ') >= 3:
+                    new_corps.append(Corporation(
+                        id=id,
+                        name=name,
+                    ))
+                else:
+                    lookup_map[id] = name
+
+        # Ugh, now go look up all of the damn names just in case they're corporations
+        for id, name in lookup_map.items():
+            # Serialise access so the APIcache doesn't get completely broken. Also so
+            # we don't make CCP mad.
+            with _contracts_lock:
+                params = { 'corporationID': id }
+                # Not a corporation
+                if self.fetch_api(CORP_SHEET_URL, params, use_auth=False, log_error=False) is False or self.root is None:
+                    new_chars.append(SimpleCharacter(
+                        id=id,
+                        name=name,
+                    ))
+                else:
+                    new_corps.append(Corporation(
+                        id=id,
+                        name=name,
+                        ticker=self.root.find('result/ticker').text,
+                    ))
+
+        # Now we can go create all of those new objects
+        with _contracts_lock:
+            char_map = SimpleCharacter.objects.in_bulk([c.id for c in new_chars])
+            new_chars = [c for c in new_chars if c.id not in char_map]
+            SimpleCharacter.objects.bulk_create(new_chars)
+
+            corp_map = Corporation.objects.in_bulk([c.id for c in new_corps])
+            new_corps = [c for c in new_corps if c.id not in corp_map]
+            Corporation.objects.bulk_create(new_corps)
+
+
+            # And fetch existing data yet again
+            char_map = SimpleCharacter.objects.in_bulk(lookup_ids)
+            corp_map = Corporation.objects.in_bulk(lookup_ids)
+            station_map = Station.objects.in_bulk(station_ids)
+
+            # Fetch all existing contracts
+            c_map = {}
+            for contract in c_filter.filter(contract_id__in=contract_ids):
+                c_map[contract.contract_id] = contract
+
+
+            # Finally, after all of that other bullshit, we can actually deal with
+            # our goddamn contract rows
+            new_contracts = []
+            new_events = []
+
+            # <row contractID="58108507" issuerID="2004011913" issuerCorpID="751993277" assigneeID="401273477"
+            #      acceptorID="0" startStationID="60014917" endStationID="60003760" type="Courier" status="Outstanding"
+            #      title="" forCorp="0" availability="Private" dateIssued="2012-08-02 06:50:29" dateExpired="2012-08-09 06:50:29"
+            #      dateAccepted="" numDays="7" dateCompleted="" price="0.00" reward="3000000.00" collateral="0.00" buyout="0.00"
+            #      volume="10000"/>
+            for row in contract_rows:
+                contractID = int(row.attrib['contractID'])
+                
+                assigneeID = int(row.attrib['assigneeID'])
+                if assigneeID == 0:
+                    assignee_char = None
+                    assignee_corp = None
+                elif assigneeID in char_map:
+                    assignee_char = char_map[assigneeID]
+                    assignee_corp = None
+                else:
+                    assignee_char = None
+                    assignee_corp = corp_map[assigneeID]
+
+                acceptorID = int(row.attrib['acceptorID'])
+                if acceptorID == 0:
+                    acceptor_char = None
+                    acceptor_corp = None
+                elif acceptorID in char_map:
+                    acceptor_char = char_map[acceptorID]
+                    acceptor_corp = None
+                else:
+                    acceptor_char = None
+                    acceptor_corp = corp_map[acceptorID]
+
+                dateIssued = parse_api_date(row.attrib['dateIssued'])
+                dateExpired = parse_api_date(row.attrib['dateIssued'])
+                
+                dateAccepted = row.attrib['dateIssued']
+                if dateAccepted:
+                    dateAccepted = parse_api_date(dateAccepted)
+                else:
+                    dateAccepted = None
+
+                dateCompleted = row.attrib['dateIssued']
+                if dateCompleted:
+                    dateCompleted = parse_api_date(dateCompleted)
+                else:
+                    dateCompleted = None
+
+                type = row.attrib['type']
+                if type == 'ItemExchange':
+                    type = 'Item Exchange'
+
+                contract = c_map.get(contractID, None)
+                # Contract exists, maybe update stuff
+                if contract is not None:
+                    if contract.status != row.attrib['status']:
+                        text = 'Contract #%d (%s, %s) changed status from %s to %s' % (
+                            contract.contract_id, contract.type, contract.start_station.short_name,
+                            contract.status, row.attrib['status'])
+                        
+                        new_events.append(Event(
+                            user_id=self.apikey.user.id,
+                            issued=now,
+                            text=text,
+                        ))
+
+                        contract.status = row.attrib['status']
+                        contract.dateAccepted = dateAccepted
+                        contract.dateCompleted = dateCompleted
+                        contract.save()
+
+                # Contract does not exist, make a new one
+                else:
+                    new_contracts.append(Contract(
+                        contract_id=contractID,
+                        issuer_char=char_map[int(row.attrib['issuerID'])],
+                        issuer_corp=corp_map[int(row.attrib['issuerCorpID'])],
+                        assignee_char=assignee_char,
+                        assignee_corp=assignee_corp,
+                        acceptor_char=acceptor_char,
+                        acceptor_corp=acceptor_corp,
+                        start_station=station_map[int(row.attrib['startStationID'])],
+                        end_station=station_map[int(row.attrib['endStationID'])],
+                        type=type,
+                        status=row.attrib['status'],
+                        title=row.attrib['title'],
+                        for_corp=(row.attrib['forCorp'] == '1'),
+                        public=(row.attrib['availability'].lower() == 'public'),
+                        date_issued=dateIssued,
+                        date_expired=dateExpired,
+                        date_accepted=dateAccepted,
+                        date_completed=dateCompleted,
+                        num_days=int(row.attrib['numDays']),
+                        price=Decimal(row.attrib['price']),
+                        reward=Decimal(row.attrib['reward']),
+                        collateral=Decimal(row.attrib['collateral']),
+                        buyout=Decimal(row.attrib['buyout']),
+                        volume=Decimal(row.attrib['volume']),
+                    ))
+            
+            # And save the damn things
+            Contract.objects.bulk_create(new_contracts)
+            Event.objects.bulk_create(new_events)
+
+        
+        # completed ok
+        #self.apicache.completed()
 
 # ---------------------------------------------------------------------------
 # Fetch corporation sheet
@@ -1255,6 +1514,10 @@ class APIUpdater:
                     job = Locations(apikey, character)
                     self._job_queue.put(job)
 
+                    # Fetch contracts
+                    job = Contracts(apikey, character)
+                    self._job_queue.put(job)
+
             # Corporation key
             elif apikey.key_type == APIKey.CORPORATION_TYPE:
                 character = apikey.corp_character
@@ -1283,6 +1546,10 @@ class APIUpdater:
 
                 # Fetch assets
                 job = Assets(apikey, character)
+                self._job_queue.put(job)
+
+                # Fetch contracts
+                job = Contracts(apikey, character)
                 self._job_queue.put(job)
 
         # Cleanup cache

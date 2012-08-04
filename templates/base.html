@@ -35,7 +35,8 @@
               <li class="divider-vertical"></li>
               <li><a href="{% url thing.views.market_scan %}">Market Scan</a></li>
               <li class="divider-vertical"></li>
-              <li><a href="#" style="text-decoration: line-through">Contracts</a></li>
+              <li><a href="{% url thing.views.contracts %}"><img src="{{ STATIC_URL }}icons/asterisk_yellow.png"> Contracts</a></li>
+              <li class="divider-vertical"></li>
               <li><a href="#" style="text-decoration: line-through">Industry</a></li>
               {%- endif %}
             </ul>
