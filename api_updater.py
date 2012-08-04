@@ -639,16 +639,19 @@ class Contracts(APIJob):
         #      dateAccepted="" numDays="7" dateCompleted="" price="0.00" reward="3000000.00" collateral="0.00" buyout="0.00"
         #      volume="10000"/>
         for row in self.root.findall('result/rowset/row'):
-            # corp keys don't care about non-corp orders
-            if self.apikey.corp_character and row.attrib['forCorp'] == '0':
-                continue
+            if self.apikey.corp_character:
+                # corp keys don't care about non-corp orders
+                if row.attrib['forCorp'] == '0':
+                    continue
+                # corp keys don't care about orders they didn't issue - another fun
+                # bug where corp keys see alliance contracts they didn't make  :ccp:
+                if self.apikey.corp_character.corporation.id not in (int(row.attrib['issuerCorpID']),
+                    int(row.attrib['assigneeID']), int(row.attrib['acceptorID'])):
+                    logging.info('Skipping non-corp contract :ccp:')
+                    continue
+
             # non-corp keys don't care about corp orders
             if not self.apikey.corp_character and row.attrib['forCorp'] == '1':
-                continue
-            # corp keys don't care about orders they didn't issue - another fun
-            # bug where corp keys see alliance contracts they didn't make  :ccp:
-            if self.apikey.corp_character and int(row.attrib['issuerCorpID']) != self.apikey.corp_character.corporation.id:
-                logging.info('Skipping non-corp contract :ccp:')
                 continue
 
             contract_ids.add(int(row.attrib['contractID']))
@@ -1281,21 +1284,21 @@ class WalletTransactions(APIJob):
                 client_ids.add(int(row.attrib['clientID']))
 
             t1 = time.time()
-            logging.info('WalletTransactions bulk_data took %.3fs', t1 - start)
+            #logging.info('WalletTransactions bulk_data took %.3fs', t1 - start)
 
             t_map = {}
             for t in t_filter.filter(transaction_id__in=bulk_data.keys()).values('id', 'transaction_id', 'other_char_id', 'other_corp_id'):
                 t_map[t['transaction_id']] = t
 
             t2 = time.time()
-            logging.info('WalletTransactions t_map took %.3fs', t2 - t1)
+            #logging.info('WalletTransactions t_map took %.3fs', t2 - t1)
 
             # Fetch simplechars and corporations for clients
             simple_map = SimpleCharacter.objects.in_bulk(client_ids)
             corp_map = Corporation.objects.in_bulk(client_ids)
 
             t3 = time.time()
-            logging.info('WalletTransactions client maps took %.3fs', t3 - t2)
+            #logging.info('WalletTransactions client maps took %.3fs', t3 - t2)
             
             # Now iterate over the leftovers
             new = []
@@ -1395,12 +1398,12 @@ class WalletTransactions(APIJob):
                         logging.info('Updated other_ field of transaction %s', t['id'])
 
             t4 = time.time()
-            logging.info('WalletTransactions loop took %.3fs', t4 - t3)
+            #logging.info('WalletTransactions loop took %.3fs', t4 - t3)
             
             # Create any new transaction objects
             t5 = time.time()
             Transaction.objects.bulk_create(new)
-            logging.info('WalletTransactions insert took %.2fs', time.time() - t5)
+            #logging.info('WalletTransactions insert took %.2fs', time.time() - t5)
 
             # completed ok
             if errors == 0:
@@ -1412,7 +1415,7 @@ class WalletTransactions(APIJob):
             else:
                 break
         
-        logging.info('WalletTransactions took %.2fs', time.time() - start)
+        #logging.info('WalletTransactions took %.2fs', time.time() - start)
         
 
 # ---------------------------------------------------------------------------
