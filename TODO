@@ -19,8 +19,8 @@
       # Station name
       # System name
     = Magical JS buttons to add/remove extra search filters
-  - Work out why the initial CharacterAsset view query is so slow, 1300 rows shouldn't take half a second. Possibly
-    related to the pile of horrible LEFT OUTER JOINs, try querying (items, characters, etc) separately and caching.
+  - Work out why the initial Asset view query is so slow, 1300 rows shouldn't take half a second. Possibly
+    related to the pile of horrible LEFT OUTER JOINs, try querying (items, characters, etc) separately.
 
 * Blueprints:
   - Work out a way to be able to say "I want to make 100 Blackbirds and 300 rigs to go on them" and get a BPCalc
@@ -32,11 +32,10 @@
   - Expand all/collapse all JavaScript links
   - Standings tab needs agent standings
   - Ability to see a post-plan character sheet?
+  - Add employment history
 
 * Contracts:
-  - Implement database models to store contracts and contract contents
   - Work out how in the hell to track them for Trade
-  - Use Events for contract completion/expiry
   - Summary table similar to orders
 
 * Home:
@@ -95,6 +94,11 @@
       # Frequency (once, hourly, daily)
         % Will need a new database model to store events that have been issued
       # Things to email about (insufficient clone, room in skill queue, account not in training, account time <10 days)
+  - Implement proper APIKey access_mask checks
+    = User A has a full (all masks) key for account 'example'
+    = User B has a minimal (say, basic character infon only) key for account 'example'
+    = User B can actually see all data related to this account, even though their APIKey.access_mask is much more limited
+    = Will require modifying all view code to use .extra() and a binary AND on the access_mask field, ugh
 
 * price_updater:
   - Add support for other sources of market data
