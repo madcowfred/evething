@@ -618,6 +618,10 @@ class Contracts(APIJob):
                 Q(acceptor_char_id=self.character.id),
                 for_corp=False,
             )
+        
+        # Make sure the access mask matches
+        if (self.apikey.access_mask & mask) == 0:
+            return
 
 
         if self.fetch_api(url, params) is False or self.root is None:
