@@ -663,7 +663,8 @@ class Contracts(APIJob):
         # Fetch existing chars and corps
         char_map = SimpleCharacter.objects.in_bulk(lookup_ids)
         corp_map = Corporation.objects.in_bulk(lookup_ids)
-        new_ids = list(lookup_ids.difference(char_map, corp_map))
+        alliance_map = Alliance.objects.in_bulk(lookup_ids)
+        new_ids = list(lookup_ids.difference(char_map, corp_map, alliance_map))
 
         new_chars = []
         new_corps = []
@@ -744,15 +745,15 @@ class Contracts(APIJob):
                 contractID = int(row.attrib['contractID'])
                 
                 assigneeID = int(row.attrib['assigneeID'])
-                if assigneeID == 0:
-                    assignee_char = None
-                    assignee_corp = None
-                elif assigneeID in char_map:
-                    assignee_char = char_map[assigneeID]
-                    assignee_corp = None
-                else:
-                    assignee_char = None
+                assignee_char = None
+                assignee_corp = None
+                assignee_alliance = None
+                if assigneeID in alliance_map:
+                    assignee_alliance = alliance_map[assigneeID]
+                if assigneeID in corp_map:
                     assignee_corp = corp_map[assigneeID]
+                if assigneeID in char_map:
+                    assignee_char = char_map[assigneeID]
 
                 acceptorID = int(row.attrib['acceptorID'])
                 if acceptorID == 0:
@@ -811,6 +812,7 @@ class Contracts(APIJob):
                         issuer_corp=corp_map[int(row.attrib['issuerCorpID'])],
                         assignee_char=assignee_char,
                         assignee_corp=assignee_corp,
+                        assignee_alliance=assignee_alliance,
                         acceptor_char=acceptor_char,
                         acceptor_corp=acceptor_corp,
                         start_station=station_map[int(row.attrib['startStationID'])],
@@ -857,7 +859,7 @@ class CorporationSheet(APIJob):
         ticker = self.root.find('result/ticker')
         corporation.ticker = ticker.text
 
-        allianceID = self.root.find('result/allianceID')
+        allianceID = self.root.find('result/allianceID').text
         if allianceID == '0':
             allianceID = None
         corporation.alliance_id = allianceID

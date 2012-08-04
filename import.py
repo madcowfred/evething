@@ -15,7 +15,7 @@ from thing.models import *
 
 SDE_FILE = 'esc10-sqlite3-v1.db'
 
-ALLIANCE_URL = '%s/eve/AllianceList.xml.aspx?version=1' % (settings.API_HOST)
+ALLIANCE_URL = '%s/eve/AllianceList.xml.aspx' % (settings.API_HOST)
 REF_TYPES_URL = '%s/eve/RefTypes.xml.aspx' % (settings.API_HOST)
 STATION_URL = '%s/eve/ConquerableStationList.xml.aspx' % (settings.API_HOST)
 
@@ -686,14 +686,24 @@ class Importer:
         for id, row in bulk_data.items():
             alliance = data_map.get(id, None)
             if alliance is not None:
-                continue
+                pass
 
-            new.append(Alliance(
-                id=id,
-                name=row.attrib['name'],
-                short_name=row.attrib['shortName'],
-            ))
-            added += 1
+            else:
+                alliance = Alliance(
+                    id=id,
+                    name=row.attrib['name'],
+                    short_name=row.attrib['shortName'],
+                )
+                new.append(alliance)
+                added += 1
+
+            # update any corporations in this alliance
+            corp_ids = []
+            for corp_row in row.findall('rowset/row'):
+                corp_ids.append(int(corp_row.attrib['corporationID']))
+
+            Corporation.objects.filter(pk__in=corp_ids).update(alliance=id)
+            Corporation.objects.filter(alliance_id=id).exclude(pk__in=corp_ids).update(alliance=None)
 
         if new:
             Alliance.objects.bulk_create(new)
