@@ -1066,6 +1066,52 @@ def character_skillplan_common(request, character, skillplan, public=True, anony
     )
 
 # ---------------------------------------------------------------------------
+# Contracts
+@login_required
+def contracts(request):
+    characters = list(Character.objects.filter(apikeys__user=request.user.id).values_list('id', flat=True))
+    corporations = list(Corporation.objects.filter(pk__in=APIKey.objects.filter(user=request.user).values('corp_character__corporation__id')).values_list('id', flat=True))
+
+    # Whee~
+    contracts = Contract.objects.select_related('issuer_char', 'issuer_corp', 'assignee_char', 'assignee_corp',
+        'acceptor_char', 'acceptor_corp', 'start_station', 'end_station')
+    contracts = contracts.filter(
+        (
+            Q(issuer_char_id__in=characters, for_corp=False) |
+            Q(assignee_char_id__in=characters) |
+            Q(acceptor_char_id__in=characters)
+        )
+        |
+        (
+            Q(issuer_corp_id__in=corporations, for_corp=True) |
+            Q(assignee_corp_id__in=corporations) |
+            Q(acceptor_corp_id__in=corporations)
+        )
+    )
+
+    # Assign a status icon to each contract
+    for contract in contracts:
+        if contract.status.startswith('Completed'):
+            contract.z_status_icon = 'tick'
+        elif contract.status == 'InProgress':
+            contract.z_status_icon = 'lorry_go'
+        elif contract.status in ('Cancelled', 'Deleted', 'Failed', 'Rejected'):
+            contract.z_status_icon = 'cross'
+        elif contract.status == 'Outstanding':
+            contract.z_status_icon = 'hourglass'
+        else:
+            contract.z_status_icon = 'bug'
+
+    return render_to_response(
+        'thing/contracts.html',
+        dict(
+            characters=characters,
+            contracts=contracts,
+        ),
+        context_instance=RequestContext(request)
+    )
+
+# ---------------------------------------------------------------------------
 # Events
 @login_required
 def events(request):
