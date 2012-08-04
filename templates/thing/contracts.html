@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% load thing_extras %}
+  
+{% block title %}Contracts{% endblock %}
+
+{% block extra_head %}
+    <script type="text/javascript">
+      $(document).ready(function () {
+
+      });
+    </script>
+{% endblock %}
+
+{% block content %}
+      <div class="row-fluid">
+        <div class="span10">
+          <h3>Contracts</h3>
+          <table class="table table-striped table-bordered table-condensed">
+            <thead>
+              <tr class="c">
+                <th>ID</th>
+                <th>Issued</th>
+                <th>Issuer</th>
+                <th>Type</th>
+                <th>Status</th>
+                <th>Assignee</th>
+                <th>Accepted/Completed</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for contract in contracts -%}
+              <tr>
+                <td class="con-id">{{ contract.contract_id }}</td>
+                <td class="con-date">{{ contract.date_issued }}</td>
+                <td class="con-issuer">
+                  {% if contract.for_corp -%}
+                  <img src="{{ STATIC_URL }}icons/briefcase.png">
+                  {{ contract.issuer_corp.name }}
+                  {%- else -%}
+                  <img src="{{ STATIC_URL }}icons/user.png">
+                  {{ contract.issuer_char.name }}
+                  {%- endif %}
+                </td>
+                <td class="c con-type">{{ contract.type }}</td>
+                <td class="con-status">
+                  <img src="{{ STATIC_URL }}icons/{{ contract.z_status_icon }}.png">
+                  {{ contract.status }}
+                </td>
+                <td class="con-issuer">
+                  {% if contract.assignee_corp -%}
+                  <img src="{{ STATIC_URL }}icons/briefcase.png">
+                  {{ contract.assignee_corp.name }}
+                  {%- else -%}
+                  <img src="{{ STATIC_URL }}icons/user.png">
+                  {{ contract.assignee_char.name }}
+                  {%- endif %}
+                </td>
+                <td class="con-date">
+                  {% if contract.status == 'InProgress' -%}
+                  {{ contract.date_accepted }}
+                  {%- elif contract.status == 'Completed' -%}
+                  {{ contract.date_completed }}
+                  {%- else -%}
+                  --
+                  {%- endif %}
+                </td>
+              </tr>
+              {%- else -%}
+              <tr>
+                <td>No contracts.</td>
+              </tr>
+              {%- endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+{% endblock %}
