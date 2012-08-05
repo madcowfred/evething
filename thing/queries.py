@@ -15,7 +15,7 @@ ORDER BY c.name, cw.account_key
 order_aggregation = """
 SELECT  mo.character_id,
         c.name,
-        COUNT(mo.*) AS orders,
+        COUNT(mo.order_id) AS orders,
         COALESCE(SUM(CASE WHEN mo.corp_wallet_id IS NULL THEN 1 END), 0) AS personal_orders,
         COALESCE(SUM(CASE WHEN mo.corp_wallet_id IS NOT NULL THEN 1 END), 0) AS corp_orders,
         COALESCE(SUM(CASE mo.buy_order WHEN true THEN 1 END), 0) AS buy_orders,
