@@ -47,7 +47,7 @@
               {% if user.is_authenticated() -%}
               {%- with user.get_profile() as profile -%}
               <li class="navbar-text"{% if not profile.show_clock %} style="display: none"{% endif %}>
-                <p class="navbar-text" id="utc-time"></p> 
+                <p class="navbar-text"><span id="utc-time"></span> EVE</p> 
               </li>
               {% if profile.show_clock %}<li class="divider-vertical"></li>{% endif %}
               {%- endwith -%}
