@@ -205,6 +205,7 @@ class Importer:
                 name=data[0],
                 system_id=data[1],
             )
+            station._make_shorter_name()
             new.append(station)
             added += 1
         
