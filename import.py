@@ -303,7 +303,7 @@ class Importer:
         
         new = []
         for id, data in bulk_data.items():
-            if data[1]:
+            if not data[1]:
                 continue
 
             ig = data_map.get(id, None)
