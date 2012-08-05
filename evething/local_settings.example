@@ -33,3 +33,6 @@ INTERNAL_IPS = (
     '127.0.0.1',
     '192.168.1.20',
 )
+
+# Disable the password tab if you are using different auth
+DISABLE_ACCOUNT_PASSWORD = False

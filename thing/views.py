@@ -41,6 +41,9 @@ ORDER_SLOT_SKILLS = {
 # Home page
 @login_required
 def home(request):
+    import pprint
+    pprint.pprint(request.COOKIES)
+
     # Create the user's profile if it doesn't already exist
     try:
         profile = request.user.get_profile()
@@ -224,7 +227,8 @@ def account(request):
             'themes': settings.THEMES,
             'apikeys': APIKey.objects.filter(user=request.user).order_by('-valid', 'key_type', 'name'),
             'skillplans': SkillPlan.objects.filter(user=request.user),
-            'visibilities': SkillPlan.VISIBILITY_CHOICES
+            'visibilities': SkillPlan.VISIBILITY_CHOICES,
+            'disable_password': getattr(settings, 'DISABLE_ACCOUNT_PASSWORD', False)
         },
         context_instance=RequestContext(request)
     )

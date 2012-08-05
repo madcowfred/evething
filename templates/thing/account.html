@@ -124,7 +124,7 @@
             <li class="active"><a href="#settings" data-toggle="tab">Settings</a></li>
             <li><a href="#apikeys" data-toggle="tab">API Keys</a></li>
             <li><a href="#skillplans" data-toggle="tab">Skill Plans</a></li>
-            <li><a href="#password" data-toggle="tab">Change Password</a></li>
+            {% if not disable_password %}<li><a href="#password" data-toggle="tab">Change Password</a></li>{% endif %}
           </ul>
 
           <div class="tab-content">
@@ -413,7 +413,7 @@
               </div>
             </div>
 
-            {# password: content -#}
+            {% if not disable_password %}{# password: content -#}
             <div class="tab-pane" id="password">
               <form action="{% url thing.views.account_change_password %}" method="POST" class="form-horizontal">
                 <fieldset>
@@ -444,7 +444,7 @@
                 </fieldset>
               </form>
             </div>
-
+            {%- endif %}
 
             {# apikeys: delete modal -#}
             <div class="modal hide" id="delete-apikey-modal">
