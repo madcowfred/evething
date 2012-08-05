@@ -6,8 +6,12 @@
 {% block extra_head %}
     <script type="text/javascript">
       $(document).ready(function () {
-
+        // call the tablesorter plugin
+        $("#contracts-table").tablesorter({
+          'sortList': [[0, 1]],
+        });
       });
+
     </script>
 {% endblock %}
 
@@ -15,7 +19,7 @@
       <div class="row-fluid">
         <div class="span12">
           <h2>Contracts</h2>
-          <table class="table table-striped table-bordered table-condensed">
+          <table id="contracts-table" class="table table-striped table-bordered table-condensed">
             <thead>
               <tr class="c">
                 <th>ID</th>
