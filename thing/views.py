@@ -41,9 +41,6 @@ ORDER_SLOT_SKILLS = {
 # Home page
 @login_required
 def home(request):
-    import pprint
-    pprint.pprint(request.COOKIES)
-
     # Create the user's profile if it doesn't already exist
     try:
         profile = request.user.get_profile()
