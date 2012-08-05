@@ -1495,6 +1495,7 @@ class APIUpdater:
         # Wait for all key checks to be completed
         if not any_valid:
             logging.info('No valid APIKeys, exiting')
+            self.stop_threads()
             return
 
         self._job_queue.join()
