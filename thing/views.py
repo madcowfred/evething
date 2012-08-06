@@ -1051,6 +1051,8 @@ def character_skillplan_common(request, character, skillplan, public=True, anony
                 else:
                     entry.z_sppm = skill.get_sp_per_minute(character)
             
+            # 0 sppm is bad
+            entry.z_sppm = max(1, entry.z_sppm)
             entry.z_spph = int(entry.z_sppm * 60)
 
             # Calculate time remaining
