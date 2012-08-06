@@ -499,7 +499,7 @@ def assets(request):
 
         # zz blueprints
         if ca.z_item.item_group.category.name == 'Blueprint':
-            ca.z_blueprint = ca.raw_quantity
+            ca.z_blueprint = min(-1, ca.raw_quantity)
         else:
             ca.z_blueprint = 0
         
