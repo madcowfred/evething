@@ -13,7 +13,7 @@ $(document).ready(function() {
     $('.dropdown-toggle').dropdown();
 
     setClock();
-    window.setInterval(setClock, 1000);
+    window.setInterval(setClock, 5000);
 });
 
 function setClock() {
