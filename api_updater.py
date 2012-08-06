@@ -433,10 +433,9 @@ class Assets(APIJob):
                 system = None
                 station = None
 
-            try:
-                item = get_item(row.attrib['typeID'])
-            except Item.DoesNotExist:
-                logging.warn("Item #%s apparently doesn't exist", row.attrib['typeID'])
+            # check for valid item
+            item = get_item(row.attrib['typeID'])
+            if item is None:
                 continue
 
             asset_id = int(row.attrib['itemID'])
@@ -1367,16 +1366,14 @@ class WalletTransactions(APIJob):
                     price = Decimal(row.attrib['price'])
                     buy_transaction = (row.attrib['transactionType'] == 'buy')
 
-                    try:
-                        item = get_item(row.attrib['typeID'])
-                    except Item.DoesNotExist:
-                        logging.warn("Item #%s apparently doesn't exist", row.attrib['typeID'])
+                    item = get_item(row.attrib['typeID'])
+                    if item is None:
                         errors += 1
                         continue
 
                     t = Transaction(
                         station=station,
-                        item=get_item(row.attrib['typeID']),
+                        item=item,
                         character=char,
                         transaction_id=transaction_id,
                         date=transaction_time,
