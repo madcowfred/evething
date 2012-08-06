@@ -33,6 +33,9 @@
   - Standings tab needs agent standings
   - Ability to see a post-plan character sheet?
   - Add employment history
+  - Skill tooltips should move to their own icon
+  - Skill tooltips should show Primary/Secondary attributes
+    = Possibly need to change how tooltips are created?
 
 * Contracts:
   - Work out how in the hell to track them for Trade
@@ -61,6 +64,10 @@
         % UPDATE thing_entry SET position = position + 1 WHERE skillplan_id = n AND (position >= 2 AND position <= 1)
         % UPDATE thing_entry SET position = 2 WHERE id = n
       # Complex updating - deal with pre-requisites, urgh
+
+* Trade:
+  - Add contract sums to the overview page
+  - Investigate consolidating the query mess into less queries
 
 * Transactions:
   - Ability to search transactions via:
