@@ -1076,10 +1076,6 @@ class MarketOrders(APIJob):
             # Doesn't exist and is active, make a new order
             elif row.attrib['orderState'] == '0':
                 buy_order = (row.attrib['bid'] == '1')
-                #if row.attrib['bid'] == '0':
-                #    buy_order = False
-                #else:
-                #    buy_order = True
                 
                 # Make sure the character charID is valid
                 char = self.char_id_map.get(int(row.attrib['charID']))
@@ -1088,11 +1084,9 @@ class MarketOrders(APIJob):
                     continue
                 
                 # Make sure the item typeID is valid
-                #items = Item.objects.filter(pk=row.attrib['typeID'])
-                #if items.count() == 0:
-                #    print "ERROR: item with typeID '%s' does not exist, what the fuck?" % (row.attrib['typeID'])
-                #    print '>> attrib = %r' % (row.attrib)
-                #    continue
+                item = get_item(row.attrib['typeID'])
+                if item is None:
+                    continue
                 
                 # Create a new order and save it
                 remaining = int(row.attrib['volRemaining'])
@@ -1101,7 +1095,7 @@ class MarketOrders(APIJob):
                 order = MarketOrder(
                     order_id=order_id,
                     station=get_station(int(row.attrib['stationID'])),
-                    item=get_item(row.attrib['typeID']),
+                    item=item,
                     character=char,
                     escrow=Decimal(row.attrib['escrow']),
                     price=price,
@@ -1635,7 +1629,12 @@ def show_error(func, err, times):
 _item_cache = {}
 def get_item(item_id):
     if item_id not in _item_cache:
-        _item_cache[item_id] = Item.objects.get(pk=item_id)
+        try:
+            _item_cache[item_id] = Item.objects.get(pk=item_id)
+        except Item.DoesNotExist:
+            logging.warn("Item #%s apparently doesn't exist", item_id)
+            _item_cache[item_id] = None
+
     return _item_cache[item_id]
 
 # ---------------------------------------------------------------------------
