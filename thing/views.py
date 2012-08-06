@@ -1116,15 +1116,15 @@ def contracts(request):
     # Assign a status icon to each contract
     for contract in contracts:
         if contract.status.startswith('Completed'):
-            contract.z_status_icon = 'tick'
+            contract.z_status_icon = 'completed'
         elif contract.status == 'InProgress':
-            contract.z_status_icon = 'lorry_go'
+            contract.z_status_icon = 'inprogress'
         elif contract.status in ('Cancelled', 'Deleted', 'Failed', 'Rejected'):
-            contract.z_status_icon = 'cross'
+            contract.z_status_icon = 'failed'
         elif contract.status == 'Outstanding':
-            contract.z_status_icon = 'hourglass'
+            contract.z_status_icon = 'outstanding'
         else:
-            contract.z_status_icon = 'bug'
+            contract.z_status_icon = 'unknown'
 
     return render_to_response(
         'thing/contracts.html',

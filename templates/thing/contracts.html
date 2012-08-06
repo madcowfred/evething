@@ -48,7 +48,7 @@
                 </td>
                 <td class="c con-type">{{ contract.type }}</td>
                 <td class="con-status">
-                  <i class="icons-contracts-{{ contract.z_status_icon }}"></i>
+                  <i class="icons-contract-{{ contract.z_status_icon }}"></i>
                   {{ contract.status }}
                 </td>
                 <td class="con-issuer">
@@ -62,7 +62,7 @@
                   <i class="icons-player"></i>
                   {{ contract.assignee_char.name }}
                   {%- else -%}
-                  <i class="icons-contracts-public"></i>
+                  <i class="icons-contract-public"></i>
                   Public
                   {%- endif %}
                 </td>

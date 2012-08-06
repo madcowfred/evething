@@ -30,8 +30,12 @@
 .icons-corporation { background:url(../icons/silk/group.png); }
 .icons-alliance { background:url(../icons/silk/building.png); }
 /* contracts */
-.icons-contracts-public { background:url(../icons/silk/world.png); }
-/*.icons-contracts- { background:url(../icons/silk/.png); }*/
+.icons-contract-public { background:url(../icons/silk/world.png); }
+.icons-contract-completed { background:url(../icons/silk/tick.png); }
+.icons-contract-inprogress { background:url(../icons/silk/lorry_go.png); }
+.icons-contract-failed { background:url(../icons/silk/cross.png); }
+.icons-contract-outstanding { background:url(../icons/silk/hourglass.png); }
+.icons-contract-unknown { background:url(../icons/silk/bug.png); }
 /* visibility of things */
 .icons-visibility-private { background:url(../icons/silk/lock.png); }
 .icons-visibility-public { background:url(../icons/silk/eye.png); }
