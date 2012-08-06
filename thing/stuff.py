@@ -83,11 +83,15 @@ def parse_emp_plan(skillplan, root):
             position += 1
 
         # Create the various objects for the skill
-        sps = SPSkill.objects.create(
-            skill_id=entry.attrib['skillID'],
-            level=entry.attrib['level'],
-            priority=entry.attrib['priority'],
-        )
+        try:
+            sps = SPSkill.objects.create(
+                skill_id=entry.attrib['skillID'],
+                level=entry.attrib['level'],
+                priority=entry.attrib['priority'],
+            )
+        except:
+            continue
+            
         entries.append(SPEntry(
             skill_plan=skillplan,
             position=position,
