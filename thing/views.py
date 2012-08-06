@@ -936,7 +936,10 @@ def character_common(request, char, public=True, anonymous=False):
 ANON_KEY_RE = re.compile(r'^[a-z0-9]+$')
 @login_required
 def character_settings(request, character_name):
-    char = get_object_or_404(Character, name=character_name, apikeys__user=request.user)
+    chars = Character.objects.filter(name=character_name, apikeys__user=request.user)
+    if chars.count() == 0:
+        raise Http404
+    char = chars[0]
 
     char.config.is_public = ('public' in request.POST)
     char.config.show_clone = ('clone' in request.POST)
