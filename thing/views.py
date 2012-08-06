@@ -37,6 +37,8 @@ ORDER_SLOT_SKILLS = {
     'Tycoon': 32,
 }
 
+TWO_PLACES = Decimal('0.00')
+
 # ---------------------------------------------------------------------------
 # Home page
 @login_required
@@ -1322,7 +1324,14 @@ def trade_timeframe(request, year=None, month=None, period=None, slug=None):
     }
     
     # Get a QuerySet of transactions by this user
-    transactions = Transaction.objects.filter(character__apikeys__user=request.user)
+    characters = list(Character.objects.filter(apikeys__user=request.user.id).values_list('id', flat=True))
+    corporations = list(APIKey.objects.filter(user=request.user).exclude(corp_character=None).values_list('corp_character__corporation__id', flat=True))
+    wallets = list(CorpWallet.objects.filter(corporation__in=corporations).values_list('account_id', flat=True))
+    
+    transactions = Transaction.objects.filter(
+        Q(character__in=characters) |
+        Q(corp_wallet__in=wallets)
+    )
     
     # Year/Month
     if year and month:
@@ -1342,57 +1351,89 @@ def trade_timeframe(request, year=None, month=None, period=None, slug=None):
         data['timeframe'] = 'all time'
         data['urlpart'] = 'all'
     
-    # Build aggregate queries to use in our nasty FULL OUTER JOIN
-    item_buy_data = transactions.filter(buy_transaction=True).values('item').annotate(
-        buy_quantity=Sum('quantity'),
-        buy_minimum=Min('price'),
-        buy_maximum=Max('price'),
-        buy_total=Sum('total_price'),
+    # Fetch the aggregate transaction data
+    data_set = transactions.values('buy_transaction', 'item').annotate(
+        sum_quantity=Sum('quantity'),
+        min_price=Min('price'),
+        max_price=Max('price'),
+        sum_total=Sum('total_price'),
     )
-    item_sell_data = transactions.filter(buy_transaction=False).values('item').annotate(
-        sell_quantity=Sum('quantity'),
-        sell_minimum=Min('price'),
-        sell_maximum=Max('price'),
-        sell_total=Sum('total_price'),
-    )
-    
-    # Build a nasty SQL query
-    buy_sql = item_buy_data._as_sql(connection)
-    sell_sql = item_sell_data._as_sql(connection)
-    
-    query = queries.trade_timeframe % (buy_sql[0], sell_sql[0])
-    params = buy_sql[1] + sell_sql[1]
-    
-    # Make Item objects out of the nasty query
-    data['items'] = []
-    for item in Item.objects.raw(query, params):
-        # Average profit
-        if item.buy_average and item.sell_average:
-            item.z_average_profit = item.sell_average - item.buy_average
-            item.z_average_profit_per = '%.1f' % (item.z_average_profit / item.buy_average * 100)
-        
-        # Projected balance
-        if item.diff > 0:
-            item.z_projected_average = item.balance + (item.diff * item.sell_average)
-            item.z_outstanding_average = (item.z_projected_average - item.balance) * -1
-            item.z_projected_market = item.balance + (item.diff * item.sell_price)
+
+    t_map = {}
+    # { buy_transaction, item, sum_quantity, min_price, max_price, sum_total }
+    for row in data_set.iterator():
+        item_id = int(row['item'])
+
+        if item_id not in t_map:
+            t_map[item_id] = {}
+
+        if row['buy_transaction']:
+            t_map[item_id]['buy_quantity'] = row['sum_quantity']
+            t_map[item_id]['buy_minimum'] = row['min_price']
+            t_map[item_id]['buy_maximum'] = row['max_price']
+            t_map[item_id]['buy_total'] = row['sum_total']
+            t_map[item_id]['buy_average'] = row['sum_total'] / row['sum_quantity']
         else:
-            item.z_projected_average = item.balance
-            item.z_projected_market = item.balance
+            t_map[item_id]['sell_quantity'] = row['sum_quantity']
+            t_map[item_id]['sell_minimum'] = row['min_price']
+            t_map[item_id]['sell_maximum'] = row['max_price']
+            t_map[item_id]['sell_total'] = row['sum_total']
+            t_map[item_id]['sell_average'] = row['sum_total'] / row['sum_quantity']
+
+    # fetch the items
+    item_map = Item.objects.select_related().in_bulk(t_map.keys())
+
+    import time
+    start = time.time()
+
+    data['items'] = []
+    for item in item_map.values():
+        t = t_map[item.id]
+        item.t = t
+
+        # Average profit
+        if 'buy_average' not in t:
+            t['buy_average'] = 0
+        if 'sell_average' not in t:
+            t['sell_average'] = 0
+
+        if t['buy_average'] and t['sell_average']:
+            t['average_profit'] = (t['sell_average'] - t['buy_average']).quantize(TWO_PLACES)
+            t['average_profit_per'] = '%.1f' % (t['average_profit'] / t['buy_average'] * 100)
         
+        if 'buy_quantity' not in t:
+            t['buy_quantity'] = 0
+        if 'sell_quantity' not in t:
+            t['sell_quantity'] = 0
+
+        t['diff'] = t['buy_quantity'] - t['sell_quantity']
+
+        if 'buy_total' not in t:
+            t['buy_total'] = 0
+        if 'sell_total' not in t:
+            t['sell_total'] = 0
+
+        t['balance'] = t['sell_total'] - t['buy_total']
+
+        # Projected balance
+        if t['diff'] > 0:
+            t['projected_average'] = (t['balance'] + (t['diff'] * t['sell_average'])).quantize(TWO_PLACES)
+            t['projected_market'] = (t['balance'] + (t['diff'] * item.sell_price)).quantize(TWO_PLACES)
+            t['outstanding'] = ((t['projected_average'] - t['balance']) * -1).quantize(TWO_PLACES)
+            if t['outstanding'] == 0:
+                t['outstanding'] = ((t['projected_market'] - t['balance']) * -1).quantize(TWO_PLACES)
+        else:
+            t['projected_average'] = t['balance']
+            t['projected_market'] = t['balance']
+
         data['items'].append(item)
         
         # Update totals
-        if item.buy_total is not None:
-            data['total_buys'] += item.buy_total
-        if item.sell_total is not None:
-            data['total_sells'] += item.sell_total
-        data['total_projected_average'] += item.z_projected_average
-        data['total_projected_market'] += item.z_projected_market
-    
-    # Totals
-    data['total_balance'] = data['total_sells'] - data['total_buys']
-    
+        data['total_buys'] += t['buy_total']
+        data['total_sells'] += t['sell_total']
+        data['total_projected_average'] += t['projected_average']
+        data['total_projected_market'] += t['projected_market']
+
     # Render template
     return render_to_response(
         'thing/trade_timeframe.html',
