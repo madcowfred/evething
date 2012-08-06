@@ -144,14 +144,20 @@ SERVER_EMAIL = 'evething@wafflemonster.org'
 # Auth profile thing
 AUTH_PROFILE_MODULE = 'thing.UserProfile'
 
-# Default themes
+
+# Themes
 THEMES = [
     ('theme-default', '<Default>'),
     ('theme-cyborg.min', 'Cyborg'),
     ('theme-slate.min', 'Slate'),
 ]
 
+# Icon themes
+ICON_THEMES = [
+    ('icons-default', '<Default>'),
+]
+
+
 # load local settings
 from local_settings import *
-
 TEMPLATE_DEBUG = DEBUG

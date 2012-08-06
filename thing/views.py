@@ -222,6 +222,7 @@ def account(request):
             'home_chars_per_row': (2, 3, 4, 6),
             'home_sort_orders': UserProfile.HOME_SORT_ORDERS,
             'themes': settings.THEMES,
+            'icon_themes': settings.ICON_THEMES,
             'apikeys': APIKey.objects.filter(user=request.user).order_by('-valid', 'key_type', 'name'),
             'skillplans': SkillPlan.objects.filter(user=request.user),
             'visibilities': SkillPlan.VISIBILITY_CHOICES,
@@ -268,8 +269,12 @@ def account_change_password(request):
 def account_settings(request):
     profile = request.user.get_profile()
 
-    theme = request.POST.get('theme', 'default')
+    theme = request.POST.get('theme', 'theme-default')
     if [t for t in settings.THEMES if t[0] == theme]:
+        profile.theme = theme
+    
+    icon_theme = request.POST.get('icon_theme', 'icons-default')
+    if [t for t in settings.ICON_THEMES if t[0] == theme]:
         profile.theme = theme
 
     profile.show_clock = (request.POST.get('show_clock', '') == 'on')
