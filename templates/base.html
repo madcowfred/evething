@@ -10,10 +10,16 @@
     <link rel="icon" href="{{ STATIC_URL }}favicon.ico">
     <link rel="stylesheet" href="{{ STATIC_URL }}css/bootstrap.min.css">
     <link rel="stylesheet" href="{{ STATIC_URL }}css/bootstrap-responsive.min.css">
-    {%- if user.is_authenticated() %}{% with user.get_profile() as profile %}{% if profile.theme %}
-    <link rel="stylesheet" href="{{ STATIC_URL}}css/{{ profile.theme }}.css" />
-    {%- endif %}{% endwith %}{% endif %}
-    <link rel="stylesheet" href="{{ STATIC_URL }}css/evething.css" />
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/icons-default.css">
+    {% if user.is_authenticated() -%}
+    {%- with user.get_profile() as profile -%}
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/{{ profile.theme }}.css">
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/{{ profile.icon_theme }}.css">
+    {%- endwith -%}
+    {%- else -%}
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/icons-default.css">
+    {%- endif %}
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/evething.css">
     {%- block extra_head %}{% endblock %}
     <title>EVEthing: {% block title %}{% endblock %}</title>
   </head>
@@ -31,7 +37,7 @@
               <li class="divider-vertical"></li>
               {% if profile.show_assets %}<li><a href="{% url thing.views.assets %}">Assets</a></li>{% endif %}
               {% if profile.show_blueprints %}<li><a href="{% url thing.views.blueprints %}">Blueprints</a></li>{% endif %}
-              {% if profile.show_contracts %}<li><a href="{% url thing.views.contracts %}"><img src="{{ STATIC_URL }}icons/asterisk_yellow.png"> Contracts</a></li>{% endif %}
+              {% if profile.show_contracts %}<li><a href="{% url thing.views.contracts %}">Contracts</a></li>{% endif %}
               {% if profile.show_orders %}<li><a href="{% url thing.views.orders %}">Orders</a></li>{% endif %}
               {% if profile.show_trade %}<li><a href="{% url thing.views.trade %}">Trade</a></li>{% endif %}
               {% if profile.show_transactions %}<li><a href="{% url thing.views.transactions %}">Transactions</a></li>{% endif %}

@@ -21,8 +21,28 @@ ul.children li {
   margin-left: 8px;
 }
 
+i.skill {
+  margin-left: -3px;
+}
 img.icon {
   margin-left: -3px;
+}
+
+/* icon definitions borrowed from Bootstrap */
+[class^="icons-"],
+[class*=" icons-"] {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  *margin-right: .3em;
+  line-height: 16px;
+  vertical-align: text-top;
+  background-repeat: no-repeat;
+}
+
+[class^="icons-"]:last-child,
+[class*=" icons-"]:last-child {
+  *margin-left: 0;
 }
 
 /* character sheet */

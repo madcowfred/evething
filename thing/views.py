@@ -95,7 +95,7 @@ def home(request):
 
             if timediff < 0:
                 char.z_notifications.append({
-                    'icon': 'clock_red',
+                    'icon': 'time-warning',
                     'text': 'Expired',
                     'tooltip': 'Game time has expired!',
                     'span_class': 'low-game-time',
@@ -103,7 +103,7 @@ def home(request):
 
             elif timediff < EXPIRE_WARNING:
                 char.z_notifications.append({
-                    'icon': 'clock_red',
+                    'icon': 'time-warning',
                     'text': shortduration(timediff),
                     'tooltip': 'Remaining game time is low!',
                     'span_class': 'low-game-time',
@@ -112,7 +112,7 @@ def home(request):
         # Empty skill queue
         if char.z_apikey in not_training:
             char.z_notifications.append({
-                'icon': 'book',
+                'icon': 'queue-empty',
                 'text': 'Empty!',
                 'tooltip': 'Skill queue is empty!',
             })
@@ -122,7 +122,7 @@ def home(request):
             if char.z_training['queue_duration'] < ONE_DAY:
                 timediff = ONE_DAY - char.z_training['queue_duration']
                 char.z_notifications.append({
-                    'icon': 'book',
+                    'icon': 'queue-space',
                     'text': shortduration(timediff),
                     'tooltip': 'Skill queue is not full!',
                 })
@@ -142,7 +142,7 @@ def home(request):
                     t.append(skill.get_secondary_attribute_display())
 
                 char.z_notifications.append({
-                    'icon': 'plugin_error',
+                    'icon': 'missing-implants',
                     'text': ', '.join(t),
                     'tooltip': 'Missing stat implants for currently training skill!',
                 })
@@ -150,7 +150,7 @@ def home(request):
         # Insufficient clone
         if hasattr(char, 'z_total_sp') and char.z_total_sp > char.clone_skill_points:
             char.z_notifications.append({
-                'icon': 'user',
+                'icon': 'inadequate-clone',
                 'text': '%s SP' % (commas(char.clone_skill_points)),
                 'tooltip': 'Insufficient clone!',
             })
@@ -222,6 +222,7 @@ def account(request):
             'home_chars_per_row': (2, 3, 4, 6),
             'home_sort_orders': UserProfile.HOME_SORT_ORDERS,
             'themes': settings.THEMES,
+            'icon_themes': settings.ICON_THEMES,
             'apikeys': APIKey.objects.filter(user=request.user).order_by('-valid', 'key_type', 'name'),
             'skillplans': SkillPlan.objects.filter(user=request.user),
             'visibilities': SkillPlan.VISIBILITY_CHOICES,
@@ -268,8 +269,12 @@ def account_change_password(request):
 def account_settings(request):
     profile = request.user.get_profile()
 
-    theme = request.POST.get('theme', 'default')
+    theme = request.POST.get('theme', 'theme-default')
     if [t for t in settings.THEMES if t[0] == theme]:
+        profile.theme = theme
+    
+    icon_theme = request.POST.get('icon_theme', 'icons-default')
+    if [t for t in settings.ICON_THEMES if t[0] == theme]:
         profile.theme = theme
 
     profile.show_clock = (request.POST.get('show_clock', '') == 'on')
@@ -863,24 +868,24 @@ def character_common(request, char, public=True, anonymous=False):
         cs.z_icons = []
         # level 5 skill = 5 special icons
         if cs.level == 5:
-            cs.z_icons.extend(['rainbow'] * 5)
+            cs.z_icons.extend(['fives'] * 5)
             cs.z_class = "level5"
         # 0-4 = n icons
         else:
-            cs.z_icons.extend(['weather_sun'] * cs.level)
+            cs.z_icons.extend(['trained'] * cs.level)
 
         # training skill can have a training icon
         if anonymous is False and cs.skill.item.id == training_id:
-            cs.z_icons.append('weather_lightning')
+            cs.z_icons.append('partial')
             cs.z_training = True
             cs.z_class = "training-highlight"
 
         # partially trained skills get a partial icon
         elif cs.points > cs.skill.get_sp_at_level(cs.level):
-            cs.z_icons.append('weather_cloudy')
+            cs.z_icons.append('partial')
 
         # then fill out the rest with empty icons
-        cs.z_icons.extend(['weather_clouds'] * (5 - len(cs.z_icons)))
+        cs.z_icons.extend(['untrained'] * (5 - len(cs.z_icons)))
 
         skills[cur].append(cs)
         cur.z_total_sp += cs.points
@@ -900,11 +905,11 @@ def character_common(request, char, public=True, anonymous=False):
     # Appliy some icons to them
     for sp in list(user_plans) + list(public_plans):
         if sp.visibility == SkillPlan.PRIVATE_VISIBILITY:
-            sp.z_icon = 'lock'
+            sp.z_icon = 'private'
         elif sp.visibility == SkillPlan.PUBLIC_VISIBILITY:
-            sp.z_icon = 'eye'
+            sp.z_icon = 'public'
         elif sp.visibility == SkillPlan.GLOBAL_VISIBILITY:
-            sp.z_icon = 'world'
+            sp.z_icon = 'global'
 
 
     # Render template

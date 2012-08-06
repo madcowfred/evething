@@ -145,6 +145,16 @@
                     </div>
                   </div>
                   <div class="control-group">
+                    <label class="control-label" for="theme">Icon Theme</label>
+                    <div class="controls">
+                      <select name="icon_theme">
+                        {% for value, display in icon_themes -%}
+                        <option value="{{ value }}"{% if profile.icon_theme == value %} selected{% endif %}>{{ display }}</option>
+                        {% endfor %}
+                      </select>
+                    </div>
+                  </div>
+                  <div class="control-group">
                     <label class="control-label" for="show_clock">Show UTC clock</label>
                     <div class="controls">
                       <label class="checkbox">
@@ -251,16 +261,16 @@
                       <td class="r api-id">{{ apikey.id }}</td>
                       <td class="c api-icon">
                         {% if apikey.valid -%}
-                        <img src="{{ STATIC_URL }}icons/tick.png">
-                        {%- else %}
-                        <img src="{{ STATIC_URL }}icons/cross.png">
+                        <i class="icons-success"></i>
+                        {%- else -%}
+                        <i class="icons-failure"></i>
                         {%- endif %}
                       </td>
                       <td class="r api-keyid" data-id="{{ apikey.id }}">{{ apikey.keyid }}</td>
                       <td class="c fixed api-vcode">{{ apikey.get_masked_vcode() }}</td>
                       <td>
                         {{ apikey.name }}
-                        <a href="#" class="apikey-edit"><img src="{{ STATIC_URL }}icons/pencil.png" class="pull-right"></a>
+                        <a href="#" class="apikey-edit"><i class="icons-edit pull-right"></i></a>
                       </td>
                       <td class="c api-type">{{ apikey.key_type }}</td>
                       <td class="r api-mask">{{ apikey.access_mask }}</td>
@@ -273,26 +283,26 @@
                       </td>
                       <td class="r api-time">
                         {% if apikey.valid and apikey.key_type == 'Account' -%}
-                        {%- with apikey.get_remaining_time() as remaining %}
-                        {%- if remaining < 864000 %}
-                        <img class="pull-left" src="{{ STATIC_URL }}icons/clock_red.png" rel="tooltip" title="Warning: low game time remaining!">
+                        {%- with apikey.get_remaining_time() as remaining -%}
+                        {%- if remaining < 864000 -%}
+                        <i class="icons-time-warning pull-left" rel="tooltip" title="Warning: low game time remaining!"></i>
                         <span class="low-game-time">
                           {% if remaining < 0 -%}
                           Expired!
-                          {%- else %}
+                          {%- else -%}
                           {{ remaining|duration_right }}
                           {%- endif %}
                         </span>
-                        {% else -%}
+                        {%- else -%}
                         {{ remaining|duration_right }}
-                        {%- endif %}
-                        {%- endwith %}
+                        {%- endif -%}
+                        {%- endwith -%}
                         {%- endif %}
                       </td>
                       <td class="c api-icon">
-                        {% if apikey.valid %}
-                        <a class="apikey-delete" data-toggle="modal" href="#delete-apikey-modal"><img src="{{ STATIC_URL }}icons/bin.png"></a>
-                        {% endif %}
+                        {% if apikey.valid -%}
+                        <a class="apikey-delete" data-toggle="modal" href="#delete-apikey-modal"><i class="icons-delete"></i></a>
+                        {%- endif %}
                       </td>
                     </tr>
                     {% endfor %}
@@ -358,12 +368,8 @@
                       <td>{{ skillplan.name }}</td>
                       <td class="c sp-time">{{ skillplan.get_visibility_display() }}</td>
                       <td class="c sp-trained">
-                        <a class="edit-skillplan" data-toggle="modal" href="#edit-skillplan-modal">
-                          <img src="{{ STATIC_URL }}icons/pencil.png">
-                        </a>
-                        <a class="delete-skillplan" data-toggle="modal" href="#delete-skillplan-modal">
-                          <img src="{{ STATIC_URL }}icons/bin.png">
-                        </a>
+                        <a class="edit-skillplan" data-toggle="modal" href="#edit-skillplan-modal"><i class="icons-edit"></i></a>
+                        <a class="delete-skillplan" data-toggle="modal" href="#delete-skillplan-modal"><i class="icons-delete"></i></a>
                       </td>
                     </tr>
                     {%- else %}
@@ -452,7 +458,7 @@
                 {% csrf_token %}
                 <input type="hidden" name="apikey_id" value="a" id="delete-keyid-input">
                 <div class="modal-header">
-                  <a class="close" data-dismiss="modal"><img src="{{ STATIC_URL }}icons/cross.png"></a>
+                  <a class="close" data-dismiss="modal"><i class="icons-close"></i></a>
                   <h3>Delete Confirmation</h3>
                 </div>
                 <div class="modal-body">
@@ -475,7 +481,7 @@
                 {% csrf_token %}
                 <input type="hidden" name="skillplan_id" value="" id="edit-skillplan-id">
                 <div class="modal-header">
-                  <a class="close" data-dismiss="modal"><img src="{{ STATIC_URL }}icons/cross.png"></a>
+                  <a class="close" data-dismiss="modal"><i class="icons-close"></i></a>
                   <h3>Edit Skill Plan</h3>
                 </div>
                 <div class="modal-body">
@@ -514,7 +520,7 @@
                 {% csrf_token %}
                 <input type="hidden" name="skillplan_id" value="" id="delete-skillplan-id">
                 <div class="modal-header">
-                  <a class="close" data-dismiss="modal"><img src="{{ STATIC_URL }}icons/cross.png"></a>
+                  <a class="close" data-dismiss="modal"><i class="icons-close"></i></a>
                   <h3>Delete Confirmation</h3>
                 </div>
                 <div class="modal-body">

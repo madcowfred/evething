@@ -48,9 +48,9 @@
                 <td class="c">{% if transaction.corp_wallet %}{{ transaction.corp_wallet.corporation.ticker }}{% endif %}</td>
                 <td>
                   {% if transaction.other_char -%}
-                  <img src="{{ STATIC_URL }}icons/user_gray.png">{{ transaction.other_char.name }}
+                  <i class="icons-other-player"></i> {{ transaction.other_char.name }}
                   {%- elif transaction.other_corp -%}
-                  <img src="{{ STATIC_URL }}icons/building.png">{{ transaction.other_corp.name }}
+                  <i class="icons-corporation"></i> {{ transaction.other_corp.name }}
                   {%- endif %}
                 </td>
                 <td>
