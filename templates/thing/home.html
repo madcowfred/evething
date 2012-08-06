@@ -78,10 +78,7 @@
         <span><strong>Total SP:</strong> {{ total_sp|commas }}</span>
         <span class="pull-right">
           <a href="#" onclick="screenshot_mode();">
-            <img src="{{ STATIC_URL }}icons/photo.png">
-          </a>
-          <a href="#" onclick="toggle_tooltips();">
-            <img src="{{ STATIC_URL }}icons/comments.png">
+            <img src="{{ STATIC_URL }}icons/silk/photo.png">
           </a>
         </span>
       </div>
@@ -128,7 +125,7 @@
           {% if character.z_notifications %}
           <div class="margin-half-top smaller">
             {% for notif in character.z_notifications %}
-            <img src="{{ STATIC_URL }}icons/{{ notif.icon }}.png" rel="tooltip" title="{{ notif.tooltip }}">
+            <i class="icons-{{ notif.icon }}" rel="tooltip" title="{{ notif.tooltip }}"></i>
             {% if notif.span_class %}<span class="{{ notif.span_class }}">{% endif %}
             {{ notif.text }}
             {% if notif.span_class %}</span>{% endif %}

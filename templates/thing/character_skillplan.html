@@ -63,7 +63,7 @@
                 {% if entry.sp_remap -%}
                 <td></td>
                 <td class="l" colspan="6">
-                  <img src="{{ STATIC_URL }}icons/user.png"> Remap to
+                  <i class="icons-skillplan-remap"></i> Remap to
                   <strong>{{ entry.sp_remap.int_stat }}</strong> Int /
                   <strong>{{ entry.sp_remap.mem_stat }}</strong> Mem /
                   <strong>{{ entry.sp_remap.per_stat }}</strong> Per /
@@ -74,17 +74,17 @@
                 {%- else %}
                 <td class="sp-trained">
                   {% if entry.z_trained -%}
-                  <img src="{{ STATIC_URL }}icons/tick.png">
+                  <i class="icons-success"></i>
                   {%- else %}
-                  <img src="{{ STATIC_URL }}icons/cross.png">
+                  <i class="icons-failure"></i>
                   {%- endif %}
                 </td>
                 <td class="l">
                   {{ entry.sp_skill.skill.item.name }} {{ entry.sp_skill.level|roman }}
                   {% if entry.z_injected -%}
-                  <img src="{{ STATIC_URL }}icons/book.png" class="pull-right" rel="tooltip" title="Skillbook is injected"</i>
+                  <i class="icons-skillplan-injected pull-right" rel="tooltip" title="Skillbook is injected"</i>
                   {%- elif entry.z_buy %}
-                  <img src="{{ STATIC_URL }}icons/money.png" class="pull-right" rel="tooltip" title="Skillbook is not injected"</i>
+                  <i class="icons-skillplan-unowned pull-right" rel="tooltip" title="Skillbook is not injected"</i>
                   {%- endif %}
                 </td>
                 <td class="sp-group">{{ entry.sp_skill.skill.item.item_group }}</td>

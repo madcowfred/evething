@@ -56,14 +56,14 @@
         $(".asset-expand").on('click', function() {
           var $this = $(this);
           
-          if (/add\./.test($this.attr('src'))) {
-            $this.attr('src', $this.attr('src').replace('add.', 'delete.'));
+          if ($this.hasClass('icons-expand')) {
+            $this.addClass('icons-collapse').removeClass('icons-expand');
             $($this.attr('data-target')).each(function() {
               $(this).show();
             });
           }
           else {
-            $this.attr('src', $this.attr('src').replace('delete.', 'add.'));
+            $this.addClass('icons-expand').removeClass('icons-collapse');
             $($this.attr('data-target')).each(function() {
               $(this).hide();
             });
@@ -73,7 +73,7 @@
         // bind the ship EFT fitting buttons
         $(".asset-eft").on('click', function() {
           var $this = $(this);
-          var data_target = $('img:nth-child(1)', $this.parent()).attr('data-target');
+          var data_target = $('i:nth-child(1)', $this.parent()).attr('data-target');
 
           var parts = $.trim($(this).parent().text()).split(' - ');
           var ship_type = $.trim(parts[0]);
@@ -164,14 +164,14 @@
               <tr>
                 <td class="assets-character">
                   {% if asset.corporation -%}
-                  <img src="{{ STATIC_URL }}icons/building.png"> {{ asset.corporation.name }}
+                  <i class="icons-corporation"></i> {{ asset.corporation.name }}
                   {%- else %}
-                  <img src="{{ STATIC_URL }}icons/user.png"> {{ asset.character.name }}
+                  <i class="icons-player"></i> {{ asset.character.name }}
                   {%- endif %}
                 </td>
                 <td class="assets-item">
                   {% if asset.z_contents -%}
-                  <img src="{{ STATIC_URL }}icons/add.png" class="asset-expand" data-target=".asset-{{ asset.id }}">
+                  <i class="icons-expand asset-expand" data-target=".asset-{{ asset.id }}"></i>
                   {%- endif %}
                   {% if show_item_icons -%}
                   <img src="http://image.eveonline.com/Type/{{ asset.z_item.id }}_32.png" height="20" width="20">
@@ -179,22 +179,22 @@
                   {{ asset.z_item.name }}
                   {%- if asset.name %} - <i>{{ asset.name }}</i>{% endif %}
                   {% if asset.z_contents and asset.z_item.item_group.category.name == 'Ship' -%}
-                  <img src="{{ STATIC_URL }}icons/wrench.png" class="pull-right asset-eft">
+                  <i class="icons-asset-eft pull-right asset-eft"></i>
                   {%- endif %}
                   {% if asset.z_blueprint == -1 -%}
-                  <img src="{{ STATIC_URL }}icons/page.png" class="pull-right" rel="tooltip" title="Blueprint original">
+                  <i class="icons-asset-bpo pull-right" rel="tooltip" title="Blueprint original"></i>
                   {%- elif asset.z_blueprint == -2 %}
-                  <img src="{{ STATIC_URL }}icons/page_copy.png" class="pull-right" rel="tooltip" title="Blueprint copy">
+                  <i class="icons-asset-bpc pull-right" rel="tooltip" title="Blueprint copy"></i>
                   {%- endif -%}
                 </td>
                 <td class="assets-type c">{{ asset.z_item.item_group.category.name }}</td>
                 <td class="assets-quantity r">{{ asset.quantity|commas }}</td>
                 <td class="assets-value r">
                   {% if asset.z_blueprint == -1 -%}
-                  <img src="{{ STATIC_URL }}icons/information.png" class="pull-left" rel="tooltip" title="BPOs use NPC base price because valuing blueprints is non-trivial">
+                  <i class="icons-information pull-left" rel="tooltip" title="BPOs use NPC base price because valuing blueprints is non-trivial"></i>
                   ~{{ asset.z_item.base_price|commas}}
                   {%- elif asset.z_blueprint == -2 -%}
-                  <img src="{{ STATIC_URL }}icons/information.png" class="pull-left" rel="tooltip" title="BPCs are valued at 0 because valuing blueprints is non-trivial">
+                  <i class="icons-information pull-left" rel="tooltip" title="BPCs are valued at 0 because valuing blueprints is non-trivial"></i>
                   0.00
                   {%- else -%}
                   {{ asset.z_item.sell_price|commas }}
@@ -207,26 +207,26 @@
               <tr class="asset-sneaky asset-{{ asset.id }}">
                 <td></td>
                 <td>
-                  <img src="{{ STATIC_URL }}icons/bullet_go.png">
-                  {%- if content.z_locked %}<img src="{{ STATIC_URL }}icons/lock.png">{% endif %}
+                  <i class="icons-indent"></i>
+                  {%- if content.z_locked %}<i class="icons-asset-locked"></i>{% endif %}
                   {% if show_item_icons -%}
                   <img src="http://image.eveonline.com/Type/{{ content.z_item.id }}_32.png" height="16" width="16">
                   {%- endif %}
                   {{ content.z_item.name }}
                   {%- if content.z_blueprint == -1 %}
-                  <img src="{{ STATIC_URL }}icons/page.png" class="pull-right" rel="tooltip" title="Blueprint original">
+                  <i class="icons-asset-bpo pull-right" rel="tooltip" title="Blueprint original"></i>
                   {%- elif content.z_blueprint == -2 %}
-                  <img src="{{ STATIC_URL }}icons/page_copy.png" class="pull-right" rel="tooltip" title="Blueprint copy">
+                  <i class="icons-asset-bpc pull-right" rel="tooltip" title="Blueprint copy"></i>
                   {%- endif %}
                 </td>
                 <td class="c">{{ content.z_group }}</td>
                 <td class="r">{{ content.quantity|commas }}</td>
                 <td class="assets-value r">
                   {% if content.z_blueprint == -1 -%}
-                  <img src="{{ STATIC_URL }}icons/information.png" class="pull-left" rel="tooltip" title="BPOs are valued at NPC base price because valuing blueprints is non-trivial">
+                  <i class="icons-information pull-left" rel="tooltip" title="BPOs are valued at NPC base price because valuing blueprints is non-trivial"></i>
                   ~{{ content.z_item.base_price|commas}}
                   {%- elif content.z_blueprint == -2 -%}
-                  <img src="{{ STATIC_URL }}icons/information.png" class="pull-left" rel="tooltip" title="BPCs are valued at 0 because valuing blueprints is non-trivial">
+                  <i class="icons-information" rel="tooltip" title="BPCs are valued at 0 because valuing blueprints is non-trivial"></i>
                   0.00
                   {%- else -%}
                   {{ content.z_item.sell_price|commas }}
@@ -250,7 +250,7 @@
 
       <div class="modal hide" id="eft-modal">
         <div class="modal-header">
-          <button type="button" class="close" data-dismiss="modal"><img src="{{ STATIC_URL }}icons/cross.png"></button>
+          <button type="button" class="close" data-dismiss="modal"><i class="icons-close"></i></button>
           <h3>EFT Fitting</h3>
         </div>
         <div class="modal-body">

@@ -39,39 +39,39 @@
                 <td class="con-date">{{ contract.date_issued }}</td>
                 <td class="con-issuer">
                   {% if contract.for_corp -%}
-                  <img src="{{ STATIC_URL }}icons/building.png">
+                  <i class="icons-corporation"></i>
                   {{ contract.issuer_corp.name }}
                   {%- else -%}
-                  <img src="{{ STATIC_URL }}icons/user.png">
+                  <i class="icons-player"></i>
                   {{ contract.issuer_char.name }}
                   {%- endif %}
                 </td>
                 <td class="c con-type">{{ contract.type }}</td>
                 <td class="con-status">
-                  <img src="{{ STATIC_URL }}icons/{{ contract.z_status_icon }}.png">
+                  <i class="icons-contracts-{{ contract.z_status_icon }}"></i>
                   {{ contract.status }}
                 </td>
                 <td class="con-issuer">
                   {% if contract.assignee_alliance -%}
-                  <img src="{{ STATIC_URL }}icons/group.png">
+                  <i class="icons-alliance"></i>
                   {{ contract.assignee_alliance.name }}
                   {%- elif contract.assignee_corp -%}
-                  <img src="{{ STATIC_URL }}icons/building.png">
+                  <i class="icons-corporation"></i>
                   {{ contract.assignee_corp.name }}
                   {%- elif contract.assignee_char -%}
-                  <img src="{{ STATIC_URL }}icons/user.png">
+                  <i class="icons-player"></i>
                   {{ contract.assignee_char.name }}
                   {%- else -%}
-                  <img src="{{ STATIC_URL }}icons/world.png">
+                  <i class="icons-contracts-public"></i>
                   Public
                   {%- endif %}
                 </td>
                 <td class="con-issuer">
                   {% if contract.acceptor_corp -%}
-                  <img src="{{ STATIC_URL }}icons/building.png">
+                  <i class="icons-corporation"></i>
                   {{ contract.acceptor_corp.name }}
                   {%- elif contract.acceptor_char -%}
-                  <img src="{{ STATIC_URL }}icons/user.png">
+                  <i class="icons-player"></i>
                   {{ contract.acceptor_char.name }}
                   {%- else -%}
                   --
