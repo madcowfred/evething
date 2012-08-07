@@ -276,8 +276,8 @@ def account_settings(request):
         profile.theme = theme
     
     icon_theme = request.POST.get('icon_theme', 'icons-default')
-    if [t for t in settings.ICON_THEMES if t[0] == theme]:
-        profile.theme = theme
+    if [t for t in settings.ICON_THEMES if t[0] == icon_theme]:
+        profile.icon_theme = icon_theme
 
     profile.show_clock = (request.POST.get('show_clock', '') == 'on')
     profile.show_item_icons = (request.POST.get('show_item_icons', '') == 'on')
