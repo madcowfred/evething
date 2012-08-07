@@ -971,7 +971,7 @@ def character_skillplan(request, character_name, skillplan_id):
     # If the user is logged in, check if the character belongs to them
     if request.user.is_authenticated():
         try:
-            character = Character.objects.get(name=character_name)#, apikeys__user=request.user)
+            character = Character.objects.get(Q(apikeys__user=request.user) | Q(config__is_public=True), name=character_name)
         except Character.DoesNotExist:
             pass
         else:
