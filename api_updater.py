@@ -533,16 +533,28 @@ class CharacterSheet(APIJob):
             
             del skills[char_skill.skill.item_id]
         
+        # Fetch skill objects
+        skill_map = Skill.objects.in_bulk(skills.keys())
+
         # Add any leftovers
+        new = []
         for skill_id, (points, level) in skills.items():
-            char_skill = CharacterSkill(
+            skill = skill_map.get(skill_id, None)
+            if skill is None:
+                logging.warn("Skill #%s apparently doesn't exist", skill_id)
+                continue
+
+            new.append(CharacterSkill(
                 character=self.character,
-                skill_id=skill_id,
+                skill=skill,
                 points=points,
                 level=level,
-            )
-            char_skill.save()
+            ))
         
+        # Insert new skills
+        if new:
+            CharacterSkill.objects.bulk_create(new)
+
         # Save character
         self.character.save()
         
