@@ -820,7 +820,7 @@ class Contracts(APIJob):
                         ))
 
                         contract.status = row.attrib['status']
-                        contract.date_acccepted = dateAccepted
+                        contract.date_accepted = dateAccepted
                         contract.acceptor_char = acceptor_char
                         contract.acceptor_corp = acceptor_corp
                         contract.date_completed = dateCompleted
