@@ -936,7 +936,7 @@ def character_common(request, char, public=True, anonymous=False):
 ANON_KEY_RE = re.compile(r'^[a-z0-9]+$')
 @login_required
 def character_settings(request, character_name):
-    chars = Character.objects.filter(name=character_name, apikeys__user=request.user)
+    chars = Character.objects.filter(name=character_name, apikeys__user=request.user).distinct()
     if chars.count() == 0:
         raise Http404
     char = chars[0]
@@ -970,11 +970,10 @@ def character_skillplan(request, character_name, skillplan_id):
 
     # If the user is logged in, check if the character belongs to them
     if request.user.is_authenticated():
-        try:
-            character = Character.objects.get(apikeys__user=request.user, name=character_name)
-        except Character.DoesNotExist:
-            pass
-        else:
+        chars = Character.objects.filter(name=character_name, apikeys__user=request.user).distinct()
+        if chars.count() == 1:
+            character = chars[0]
+
             public = False
             qs = Q(visibility=SkillPlan.GLOBAL_VISIBILITY) | Q(user=request.user) | (Q(user__in=user_ids) & Q(visibility=SkillPlan.PUBLIC_VISIBILITY))
             skillplan = get_object_or_404(SkillPlan.objects.prefetch_related('entries'), qs, pk=skillplan_id)
