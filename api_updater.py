@@ -820,8 +820,10 @@ class Contracts(APIJob):
                         ))
 
                         contract.status = row.attrib['status']
-                        contract.dateAccepted = dateAccepted
-                        contract.dateCompleted = dateCompleted
+                        contract.date_acccepted = dateAccepted
+                        contract.acceptor_char = acceptor_char
+                        contract.acceptor_corp = acceptor_corp
+                        contract.date_completed = dateCompleted
                         contract.save()
 
                 # Contract does not exist, make a new one
