@@ -10,7 +10,6 @@
     <link rel="icon" href="{{ STATIC_URL }}favicon.ico">
     <link rel="stylesheet" href="{{ STATIC_URL }}css/bootstrap.min.css">
     <link rel="stylesheet" href="{{ STATIC_URL }}css/bootstrap-responsive.min.css">
-    <link rel="stylesheet" href="{{ STATIC_URL }}css/icons-default.css">
     {% if user.is_authenticated() -%}
     {%- with user.get_profile() as profile -%}
     <link rel="stylesheet" href="{{ STATIC_URL }}css/{{ profile.theme }}.css">
