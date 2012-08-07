@@ -708,17 +708,7 @@ class Contracts(APIJob):
 
             # <row name="Tazuki Falorn" characterID="1759080617"/>
             for row in self.root.findall('result/rowset/row'):
-                id = int(row.attrib['characterID'])
-                name = row.attrib['name']
-
-                # Must be a corporation if it has 3 or more spaces
-                if name.count(' ') >= 3:
-                    new_corps.append(Corporation(
-                        id=id,
-                        name=name,
-                    ))
-                else:
-                    lookup_map[id] = name
+                lookup_map[int(row.attrib['characterID'])] = row.attrib['name']
 
         # Ugh, now go look up all of the damn names just in case they're corporations
         for id, name in lookup_map.items():
