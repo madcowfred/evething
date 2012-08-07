@@ -155,6 +155,7 @@ THEMES = [
 # Icon themes
 ICON_THEMES = [
     ('icons-default', '<Default>'),
+    ('icons-fugue-stars', 'Fugue/Stars'),
 ]
 
 
