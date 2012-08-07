@@ -1014,7 +1014,13 @@ def character_skillplan_common(request, character, skillplan, public=True, anony
 
     # Iterate over all entries in this skill plan
     entries = []
-    remap_stats = {}
+    remap_stats = dict(
+        int_attribute=character.int_attribute,
+        mem_attribute=character.mem_attribute,
+        per_attribute=character.per_attribute,
+        wil_attribute=character.wil_attribute,
+        cha_attribute=character.cha_attribute,
+    )
     total_remaining = 0.0
     for entry in skillplan.entries.select_related('sp_remap', 'sp_skill__skill__item__item_group'):
         # It's a remap entry
