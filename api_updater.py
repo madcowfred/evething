@@ -1285,7 +1285,7 @@ class WalletTransactions(APIJob):
             if self.fetch_api(url, params) is False or self.root is None:
                 break
             
-            start = time.time()
+            t0 = time.time()
 
             errors = 0
             
@@ -1304,21 +1304,21 @@ class WalletTransactions(APIJob):
                 client_ids.add(int(row.attrib['clientID']))
 
             t1 = time.time()
-            #logging.info('WalletTransactions bulk_data took %.3fs', t1 - start)
+            logging.info('WalletTransactions bulk_data took %.3fs', t1 - t0)
 
             t_map = {}
             for t in t_filter.filter(transaction_id__in=bulk_data.keys()).values('id', 'transaction_id', 'other_char_id', 'other_corp_id'):
                 t_map[t['transaction_id']] = t
 
             t2 = time.time()
-            #logging.info('WalletTransactions t_map took %.3fs', t2 - t1)
+            logging.info('WalletTransactions t_map took %.3fs', t2 - t1)
 
             # Fetch simplechars and corporations for clients
             simple_map = SimpleCharacter.objects.in_bulk(client_ids)
             corp_map = Corporation.objects.in_bulk(client_ids)
 
             t3 = time.time()
-            #logging.info('WalletTransactions client maps took %.3fs', t3 - t2)
+            logging.info('WalletTransactions client maps took %.3fs', t3 - t2)
             
             # Now iterate over the leftovers
             new = []
@@ -1379,6 +1379,7 @@ class WalletTransactions(APIJob):
                     price = Decimal(row.attrib['price'])
                     buy_transaction = (row.attrib['transactionType'] == 'buy')
 
+                    # Make sure the item typeID is valid
                     item = get_item(row.attrib['typeID'])
                     if item is None:
                         errors += 1
@@ -1416,12 +1417,13 @@ class WalletTransactions(APIJob):
                         logging.info('Updated other_ field of transaction %s', t['id'])
 
             t4 = time.time()
-            #logging.info('WalletTransactions loop took %.3fs', t4 - t3)
+            logging.info('WalletTransactions loop took %.3fs', t4 - t3)
             
             # Create any new transaction objects
-            t5 = time.time()
             Transaction.objects.bulk_create(new)
-            #logging.info('WalletTransactions insert took %.2fs', time.time() - t5)
+            
+            t5 = time.time()
+            logging.info('WalletTransactions insert took %.2fs', t5 - t4)
 
             # completed ok
             if errors == 0:
@@ -1433,7 +1435,7 @@ class WalletTransactions(APIJob):
             else:
                 break
         
-        #logging.info('WalletTransactions took %.2fs', time.time() - start)
+        logging.info('WalletTransactions took %.2fs', time.time() - start)
         
 
 # ---------------------------------------------------------------------------
