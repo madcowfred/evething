@@ -971,7 +971,7 @@ def character_skillplan(request, character_name, skillplan_id):
     # If the user is logged in, check if the character belongs to them
     if request.user.is_authenticated():
         try:
-            character = Character.objects.get(Q(apikeys__user=request.user) | Q(config__is_public=True), name=character_name)
+            character = Character.objects.get(apikeys__user=request.user, name=character_name)
         except Character.DoesNotExist:
             pass
         else:
@@ -998,12 +998,16 @@ def character_anonymous_skillplan(request, anon_key, skillplan_id):
     return character_skillplan_common(request, character, skillplan, anonymous=True)
 
 def character_skillplan_common(request, character, skillplan, public=True, anonymous=False):
+    implants_visible = not public
+
     # Check our GET variables
-    implants = request.GET.get('implants', '0')
+    implants = request.GET.get('implants', '')
     if implants.isdigit() and 0 <= int(implants) <= 5:
         implants = int(implants)
-    else:
+    elif implants_visible is True:
         implants = 0
+    else:
+        implants = 3
 
     show_trained = ('show_trained' in request.GET)
 
@@ -1012,8 +1016,7 @@ def character_skillplan_common(request, character, skillplan, public=True, anony
     for cs in CharacterSkill.objects.filter(character=character).select_related():
         learned[cs.skill.item.id] = cs
 
-    # Iterate over all entries in this skill plan
-    entries = []
+    # Initialise stat stuff
     remap_stats = dict(
         int_attribute=character.int_attribute,
         mem_attribute=character.mem_attribute,
@@ -1021,6 +1024,16 @@ def character_skillplan_common(request, character, skillplan, public=True, anony
         wil_attribute=character.wil_attribute,
         cha_attribute=character.cha_attribute,
     )
+    implant_stats = {}
+    for stat in ('int', 'mem', 'per', 'wil', 'cha'):
+        k = '%s_bonus' % (stat)
+        if implants == 0 and implants_visible is True:
+            implant_stats[k] = getattr(character, k)
+        else:
+            implant_stats[k] = implants
+
+    # Iterate over all entries in this skill plan
+    entries = []
     total_remaining = 0.0
     for entry in skillplan.entries.select_related('sp_remap', 'sp_skill__skill__item__item_group'):
         # It's a remap entry
@@ -1029,13 +1042,11 @@ def character_skillplan_common(request, character, skillplan, public=True, anony
             if entries and entries[-1].sp_remap is not None:
                 entries.pop()
 
-            remap_stats = dict(
-                int_attribute=entry.sp_remap.int_stat,
-                mem_attribute=entry.sp_remap.mem_stat,
-                per_attribute=entry.sp_remap.per_stat,
-                wil_attribute=entry.sp_remap.wil_stat,
-                cha_attribute=entry.sp_remap.cha_stat,
-            )
+            remap_stats['int_attribute'] = entry.sp_remap.int_stat
+            remap_stats['mem_attribute'] = entry.sp_remap.mem_stat
+            remap_stats['per_attribute'] = entry.sp_remap.per_stat
+            remap_stats['wil_attribute'] = entry.sp_remap.wil_stat
+            remap_stats['cha_attribute'] = entry.sp_remap.cha_stat
 
         # It's a skill entry
         if entry.sp_skill is not None:
@@ -1060,10 +1071,10 @@ def character_skillplan_common(request, character, skillplan, public=True, anony
 
             # Calculate SP/hr
             if remap_stats:
-                entry.z_sppm = skill.get_sppm_stats(remap_stats, implants)
+                entry.z_sppm = skill.get_sppm_stats(remap_stats, implant_stats)
             else:
                 if public is True or anonymous is True:
-                    entry.z_sppm = skill.get_sp_per_minute(character, force_bonus=implants)
+                    entry.z_sppm = skill.get_sp_per_minute(character, implants=implant_stats)
                 else:
                     entry.z_sppm = skill.get_sp_per_minute(character)
             
@@ -1083,6 +1094,7 @@ def character_skillplan_common(request, character, skillplan, public=True, anony
         {
             'show_trained': show_trained,
             'implants': implants,
+            'implants_visible': implants_visible,
             'anonymous': anonymous,
             'char': character,
             'skillplan': skillplan,

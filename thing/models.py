@@ -527,12 +527,12 @@ class Skill(models.Model):
 
         return pri + (sec / 2.0)
 
-    def get_sppm_stats(self, stats, bonus):
+    def get_sppm_stats(self, stats, implants):
         pri_attrs = Skill.ATTRIBUTE_MAP[self.primary_attribute]
         sec_attrs = Skill.ATTRIBUTE_MAP[self.secondary_attribute]
 
-        pri = stats.get(pri_attrs[0]) + bonus
-        sec = stats.get(sec_attrs[0]) + bonus
+        pri = stats.get(pri_attrs[0]) + implants.get(pri_attrs[1])
+        sec = stats.get(sec_attrs[0]) + implants.get(sec_attrs[1])
 
         return pri + (sec / 2.0)
 
