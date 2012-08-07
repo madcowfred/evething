@@ -23,6 +23,7 @@ from django.conf import settings
 
 from django.core.urlresolvers import reverse
 from django.db import connection, transaction, IntegrityError
+from django.db.backends import TransactionManagementError
 
 from thing.models import *
 from thing import queries
@@ -73,11 +74,20 @@ class APIWorker(threading.Thread):
             else:
                 start = time.time()
 
+                # Try running the job
                 try:
                     job.run()
+                # Something exploded, save the traceback
                 except:
                     logging.error('Trapped exception!', exc_info=sys.exc_info())
-                    transaction.rollback()
+
+                    # Try rolling back the transaction
+                    try:
+                        transaction.rollback()
+                    # Welp, something exploded again
+                    except TransactionManagementError:
+                        logging.error('Trapped another exception!', exc_info=sys.exc_info())
+                
                 else:
                     if settings.DEBUG:
                         with _debug_lock:
