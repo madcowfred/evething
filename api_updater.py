@@ -275,6 +275,7 @@ class APICheck(APIJob):
                     name=row.attrib['characterName'],
                     corporation=corp,
                 )
+                character.save()
             else:
                 character = characters[0]
             
