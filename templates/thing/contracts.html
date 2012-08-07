@@ -29,7 +29,7 @@
                 <th>Status</th>
                 <th>Assigned To</th>
                 <th>Accepted By</th>
-                <th>Accepted/Completed</th>
+                <th>Last Changed</th>
               </tr>
             </thead>
             <tbody>
@@ -78,10 +78,10 @@
                   {%- endif %}
                 </td>
                 <td class="con-date">
-                  {% if contract.status == 'InProgress' -%}
-                  {{ contract.date_accepted }}
-                  {%- elif contract.status == 'Completed' -%}
+                  {% if contract.date_completed -%}
                   {{ contract.date_completed }}
+                  {%- elif contract.date_accepted -%}
+                  {{ contract.date_accepted }}
                   {%- else -%}
                   --
                   {%- endif %}
