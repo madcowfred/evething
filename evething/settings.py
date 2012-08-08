@@ -108,8 +108,9 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.admin',
     'django.contrib.admindocs',
-    'mptt',
     'south',
+    'djcelery',
+    'mptt',
     'thing',
 )
 
@@ -143,6 +144,11 @@ SERVER_EMAIL = 'evething@wafflemonster.org'
 
 # Auth profile thing
 AUTH_PROFILE_MODULE = 'thing.UserProfile'
+
+
+# django-celery init
+import djcelery
+djcelery.setup_loader()
 
 
 # Themes

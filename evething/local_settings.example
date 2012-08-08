@@ -36,3 +36,6 @@ INTERNAL_IPS = (
 
 # Disable the password tab if you are using different auth
 DISABLE_ACCOUNT_PASSWORD = False
+
+# AMQP broker URL
+BROKER_URL = 'amqp://guest:guest@localhost:5672/'
