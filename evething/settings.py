@@ -146,11 +146,6 @@ SERVER_EMAIL = 'evething@wafflemonster.org'
 AUTH_PROFILE_MODULE = 'thing.UserProfile'
 
 
-# django-celery init
-import djcelery
-djcelery.setup_loader()
-
-
 # Themes
 THEMES = [
     ('theme-default', '<Default>'),
@@ -168,3 +163,26 @@ ICON_THEMES = [
 # load local settings
 from local_settings import *
 TEMPLATE_DEBUG = DEBUG
+
+
+# Celery setup
+import djcelery
+djcelery.setup_loader()
+
+# Periodic tasks
+from datetime import timedelta
+CELERYBEAT_SCHEDULE = {
+    # update history data every 4 hours
+    'history-updater': {
+        'task': 'thing.tasks.history_updater',
+        'schedule': timedelta(hours=4),
+        'args': (),
+    },
+
+    # update price data every 10 minutes
+    'price-updater': {
+        'task': 'thing.tasks.price_updater',
+        'schedule': timedelta(minutes=10),
+        'args': (),
+    },
+}
