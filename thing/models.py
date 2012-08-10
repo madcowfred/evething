@@ -822,6 +822,12 @@ class Contract(models.Model):
     buyout = models.DecimalField(max_digits=15, decimal_places=2)
     volume = models.DecimalField(max_digits=16, decimal_places=4)
 
+    def __unicode__(self):
+        if self.type == 'Contract':
+            return '#%d (%s, %s -> %s)' % (self.contract_id, self.type, self.start_station.short_name, self.end_station.short_name)
+        else:
+            return '#%d (%s, %s)' % (self.contract_id, self.type, self.start_station.short_name)
+
     class Meta:
         ordering = ('-date_issued',)
     
