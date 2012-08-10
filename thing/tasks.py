@@ -47,7 +47,6 @@ class APIJob:
     def __init__(self, apikey_id, taskstate_id):
         self.apikey = APIKey.objects.get(pk=apikey_id)
         self.taskstate = TaskState.objects.get(pk=taskstate_id)
-        #self.parameter_id = parameter_id
 
         self.root = None
         self.apicache = None
@@ -97,14 +96,8 @@ class APIJob:
             #logger.info('Fetching URL %s', full_url)
 
             # Fetch the URL
-            #start = time.time()
-            
             r = requests.post(full_url, params, headers=HEADERS, config={ 'max_retries': 1 })
             data = r.text
-            
-            #duration = time.time() - start
-            #self.api_total_time += duration
-            #logger.info('URL retrieved in %.2fs', duration)
 
             # If the status code is bad return False
             if not r.status_code == requests.codes.ok:
@@ -112,7 +105,6 @@ class APIJob:
 
         # Data is cached, use that
         else:
-            #logger.info('Cached URL %s', url)
             data = apicache.text
 
         # Parse the data if there is any
