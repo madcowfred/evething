@@ -31,12 +31,17 @@ HEADERS = {
 # number of rows to request per WalletTransactions call, max is 2560
 TRANSACTION_ROWS = 2560
 
+CHAR_NAME_URL = '/eve/CharacterName.xml.aspx'
+CORP_SHEET_URL = '/corp/CorporationSheet.xml.aspx'
+
+
 API_KEY_INFO_URL = ('api_key_info', '/account/APIKeyInfo.xml.aspx', 'et_low')
 
 CHAR_URLS = {
     APIKey.CHAR_ACCOUNT_STATUS_MASK: ('account_status', '/account/AccountStatus.xml.aspx', 'et_medium'),
     APIKey.CHAR_ASSET_LIST_MASK: ('asset_list', '/char/AssetList.xml.aspx', 'et_medium'),
     APIKey.CHAR_CHARACTER_SHEET_MASK: ('character_sheet', '/char/CharacterSheet.xml.aspx', 'et_medium'),
+    APIKey.CHAR_CONTRACTS_MASK: ('contracts', '/char/Contracts.xml.aspx', 'et_high'),
     APIKey.CHAR_LOCATIONS_MASK: ('locations', '/char/Locations.xml.aspx', 'et_medium'),
     APIKey.CHAR_MARKET_ORDERS_MASK: ('market_orders', '/char/MarketOrders.xml.aspx', 'et_medium'),
     APIKey.CHAR_SKILL_QUEUE_MASK: ('skill_queue', '/char/SkillQueue.xml.aspx', 'et_medium'),
@@ -46,6 +51,7 @@ CHAR_URLS = {
 CORP_URLS = {
     APIKey.CORP_ACCOUNT_BALANCE_MASK: ('account_balance', '/corp/AccountBalance.xml.aspx', 'et_medium'),
     APIKey.CHAR_ASSET_LIST_MASK: ('asset_list', '/char/AssetList.xml.aspx', 'et_medium'),
+    APIKey.CORP_CONTRACTS_MASK: ('contracts', '/corp/Contracts.xml.aspx', 'et_high'),
     APIKey.CORP_CORPORATION_SHEET_MASK: ('corporation_sheet', '/corp/CorporationSheet.xml.aspx', 'et_medium'),
     APIKey.CORP_MARKET_ORDERS_MASK: ('market_orders', '/corp/MarketOrders.xml.aspx', 'et_medium'),
     APIKey.CORP_WALLET_TRANSACTIONS_MASK: ('wallet_transactions', '/corp/WalletTransactions.xml.aspx', 'et_medium'),
@@ -681,6 +687,269 @@ def character_sheet(url, apikey_id, taskstate_id, character_id):
     
     # completed ok
     job.completed()
+
+# ---------------------------------------------------------------------------
+# Fetch contracts
+@task
+def contracts(url, apikey_id, taskstate_id, character_id):
+    job = APIJob(apikey_id, taskstate_id)
+    character = Character.objects.get(pk=character_id)
+    
+    now = datetime.datetime.now()
+
+    # Initialise for corporate query
+    if job.apikey.corp_character:
+        params = {}
+        c_filter = Contract.objects.filter(
+            Q(issuer_corp_id=character.corporation.id) |
+            Q(assignee_corp_id=character.corporation.id) |
+            Q(acceptor_corp_id=character.corporation.id),
+            for_corp=True,
+        )
+    
+    # Initialise for character query
+    else:
+        params = { 'characterID': character.id }
+        c_filter = Contract.objects.filter(
+            Q(issuer_char_id=character.id) |
+            Q(assignee_char_id=character.id) |
+            Q(acceptor_char_id=character.id),
+            for_corp=False,
+        )
+
+    if job.fetch_api(url, params) is False or job.root is None:
+        job.failed()
+        return
+
+
+    # Retrieve a list of this user's characters and corporations
+    user_chars = list(Character.objects.filter(apikeys__user=job.apikey.user).values_list('id', flat=True))
+    user_corps = list(APIKey.objects.filter(user=job.apikey.user).exclude(corp_character=None).values_list('corp_character__corporation__id', flat=True))
+
+
+    # First we need to get all of the acceptor and assignee IDs
+    contract_ids = set()
+    station_ids = set()
+    lookup_ids = set()
+    contract_rows = []
+    # <row contractID="58108507" issuerID="2004011913" issuerCorpID="751993277" assigneeID="401273477"
+    #      acceptorID="0" startStationID="60014917" endStationID="60003760" type="Courier" status="Outstanding"
+    #      title="" forCorp="0" availability="Private" dateIssued="2012-08-02 06:50:29" dateExpired="2012-08-09 06:50:29"
+    #      dateAccepted="" numDays="7" dateCompleted="" price="0.00" reward="3000000.00" collateral="0.00" buyout="0.00"
+    #      volume="10000"/>
+    for row in job.root.findall('result/rowset/row'):
+        if job.apikey.corp_character:
+            # corp keys don't care about non-corp orders
+            if row.attrib['forCorp'] == '0':
+                continue
+            # corp keys don't care about orders they didn't issue - another fun
+            # bug where corp keys see alliance contracts they didn't make  :ccp:
+            if job.apikey.corp_character.corporation.id not in (int(row.attrib['issuerCorpID']),
+                int(row.attrib['assigneeID']), int(row.attrib['acceptorID'])):
+                logging.info('Skipping non-corp contract :ccp:')
+                continue
+
+        # non-corp keys don't care about corp orders
+        if not job.apikey.corp_character and row.attrib['forCorp'] == '1':
+            continue
+
+        contract_ids.add(int(row.attrib['contractID']))
+        
+        station_ids.add(int(row.attrib['startStationID']))
+        station_ids.add(int(row.attrib['endStationID']))
+
+        lookup_ids.add(int(row.attrib['issuerID']))
+        lookup_ids.add(int(row.attrib['issuerCorpID']))
+
+        if row.attrib['assigneeID'] != '0':
+            lookup_ids.add(int(row.attrib['assigneeID']))
+        if row.attrib['acceptorID'] != '0':
+            lookup_ids.add(int(row.attrib['acceptorID']))
+        contract_rows.append(row)
+
+    # Fetch existing chars and corps
+    char_map = SimpleCharacter.objects.in_bulk(lookup_ids)
+    corp_map = Corporation.objects.in_bulk(lookup_ids)
+    alliance_map = Alliance.objects.in_bulk(lookup_ids)
+    new_ids = list(lookup_ids.difference(char_map, corp_map, alliance_map))
+
+    new_chars = []
+    new_corps = []
+
+    # Go look up all of those names now
+    lookup_map = {}
+    for i in range(0, len(new_ids), 250):
+        params = { 'ids': ','.join(map(str, new_ids[i:i+250])) }
+        if job.fetch_api(CHAR_NAME_URL, params, use_auth=False) is False or job.root is None:
+            logger.warn('uh-oh')
+            return
+
+        # <row name="Tazuki Falorn" characterID="1759080617"/>
+        for row in job.root.findall('result/rowset/row'):
+            lookup_map[int(row.attrib['characterID'])] = row.attrib['name']
+
+    # Ugh, now go look up all of the damn names just in case they're corporations
+    for id, name in lookup_map.items():
+        params = { 'corporationID': id }
+        # Not a corporation
+        if job.fetch_api(CORP_SHEET_URL, params, use_auth=False, log_error=False) is False or job.root is None:
+            new_chars.append(SimpleCharacter(
+                id=id,
+                name=name,
+            ))
+        else:
+            new_corps.append(Corporation(
+                id=id,
+                name=name,
+                ticker=job.root.find('result/ticker').text,
+            ))
+
+    # Now we can go create all of those new objects
+    char_map = SimpleCharacter.objects.in_bulk([c.id for c in new_chars])
+    new_chars = [c for c in new_chars if c.id not in char_map]
+    SimpleCharacter.objects.bulk_create(new_chars)
+
+    corp_map = Corporation.objects.in_bulk([c.id for c in new_corps])
+    new_corps = [c for c in new_corps if c.id not in corp_map]
+    Corporation.objects.bulk_create(new_corps)
+
+
+    # And fetch existing data yet again
+    char_map = SimpleCharacter.objects.in_bulk(lookup_ids)
+    corp_map = Corporation.objects.in_bulk(lookup_ids)
+    station_map = Station.objects.in_bulk(station_ids)
+
+    # Fetch all existing contracts
+    c_map = {}
+    for contract in c_filter.filter(contract_id__in=contract_ids):
+        c_map[contract.contract_id] = contract
+
+
+    # Finally, after all of that other bullshit, we can actually deal with
+    # our goddamn contract rows
+    new_contracts = []
+    new_events = []
+
+    # <row contractID="58108507" issuerID="2004011913" issuerCorpID="751993277" assigneeID="401273477"
+    #      acceptorID="0" startStationID="60014917" endStationID="60003760" type="Courier" status="Outstanding"
+    #      title="" forCorp="0" availability="Private" dateIssued="2012-08-02 06:50:29" dateExpired="2012-08-09 06:50:29"
+    #      dateAccepted="" numDays="7" dateCompleted="" price="0.00" reward="3000000.00" collateral="0.00" buyout="0.00"
+    #      volume="10000"/>
+    for row in contract_rows:
+        contractID = int(row.attrib['contractID'])
+        
+        assigneeID = int(row.attrib['assigneeID'])
+        assignee_char = None
+        assignee_corp = None
+        assignee_alliance = None
+        if assigneeID in alliance_map:
+            assignee_alliance = alliance_map[assigneeID]
+        if assigneeID in corp_map:
+            assignee_corp = corp_map[assigneeID]
+        if assigneeID in char_map:
+            assignee_char = char_map[assigneeID]
+
+        acceptorID = int(row.attrib['acceptorID'])
+        if acceptorID == 0:
+            acceptor_char = None
+            acceptor_corp = None
+        elif acceptorID in char_map:
+            acceptor_char = char_map[acceptorID]
+            acceptor_corp = None
+        else:
+            acceptor_char = None
+            acceptor_corp = corp_map[acceptorID]
+
+        dateIssued = parse_api_date(row.attrib['dateIssued'])
+        dateExpired = parse_api_date(row.attrib['dateExpired'])
+        
+        dateAccepted = row.attrib['dateAccepted']
+        if dateAccepted:
+            dateAccepted = parse_api_date(dateAccepted)
+        else:
+            dateAccepted = None
+
+        dateCompleted = row.attrib['dateCompleted']
+        if dateCompleted:
+            dateCompleted = parse_api_date(dateCompleted)
+        else:
+            dateCompleted = None
+
+        type = row.attrib['type']
+        if type == 'ItemExchange':
+            type = 'Item Exchange'
+
+        contract = c_map.get(contractID, None)
+        # Contract exists, maybe update stuff
+        if contract is not None:
+            if contract.status != row.attrib['status']:
+                text = "Contract %s changed status from '%s' to '%s'" % (
+                    contract, contract.status, row.attrib['status'])
+                
+                new_events.append(Event(
+                    user_id=job.apikey.user.id,
+                    issued=now,
+                    text=text,
+                ))
+
+                contract.status = row.attrib['status']
+                contract.date_accepted = dateAccepted
+                contract.acceptor_char = acceptor_char
+                contract.acceptor_corp = acceptor_corp
+                contract.date_completed = dateCompleted
+                contract.save()
+
+        # Contract does not exist, make a new one
+        else:
+            contract = Contract(
+                contract_id=contractID,
+                issuer_char=char_map[int(row.attrib['issuerID'])],
+                issuer_corp=corp_map[int(row.attrib['issuerCorpID'])],
+                assignee_char=assignee_char,
+                assignee_corp=assignee_corp,
+                assignee_alliance=assignee_alliance,
+                acceptor_char=acceptor_char,
+                acceptor_corp=acceptor_corp,
+                start_station=station_map[int(row.attrib['startStationID'])],
+                end_station=station_map[int(row.attrib['endStationID'])],
+                type=type,
+                status=row.attrib['status'],
+                title=row.attrib['title'],
+                for_corp=(row.attrib['forCorp'] == '1'),
+                public=(row.attrib['availability'].lower() == 'public'),
+                date_issued=dateIssued,
+                date_expired=dateExpired,
+                date_accepted=dateAccepted,
+                date_completed=dateCompleted,
+                num_days=int(row.attrib['numDays']),
+                price=Decimal(row.attrib['price']),
+                reward=Decimal(row.attrib['reward']),
+                collateral=Decimal(row.attrib['collateral']),
+                buyout=Decimal(row.attrib['buyout']),
+                volume=Decimal(row.attrib['volume']),
+            )
+            new_contracts.append(contract)
+
+            if contract.status in ('Outstanding', 'InProgress'):
+                if assigneeID in user_chars or assigneeID in user_corps:
+                    text = "Contract %s was created from '%s' to '%s' with status '%s'" % (
+                        contract, contract.get_issuer_name(), contract.get_assignee_name(),
+                        contract.status)
+                    
+                    new_events.append(Event(
+                        user_id=job.apikey.user.id,
+                        issued=now,
+                        text=text,
+                    ))
+
+    
+    # And save the damn things
+    Contract.objects.bulk_create(new_contracts)
+    Event.objects.bulk_create(new_events)
+
+    
+    # completed ok
+    job.apicache.completed()
 
 # ---------------------------------------------------------------------------
 # Corporation sheet
