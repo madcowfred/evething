@@ -92,6 +92,10 @@ class APIJob:
     # ---------------------------------------------------------------------------
     # Perform an API request and parse the returned XML via ElementTree
     def fetch_api(self, url, params, use_auth=True, log_error=True):
+        self.taskstate.state = TaskState.ACTIVE_STATE
+        self.taskstate.mod_time = datetime.datetime.now()
+        self.taskstate.save()
+
         # Add the API key information
         if use_auth:
             params['keyID'] = self.apikey.keyid
