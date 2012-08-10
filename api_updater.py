@@ -199,7 +199,6 @@ class APIJob:
 
         self.apicache = apicache
 
-        #return (root, times, apicache)
         return True
 
 # ---------------------------------------------------------------------------
@@ -209,20 +208,6 @@ class APICheck(APIJob):
         if self.fetch_api(API_INFO_URL, {}) is False or self.root is None:
             return
 
-        # Check for errors
-        #err = root.find('error')
-        #if err is not None:
-            # 202/203/204/205/210/212 Authentication failure
-            # 207 Not available for NPC corporations
-            # 220 Invalid corporate key
-            # 222 Key has expired
-            # 223 Legacy API key
-        #    if err.attrib['code'] in ('202', '203', '204', '205', '210', '212', '207', '220', '222', '223'):
-        #        self.apikey.valid = False
-        #        self.apikey.save()
-
-        #    return
-        
         # Find the key node
         key_node = self.root.find('result/key')
         # Update access mask
@@ -1581,7 +1566,7 @@ class APIUpdater:
                 self._job_queue.put(job)
 
                 # Fetch wallet transactions
-                for corp_wallet in corporation.corpwallet_set.all():#CorpWallet.objects.filter(corporation=corporation):
+                for corp_wallet in corporation.corpwallet_set.all():
                     job = WalletTransactions(apikey, character)
                     job._corp_wallet = corp_wallet
                     self._job_queue.put(job)

@@ -108,8 +108,9 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.admin',
     'django.contrib.admindocs',
-    'mptt',
     'south',
+    'djcelery',
+    'mptt',
     'thing',
 )
 
@@ -162,3 +163,50 @@ ICON_THEMES = [
 # load local settings
 from local_settings import *
 TEMPLATE_DEBUG = DEBUG
+
+
+# Celery setup
+import djcelery
+djcelery.setup_loader()
+
+# Rename the default queue
+from kombu import Exchange, Queue
+
+CELERY_DEFAULT_QUEUE = 'et_medium'
+CELERY_QUEUES = (
+    Queue('et_medium', Exchange('et_medium'), routing_key='et_medium'),
+    Queue('et_high', Exchange('et_high'), routing_key='et_high'),
+    Queue('et_low', Exchange('et_low'), routing_key='et_low'),
+)
+
+# Periodic tasks
+from datetime import timedelta
+CELERYBEAT_SCHEDULE = {
+    # spawn jobs every 30 seconds
+    'spawn-jobs': {
+        'task': 'thing.tasks.spawn_jobs',
+        'schedule': timedelta(seconds=30),
+        'args': (),
+    },
+
+    # clean up the API cache every 15 minutes
+    'apicache-cleanup': {
+        'task': 'thing.tasks.apicache_cleanup',
+        'schedule': timedelta(minutes=15),
+        'args': (),
+    },
+
+    # update history data every 4 hours
+    'history-updater': {
+        'task': 'thing.tasks.history_updater',
+        'schedule': timedelta(hours=4),
+        'args': (),
+    },
+
+    # update price data every 15 minutes
+    'price-updater': {
+        'task': 'thing.tasks.price_updater',
+        'schedule': timedelta(minutes=15),
+        'args': (),
+    },
+}
