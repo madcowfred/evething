@@ -68,7 +68,6 @@ class APIKey(models.Model):
     CHAR_WALLET_TRANSACTIONS_MASK = 4194304
 
     MASKS_CHAR = (
-        #API_KEY_INFO_MASK,
         CHAR_ACCOUNT_STATUS_MASK,
         CHAR_ASSET_LIST_MASK,
         CHAR_CHARACTER_SHEET_MASK,
@@ -120,7 +119,9 @@ class APIKey(models.Model):
             return 0
 
     def get_masks(self):
-        if self.key_type in (APIKey.ACCOUNT_TYPE, APIKey.CHARACTER_TYPE):
+        if self.access_mask is None:
+            return []
+        elif self.key_type in (APIKey.ACCOUNT_TYPE, APIKey.CHARACTER_TYPE):
             return [mask for mask in self.MASKS_CHAR if self.access_mask & mask == mask]
         elif self.key_type == APIKey.CORPORATION_TYPE:
             return [mask for mask in self.MASKS_CORP if self.access_mask & mask == mask]
