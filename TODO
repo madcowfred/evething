@@ -40,12 +40,16 @@
 * Contracts:
   - Work out how in the hell to track them for Trade
   - Summary table similar to orders
+  - Make a proper __unicode__ method
+    = Courier types return "#id (type, start_station -> end_station)"
+    = Other types return "#id (type, start_station)"
 
 * Home:
   - Fix several mobile browser bugs:
     = The body: padding-top CSS is not required on Android default browser at the very least
     = Navbar links disappear on Android default browser
     = Home page does not do responsive things with themes (slate at least)
+  - Add an option to hide corp wallet/event log sections
 
 * Market Scan:
   - Add different scan types (assets+blueprints takes forever):
@@ -54,6 +58,7 @@
     = [All]
 
 * Skill Plans
+  - Display partial times for partial skills (including training)
   - Implement skill plan creation (hahahaha oh god)
     = Skill model needs to track pre-requisites
     = Use AJAX and modal windows for add/delete/re-order?
@@ -109,3 +114,13 @@
 
 * price_updater:
   - Add support for other sources of market data
+
+* tasks:
+  - Create a new_api_key task to do:
+    = APIKeyInfo to verify key/get characters
+    = AccountInfo for game time
+    = CharacterSheet
+    = SkillQueue
+    = Standings
+    === everything else can be left for the general queue
+  - Add all of the rest of the api_updater horrors in as tasks
