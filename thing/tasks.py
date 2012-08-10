@@ -36,6 +36,7 @@ CHAR_URLS = {
     APIKey.CHAR_CHARACTER_SHEET_MASK: ('character_sheet', '/char/CharacterSheet.xml.aspx', 'et_medium'),
     APIKey.CHAR_MARKET_ORDERS_MASK: ('market_orders', '/char/MarketOrders.xml.aspx', 'et_medium'),
     APIKey.CHAR_SKILL_QUEUE_MASK: ('skill_queue', '/char/SkillQueue.xml.aspx', 'et_medium'),
+    APIKey.CHAR_STANDINGS_MASK: ('standings', '/char/Standings.xml.aspx', 'et_medium'),
 }
 CORP_URLS = {
     APIKey.CORP_MARKET_ORDERS_MASK: ('market_orders', '/corp/MarketOrders.xml.aspx', 'et_medium'),
@@ -679,6 +680,89 @@ def skill_queue(url, apikey_id, taskstate_id, character_id):
     # Create any new SkillQueue objects
     if new:
         SkillQueue.objects.bulk_create(new)
+
+    # completed ok
+    job.completed()
+
+# ---------------------------------------------------------------------------
+# Standings
+@task
+def standings(url, apikey_id, taskstate_id, character_id):
+    job = APIJob(apikey_id, taskstate_id)
+    character = Character.objects.get(pk=character_id)
+
+    # Fetch the API data
+    params = { 'characterID': character.id }
+    if job.fetch_api(url, params) is False or job.root is None:
+        job.failed()
+        return
+    
+    # Build data maps
+    corp_map = {}
+    for cs in CorporationStanding.objects.filter(character=character):
+        corp_map[cs.corporation_id] = cs
+
+    faction_map = {}
+    for fs in FactionStanding.objects.filter(character=character):
+        faction_map[fs.faction_id] = fs
+
+    # Iterate over rowsets
+    for rowset in job.root.findall('result/characterNPCStandings/rowset'):
+        name = rowset.attrib['name']
+
+        # NYI: Agents
+        if name == 'agents':
+            continue
+
+        # Corporations
+        elif name == 'NPCCorporations':
+            new = []
+            for row in rowset.findall('row'):
+                id = int(row.attrib['fromID'])
+                standing = Decimal(row.attrib['standing'])
+
+                cs = corp_map.get(id, None)
+                # Standing doesn't exist, make a new one
+                if cs is None:
+                    cs = CorporationStanding(
+                        character_id=character.id,
+                        corporation_id=id,
+                        standing=standing,
+                    )
+                    new.append(cs)
+                # Exists, check for standings change
+                else:
+                    if cs.standing != standing:
+                        cs.standing = standing
+                        cs.save()
+
+            if new:
+                CorporationStanding.objects.bulk_create(new)
+
+        # Factions
+        elif name == 'factions':
+            new = []
+            for row in rowset.findall('row'):
+                id = int(row.attrib['fromID'])
+                standing = Decimal(row.attrib['standing'])
+
+                fs = faction_map.get(id, None)
+                # Standing doesn't exist, make a new one
+                if fs is None:
+                    fs = FactionStanding(
+                        character_id=character.id,
+                        faction_id=id,
+                        standing=standing,
+                    )
+                    new.append(fs)
+                # Exists, check for standings change
+                else:
+                    if fs.standing != standing:
+                        fs.standing = standing
+                        fs.save()
+
+            if new:
+                FactionStanding.objects.bulk_create(new)
 
     # completed ok
     job.completed()
