@@ -186,6 +186,9 @@ CELERYBEAT_SCHEDULE = {
     'spawn-jobs': {
         'task': 'thing.tasks.spawn_jobs',
         'schedule': timedelta(seconds=30),
+        'options': {
+            'expires': 25,
+        }
         'args': (),
     },
 
