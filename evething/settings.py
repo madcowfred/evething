@@ -169,9 +169,26 @@ TEMPLATE_DEBUG = DEBUG
 import djcelery
 djcelery.setup_loader()
 
+# Rename the default queue
+from kombu import Exchange, Queue
+
+CELERY_DEFAULT_QUEUE = 'et_medium'
+CELERY_QUEUES = (
+    Queue('et_medium', Exchange('et_medium'), routing_key='et_medium'),
+    Queue('et_high', Exchange('et_high'), routing_key='et_high'),
+    Queue('et_low', Exchange('et_low'), routing_key='et_low'),
+)
+
 # Periodic tasks
 from datetime import timedelta
 CELERYBEAT_SCHEDULE = {
+    # spawn jobs every 1 minute
+    'spawn-jobs': {
+        'task': 'thing.tasks.spawn_jobs',
+        'schedule': timedelta(seconds=30),
+        'args': (),
+    },
+
     # update history data every 4 hours
     'history-updater': {
         'task': 'thing.tasks.history_updater',
@@ -179,10 +196,10 @@ CELERYBEAT_SCHEDULE = {
         'args': (),
     },
 
-    # update price data every 10 minutes
+    # update price data every 15 minutes
     'price-updater': {
         'task': 'thing.tasks.price_updater',
-        'schedule': timedelta(minutes=10),
+        'schedule': timedelta(minutes=15),
         'args': (),
     },
 }
