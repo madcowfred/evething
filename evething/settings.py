@@ -182,12 +182,19 @@ CELERY_QUEUES = (
 # Periodic tasks
 from datetime import timedelta
 CELERYBEAT_SCHEDULE = {
-    # spawn jobs every 1 minute
+    # spawn jobs every 30 seconds
     'spawn-jobs': {
         'task': 'thing.tasks.spawn_jobs',
         'schedule': timedelta(seconds=30),
         'args': (),
     },
+
+    # clean up the API cache every 15 minutes
+    'apicache-cleanup': {
+        'task': 'thing.tasks.apicache_cleanup',
+        'schedule': timedelta(minutes=15),
+        'args': (),
+    }
 
     # update history data every 4 hours
     'history-updater': {

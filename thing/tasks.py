@@ -39,6 +39,8 @@ CHAR_URLS = {
     APIKey.CHAR_STANDINGS_MASK: ('standings', '/char/Standings.xml.aspx', 'et_medium'),
 }
 CORP_URLS = {
+    APIKey.CORP_ACCOUNT_BALANCE_MASK: ('account_balance', '/corp/AccountBalance.xml.aspx', 'et_medium'),
+    APIKey.CORP_CORPORATION_SHEET_MASK: ('corporation_sheet', '/corp/CorporationSheet.xml.aspx', 'et_medium'),
     APIKey.CORP_MARKET_ORDERS_MASK: ('market_orders', '/corp/MarketOrders.xml.aspx', 'et_medium'),
 }
 
@@ -147,6 +149,11 @@ class APIJob:
 
         return True
 
+# ---------------------------------------------------------------------------
+# Periodic task to cleanup expired APICache objects
+def apicache_cleanup():
+    now = datetime.datetime.utcnow()
+    APICache.objects.filter(cached_until__lt=now).delete()
 
 # ---------------------------------------------------------------------------
 # Periodic task to spawn API jobs
@@ -286,6 +293,51 @@ def spawn_jobs():
                         args=(url, apikey.id, taskstate.id, character.id),
                         queue=queue,
                     )
+
+# ---------------------------------------------------------------------------
+# Account balances
+@task
+def account_balance(url, apikey_id, taskstate_id, character_id):
+    job = APIJob(apikey_id, taskstate_id)
+    #character = Character.objects.get(pk=character_id)
+
+    params = { 'characterID': job.apikey.corp_character_id }
+    if job.fetch_api(url, params) is False or job.root is None:
+        job.failed()
+        return
+    
+    corporation = job.apikey.corp_character.corporation
+    wallet_map = {}
+    for cw in corporation.corpwallet_set.all():
+        wallet_map[cw.account_key] = cw
+    
+    new = []
+    for row in job.root.findall('result/rowset/row'):
+        accountID = int(row.attrib['accountID'])
+        accountKey = int(row.attrib['accountKey'])
+        balance = Decimal(row.attrib['balance'])
+        
+        wallet = wallet_map.get(accountKey, None)
+        # If the wallet exists, update the balance
+        if wallet is not None:
+            if balance != wallet.balance:
+                wallet.balance = balance
+                wallet.save()
+        # Otherwise just make a new one
+        else:
+            new.append(CorpWallet(
+                account_id=accountID,
+                corporation=corporation,
+                account_key=accountKey,
+                description='?',
+                balance=balance,
+            ))
+    
+    if new:
+        CorpWallet.objects.bulk_create(new)
+
+    # completed ok
+    job.completed()
 
 # ---------------------------------------------------------------------------
 # Account status
@@ -500,6 +552,69 @@ def character_sheet(url, apikey_id, taskstate_id, character_id):
     
     # completed ok
     job.completed()
+
+# ---------------------------------------------------------------------------
+# Corporation sheet
+@task
+def corporation_sheet(url, apikey_id, taskstate_id, character_id):
+    job = APIJob(apikey_id, taskstate_id)
+
+    params = { 'characterID': job.apikey.corp_character_id }
+    if job.fetch_api(url, params) is False or job.root is None:
+        job.failed()
+        return
+    
+    corporation = job.apikey.corp_character.corporation
+    
+    corporation.ticker = job.root.findtext('result/ticker')
+
+    allianceID = job.root.findtext('result/allianceID')
+    if allianceID == '0':
+        allianceID = None
+    corporation.alliance_id = allianceID
+    
+    errors = 0
+    for rowset in job.root.findall('result/rowset'):
+        # Divisions
+        if rowset.attrib['name'] == 'divisions':
+            rows = rowset.findall('row')
+
+            corporation.division1 = rows[0].attrib['description']
+            corporation.division2 = rows[1].attrib['description']
+            corporation.division3 = rows[2].attrib['description']
+            corporation.division4 = rows[3].attrib['description']
+            corporation.division5 = rows[4].attrib['description']
+            corporation.division6 = rows[5].attrib['description']
+            corporation.division7 = rows[6].attrib['description']
+
+        # Wallet divisions
+        elif rowset.attrib['name'] == 'walletDivisions':
+            wallet_map = {}
+            for cw in CorpWallet.objects.filter(corporation=corporation):
+                wallet_map[cw.account_key] = cw
+            
+            for row in rowset.findall('row'):
+                wallet = wallet_map.get(int(row.attrib['accountKey']), None)
+                
+                # If the wallet exists, update the description
+                if wallet is not None:
+                    if wallet.description != row.attrib['description']:
+                        wallet.description = row.attrib['description']
+                        wallet.save()
+                
+                # If it doesn't exist just log an error - we can't create the
+                # CorpWallet object without an accountID
+                else:
+                    logger.warn("No matching CorpWallet object for corpID=%s accountkey=%s", corporation.id, row.attrib['accountKey'])
+                    errors += 1
+
+    corporation.save()
+    
+    # completed ok
+    if errors == 0:
+        job.completed()
+    else:
+        job.failed()
 
 # ---------------------------------------------------------------------------
 # Market orders
