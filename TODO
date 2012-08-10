@@ -96,6 +96,9 @@
 
 * documentation:
   - Pages need to explain what the hell they do
+  - Celery:
+    = python manage.py celery worker -B -E -l info -Q et_medium,et_low -c 4
+    = python manage.py celery worker -E -l info -Q et_high,et_medium -c 1
 
 * misc:
   - Get some less awful themes, oh dear
@@ -114,13 +117,3 @@
 
 * price_updater:
   - Add support for other sources of market data
-
-* tasks:
-  - Create a new_api_key task to do:
-    = APIKeyInfo to verify key/get characters
-    = AccountInfo for game time
-    = CharacterSheet
-    = SkillQueue
-    = Standings
-    === everything else can be left for the general queue
-  - Add all of the rest of the api_updater horrors in as tasks

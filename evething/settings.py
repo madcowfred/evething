@@ -188,7 +188,7 @@ CELERYBEAT_SCHEDULE = {
         'schedule': timedelta(seconds=30),
         'options': {
             'expires': 25,
-        }
+        },
         'args': (),
     },
 
