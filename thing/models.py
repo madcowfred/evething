@@ -54,7 +54,35 @@ class APIKey(models.Model):
     ACCOUNT_TYPE = 'Account'
     CHARACTER_TYPE = 'Character'
     CORPORATION_TYPE = 'Corporation'
-    
+
+    API_KEY_INFO_MASK = 0
+
+    CHAR_ACCOUNT_STATUS_MASK = 33554432
+    CHAR_ASSET_LIST_MASK = 2
+    CHAR_CHARACTER_SHEET_MASK = 8
+    CHAR_CONTRACTS_MASK = 67108864
+    CHAR_LOCATIONS_MASK = 134217728
+    CHAR_MARKET_ORDERS_MASK = 4096
+    CHAR_SKILL_QUEUE_MASK = 262144
+    CHAR_WALLET_JOURNAL_MASK = 2097152
+    CHAR_WALLET_TRANSACTIONS_MASK = 4194304
+
+    MASKS_CHAR = (
+        #API_KEY_INFO_MASK,
+        CHAR_ACCOUNT_STATUS_MASK,
+        CHAR_ASSET_LIST_MASK,
+        CHAR_CHARACTER_SHEET_MASK,
+        CHAR_CONTRACTS_MASK,
+        CHAR_LOCATIONS_MASK,
+        CHAR_MARKET_ORDERS_MASK,
+        CHAR_SKILL_QUEUE_MASK,
+        CHAR_WALLET_TRANSACTIONS_MASK,
+    )
+
+    MASKS_CORP = (
+        API_KEY_INFO_MASK,
+    )
+
     user = models.ForeignKey(User)
     
     keyid = models.IntegerField(verbose_name='Key ID')
@@ -79,6 +107,9 @@ class APIKey(models.Model):
     def __unicode__(self):
         return '#%s, keyId: %s (%s)' % (self.id, self.keyid, self.key_type)
 
+    def get_key_info(self):
+        return '%s,%s' % (self.keyid, self.vcode)
+
     def get_masked_vcode(self):
         return '%s%s%s' % (self.vcode[:4], '*' * 16, self.vcode[-4:])
 
@@ -87,6 +118,48 @@ class APIKey(models.Model):
             return max((self.paid_until - datetime.datetime.utcnow()).total_seconds(), 0)
         else:
             return 0
+
+    def get_masks(self):
+        if self.key_type in (APIKey.ACCOUNT_TYPE, APIKey.CHARACTER_TYPE):
+            return [mask for mask in self.MASKS_CHAR if self.access_mask & mask == mask]
+        elif self.key_type == APIKey.CORPORATION_TYPE:
+            return [mask for mask in self.MASKS_CORP if self.access_mask & mask == mask]
+        else:
+            return []
+
+# ---------------------------------------------------------------------------
+
+class TaskState(models.Model):
+    READY_STATE = 0
+    QUEUED_STATE = 1
+    ACTIVE_STATE = 2
+    STATES = (
+        (READY_STATE, 'Ready'),
+        (QUEUED_STATE, 'Queued'),
+        (ACTIVE_STATE, 'Active'),
+    )
+
+    key_info = models.CharField(max_length=80, db_index=True)
+    url = models.CharField(max_length=64, db_index=True)
+    parameter = models.IntegerField()
+    state = models.IntegerField(db_index=True)
+
+    mod_time = models.DateTimeField(db_index=True)
+    next_time = models.DateTimeField(db_index=True)
+
+    # If we're ready to queue, change stuff and return True
+    def queue_now(self, now):
+        # ready and next time is older than now OR
+        # active and mod time is older than 5 minutes (probably a broken job)
+        if (self.state == self.READY_STATE and self.next_time <= now) or \
+           (self.state == self.ACTIVE_STATE and (self.mod_time + datetime.timedelta(minutes=5)) <= now):
+            self.mod_time = now
+            self.state = self.QUEUED_STATE
+            self.save()
+
+            return True
+
+        return False
 
 # ---------------------------------------------------------------------------
 # API cache entries
