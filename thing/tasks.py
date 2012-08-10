@@ -151,6 +151,7 @@ class APIJob:
 
 # ---------------------------------------------------------------------------
 # Periodic task to cleanup expired APICache objects
+@task
 def apicache_cleanup():
     now = datetime.datetime.utcnow()
     APICache.objects.filter(cached_until__lt=now).delete()
