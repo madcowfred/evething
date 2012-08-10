@@ -199,7 +199,6 @@ class APIJob:
 
         self.apicache = apicache
 
-        #return (root, times, apicache)
         return True
 
 # ---------------------------------------------------------------------------
@@ -209,20 +208,6 @@ class APICheck(APIJob):
         if self.fetch_api(API_INFO_URL, {}) is False or self.root is None:
             return
 
-        # Check for errors
-        #err = root.find('error')
-        #if err is not None:
-            # 202/203/204/205/210/212 Authentication failure
-            # 207 Not available for NPC corporations
-            # 220 Invalid corporate key
-            # 222 Key has expired
-            # 223 Legacy API key
-        #    if err.attrib['code'] in ('202', '203', '204', '205', '210', '212', '207', '220', '222', '223'):
-        #        self.apikey.valid = False
-        #        self.apikey.save()
-
-        #    return
-        
         # Find the key node
         key_node = self.root.find('result/key')
         # Update access mask
