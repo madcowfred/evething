@@ -37,6 +37,7 @@ CHAR_URLS = {
     APIKey.CHAR_ACCOUNT_STATUS_MASK: ('account_status', '/account/AccountStatus.xml.aspx', 'et_medium'),
     APIKey.CHAR_ASSET_LIST_MASK: ('asset_list', '/char/AssetList.xml.aspx', 'et_medium'),
     APIKey.CHAR_CHARACTER_SHEET_MASK: ('character_sheet', '/char/CharacterSheet.xml.aspx', 'et_medium'),
+    APIKey.CHAR_LOCATIONS_MASK: ('locations', '/char/Locations.xml.aspx', 'et_medium'),
     APIKey.CHAR_MARKET_ORDERS_MASK: ('market_orders', '/char/MarketOrders.xml.aspx', 'et_medium'),
     APIKey.CHAR_SKILL_QUEUE_MASK: ('skill_queue', '/char/SkillQueue.xml.aspx', 'et_medium'),
     APIKey.CHAR_STANDINGS_MASK: ('standings', '/char/Standings.xml.aspx', 'et_medium'),
@@ -743,6 +744,41 @@ def corporation_sheet(url, apikey_id, taskstate_id, character_id):
         job.completed()
     else:
         job.failed()
+
+# ---------------------------------------------------------------------------
+# Locations (and more importantly names) for assets
+@task
+def locations(url, apikey_id, taskstate_id, character_id):
+    job = APIJob(apikey_id, taskstate_id)
+    character = Character.objects.get(pk=character_id)
+    
+    # Initialise for character query
+    if not job.apikey.corp_character:
+        a_filter = Asset.objects.root_nodes().filter(character=character, corporation__isnull=True,
+            singleton=True, item__item_group__category__name__in=('Celestial', 'Ship'))
+
+    # Get ID list
+    ids = map(str, a_filter.values_list('id', flat=True))
+    if len(ids) == 0:
+        return
+
+    # Fetch the API data
+    params = {
+        'characterID': character.id,
+        'IDs': ','.join(map(str, ids)),
+    }
+    if job.fetch_api(url, params) is False or job.root is None:
+        job.failed()
+        return
+
+    for row in job.root.findall('result/rowset/row'):
+        ca = Asset.objects.get(character=character, id=row.attrib['itemID'])
+        if ca.name is None or ca.name != row.attrib['itemName']:
+            ca.name = row.attrib['itemName']
+            ca.save()
+    
+    # completed ok
+    job.completed()
 
 # ---------------------------------------------------------------------------
 # Market orders
