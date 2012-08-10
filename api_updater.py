@@ -1566,7 +1566,7 @@ class APIUpdater:
                 self._job_queue.put(job)
 
                 # Fetch wallet transactions
-                for corp_wallet in corporation.corpwallet_set.all():#CorpWallet.objects.filter(corporation=corporation):
+                for corp_wallet in corporation.corpwallet_set.all():
                     job = WalletTransactions(apikey, character)
                     job._corp_wallet = corp_wallet
                     self._job_queue.put(job)
