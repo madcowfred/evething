@@ -194,7 +194,7 @@ CELERYBEAT_SCHEDULE = {
         'task': 'thing.tasks.apicache_cleanup',
         'schedule': timedelta(minutes=15),
         'args': (),
-    }
+    },
 
     # update history data every 4 hours
     'history-updater': {
