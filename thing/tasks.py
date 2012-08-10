@@ -24,10 +24,12 @@ from celery.utils.log import get_task_logger
 logger = get_task_logger(__name__)
 
 # ---------------------------------------------------------------------------
-
+# random HTTP headers
 HEADERS = {
     'User-Agent': 'EVEthing-tasks',
 }
+# number of rows to request per WalletTransactions call, max is 2560
+TRANSACTION_ROWS = 2560
 
 API_KEY_INFO_URL = ('api_key_info', '/account/APIKeyInfo.xml.aspx', 'et_low')
 
@@ -37,11 +39,13 @@ CHAR_URLS = {
     APIKey.CHAR_MARKET_ORDERS_MASK: ('market_orders', '/char/MarketOrders.xml.aspx', 'et_medium'),
     APIKey.CHAR_SKILL_QUEUE_MASK: ('skill_queue', '/char/SkillQueue.xml.aspx', 'et_medium'),
     APIKey.CHAR_STANDINGS_MASK: ('standings', '/char/Standings.xml.aspx', 'et_medium'),
+    APIKey.CHAR_WALLET_TRANSACTIONS_MASK: ('wallet_transactions', '/char/WalletTransactions.xml.aspx', 'et_medium'),
 }
 CORP_URLS = {
     APIKey.CORP_ACCOUNT_BALANCE_MASK: ('account_balance', '/corp/AccountBalance.xml.aspx', 'et_medium'),
     APIKey.CORP_CORPORATION_SHEET_MASK: ('corporation_sheet', '/corp/CorporationSheet.xml.aspx', 'et_medium'),
     APIKey.CORP_MARKET_ORDERS_MASK: ('market_orders', '/corp/MarketOrders.xml.aspx', 'et_medium'),
+    APIKey.CORP_WALLET_TRANSACTIONS_MASK: ('wallet_transactions', '/corp/WalletTransactions.xml.aspx', 'et_medium'),
 }
 
 # ---------------------------------------------------------------------------
@@ -882,6 +886,193 @@ def standings(url, apikey_id, taskstate_id, character_id):
 
     # completed ok
     job.completed()
+
+# ---------------------------------------------------------------------------
+# Fetch wallet transactions
+@task
+def wallet_transactions(url, apikey_id, taskstate_id, character_id):
+    job = APIJob(apikey_id, taskstate_id)
+    character = Character.objects.get(pk=character_id)
+
+    # Corporation key, visit each related CorpWallet
+    if job.apikey.corp_character:
+        for corpwallet in job.apikey.corp_character.corporation.corpwallet_set.all():
+            result = _wallet_transactions_work(url, job, character, corpwallet)
+            if result is False:
+                job.failed()
+                return
+
+    # Account/character key
+    else:
+        result = _wallet_transactions_work(url, job, character)
+        if result is False:
+            job.failed()
+            return
+
+    job.completed()
+
+# Do the actual work for wallet transactions
+def _wallet_transactions_work(url, job, character, corp_wallet=None):
+    # Generate a character id map
+    char_id_map = {}
+    for char in Character.objects.all():
+        char_id_map[char.id] = char
+
+    # Initialise stuff
+    params = {
+        'characterID': character.id,
+        'rowCount': TRANSACTION_ROWS,
+    }
+    
+    # Corporation key
+    if job.apikey.corp_character:
+        params['accountKey'] = corp_wallet.account_key
+        t_filter = Transaction.objects.filter(corp_wallet=corp_wallet)
+    # Account/Character key
+    else:
+        t_filter = Transaction.objects.filter(corp_wallet=None, character=character)
+
+    # Loop until we run out of transactions
+    cursor = connection.cursor()
+
+    while True:
+        if job.fetch_api(url, params) is False or job.root is None:
+            return False
+
+        errors = 0
+        
+        rows = job.root.findall('result/rowset/row')
+        # empty result set = no transactions ever on this wallet
+        if not rows:
+            break
+        
+        # Make a transaction id:row map
+        bulk_data = OrderedDict()
+        client_ids = set()
+        for row in rows:
+            transaction_id = int(row.attrib['transactionID'])
+            bulk_data[transaction_id] = row
+            client_ids.add(int(row.attrib['clientID']))
+
+        t_map = {}
+        for t in t_filter.filter(transaction_id__in=bulk_data.keys()).values('id', 'transaction_id', 'other_char_id', 'other_corp_id'):
+            t_map[t['transaction_id']] = t
+
+        # Fetch simplechars and corporations for clients
+        simple_map = SimpleCharacter.objects.in_bulk(client_ids)
+        corp_map = Corporation.objects.in_bulk(client_ids)
+        
+        # Now iterate over the leftovers
+        new = []
+        for transaction_id, row in bulk_data.items():
+            transaction_time = parse_api_date(row.attrib['transactionDateTime'])
+            
+            # Skip corporate transactions if this is a personal call, we have no idea
+            # what wallet this transaction is related to otherwise :ccp:
+            if row.attrib['transactionFor'].lower() == 'corporation' and not job.apikey.corp_character:
+                continue
+            
+            client_id = int(row.attrib['clientID'])
+            client = simple_map.get(client_id, corp_map.get(client_id, None))
+            if client is None:
+                try:
+                    client = SimpleCharacter.objects.create(
+                        id=client_id,
+                        name=row.attrib['clientName']
+                    )
+                except IntegrityError:
+                    client = SimpleCharacter.objects.get(id=client_id)
+
+                simple_map[client_id] = client
+
+            # Check to see if this transaction already exists
+            t = t_map.get(transaction_id, None)
+            if t is None:
+                # Make sure the item typeID is valid
+                #items = Item.objects.filter(pk=row.attrib['typeID'])
+                #if items.count() == 0:
+                #    print "ERROR: item with typeID '%s' does not exist, what the fuck?" % (row.attrib['typeID'])
+                #    print '>> attrib = %r' % (row.attrib)
+                #    continue
+                
+                # Make the station object if it doesn't already exist
+                station = get_station(int(row.attrib['stationID']))
+                
+                # For a corporation key, make sure the character exists
+                if job.apikey.corp_character:
+                    char_id = int(row.attrib['characterID'])
+                    char = char_id_map.get(char_id, None)
+                    # Doesn't exist, create it
+                    if char is None:
+                        char = Character(
+                            id=char_id,
+                            name=row.attrib['characterName'],
+                            corporation=job.apikey.corp_character.corporation,
+                        )
+                        char.save()
+                        char_id_map[char_id] = char
+                # Any other key = just use the supplied character
+                else:
+                    char = character
+                
+                # Create a new transaction object and save it
+                quantity = int(row.attrib['quantity'])
+                price = Decimal(row.attrib['price'])
+                buy_transaction = (row.attrib['transactionType'] == 'buy')
+
+                # Make sure the item typeID is valid
+                item = get_item(row.attrib['typeID'])
+                if item is None:
+                    errors += 1
+                    continue
+
+                t = Transaction(
+                    station=station,
+                    item=item,
+                    character=char,
+                    transaction_id=transaction_id,
+                    date=transaction_time,
+                    buy_transaction=buy_transaction,
+                    quantity=quantity,
+                    price=price,
+                    total_price=quantity * price,
+                )
+                
+                # Set the corp_character for corporation API requests
+                if job.apikey.corp_character:
+                    t.corp_wallet = corp_wallet
+                
+                # Set whichever client type is relevant
+                if isinstance(client, SimpleCharacter):
+                    t.other_char_id = client.id
+                else:
+                    t.other_corp_id = client.id
+                
+                new.append(t)
+
+            # Transaction exists, check the other_ fields
+            else:
+                if t['other_char_id'] is None and t['other_corp_id'] is None:
+                    if isinstance(client, SimpleCharacter):
+                        cursor.execute('UPDATE thing_transaction SET other_char_id = %s WHERE id = %s', (client.id, t['id']))
+                    else:
+                        cursor.execute('UPDATE thing_transaction SET other_corp_id = %s WHERE id = %s', (client.id, t['id']))
+                    
+                    logging.info('Updated other_ field of transaction %s', t['id'])
+        
+        # Create any new transaction objects
+        if new:
+            Transaction.objects.bulk_create(new)
+
+        # completed ok
+        if errors == 0:
+            job.apicache.completed()
+
+        # If we got MAX rows we should retrieve some more
+        if len(bulk_data) == TRANSACTION_ROWS:
+            params['beforeTransID'] = transaction_id
+        else:
+            break
 
 # ---------------------------------------------------------------------------
 # Periodic task to retrieve current Jita price data from Goonmetrics
