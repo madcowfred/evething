@@ -78,8 +78,10 @@ class APIKey(models.Model):
         CHAR_WALLET_TRANSACTIONS_MASK,
     )
 
+    CORP_MARKET_ORDERS_MASK = 4096
+
     MASKS_CORP = (
-        API_KEY_INFO_MASK,
+        CORP_MARKET_ORDERS_MASK,
     )
 
     user = models.ForeignKey(User)
@@ -176,7 +178,7 @@ class APICache(models.Model):
     # called when the API call completes successfully
     def completed(self):
         self.completed_ok = True
-        self.text = ''
+        #self.text = ''
         self.save()
 
 # ---------------------------------------------------------------------------

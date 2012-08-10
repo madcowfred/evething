@@ -34,6 +34,11 @@ API_KEY_INFO_URL = ('api_key_info', '/account/APIKeyInfo.xml.aspx', 'et_low')
 CHAR_URLS = {
     APIKey.CHAR_ACCOUNT_STATUS_MASK: ('account_status', '/account/AccountStatus.xml.aspx', 'et_medium'),
     APIKey.CHAR_CHARACTER_SHEET_MASK: ('character_sheet', '/char/CharacterSheet.xml.aspx', 'et_medium'),
+    APIKey.CHAR_MARKET_ORDERS_MASK: ('market_orders', '/char/MarketOrders.xml.aspx', 'et_medium'),
+    APIKey.CHAR_SKILL_QUEUE_MASK: ('skill_queue', '/char/SkillQueue.xml.aspx', 'et_medium'),
+}
+CORP_URLS = {
+    APIKey.CORP_MARKET_ORDERS_MASK: ('market_orders', '/corp/MarketOrders.xml.aspx', 'et_medium'),
 }
 
 # ---------------------------------------------------------------------------
@@ -251,6 +256,44 @@ def spawn_jobs():
                     if mask == APIKey.CHAR_ACCOUNT_STATUS_MASK:
                         break
 
+        # Corporation keys
+        elif apikey.key_type == APIKey.CORPORATION_TYPE:
+            character = apikey.corp_character
+
+            for mask in masks:
+                # get useful URL data for this mask
+                url_data = CORP_URLS.get(mask, None)
+                if url_data is None:
+                    continue
+
+                func, url, queue = url_data
+
+                taskstate = status[key_info].get((url, character.id), None)
+
+                # If task isn't found, make a new taskstate and queue the task
+                if taskstate is None:
+                    taskstate = TaskState.objects.create(
+                        key_info=key_info,
+                        url=url,
+                        parameter=character.id,
+                        state=TaskState.QUEUED_STATE,
+                        mod_time=now,
+                        next_time=now,
+                    )
+
+                    start = True
+
+                else:
+                    start = taskstate.queue_now(now)
+
+                # If we need to queue this task, do so
+                if start is True:
+                    f = globals()[func]
+                    f.apply_async(
+                        args=(url, apikey.id, taskstate.id, character.id),
+                        queue=queue,
+                    )
+
 # ---------------------------------------------------------------------------
 # Account status
 @task
@@ -466,6 +509,189 @@ def character_sheet(url, apikey_id, taskstate_id, character_id):
     job.completed()
 
 # ---------------------------------------------------------------------------
+# Market orders
+@task
+def market_orders(url, apikey_id, taskstate_id, character_id):
+    job = APIJob(apikey_id, taskstate_id)
+    character = Character.objects.get(pk=character_id)
+    
+    # Initialise for corporate key
+    if job.apikey.corp_character:
+        o_filter = MarketOrder.objects.filter(corp_wallet__corporation=character.corporation)
+
+        wallet_map = {}
+        for cw in CorpWallet.objects.filter(corporation=character.corporation):
+            wallet_map[cw.account_key] = cw
+
+    # Initialise for other keys
+    else:
+        o_filter = MarketOrder.objects.filter(corp_wallet=None, character=character)
+
+
+    # Generate a character id map
+    char_id_map = {}
+    for char in Character.objects.all():
+        char_id_map[char.id] = char
+    
+    # Fetch the API data
+    params = { 'characterID': character.id }
+    if job.fetch_api(url, params) is False or job.root is None:
+        job.failed()
+        return
+    
+    # Generate an order_id map
+    order_map = {}
+    for mo in o_filter.select_related('item'):
+        order_map[mo.order_id] = mo
+    
+    # Iterate over the returned result set
+    new = []
+    seen = []
+    for row in job.root.findall('result/rowset/row'):
+        order_id = int(row.attrib['orderID'])
+        
+        # Order exists
+        order = order_map.get(order_id, None)
+        if order is not None:
+            # Order is still active, update relevant details
+            if row.attrib['orderState'] == '0':
+                issued = parse_api_date(row.attrib['issued'])
+                volRemaining = int(row.attrib['volRemaining'])
+                escrow = Decimal(row.attrib['escrow'])
+                price = Decimal(row.attrib['price'])
+
+                if issued > order.issued or \
+                   volRemaining != order.volume_remaining or \
+                   escrow != order.escrow or \
+                   price != order.price:
+                    order.issued = issued
+                    order.expires = issued + datetime.timedelta(int(row.attrib['duration']))
+                    order.volume_remaining = volRemaining
+                    order.escrow = escrow
+                    order.price = price
+                    order.total_price = order.volume_remaining * order.price
+                    order.save()
+                
+                seen.append(order_id)
+        
+        # Doesn't exist and is active, make a new order
+        elif row.attrib['orderState'] == '0':
+            buy_order = (row.attrib['bid'] == '1')
+            
+            # Make sure the character charID is valid
+            char = char_id_map.get(int(row.attrib['charID']))
+            if char is None:
+                logging.warn("No matching Character object for charID=%s", row.attrib['charID'])
+                continue
+            
+            # Make sure the item typeID is valid
+            item = get_item(row.attrib['typeID'])
+            if item is None:
+                continue
+            
+            # Create a new order and save it
+            remaining = int(row.attrib['volRemaining'])
+            price = Decimal(row.attrib['price'])
+            issued = parse_api_date(row.attrib['issued'])
+            order = MarketOrder(
+                order_id=order_id,
+                station=get_station(int(row.attrib['stationID'])),
+                item=item,
+                character=char,
+                escrow=Decimal(row.attrib['escrow']),
+                price=price,
+                total_price=remaining * price,
+                buy_order=buy_order,
+                volume_entered=int(row.attrib['volEntered']),
+                volume_remaining=remaining,
+                minimum_volume=int(row.attrib['minVolume']),
+                issued=issued,
+                expires=issued + datetime.timedelta(int(row.attrib['duration'])),
+            )
+            # Set the corp_wallet for corporation API requests
+            if job.apikey.corp_character:
+                #order.corp_wallet = CorpWallet.objects.get(corporation=character.corporation, account_key=row.attrib['accountKey'])
+                order.corp_wallet = wallet_map.get(int(row.attrib['accountKey']))
+
+            new.append(order)
+            #order.save()
+            
+            seen.append(order_id)
+    
+
+    # Insert any new orders
+    if new:
+        MarketOrder.objects.bulk_create(new)
+
+    # Any orders we didn't see need to be deleted - issue events first
+    to_delete = o_filter.exclude(pk__in=seen)
+    now = datetime.datetime.now()
+    for order in to_delete.select_related():
+        if order.buy_order:
+            buy_sell = 'buy'
+        else:
+            buy_sell = 'sell'
+        
+        if order.corp_wallet:
+            order_type = 'corporate'
+        else:
+            order_type = 'personal'
+
+        url = reverse('transactions-all', args=[order.item.id, 'all'])
+        text = '%s: %s %s order for <a href="%s">%s</a> completed/expired (%s)' % (order.station.short_name, order_type, buy_sell, url, 
+            order.item.name, order.character.name)
+
+        event = Event(
+            user_id=job.apikey.user.id,
+            issued=now,
+            text=text,
+        )
+        event.save()
+
+    # Then delete
+    to_delete.delete()
+    
+    # completed ok
+    job.completed()
+
+# ---------------------------------------------------------------------------
+# Skill queue
+@task
+def skill_queue(url, apikey_id, taskstate_id, character_id):
+    job = APIJob(apikey_id, taskstate_id)
+    character = Character.objects.get(pk=character_id)
+
+    # Fetch the API data
+    params = { 'characterID': character.id }
+    if job.fetch_api(url, params) is False or job.root is None:
+        job.failed()
+        return
+    
+    # Delete the old queue
+    SkillQueue.objects.filter(character=character).delete()
+    
+    # Add new skills
+    new = []
+    for row in job.root.findall('result/rowset/row'):
+        if row.attrib['startTime'] and row.attrib['endTime']:
+            new.append(SkillQueue(
+                character=character,
+                skill_id=row.attrib['typeID'],
+                start_time=row.attrib['startTime'],
+                end_time=row.attrib['endTime'],
+                start_sp=row.attrib['startSP'],
+                end_sp=row.attrib['endSP'],
+                to_level=row.attrib['level'],
+            ))
+    
+    # Create any new SkillQueue objects
+    if new:
+        SkillQueue.objects.bulk_create(new)
+
+    # completed ok
+    job.completed()
+
+# ---------------------------------------------------------------------------
 # Periodic task to retrieve current Jita price data from Goonmetrics
 PRICE_PER_REQUEST = 100
 PRICE_URL = 'http://goonmetrics.com/api/price_data/?station_id=60003760&type_id=%s'
@@ -572,3 +798,30 @@ def get_corporation(corp_id, corp_name):
         _corp_cache[corp_id] = corp
     
     return corp
+
+# ---------------------------------------------------------------------------
+# Caching item fetcher
+_item_cache = {}
+def get_item(item_id):
+    if item_id not in _item_cache:
+        try:
+            _item_cache[item_id] = Item.objects.get(pk=item_id)
+        except Item.DoesNotExist:
+            logging.warn("Item #%s apparently doesn't exist", item_id)
+            _item_cache[item_id] = None
+
+    return _item_cache[item_id]
+
+# ---------------------------------------------------------------------------
+# Caching station fetcher
+_station_cache = {}
+def get_station(station_id):
+    if station_id not in _station_cache:
+        try:
+            station = Station.objects.get(pk=station_id)
+        except Station.DoesNotExist:
+            station = None
+        
+        _station_cache[station_id] = station
+    
+    return _station_cache[station_id]
