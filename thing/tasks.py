@@ -35,6 +35,7 @@ API_KEY_INFO_URL = ('api_key_info', '/account/APIKeyInfo.xml.aspx', 'et_low')
 
 CHAR_URLS = {
     APIKey.CHAR_ACCOUNT_STATUS_MASK: ('account_status', '/account/AccountStatus.xml.aspx', 'et_medium'),
+    APIKey.CHAR_ASSET_LIST_MASK: ('asset_list', '/char/AssetList.xml.aspx', 'et_medium'),
     APIKey.CHAR_CHARACTER_SHEET_MASK: ('character_sheet', '/char/CharacterSheet.xml.aspx', 'et_medium'),
     APIKey.CHAR_MARKET_ORDERS_MASK: ('market_orders', '/char/MarketOrders.xml.aspx', 'et_medium'),
     APIKey.CHAR_SKILL_QUEUE_MASK: ('skill_queue', '/char/SkillQueue.xml.aspx', 'et_medium'),
@@ -43,6 +44,7 @@ CHAR_URLS = {
 }
 CORP_URLS = {
     APIKey.CORP_ACCOUNT_BALANCE_MASK: ('account_balance', '/corp/AccountBalance.xml.aspx', 'et_medium'),
+    APIKey.CHAR_ASSET_LIST_MASK: ('asset_list', '/char/AssetList.xml.aspx', 'et_medium'),
     APIKey.CORP_CORPORATION_SHEET_MASK: ('corporation_sheet', '/corp/CorporationSheet.xml.aspx', 'et_medium'),
     APIKey.CORP_MARKET_ORDERS_MASK: ('market_orders', '/corp/MarketOrders.xml.aspx', 'et_medium'),
     APIKey.CORP_WALLET_TRANSACTIONS_MASK: ('wallet_transactions', '/corp/WalletTransactions.xml.aspx', 'et_medium'),
@@ -451,6 +453,127 @@ def api_key_info(url, apikey_id, taskstate_id):
 
     # completed ok
     job.completed()
+
+# ---------------------------------------------------------------------------
+# Fetch assets
+@task
+def asset_list(url, apikey_id, taskstate_id, character_id):
+    job = APIJob(apikey_id, taskstate_id)
+    character = Character.objects.get(pk=character_id)
+
+    # Initialise for corporate query
+    if job.apikey.corp_character:
+        a_filter = Asset.objects.filter(corporation=job.apikey.corp_character.corporation)
+    # Initialise for character query
+    else:
+        a_filter = Asset.objects.filter(character=character, corporation__isnull=True)
+
+    # Fetch the API data
+    params = { 'characterID': character.id }
+    if job.fetch_api(url, params) is False or job.root is None:
+        job.failed()
+        return
+
+    # ACTIVATE RECURSION :siren:
+    rows = OrderedDict()
+    _asset_list_recurse(rows, job.root.find('result/rowset'), None)
+
+    # Delete existing assets, it's way too much of a bastard to deal with changes
+    a_filter.delete()
+
+    # assetID - [0]system, [1]station, [2]container_id, [3]item, [4]flag, [5]quantiy, [6]rawQuantity, [7]singleton
+    asset_ids = set()
+    asset_map = {}
+
+    errors = 0
+    last_count = 9999999999999999
+    while rows:
+        assets = list(rows.items())
+        # check for infinite loops
+        count = len(assets)
+        if count == last_count:
+            logger.warn('Infinite loop in assets, oops')
+            return
+
+        last_count = count
+        
+        # data = [system, station, container_id, item, flag, quantity, rawQuantity, singleton]
+        for id, data in assets:
+            # asset has a container_id...
+            if data[2] is not None:
+                # and the container_id doesn't exist, yet we have to do this later
+                try:
+                    parent = Asset.objects.get(pk=data[2])
+                except Asset.DoesNotExist:
+                    continue
+            # asset has no container_id
+            else:
+                parent = None
+
+            asset = Asset(
+                id=id,
+                character=character,
+                system=data[0],
+                station=data[1],
+                parent=parent,
+                item=data[3],
+                inv_flag_id=data[4],
+                quantity=data[5],
+                raw_quantity=data[6],
+                singleton=data[7],
+            )
+            if job.apikey.corp_character:
+                asset.corporation = job.apikey.corp_character.corporation
+            asset.save()
+
+            asset_map[id] = asset
+
+            asset_ids.add(id)
+            del rows[id]
+
+    # completed ok
+    job.completed()
+
+# Recursively visit the assets tree and gather data
+def _asset_list_recurse(rows, rowset, container_id):
+    for row in rowset.findall('row'):
+        # No container_id (parent)
+        if 'locationID' in row.attrib:
+            location_id = int(row.attrib['locationID'])
+
+            # :ccp: as fuck
+            # http://wiki.eve-id.net/APIv2_Corp_AssetList_XML#officeID_to_stationID_conversion
+            if 66000000 <= location_id <= 66014933:
+                location_id -= 6000001
+            elif 66014934 <= location_id <= 67999999:
+                location_id -= 6000000
+
+            system = get_system(location_id)
+            station = get_station(location_id)
+        else:
+            system = None
+            station = None
+
+        # check for valid item
+        item = get_item(row.attrib['typeID'])
+        if item is None:
+            continue
+
+        asset_id = int(row.attrib['itemID'])
+        rows[asset_id] = [
+            system,
+            station,
+            container_id,
+            item,
+            int(row.attrib['flag']),
+            int(row.attrib.get('quantity', '0')),
+            int(row.attrib.get('rawQuantity', '0')),
+            int(row.attrib.get('singleton', '0')),
+        ]
+
+        # Now we need to visit children rowsets
+        for rowset in row.findall('rowset'):
+            _asset_list_recurse(rows, rowset, asset_id)
 
 # ---------------------------------------------------------------------------
 # Update character sheet
@@ -1208,3 +1331,17 @@ def get_station(station_id):
         _station_cache[station_id] = station
     
     return _station_cache[station_id]
+
+# ---------------------------------------------------------------------------
+# Caching system fetcher
+_system_cache = {}
+def get_system(system_id):
+    if system_id not in _system_cache:
+        try:
+            system = System.objects.get(pk=system_id)
+        except System.DoesNotExist:
+            system = None
+        
+        _system_cache[system_id] = system
+    
+    return _system_cache[system_id]
