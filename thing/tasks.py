@@ -249,19 +249,24 @@ def spawn_jobs():
 def api_key_info(url, apikey_id, taskstate_id):
     job = APIJob(apikey_id, taskstate_id)
 
-    # something bad happened
+    # Fetch the API data
     if job.fetch_api(url, {}) is False or job.root is None:
         job.failed()
         return
 
     # Find the key node
     key_node = job.root.find('result/key')
+    
     # Update access mask
     job.apikey.access_mask = int(key_node.attrib['accessMask'])
+    
     # Update expiry date
     expires = key_node.attrib['expires']
     if expires:
         job.apikey.expires = parse_api_date(expires)
+    else:
+        job.apikey.expires = None
+    
     # Update key type
     job.apikey.key_type = key_node.attrib['type']
     
