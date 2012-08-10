@@ -32,7 +32,7 @@ HEADERS = {
 API_KEY_INFO_URL = ('api_key_info', '/account/APIKeyInfo.xml.aspx', 'et_low')
 
 CHAR_URLS = {
-    #APIKey.CHAR_ACCOUNT_STATUS_MASK: ('account_status', '/account/AccountStatus.xml.aspx', 'et_medium'),
+    APIKey.CHAR_ACCOUNT_STATUS_MASK: ('account_status', '/account/AccountStatus.xml.aspx', 'et_medium'),
     APIKey.CHAR_CHARACTER_SHEET_MASK: ('character_sheet', '/char/CharacterSheet.xml.aspx', 'et_medium'),
 }
 
@@ -157,7 +157,7 @@ def spawn_jobs():
     # Build a magical QuerySet for APIKey objects
     apikeys = APIKey.objects.select_related('corp_character__corporation')
     apikeys = apikeys.prefetch_related('characters', 'corp_character__corporation__corpwallet_set')
-    apikeys = apikeys.filter(valid=True, access_mask__isnull=False)
+    apikeys = apikeys.filter(valid=True)
 
     # Get a set of unique API keys
     keys = {}
@@ -175,7 +175,6 @@ def spawn_jobs():
     now = datetime.datetime.now()
     for key_info, apikey in keys.items():
         masks = apikey.get_masks()
-
         
         # All keys do keyinfo checks things
         func, url, queue = API_KEY_INFO_URL
@@ -217,14 +216,19 @@ def spawn_jobs():
                 func, url, queue = url_data
 
                 for character in apikey.characters.all():
-                    taskstate = status[key_info].get((url, character.id), None)
+                    if mask == APIKey.CHAR_ACCOUNT_STATUS_MASK:
+                        parameter = 0
+                    else:
+                        parameter = character.id
+
+                    taskstate = status[key_info].get((url, parameter), None)
 
                     # If task isn't found, make a new taskstate and queue the task
                     if taskstate is None:
                         taskstate = TaskState.objects.create(
                             key_info=key_info,
                             url=url,
-                            parameter=character.id,
+                            parameter=parameter,
                             state=TaskState.QUEUED_STATE,
                             mod_time=now,
                             next_time=now,
@@ -239,12 +243,34 @@ def spawn_jobs():
                     if start is True:
                         f = globals()[func]
                         f.apply_async(
-                            args=(url, apikey.id, taskstate.id, character.id),
+                            args=(url, apikey.id, taskstate.id, parameter),
                             queue=queue,
                         )
 
-# ---------------------------------------------------------------------------
+                    # Only do account status once per key
+                    if mask == APIKey.CHAR_ACCOUNT_STATUS_MASK:
+                        break
 
+# ---------------------------------------------------------------------------
+# Account status
+@task
+def account_status(url, apikey_id, taskstate_id, zero):
+    job = APIJob(apikey_id, taskstate_id)
+
+    # Fetch the API data
+    if job.fetch_api(url, {}) is False or job.root is None:
+        job.failed()
+        return
+
+    # Update paid_until
+    job.apikey.paid_until = parse_api_date(job.root.findtext('result/paidUntil'))
+    job.apikey.save()
+    
+    # completed ok
+    job.completed()
+
+# ---------------------------------------------------------------------------
+# Various API things
 @task
 def api_key_info(url, apikey_id, taskstate_id):
     job = APIJob(apikey_id, taskstate_id)
