@@ -474,7 +474,7 @@ def asset_list(url, apikey_id, taskstate_id, character_id):
 
     # Initialise for corporate query
     if job.apikey.corp_character:
-        a_filter = Asset.objects.filter(corporation=job.apikey.corp_character.corporation)
+        a_filter = Asset.objects.filter(character=character, corporation=job.apikey.corp_character.corporation)
     # Initialise for character query
     else:
         a_filter = Asset.objects.filter(character=character, corporation__isnull=True)
