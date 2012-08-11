@@ -672,7 +672,7 @@ def character_sheet(url, apikey_id, taskstate_id, character_id):
     for skill_id, (points, level) in skills.items():
         skill = skill_map.get(skill_id, None)
         if skill is None:
-            logging.warn("Skill #%s apparently doesn't exist", skill_id)
+            logger.warn("Skill #%s apparently doesn't exist", skill_id)
             continue
 
         new.append(CharacterSkill(
@@ -750,7 +750,7 @@ def contracts(url, apikey_id, taskstate_id, character_id):
             # bug where corp keys see alliance contracts they didn't make  :ccp:
             if job.apikey.corp_character.corporation.id not in (int(row.attrib['issuerCorpID']),
                 int(row.attrib['assigneeID']), int(row.attrib['acceptorID'])):
-                logging.info('Skipping non-corp contract :ccp:')
+                logger.info('Skipping non-corp contract :ccp:')
                 continue
 
         # non-corp keys don't care about corp orders
@@ -1126,7 +1126,7 @@ def market_orders(url, apikey_id, taskstate_id, character_id):
             # Make sure the character charID is valid
             char = char_id_map.get(int(row.attrib['charID']))
             if char is None:
-                logging.warn("No matching Character object for charID=%s", row.attrib['charID'])
+                logger.warn("No matching Character object for charID=%s", row.attrib['charID'])
                 continue
             
             # Make sure the item typeID is valid
@@ -1490,7 +1490,7 @@ def _wallet_transactions_work(url, job, character, corp_wallet=None):
                     else:
                         cursor.execute('UPDATE thing_transaction SET other_corp_id = %s WHERE id = %s', (client.id, t['id']))
                     
-                    logging.info('Updated other_ field of transaction %s', t['id'])
+                    logger.info('Updated other_ field of transaction %s', t['id'])
         
         # Create any new transaction objects
         if new:
@@ -1622,7 +1622,7 @@ def get_item(item_id):
         try:
             _item_cache[item_id] = Item.objects.get(pk=item_id)
         except Item.DoesNotExist:
-            logging.warn("Item #%s apparently doesn't exist", item_id)
+            logger.warn("Item #%s apparently doesn't exist", item_id)
             _item_cache[item_id] = None
 
     return _item_cache[item_id]
