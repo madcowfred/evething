@@ -39,7 +39,7 @@ API_KEY_INFO_URL = ('api_key_info', '/account/APIKeyInfo.xml.aspx', 'et_low')
 
 CHAR_URLS = {
     APIKey.CHAR_ACCOUNT_STATUS_MASK: ('account_status', '/account/AccountStatus.xml.aspx', 'et_medium'),
-    APIKey.CHAR_ASSET_LIST_MASK: ('asset_list', '/char/AssetList.xml.aspx', 'et_medium'),
+    APIKey.CHAR_ASSET_LIST_MASK: ('asset_list', '/char/AssetList.xml.aspx', 'et_high'),
     APIKey.CHAR_CHARACTER_SHEET_MASK: ('character_sheet', '/char/CharacterSheet.xml.aspx', 'et_medium'),
     APIKey.CHAR_CONTRACTS_MASK: ('contracts', '/char/Contracts.xml.aspx', 'et_high'),
     APIKey.CHAR_LOCATIONS_MASK: ('locations', '/char/Locations.xml.aspx', 'et_medium'),
@@ -50,7 +50,7 @@ CHAR_URLS = {
 }
 CORP_URLS = {
     APIKey.CORP_ACCOUNT_BALANCE_MASK: ('account_balance', '/corp/AccountBalance.xml.aspx', 'et_medium'),
-    APIKey.CHAR_ASSET_LIST_MASK: ('asset_list', '/char/AssetList.xml.aspx', 'et_medium'),
+    APIKey.CHAR_ASSET_LIST_MASK: ('asset_list', '/char/AssetList.xml.aspx', 'et_high'),
     APIKey.CORP_CONTRACTS_MASK: ('contracts', '/corp/Contracts.xml.aspx', 'et_high'),
     APIKey.CORP_CORPORATION_SHEET_MASK: ('corporation_sheet', '/corp/CorporationSheet.xml.aspx', 'et_medium'),
     APIKey.CORP_MARKET_ORDERS_MASK: ('market_orders', '/corp/MarketOrders.xml.aspx', 'et_medium'),
