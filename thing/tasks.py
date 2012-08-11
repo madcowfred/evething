@@ -1507,6 +1507,47 @@ def _wallet_transactions_work(url, job, character, corp_wallet=None):
             break
 
 # ---------------------------------------------------------------------------
+# Other periodic tasks
+# ---------------------------------------------------------------------------
+# Periodic task to update conquerable statio names
+CONQUERABLE_STATION_URL = urljoin(settings.API_HOST, '/eve/ConquerableStationList.xml.aspx')
+
+@task
+def conquerable_stations():
+    r = requests.get(CONQUERABLE_STATION_URL, headers=HEADERS)
+    root = ET.fromstring(r.text)
+
+    # Build a stationID:row dictionary
+    bulk_data = {}
+    for row in root.findall('result/rowset/row'):
+        bulk_data[int(row.attrib['stationID'])] = row
+
+    # Bulk retrieve all of those stations that exist
+    data_map = Station.objects.in_bulk(bulk_data.keys())
+
+    new = []
+    for id, row in bulk_data.items():
+        # If the station already exists...
+        station = data_map.get(id, None)
+        if station is not None:
+            # maybe update the station name
+            if station.name != row.attrib['stationName']:
+                station.name = row.attrib['stationName']
+                station.save()
+            continue
+        
+        # New station!
+        new.append(Station(
+            id=id,
+            name=row.attrib['stationName'],
+            system_id=row.attrib['solarSystemID'],
+        ))
+
+    # Create any new stations
+    if new:
+        Station.objects.bulk_create(new)
+
+# ---------------------------------------------------------------------------
 # Periodic task to retrieve Jita history data from Goonmetrics
 HISTORY_PER_REQUEST = 50
 HISTORY_URL = 'http://goonmetrics.com/api/price_history/?region_id=10000002&type_id=%s'

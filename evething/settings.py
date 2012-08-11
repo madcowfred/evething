@@ -212,4 +212,11 @@ CELERYBEAT_SCHEDULE = {
         'schedule': timedelta(minutes=15),
         'args': (),
     },
+
+    # update conquerable stations every hour
+    'conquerable-stations': {
+        'task': 'thing.tasks.conquerable_stations',
+        'schedule': timedelta(hours=1),
+        'args': (),
+    },
 }
