@@ -1507,37 +1507,45 @@ def _wallet_transactions_work(url, job, character, corp_wallet=None):
             break
 
 # ---------------------------------------------------------------------------
-# Periodic task to retrieve current Jita price data from Goonmetrics
-PRICE_PER_REQUEST = 100
-PRICE_URL = 'http://goonmetrics.com/api/price_data/?station_id=60003760&type_id=%s'
+# Other periodic tasks
+# ---------------------------------------------------------------------------
+# Periodic task to update conquerable statio names
+CONQUERABLE_STATION_URL = urljoin(settings.API_HOST, '/eve/ConquerableStationList.xml.aspx')
 
 @task
-def price_updater():
-    # Get a list of all item_ids
-    cursor = connection.cursor()
-    cursor.execute(queries.all_item_ids)
+def conquerable_stations():
+    r = requests.get(CONQUERABLE_STATION_URL, headers=HEADERS)
+    root = ET.fromstring(r.text)
 
-    item_ids = []
-    for row in cursor:
-        item_ids.append(row[0])
+    # Build a stationID:row dictionary
+    bulk_data = {}
+    for row in root.findall('result/rowset/row'):
+        bulk_data[int(row.attrib['stationID'])] = row
 
-    cursor.close()
+    # Bulk retrieve all of those stations that exist
+    data_map = Station.objects.in_bulk(bulk_data.keys())
 
-    # Bulk retrieve items
-    item_map = Item.objects.in_bulk(item_ids)
-
-    for i in range(0, len(item_ids), PRICE_PER_REQUEST):
-        # Retrieve market data and parse the XML
-        url = PRICE_URL % (','.join(str(item_id) for item_id in item_ids[i:i+PRICE_PER_REQUEST]))
-        r = requests.get(url, headers=HEADERS)
-        root = ET.fromstring(r.text)
+    new = []
+    for id, row in bulk_data.items():
+        # If the station already exists...
+        station = data_map.get(id, None)
+        if station is not None:
+            # maybe update the station name
+            if station.name != row.attrib['stationName']:
+                station.name = row.attrib['stationName']
+                station.save()
+            continue
         
-        # Update item prices
-        for t in root.findall('price_data/type'):
-            item = item_map[int(t.attrib['id'])]
-            item.buy_price = t.find('buy/max').text
-            item.sell_price = t.find('sell/min').text
-            item.save()
+        # New station!
+        new.append(Station(
+            id=id,
+            name=row.attrib['stationName'],
+            system_id=row.attrib['solarSystemID'],
+        ))
+
+    # Create any new stations
+    if new:
+        Station.objects.bulk_create(new)
 
 # ---------------------------------------------------------------------------
 # Periodic task to retrieve Jita history data from Goonmetrics
@@ -1591,6 +1599,39 @@ def history_updater():
 
     if new:
         PriceHistory.objects.bulk_create(new)
+
+# ---------------------------------------------------------------------------
+# Periodic task to retrieve current Jita price data from Goonmetrics
+PRICE_PER_REQUEST = 100
+PRICE_URL = 'http://goonmetrics.com/api/price_data/?station_id=60003760&type_id=%s'
+
+@task
+def price_updater():
+    # Get a list of all item_ids
+    cursor = connection.cursor()
+    cursor.execute(queries.all_item_ids)
+
+    item_ids = []
+    for row in cursor:
+        item_ids.append(row[0])
+
+    cursor.close()
+
+    # Bulk retrieve items
+    item_map = Item.objects.in_bulk(item_ids)
+
+    for i in range(0, len(item_ids), PRICE_PER_REQUEST):
+        # Retrieve market data and parse the XML
+        url = PRICE_URL % (','.join(str(item_id) for item_id in item_ids[i:i+PRICE_PER_REQUEST]))
+        r = requests.get(url, headers=HEADERS)
+        root = ET.fromstring(r.text)
+        
+        # Update item prices
+        for t in root.findall('price_data/type'):
+            item = item_map[int(t.attrib['id'])]
+            item.buy_price = t.find('buy/max').text
+            item.sell_price = t.find('sell/min').text
+            item.save()
 
 # ---------------------------------------------------------------------------
 

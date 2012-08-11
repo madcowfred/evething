@@ -1,5 +1,4 @@
 import os
-import sqlite3
 import sys
 import time
 import urllib2
@@ -9,15 +8,15 @@ import xml.etree.ElementTree as ET
 os.environ['DJANGO_SETTINGS_MODULE'] = 'evething.settings'
 from django.conf import settings
 
+from django.db import connections
+
 from thing.models import *
 
 # ---------------------------------------------------------------------------
 
-SDE_FILE = 'esc10-sqlite3-v1.db'
-
-ALLIANCE_URL = '%s/eve/AllianceList.xml.aspx' % (settings.API_HOST)
-REF_TYPES_URL = '%s/eve/RefTypes.xml.aspx' % (settings.API_HOST)
-STATION_URL = '%s/eve/ConquerableStationList.xml.aspx' % (settings.API_HOST)
+#ALLIANCE_URL = '%s/eve/AllianceList.xml.aspx' % (settings.API_HOST)
+#REF_TYPES_URL = '%s/eve/RefTypes.xml.aspx' % (settings.API_HOST)
+#STATION_URL = '%s/eve/ConquerableStationList.xml.aspx' % (settings.API_HOST)
 
 # Override volume for ships, assembled volume is mostly useless :ccp:
 PACKAGED = {
@@ -62,38 +61,29 @@ def time_func(text, f):
 
 class Importer:
     def __init__(self):
-        if os.path.isfile(SDE_FILE):
-            self.conn = sqlite3.connect(SDE_FILE)
-            self.cursor = self.conn.cursor()
-        else:
-            self.conn = None
+        self.cursor = connections['import'].cursor()
     
     def import_all(self):
-        if self.conn is not None:
-            time_func('Region', self.import_region)
-            time_func('Constellation', self.import_constellation)
-            time_func('System', self.import_system)
-            time_func('Station', self.import_station)
-            time_func('MarketGroup', self.import_marketgroup)
-            time_func('ItemCategory', self.import_itemcategory)
-            time_func('ItemGroup', self.import_itemgroup)
-            time_func('Item', self.import_item)
-            time_func('Blueprint', self.import_blueprint)
-            time_func('Skill', self.import_skill)
-            time_func('InventoryFlag', self.import_inventoryflag)
-            time_func('NPCFaction', self.import_npcfaction)
-            time_func('NPCCorporation', self.import_npccorporation)
-        
-        time_func('Alliance', self.import_alliance)
-        time_func('Conquerable Station', self.import_conquerable_station)
-        time_func('RefTypes', self.import_reftypes)
+        time_func('Region', self.import_region)
+        time_func('Constellation', self.import_constellation)
+        time_func('System', self.import_system)
+        time_func('Station', self.import_station)
+        time_func('MarketGroup', self.import_marketgroup)
+        time_func('ItemCategory', self.import_itemcategory)
+        time_func('ItemGroup', self.import_itemgroup)
+        time_func('Item', self.import_item)
+        time_func('Blueprint', self.import_blueprint)
+        time_func('Skill', self.import_skill)
+        time_func('InventoryFlag', self.import_inventoryflag)
+        time_func('NPCFaction', self.import_npcfaction)
+        time_func('NPCCorporation', self.import_npccorporation)
     
     # -----------------------------------------------------------------------
     # Regions
     def import_region(self):
         added = 0
         
-        self.cursor.execute('SELECT regionID, regionName FROM mapRegions WHERE regionName != "Unknown"')
+        self.cursor.execute("SELECT regionID, regionName FROM mapRegions WHERE regionName != 'Unknown'")
         bulk_data = {}
         for row in self.cursor:
             bulk_data[int(row[0])] = row[1:]
@@ -231,11 +221,6 @@ class Importer:
         while bulk_data:
             items = list(bulk_data.items())
             for id, data in items:
-                # if we've already added this marketgroup, cache and skip
-                if id in data_map:
-                    del bulk_data[id]
-                    continue
-                
                 if data[1] is None:
                     parent = None
                 else:
@@ -243,6 +228,16 @@ class Importer:
                     try:
                         parent = MarketGroup.objects.get(pk=data[1])
                     except MarketGroup.DoesNotExist:
+                        continue
+                
+                # if we've already added this marketgroup, check that the parent
+                # hasn't changed
+                mg = data_map.get(id, None)
+                if mg is not None:
+                    if parent is not None and mg.parent.id != parent.id:
+                        mg.delete()
+                    else:
+                        del bulk_data[id]
                         continue
                 
                 mg = MarketGroup(
@@ -398,6 +393,7 @@ class Importer:
         
         data_map = Blueprint.objects.in_bulk(bulk_data.keys())
         
+        new = []
         for id, data in bulk_data.items():
             if not data[0] or not data[1]:
                 continue
@@ -408,30 +404,34 @@ class Importer:
                     print '==> Renamed %r to %r' % (bp.name, data[0])
                     bp.name = data[0]
                     bp.save()
-                continue
-            
-            bp = Blueprint(
-                id=id,
-                name=data[0],
-                item_id=data[1],
-                production_time=data[2],
-                productivity_modifier=data[3],
-                material_modifier=data[4],
-                waste_factor=data[5],
-            )
-            bp.save()
-            added += 1
-            
+            else:
+                new.append(Blueprint(
+                    id=id,
+                    name=data[0],
+                    item_id=data[1],
+                    production_time=data[2],
+                    productivity_modifier=data[3],
+                    material_modifier=data[4],
+                    waste_factor=data[5],
+                ))
+                added += 1
+
+        if new:
+            Blueprint.objects.bulk_create(new)
+
+
+        # Collect all components
+        new = []
+        for id, data in bulk_data.items():
             # Base materials
-            self.cursor.execute('SELECT materialTypeID, quantity FROM invTypeMaterials WHERE typeID=?', (data[1],))
+            self.cursor.execute('SELECT materialTypeID, quantity FROM invTypeMaterials WHERE typeID=%s', (data[1],))
             for baserow in self.cursor:
-                bpc = BlueprintComponent(
+                new.append(BlueprintComponent(
                     blueprint_id=id,
                     item_id=baserow[0],
                     count=baserow[1],
                     needs_waste=True,
-                )
-                bpc.save()
+                ))
                 added += 1
             
             # Extra materials. activityID 1 is manufacturing - categoryID 16 is skill requirements
@@ -442,21 +442,26 @@ class Importer:
                 ON      r.requiredTypeID = t.typeID
                 INNER JOIN invGroups AS g
                 ON      t.groupID = g.groupID
-                WHERE   r.typeID = ?
+                WHERE   r.typeID = %s
                         AND r.activityID = 1
                         AND g.categoryID <> 16
             """, (id,))
             
             for extrarow in self.cursor:
-                bpc = BlueprintComponent(
+                new.append(BlueprintComponent(
                     blueprint_id=id,
                     item_id=extrarow[0],
                     count=extrarow[1],
                     needs_waste=False,
-                )
-                bpc.save()
+                ))
                 added += 1
-        
+
+        # If there's any new ones just drop and recreate the whole lot, easier
+        # than trying to work out what has changed for every single blueprint
+        if new:
+            BlueprintComponent.objects.all().delete()
+            BlueprintComponent.objects.bulk_create(new)
+
         return added
     
     # -----------------------------------------------------------------------
@@ -464,6 +469,7 @@ class Importer:
     def import_skill(self):
         added = 0
 
+        #                    AND invTypes.published = 1
         skills = {}
         self.cursor.execute("""
             SELECT  DISTINCT invTypes.typeID,
@@ -473,15 +479,20 @@ class Importer:
             INNER JOIN invGroups ON (invTypes.groupID = invGroups.groupID)
             INNER JOIN dgmTypeAttributes ON (invTypes.typeID = dgmTypeAttributes.typeID)
             WHERE   invGroups.categoryID = 16
-                    AND invTypes.published = 1
                     AND dgmTypeAttributes.attributeID = 275
                     AND dgmTypeAttributes.valueFloat IS NOT NULL
             ORDER BY invTypes.typeID
         """)
         for row in self.cursor:
+            # Handle NULL descriptions
+            if row[2] is None:
+                desc = ''
+            else:
+                desc = row[2].strip()
+
             skills[row[0]] = {
                 'rank': row[1],
-                'description': row[2].strip(),
+                'description': desc,
             }
 
         # Primary/secondary attributes
@@ -510,6 +521,7 @@ class Importer:
         for skill in Skill.objects.all():
             skill_map[skill.item_id] = skill
 
+        new = []
         for id, data in skills.items():
             # TODO: add value verification
             skill = skill_map.get(id, None)
@@ -525,14 +537,17 @@ class Importer:
                     print '==> Updated skill details for #%d' % (id)
                 continue
 
-            skill = Skill(
+            new.append(Skill(
                 item_id=id,
                 rank=data['rank'],
                 primary_attribute=data['pri'],
                 secondary_attribute=data['sec'],
-            )
-            skill.save()
+                description=data['description'],
+            ))
             added += 1
+
+        if new:
+            Skill.objects.bulk_create(new)
 
         return added
 

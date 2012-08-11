@@ -823,7 +823,7 @@ class Contract(models.Model):
     volume = models.DecimalField(max_digits=16, decimal_places=4)
 
     def __unicode__(self):
-        if self.type == 'Contract':
+        if self.type == 'Courier':
             return '#%d (%s, %s -> %s)' % (self.contract_id, self.type, self.start_station.short_name, self.end_station.short_name)
         else:
             return '#%d (%s, %s)' % (self.contract_id, self.type, self.start_station.short_name)
