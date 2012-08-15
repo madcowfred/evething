@@ -163,19 +163,9 @@ class TaskState(models.Model):
     mod_time = models.DateTimeField(db_index=True)
     next_time = models.DateTimeField(db_index=True)
 
-    # If we're ready to queue, change stuff and return True
+    # Are we ready to queue?
     def queue_now(self, now):
-        # ready and next time is older than now OR
-        # active and mod time is older than 10 minutes (probably a broken job)
-        if (self.state == self.READY_STATE and self.next_time <= now) or \
-           (self.state == self.ACTIVE_STATE and (self.mod_time + datetime.timedelta(minutes=10)) <= now):
-            self.mod_time = now
-            self.state = self.QUEUED_STATE
-            self.save()
-
-            return True
-
-        return False
+        return ((self.state == self.READY_STATE) and self.next_time <= now)
 
 # ---------------------------------------------------------------------------
 # API cache entries

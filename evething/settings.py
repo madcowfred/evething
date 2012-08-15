@@ -192,10 +192,17 @@ CELERYBEAT_SCHEDULE = {
         'args': (),
     },
 
-    # clean up the API cache every 15 minutes
+    # clean up broken tasks every 5 minutes
+    'taskstate-cleanup': {
+        'task': 'thing.tasks.taskstate_cleanup',
+        'schedule': timedelta(minutes=5),
+        'args': (),
+    },
+    
+    # clean up the API cache every 5 minutes
     'apicache-cleanup': {
         'task': 'thing.tasks.apicache_cleanup',
-        'schedule': timedelta(minutes=15),
+        'schedule': timedelta(minutes=5),
         'args': (),
     },
 
@@ -204,7 +211,7 @@ CELERYBEAT_SCHEDULE = {
         'task': 'thing.tasks.history_updater',
         'schedule': timedelta(hours=4),
         'options': {
-            'expires': 235 * 60,
+            'expires': 239 * 60,
         },
         'args': (),
     },

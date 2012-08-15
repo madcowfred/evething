@@ -174,7 +174,29 @@ class APIJob:
         return True
 
 # ---------------------------------------------------------------------------
-# Periodic task to cleanup expired APICache objects
+# Periodic task to clean up broken tasks
+@task
+def taskstate_cleanup():
+    now = datetime.datetime.now()
+    fifteen_mins_ago = now - datetime.timedelta(minutes=15)
+    one_hour_ago = now - datetime.timedelta(minutes=60)
+
+    # Build a QuerySet to find broken tasks
+    taskstates = TaskState.objects.filter(
+        # Queued for an hour?
+        Q(state=TaskState.QUEUED_STATE, mod_time__lt=one_hour_ago)
+        |
+        # Active for 15 minutes?
+        Q(state=TaskState.ACTIVE_STATE, mod_time__lt=fifteen_mins_ago)
+    )
+
+    # Set them to restart
+    count = taskstates.update(mod_time=now, next_time=now, state=TaskState.READY_STATE)
+    if count > 0:
+        logger.warn('Reset %d broken TaskStates', count)
+
+# ---------------------------------------------------------------------------
+# Periodic task to clean up expired APICache objects
 @task
 def apicache_cleanup():
     now = datetime.datetime.utcnow()
@@ -1502,10 +1524,6 @@ def _wallet_transactions_work(url, job, character, corp_wallet=None):
         # Create any new transaction objects
         if new:
             Transaction.objects.bulk_create(new)
-
-        # completed ok
-        if errors == 0:
-            job.apicache.completed()
 
         # If we got MAX rows we should retrieve some more
         if len(bulk_data) == TRANSACTION_ROWS:
