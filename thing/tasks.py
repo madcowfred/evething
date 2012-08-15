@@ -1,5 +1,6 @@
 import datetime
 import requests
+import socket
 import sys
 import time
 
@@ -106,17 +107,19 @@ class APIJob:
         now = datetime.datetime.utcnow()
         params_repr = repr(sorted(params.items()))
         
-        apicaches = list(APICache.objects.filter(url=url, parameters=params_repr, cached_until__gt=now).order_by('cached_until'))
+        # Retrieve the latest APICache object
+        apicaches = list(APICache.objects.filter(url=url, parameters=params_repr, cached_until__gt=now).order_by('-cached_until')[:1])
         
         # Data is not cached, fetch new data
         if len(apicaches) == 0:
             apicache = None
             
-            full_url = urljoin(settings.API_HOST, url)
-            #logger.info('Fetching URL %s', full_url)
-
             # Fetch the URL
-            r = requests.post(full_url, params, headers=HEADERS, config={ 'max_retries': 1 })
+            full_url = urljoin(settings.API_HOST, url)
+            try:
+                r = requests.post(full_url, params, headers=HEADERS, config={ 'max_retries': 1 })
+            except socket.error:
+                return False
             data = r.text
 
             # If the status code is bad return False
@@ -125,12 +128,6 @@ class APIJob:
 
         # Data is cached, use that
         else:
-            # ... unless there's more than 1 in which case we need to clean that mess up
-            if len(apicaches) > 1:
-                logger.warn('APICache returned multiple matches, cleaning up')
-                for apicache in apicaches[1:]:
-                    apicache.delete()
-
             apicache = apicaches[0]
             data = apicache.text
 
