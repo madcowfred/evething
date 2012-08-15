@@ -206,9 +206,6 @@ CELERYBEAT_SCHEDULE = {
     'apicache-cleanup': {
         'task': 'thing.tasks.apicache_cleanup',
         'schedule': timedelta(seconds=30),
-        'options': {
-            'expires': 28,
-        },
         'args': (),
     },
 
