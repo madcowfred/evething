@@ -172,6 +172,9 @@ djcelery.setup_loader()
 # Rename the default queue
 from kombu import Exchange, Queue
 
+# We're not using rate limits so might as well disable them to save some CPU
+CELERY_DISABLE_RATE_LIMITS = True
+
 CELERY_DEFAULT_QUEUE = 'et_medium'
 CELERY_QUEUES = (
     Queue('et_medium', Exchange('et_medium'), routing_key='et_medium'),
