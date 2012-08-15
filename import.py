@@ -473,7 +473,7 @@ class Importer:
         skills = {}
         self.cursor.execute("""
             SELECT  DISTINCT invTypes.typeID,
-                    CAST(dgmTypeAttributes.valueFloat AS integer) AS rank,
+                    dgmTypeAttributes.valueFloat AS rank,
                     invTypes.description
             FROM    invTypes
             INNER JOIN invGroups ON (invTypes.groupID = invGroups.groupID)
@@ -491,7 +491,7 @@ class Importer:
                 desc = row[2].strip()
 
             skills[row[0]] = {
-                'rank': row[1],
+                'rank': int(row[1]),
                 'description': desc,
             }
 
