@@ -118,9 +118,9 @@ class APIJob:
             full_url = urljoin(settings.API_HOST, url)
             try:
                 r = requests.post(full_url, params, headers=HEADERS, config={ 'max_retries': 1 })
+                data = r.text
             except socket.error:
                 return False
-            data = r.text
 
             # If the status code is bad return False
             if not r.status_code == requests.codes.ok:
