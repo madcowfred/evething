@@ -97,8 +97,13 @@
 * documentation:
   - Pages need to explain what the hell they do
   - Celery:
-    = python manage.py celery worker -B -E -l info -Q et_medium,et_low -c 4
-    = python manage.py celery worker -E -l info -Q et_high,et_medium -c 1
+    = python manage.py celery worker -E -Q et_medium -c 4 -n et_medium.host
+    = python manage.py celery worker -E -Q et_low -c 2 -n et_low.host
+    = python manage.py celery worker -E -Q et_high -c 1 -n et_high.host
+    = python manage.py celery beat
+  - api_updater deprecated
+  - history_updater deprecated
+  - price_updater deprecated
 
 * misc:
   - Get some less awful themes, oh dear
@@ -117,3 +122,15 @@
 
 * price_updater:
   - Add support for other sources of market data
+
+* tasks:
+  - alliance_list:
+    = Port from import.py, timer?
+  - api_key_info:
+    = When a key is successfully updated, check the APICache for any 221 "derp check access" errors. If any are found, purge
+      them from the cache and also the related TaskState object.
+  - asset_list:
+    = Only call Locations API once, right after assets are updated. This SHOULD ensure we never get that stupid "user may
+      not own all of those, don't be naughty" error ever again.
+  - ref_types:
+    = Port from import.py, timer?
