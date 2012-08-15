@@ -21,6 +21,7 @@ from thing import queries
 from thing.models import *
 
 from celery import task
+from celery.exceptions import SoftTimeLimitExceeded
 from celery.utils.log import get_task_logger
 logger = get_task_logger(__name__)
 
@@ -120,6 +121,8 @@ class APIJob:
                 r = requests.post(full_url, params, headers=HEADERS, config={ 'max_retries': 1 })
                 data = r.text
             except socket.error:
+                return False
+            except SoftTimeLimitExceeded:
                 return False
 
             # If the status code is bad return False
