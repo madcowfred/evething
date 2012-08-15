@@ -198,8 +198,6 @@ def taskstate_cleanup():
 def apicache_cleanup():
     now = datetime.datetime.utcnow()
     count = APICache.objects.filter(cached_until__lt=now).delete()
-    if count > 0:
-        logger.warn('apicache_cleanup: expired %d cache entries', count)
 
 # ---------------------------------------------------------------------------
 # Periodic task to spawn API jobs

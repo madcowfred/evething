@@ -190,7 +190,7 @@ CELERYBEAT_SCHEDULE = {
         'task': 'thing.tasks.spawn_jobs',
         'schedule': timedelta(seconds=30),
         'options': {
-            'expires': 25,
+            'expires': 28,
         },
         'args': (),
     },
@@ -202,10 +202,13 @@ CELERYBEAT_SCHEDULE = {
         'args': (),
     },
     
-    # clean up the API cache every 5 minutes
+    # clean up the API cache every 30 seconds
     'apicache-cleanup': {
         'task': 'thing.tasks.apicache_cleanup',
-        'schedule': timedelta(minutes=5),
+        'schedule': timedelta(seconds=30),
+        'options': {
+            'expires': 28,
+        },
         'args': (),
     },
 
