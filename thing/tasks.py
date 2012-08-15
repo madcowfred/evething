@@ -92,6 +92,7 @@ class APIJob:
     # ---------------------------------------------------------------------------
     # Perform an API request and parse the returned XML via ElementTree
     def fetch_api(self, url, params, use_auth=True, log_error=True):
+        # Set the task to active
         self.taskstate.state = TaskState.ACTIVE_STATE
         self.taskstate.mod_time = datetime.datetime.now()
         self.taskstate.save()
@@ -105,11 +106,10 @@ class APIJob:
         now = datetime.datetime.utcnow()
         params_repr = repr(sorted(params.items()))
         
-        try:
-            apicache = APICache.objects.get(url=url, parameters=params_repr, cached_until__gt=now)
-
+        apicaches = list(APICache.objects.filter(url=url, parameters=params_repr, cached_until__gt=now).order_by('cached_until'))
+        
         # Data is not cached, fetch new data
-        except APICache.DoesNotExist:
+        if len(apicaches) == 0:
             apicache = None
             
             full_url = urljoin(settings.API_HOST, url)
@@ -125,6 +125,11 @@ class APIJob:
 
         # Data is cached, use that
         else:
+            # ... unless there's more than 1 in which case we need to clean that mess up
+            for apicache in apicaches[1:]:
+                apicache.delete()
+
+            apicache = apicaches[0]
             data = apicache.text
 
         # Parse the data if there is any
