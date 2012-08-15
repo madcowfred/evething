@@ -1073,11 +1073,21 @@ def locations(url, apikey_id, taskstate_id, character_id):
         job.failed()
         return
 
+    # Build a map of assetID:assetName
+    bulk_data = {}
     for row in job.root.findall('result/rowset/row'):
-        ca = Asset.objects.get(character=character, id=row.attrib['itemID'])
-        if ca.name is None or ca.name != row.attrib['itemName']:
-            ca.name = row.attrib['itemName']
-            ca.save()
+        bulk_data[int(row.attrib['itemID'])] = row.attrib['itemName']
+
+    # Bulk query them
+    asset_map = Asset.objects.filter(character=character).in_bulk(bulk_data.keys())
+
+    # Update any new or changed names
+    for assetID, assetName in bulk_data.items():
+        asset = asset_map.get(assetID, None)
+        if asset is not None:
+            if asset.name is None or asset.name != itemName:
+                ca.name = itemName
+                ca.save()
     
     # completed ok
     job.completed()
