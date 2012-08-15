@@ -982,7 +982,7 @@ def contracts(url, apikey_id, taskstate_id, character_id):
 
     
     # completed ok
-    job.apicache.completed()
+    job.completed()
 
 # ---------------------------------------------------------------------------
 # Corporation sheet
