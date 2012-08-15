@@ -973,7 +973,6 @@ def character_skillplan(request, character_name, skillplan_id):
         chars = Character.objects.filter(name=character_name, apikeys__user=request.user).distinct()
         if chars.count() == 1:
             character = chars[0]
-
             public = False
             qs = Q(visibility=SkillPlan.GLOBAL_VISIBILITY) | Q(user=request.user) | (Q(user__in=user_ids) & Q(visibility=SkillPlan.PUBLIC_VISIBILITY))
             skillplan = get_object_or_404(SkillPlan.objects.prefetch_related('entries'), qs, pk=skillplan_id)
@@ -982,9 +981,9 @@ def character_skillplan(request, character_name, skillplan_id):
     if public is True:
         character = get_object_or_404(Character, name=character_name, config__is_public=True)
         
-        # Yeah this is awful
-        user_ids = APIKey.objects.filter(characters__name=character_name).values_list('user_id', flat=True)
         qs = Q(visibility=SkillPlan.GLOBAL_VISIBILITY) | (Q(user__in=user_ids) & Q(visibility=SkillPlan.PUBLIC_VISIBILITY))
+        if request.user.is_authenticated():
+            qs |= Q(user=request.user)
         skillplan = get_object_or_404(SkillPlan.objects.prefetch_related('entries'), qs, pk=skillplan_id)
 
     return character_skillplan_common(request, character, skillplan, public=public)
