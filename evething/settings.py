@@ -174,7 +174,9 @@ from kombu import Exchange, Queue
 
 # We're not using rate limits so might as well disable them to save some CPU
 CELERY_DISABLE_RATE_LIMITS = True
-
+# Set a hard task time limit of 3 minutes
+CELERYD_TASK_TIME_LIMIT = 180
+# Set up our queues
 CELERY_DEFAULT_QUEUE = 'et_medium'
 CELERY_QUEUES = (
     Queue('et_medium', Exchange('et_medium'), routing_key='et_medium'),
