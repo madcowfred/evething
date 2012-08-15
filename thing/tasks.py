@@ -1085,9 +1085,9 @@ def locations(url, apikey_id, taskstate_id, character_id):
     for assetID, assetName in bulk_data.items():
         asset = asset_map.get(assetID, None)
         if asset is not None:
-            if asset.name is None or asset.name != itemName:
-                ca.name = itemName
-                ca.save()
+            if asset.name is None or asset.name != assetName:
+                asset.name = assetName
+                asset.save()
     
     # completed ok
     job.completed()
