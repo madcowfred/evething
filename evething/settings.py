@@ -203,6 +203,9 @@ CELERYBEAT_SCHEDULE = {
     'history-updater': {
         'task': 'thing.tasks.history_updater',
         'schedule': timedelta(hours=4),
+        'options': {
+            'expires': 235 * 60,
+        },
         'args': (),
     },
 
@@ -210,6 +213,9 @@ CELERYBEAT_SCHEDULE = {
     'price-updater': {
         'task': 'thing.tasks.price_updater',
         'schedule': timedelta(minutes=15),
+        'options': {
+            'expires': 14 * 60,
+        },
         'args': (),
     },
 
@@ -217,6 +223,9 @@ CELERYBEAT_SCHEDULE = {
     'conquerable-stations': {
         'task': 'thing.tasks.conquerable_stations',
         'schedule': timedelta(hours=1),
+        'options': {
+            'expires': 59 * 60,
+        },
         'args': (),
     },
 }
