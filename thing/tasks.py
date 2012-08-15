@@ -193,14 +193,16 @@ def taskstate_cleanup():
     # Set them to restart
     count = taskstates.update(mod_time=now, next_time=now, state=TaskState.READY_STATE)
     if count > 0:
-        logger.warn('Reset %d broken TaskStates', count)
+        logger.warn('taskstate_cleanup: reset %d broken tasks', count)
 
 # ---------------------------------------------------------------------------
 # Periodic task to clean up expired APICache objects
 @task
 def apicache_cleanup():
     now = datetime.datetime.utcnow()
-    APICache.objects.filter(cached_until__lt=now).delete()
+    count = APICache.objects.filter(cached_until__lt=now).delete()
+    if count > 0:
+        logger.warn('apicache_cleanup: expired %d cache entries', count)
 
 # ---------------------------------------------------------------------------
 # Periodic task to spawn API jobs
