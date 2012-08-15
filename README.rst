@@ -2,6 +2,14 @@
 EVEthing
 ========
 
+USE THE DEVELOP TREE.
+USE THE DEVELOP TREE.
+USE THE DEVELOP TREE.
+USE THE DEVELOP TREE.
+USE THE DEVELOP TREE.
+
+(this tree won't be updated until an actual release occurs, good luck with that)
+
 EVEthing is a terribly named web application intended to ease the pain of managing your
 EVE space empire.
 
