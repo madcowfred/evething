@@ -126,8 +126,10 @@ class APIJob:
         # Data is cached, use that
         else:
             # ... unless there's more than 1 in which case we need to clean that mess up
-            for apicache in apicaches[1:]:
-                apicache.delete()
+            if len(apicaches) > 1:
+                logger.warn('APICache returned multiple matches, cleaning up')
+                for apicache in apicaches[1:]:
+                    apicache.delete()
 
             apicache = apicaches[0]
             data = apicache.text
