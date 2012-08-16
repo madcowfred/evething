@@ -871,6 +871,16 @@ def contracts(url, apikey_id, taskstate_id, character_id):
     for row in contract_rows:
         contractID = int(row.attrib['contractID'])
         
+        issuer_char = char_map.get(int(row.attrib['issuerID']), None)
+        if issuer_char is None:
+            logger.warn('contracts: invalid issuerID %r', row.attrib['issuerID'])
+            continue
+
+        issuer_corp = corp_map.get(int(row.attrib['issuerCorpID']), None)
+        if issuer_corp is None:
+            logger.warn('contracts: invalid issuerCorpID %r', row.attrib['issuerCorpID'])
+            continue
+        
         assigneeID = int(row.attrib['assigneeID'])
         assignee_char = None
         assignee_corp = None
@@ -936,8 +946,8 @@ def contracts(url, apikey_id, taskstate_id, character_id):
         else:
             contract = Contract(
                 contract_id=contractID,
-                issuer_char=char_map[int(row.attrib['issuerID'])],
-                issuer_corp=corp_map[int(row.attrib['issuerCorpID'])],
+                issuer_char=issuer_char,
+                issuer_corp=issuer_corp,
                 assignee_char=assignee_char,
                 assignee_corp=assignee_corp,
                 assignee_alliance=assignee_alliance,
