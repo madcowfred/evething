@@ -310,7 +310,6 @@ def account_settings(request):
     profile.home_sort_descending = (request.POST.get('home_sort_descending', '') == 'on')
 
     # hide characters
-    print repr(request.POST.getlist('home_hide_characters'))
     profile.home_hide_characters = ','.join(c for c in request.POST.getlist('home_hide_characters') if c.isdigit())
 
     profile.save()
@@ -887,7 +886,6 @@ def character_common(request, char, public=True, anonymous=False):
 
     for cs in CharacterSkill.objects.select_related('skill__item__market_group').filter(character=char).order_by('skill__item__market_group__name', 'skill__item__name'):
         mg = cs.skill.item.market_group or unpub_mg
-        print cs.skill.item.name, repr(mg)
         if mg != cur:
             cur = mg
             cur.z_total_sp = 0
