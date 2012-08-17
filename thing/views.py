@@ -1348,15 +1348,18 @@ def trade(request):
     # Get data and stuff
     t_data = []
     for name, urlpart, trans in t_check:
-        row = { 'name': name, 'urlpart': urlpart }
+        row = dict(
+            name=name,
+            urlpart=urlpart,
+            buy_total=0,
+            sell_total=0,
+        )
         
-        row['buy_total'] = trans.filter(buy_transaction=True).aggregate(Sum('total_price'))['total_price__sum']
-        row['sell_total'] = trans.filter(buy_transaction=False).aggregate(Sum('total_price'))['total_price__sum']
-        
-        if row['buy_total'] is None:
-            row['buy_total'] = 0
-        if row['sell_total'] is None:
-            row['sell_total'] = 0
+        for data in trans.values('buy_transaction').annotate(Sum('total_price')):
+            if data['buy_transaction'] is True:
+                row['buy_total'] = data['total_price__sum']
+            else:
+                row['sell_total'] = data['total_price__sum']
         
         row['balance'] = row['sell_total'] - row['buy_total']
         
