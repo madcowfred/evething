@@ -1154,14 +1154,13 @@ def contracts(request):
     corporations = list(APIKey.objects.filter(user=request.user).exclude(corp_character=None).values_list('corp_character__corporation__id', flat=True))
 
     # Whee~
-    contracts = Contract.objects.select_related('issuer_char', 'issuer_corp', 'assignee_char', 'assignee_corp',
-        'acceptor_char', 'acceptor_corp', 'start_station', 'end_station')
+    contracts = Contract.objects.select_related('issuer_char', 'issuer_corp', 'start_station', 'end_station')
     contracts = contracts.filter(
         (
             (
                 Q(issuer_char_id__in=characters) |
-                Q(assignee_char_id__in=characters) |
-                Q(acceptor_char_id__in=characters)
+                Q(assignee_id__in=characters) |
+                Q(acceptor_id__in=characters)
             )
             &
             Q(for_corp=False)
@@ -1170,16 +1169,17 @@ def contracts(request):
         (
             (
                 Q(issuer_corp_id__in=corporations) |
-                Q(assignee_corp_id__in=corporations) |
-                Q(acceptor_corp_id__in=corporations)
+                Q(assignee_id__in=corporations) |
+                Q(acceptor_id__in=corporations)
             )
             &
             Q(for_corp=True)
         )
     )
 
-    # Assign a status icon to each contract
+    lookup_ids = set()
     for contract in contracts:
+        # Assign a status icon to each contract
         if contract.status.startswith('Completed'):
             contract.z_status_icon = 'completed'
         elif contract.status == 'InProgress':
@@ -1191,11 +1191,51 @@ def contracts(request):
         else:
             contract.z_status_icon = 'unknown'
 
+        # Add the ids to the lookup set
+        if contract.assignee_id:
+            lookup_ids.add(contract.assignee_id)
+        if contract.acceptor_id:
+            lookup_ids.add(contract.acceptor_id)
+
+    # Do some lookups
+    char_map = SimpleCharacter.objects.in_bulk(lookup_ids)
+    corp_map = Corporation.objects.in_bulk(lookup_ids)
+    alliance_map = Alliance.objects.in_bulk(lookup_ids)
+
+    # Now attach those to each contract
+    for contract in contracts:
+        if contract.assignee_id:
+            # Assignee
+            char = char_map.get(contract.assignee_id, None)
+            if char is not None:
+                contract.z_assignee_char = char
+
+            corp = corp_map.get(contract.assignee_id, None)
+            if corp is not None:
+                contract.z_assignee_corp = corp
+            
+            alliance = alliance_map.get(contract.assignee_id, None)
+            if alliance is not None:
+                contract.z_assignee_alliance = alliance
+
+            # Acceptor
+            char = char_map.get(contract.acceptor_id, None)
+            if char is not None:
+                contract.z_acceptor_char = char
+
+            corp = corp_map.get(contract.acceptor_id, None)
+            if corp is not None:
+                contract.z_acceptor_corp = corp
+
+
     return render_to_response(
         'thing/contracts.html',
         dict(
             characters=characters,
             contracts=contracts,
+            char_map=char_map,
+            corp_map=corp_map,
+            alliance_map=alliance_map,
         ),
         context_instance=RequestContext(request)
     )

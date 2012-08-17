@@ -52,27 +52,27 @@
                   {{ contract.status }}
                 </td>
                 <td class="con-issuer">
-                  {% if contract.assignee_alliance -%}
+                  {% if contract.z_assignee_alliance -%}
                   <i class="icons-alliance"></i>
-                  {{ contract.assignee_alliance.name }}
-                  {%- elif contract.assignee_corp -%}
+                  {{ contract.z_assignee_alliance.name }}
+                  {%- elif contract.z_assignee_corp -%}
                   <i class="icons-corporation"></i>
-                  {{ contract.assignee_corp.name }}
-                  {%- elif contract.assignee_char -%}
+                  {{ contract.z_assignee_corp.name }}
+                  {%- elif contract.z_assignee_char -%}
                   <i class="icons-player"></i>
-                  {{ contract.assignee_char.name }}
+                  {{ contract.z_assignee_char.name }}
                   {%- else -%}
                   <i class="icons-contract-public"></i>
                   Public
                   {%- endif %}
                 </td>
                 <td class="con-issuer">
-                  {% if contract.acceptor_corp -%}
+                  {% if contract.z_acceptor_corp -%}
                   <i class="icons-corporation"></i>
-                  {{ contract.acceptor_corp.name }}
-                  {%- elif contract.acceptor_char -%}
+                  {{ contract.z_acceptor_corp.name }}
+                  {%- elif contract.z_acceptor_char -%}
                   <i class="icons-player"></i>
-                  {{ contract.acceptor_char.name }}
+                  {{ contract.z_acceptor_char.name }}
                   {%- else -%}
                   --
                   {%- endif %}
