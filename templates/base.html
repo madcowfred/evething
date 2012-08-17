@@ -54,7 +54,7 @@
               {%- endif %}
             </ul>
 
-            <ul class="nav pull-right visible-tablet">
+            <ul class="nav pull-right">
               {% if user.is_authenticated() -%}
               {%- with user.get_profile() as profile -%}
               <li class="navbar-text visible-desktop"{% if not profile.show_clock %} style="display: none"{% endif %}>
@@ -64,7 +64,7 @@
               {%- endwith -%}
               {%- endif %}
               {% if user.is_authenticated() -%}
-              <li class="dropdown visible-tablet">
+              <li class="dropdown">
                 <a class="dropdown-toggle" data-toggle="dropdown" href="#">
                   {{ user.username }}
                   <b class="caret"></b>
