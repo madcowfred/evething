@@ -73,13 +73,15 @@
                 </td>
                 {%- else %}
                 <td class="sp-trained">
-                  {% if entry.z_trained -%}
+                  {% if entry.z_training -%}
+                  <i class="icons-skill-training"></i>
+                  {%- elif entry.z_trained -%}
                   <i class="icons-success"></i>
-                  {%- else %}
+                  {%- else -%}
                   <i class="icons-failure"></i>
                   {%- endif %}
                 </td>
-                <td class="l">
+                <td class="l{% if entry.z_training %} training-highlight{% endif %}">
                   {{ entry.sp_skill.skill.item.name }} {{ entry.sp_skill.level|roman }}
                   {% if entry.z_injected -%}
                   <i class="icons-skillplan-injected pull-right" rel="tooltip" title="Skillbook is injected"</i>

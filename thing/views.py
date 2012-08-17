@@ -989,7 +989,7 @@ def character_skillplan(request, character_name, skillplan_id):
             qs = Q(visibility=SkillPlan.GLOBAL_VISIBILITY) | Q(user=request.user) | (Q(user__in=user_ids) & Q(visibility=SkillPlan.PUBLIC_VISIBILITY))
             skillplan = get_object_or_404(SkillPlan.objects.prefetch_related('entries'), qs, pk=skillplan_id)
 
-    # Not logged in
+    # Not logged in or character does not belong to user
     if public is True:
         character = get_object_or_404(Character, name=character_name, config__is_public=True)
         
@@ -1008,6 +1008,8 @@ def character_anonymous_skillplan(request, anon_key, skillplan_id):
     return character_skillplan_common(request, character, skillplan, anonymous=True)
 
 def character_skillplan_common(request, character, skillplan, public=True, anonymous=False):
+    utcnow = datetime.datetime.utcnow()
+
     implants_visible = not public
 
     # Check our GET variables
@@ -1025,6 +1027,13 @@ def character_skillplan_common(request, character, skillplan, public=True, anony
     learned = {}
     for cs in CharacterSkill.objects.filter(character=character).select_related():
         learned[cs.skill.item.id] = cs
+
+    # Possibly get training information
+    training_skill = None
+    if anonymous is True or public is False or character.config.show_skill_queue is True:
+        sqs = list(SkillQueue.objects.select_related('skill__item').filter(character=character, end_time__gte=utcnow))
+        if sqs:
+            training_skill = sqs[0]
 
     # Initialise stat stuff
     remap_stats = dict(
@@ -1093,7 +1102,13 @@ def character_skillplan_common(request, character, skillplan, public=True, anony
             entry.z_spph = int(entry.z_sppm * 60)
 
             # Calculate time remaining
-            entry.z_remaining = (skill.get_sp_at_level(entry.sp_skill.level) - skill.get_sp_at_level(entry.sp_skill.level - 1)) / entry.z_sppm * 60
+            if training_skill is not None and training_skill.skill_id == entry.sp_skill.skill_id:
+                entry.z_remaining = (training_skill.end_time - utcnow).total_seconds()
+                entry.z_training = True
+            else:
+                entry.z_remaining = (skill.get_sp_at_level(entry.sp_skill.level) - skill.get_sp_at_level(entry.sp_skill.level - 1)) / entry.z_sppm * 60
+
+            # Add time remaining to total
             if not hasattr(entry, 'z_trained'):
                 total_remaining += entry.z_remaining
 
