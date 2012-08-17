@@ -904,7 +904,7 @@ def character_common(request, char, public=True, anonymous=False):
     if v:
         skills[k] = v
 
-    
+
     # Retrieve skillplans
     user_ids = APIKey.objects.filter(characters__name=char.name).values_list('user_id', flat=True)
 
