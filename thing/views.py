@@ -455,11 +455,19 @@ def account_skillplan_edit(request):
 # Assets
 @login_required
 def assets(request):
+    character_ids = list(Character.objects.filter(apikeys__user=request.user.id).values_list('id', flat=True))
+    characters = Character.objects.in_bulk(character_ids)
+    
+    corporation_ids = list(APIKey.objects.filter(user=request.user).exclude(corp_character=None).values_list('corp_character__corporation__id', flat=True))
+    corporations = Corporation.objects.in_bulk(corporation_ids)
+
     # apply our initial set of filters
-    assets = Asset.objects.select_related('system', 'station', 'character', 'corporation', 'inv_flag')
-    char_filter = Q(character__apikeys__user=request.user, corporation__isnull=True)
-    corp_filter = Q(corporation__in=APIKey.objects.filter(user=request.user).values('corp_character__corporation__id'))
-    assets = assets.filter(char_filter | corp_filter)
+    assets = Asset.objects.select_related('system', 'station', 'inv_flag')
+    assets = assets.filter(
+        Q(character__in=character_ids, corporation__isnull=True)
+        |
+        Q(corporation__in=corporation_ids)
+    )
     assets = assets.distinct()
 
     # retrieve any supplied filter values
@@ -494,21 +502,21 @@ def assets(request):
     if not filters:
         filters.append(('', '', ''))
 
-    # get item_ids first
-    item_ids = set()
-    for a in assets:
-        item_ids.add(a.item_id)
-
     # fetch all items
-    items = Item.objects.select_related().in_bulk(item_ids)
+    items = Item.objects.select_related().in_bulk(assets.values_list('item_id', flat=True))
 
     # initialise data structures
     ca_lookup = {}
     loc_totals = {}
     systems = {}
 
-    for ca in assets:
+    for ca in assets.iterator():
         ca.z_item = items[ca.item_id]
+
+        # corporation and character
+        if ca.corporation_id:
+            ca.z_corporation = corporations[ca.corporation_id]
+        ca.z_character = characters[ca.character_id]
 
         # work out if this is a system or station asset
         k = ca.system_or_station()
@@ -564,9 +572,11 @@ def assets(request):
                 ca.z_group = ca.z_item.item_group.category.name
 
             else:
+                # inventory group
                 ca.z_group = ca.inv_flag.nice_name()
-                if ca.z_group.startswith('CorpSAG') and ca.corporation:
-                    ca.z_group = getattr(ca.corporation, 'division%s' % (ca.z_group[-1]))
+                # corporation hangar
+                if ca.z_group.startswith('CorpSAG') and hasattr(ca, 'z_corporation'):
+                    ca.z_group = getattr(ca.z_corporation, 'division%s' % (ca.z_group[-1]))
 
     # add contents to the parent total
     for cas in systems.values():
@@ -587,21 +597,16 @@ def assets(request):
 
     # decorate/sort/undecorate for our strange sort requirements :(
     for system_name in systems:
-        temp = [(ca.character.name.lower(), ca.is_leaf_node(), ca.z_item.name, ca.name, ca) for ca in systems[system_name]]
+        temp = [(ca.z_character.name.lower(), ca.is_leaf_node(), ca.z_item.name, ca.name, ca) for ca in systems[system_name]]
         temp.sort()
-        systems[system_name] = [s[4] for s in temp]
+        systems[system_name] = [s[-1] for s in temp]
 
-    sorted_systems = systems.items()
-    sorted_systems.sort()
-
-    # Get corporations this user has APIKeys for
-    corp_ids = APIKey.objects.select_related().filter(user=request.user.id).exclude(corp_character=None).values_list('corp_character__corporation', flat=True)
-    corporations = Corporation.objects.filter(pk__in=corp_ids)
+    sorted_systems = sorted(systems.items())
 
     return render_to_response(
         'thing/assets.html',
         {
-            'characters': Character.objects.filter(apikeys__user=request.user),
+            'characters': characters,
             'corporations': corporations,
             'filters': filters,
             'total_value': total_value,
