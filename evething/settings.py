@@ -174,8 +174,10 @@ from kombu import Exchange, Queue
 
 # We're not using rate limits so might as well disable them to save some CPU
 CELERY_DISABLE_RATE_LIMITS = True
-# Set a soft task time limit of 3 minutes
-CELERYD_TASK_SOFT_TIME_LIMIT = 180
+# Set a soft task time limit of 5 minutes
+CELERYD_TASK_SOFT_TIME_LIMIT = 300
+# Set the prefetch multiplier to 1 so super slow tasks aren't breaking everything
+CELERYD_PREFETCH_MULTIPLIER = 1
 # Set up our queues
 CELERY_DEFAULT_QUEUE = 'et_medium'
 CELERY_QUEUES = (
@@ -193,6 +195,7 @@ CELERYBEAT_SCHEDULE = {
         'schedule': timedelta(seconds=30),
         'options': {
             'expires': 28,
+            'queue': 'et_high',
         },
         'args': (),
     },
@@ -201,6 +204,9 @@ CELERYBEAT_SCHEDULE = {
     'taskstate-cleanup': {
         'task': 'thing.tasks.taskstate_cleanup',
         'schedule': timedelta(minutes=5),
+        'options': {
+            'queue': 'et_high',
+        },
         'args': (),
     },
     
@@ -208,6 +214,9 @@ CELERYBEAT_SCHEDULE = {
     'apicache-cleanup': {
         'task': 'thing.tasks.apicache_cleanup',
         'schedule': timedelta(seconds=30),
+        'options': {
+            'queue': 'et_high',
+        },
         'args': (),
     },
 
