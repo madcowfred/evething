@@ -43,7 +43,7 @@ CHAR_URLS = {
     APIKey.CHAR_ACCOUNT_STATUS_MASK: ('account_status', '/account/AccountStatus.xml.aspx', 'et_medium'),
     APIKey.CHAR_ASSET_LIST_MASK: ('asset_list', '/char/AssetList.xml.aspx', 'et_medium'),
     APIKey.CHAR_CHARACTER_SHEET_MASK: ('character_sheet', '/char/CharacterSheet.xml.aspx', 'et_medium'),
-    APIKey.CHAR_CONTRACTS_MASK: ('contracts', '/char/Contracts.xml.aspx', 'et_high'),
+    APIKey.CHAR_CONTRACTS_MASK: ('contracts', '/char/Contracts.xml.aspx', 'et_medium'),
     APIKey.CHAR_LOCATIONS_MASK: ('locations', '/char/Locations.xml.aspx', 'et_medium'),
     APIKey.CHAR_MARKET_ORDERS_MASK: ('market_orders', '/char/MarketOrders.xml.aspx', 'et_medium'),
     APIKey.CHAR_SKILL_QUEUE_MASK: ('skill_queue', '/char/SkillQueue.xml.aspx', 'et_medium'),
@@ -735,8 +735,8 @@ def contracts(url, apikey_id, taskstate_id, character_id):
         params = {}
         c_filter = Contract.objects.filter(
             Q(issuer_corp_id=character.corporation.id) |
-            Q(assignee_corp_id=character.corporation.id) |
-            Q(acceptor_corp_id=character.corporation.id),
+            Q(assignee_id=character.corporation.id) |
+            Q(acceptor_id=character.corporation.id),
             for_corp=True,
         )
     
@@ -745,8 +745,8 @@ def contracts(url, apikey_id, taskstate_id, character_id):
         params = { 'characterID': character.id }
         c_filter = Contract.objects.filter(
             Q(issuer_char_id=character.id) |
-            Q(assignee_char_id=character.id) |
-            Q(acceptor_char_id=character.id),
+            Q(assignee_id=character.id) |
+            Q(acceptor_id=character.id),
             for_corp=False,
         )
 
@@ -779,7 +779,7 @@ def contracts(url, apikey_id, taskstate_id, character_id):
             # bug where corp keys see alliance contracts they didn't make  :ccp:
             if job.apikey.corp_character.corporation.id not in (int(row.attrib['issuerCorpID']),
                 int(row.attrib['assigneeID']), int(row.attrib['acceptorID'])):
-                logger.info('Skipping non-corp contract :ccp:')
+                #logger.info('Skipping non-corp contract :ccp:')
                 continue
 
         # non-corp keys don't care about corp orders
@@ -798,58 +798,28 @@ def contracts(url, apikey_id, taskstate_id, character_id):
             lookup_ids.add(int(row.attrib['assigneeID']))
         if row.attrib['acceptorID'] != '0':
             lookup_ids.add(int(row.attrib['acceptorID']))
+        
         contract_rows.append(row)
 
     # Fetch existing chars and corps
     char_map = SimpleCharacter.objects.in_bulk(lookup_ids)
     corp_map = Corporation.objects.in_bulk(lookup_ids)
     alliance_map = Alliance.objects.in_bulk(lookup_ids)
-    new_ids = list(lookup_ids.difference(char_map, corp_map, alliance_map))
+    
+    # Add all of the new IDs as *UNKNOWN* SimpleCharacters for now
+    new = []
+    for new_id in lookup_ids.difference(char_map, corp_map, alliance_map):
+        new.append(SimpleCharacter(
+            id=new_id,
+            name="*UNKNOWN*",
+        ))
 
-    new_chars = []
-    new_corps = []
+    if new:
+        SimpleCharacter.objects.bulk_create(new)
 
-    # Go look up all of those names now
-    lookup_map = {}
-    for i in range(0, len(new_ids), 250):
-        params = { 'ids': ','.join(map(str, new_ids[i:i+250])) }
-        if job.fetch_api(CHAR_NAME_URL, params, use_auth=False) is False or job.root is None:
-            logger.warn('uh-oh')
-            return
-
-        # <row name="Tazuki Falorn" characterID="1759080617"/>
-        for row in job.root.findall('result/rowset/row'):
-            lookup_map[int(row.attrib['characterID'])] = row.attrib['name']
-
-    # Ugh, now go look up all of the damn names just in case they're corporations
-    for id, name in lookup_map.items():
-        params = { 'corporationID': id }
-        # Not a corporation
-        if job.fetch_api(CORP_SHEET_URL, params, use_auth=False, log_error=False) is False or job.root is None:
-            new_chars.append(SimpleCharacter(
-                id=id,
-                name=name,
-            ))
-        else:
-            new_corps.append(Corporation(
-                id=id,
-                name=name,
-                ticker=job.root.find('result/ticker').text,
-            ))
-
-    # Now we can go create all of those new objects
-    char_map = SimpleCharacter.objects.in_bulk([c.id for c in new_chars])
-    new_chars = [c for c in new_chars if c.id not in char_map]
-    SimpleCharacter.objects.bulk_create(new_chars)
-
-    corp_map = Corporation.objects.in_bulk([c.id for c in new_corps])
-    new_corps = [c for c in new_corps if c.id not in corp_map]
-    Corporation.objects.bulk_create(new_corps)
-
-
-    # And fetch existing data yet again
-    char_map = SimpleCharacter.objects.in_bulk(lookup_ids)
-    corp_map = Corporation.objects.in_bulk(lookup_ids)
+    # Fetch stations
+    #char_map = SimpleCharacter.objects.in_bulk(lookup_ids)
+    #corp_map = Corporation.objects.in_bulk(lookup_ids)
     station_map = Station.objects.in_bulk(station_ids)
 
     # Fetch all existing contracts
@@ -882,26 +852,7 @@ def contracts(url, apikey_id, taskstate_id, character_id):
             continue
         
         assigneeID = int(row.attrib['assigneeID'])
-        assignee_char = None
-        assignee_corp = None
-        assignee_alliance = None
-        if assigneeID in alliance_map:
-            assignee_alliance = alliance_map[assigneeID]
-        if assigneeID in corp_map:
-            assignee_corp = corp_map[assigneeID]
-        if assigneeID in char_map:
-            assignee_char = char_map[assigneeID]
-
         acceptorID = int(row.attrib['acceptorID'])
-        if acceptorID == 0:
-            acceptor_char = None
-            acceptor_corp = None
-        elif acceptorID in char_map:
-            acceptor_char = char_map[acceptorID]
-            acceptor_corp = None
-        else:
-            acceptor_char = None
-            acceptor_corp = corp_map[acceptorID]
 
         dateIssued = parse_api_date(row.attrib['dateIssued'])
         dateExpired = parse_api_date(row.attrib['dateExpired'])
@@ -937,9 +888,8 @@ def contracts(url, apikey_id, taskstate_id, character_id):
 
                 contract.status = row.attrib['status']
                 contract.date_accepted = dateAccepted
-                contract.acceptor_char = acceptor_char
-                contract.acceptor_corp = acceptor_corp
                 contract.date_completed = dateCompleted
+                contract.acceptor_id = acceptorID
                 contract.save()
 
         # Contract does not exist, make a new one
@@ -948,11 +898,8 @@ def contracts(url, apikey_id, taskstate_id, character_id):
                 contract_id=contractID,
                 issuer_char=issuer_char,
                 issuer_corp=issuer_corp,
-                assignee_char=assignee_char,
-                assignee_corp=assignee_corp,
-                assignee_alliance=assignee_alliance,
-                acceptor_char=acceptor_char,
-                acceptor_corp=acceptor_corp,
+                assignee_id=assigneeID,
+                acceptor_id=acceptorID,
                 start_station=station_map[int(row.attrib['startStationID'])],
                 end_station=station_map[int(row.attrib['endStationID'])],
                 type=type,
@@ -985,7 +932,7 @@ def contracts(url, apikey_id, taskstate_id, character_id):
                         text=text,
                     ))
 
-    
+
     # And save the damn things
     Contract.objects.bulk_create(new_contracts)
     Event.objects.bulk_create(new_events)
@@ -1679,7 +1626,51 @@ def price_updater():
             item.save()
 
 # ---------------------------------------------------------------------------
+@task
+def unknown_characters():
+    pass
+    # new_chars = []
+    # new_corps = []
 
+    # # Go look up all of those names now
+    # lookup_map = {}
+    # for i in range(0, len(new_ids), 250):
+    #     params = { 'ids': ','.join(map(str, new_ids[i:i+250])) }
+    #     if job.fetch_api(CHAR_NAME_URL, params, use_auth=False) is False or job.root is None:
+    #         logger.warn('uh-oh')
+    #         return
+
+    #     # <row name="Tazuki Falorn" characterID="1759080617"/>
+    #     for row in job.root.findall('result/rowset/row'):
+    #         lookup_map[int(row.attrib['characterID'])] = row.attrib['name']
+
+    # # Ugh, now go look up all of the damn names just in case they're corporations
+    # for id, name in lookup_map.items():
+    #     params = { 'corporationID': id }
+    #     # Not a corporation
+    #     if job.fetch_api(CORP_SHEET_URL, params, use_auth=False, log_error=False) is False or job.root is None:
+    #         new_chars.append(SimpleCharacter(
+    #             id=id,
+    #             name=name,
+    #         ))
+    #     else:
+    #         new_corps.append(Corporation(
+    #             id=id,
+    #             name=name,
+    #             ticker=job.root.find('result/ticker').text,
+    #         ))
+
+    # # Now we can go create all of those new objects
+    # char_map = SimpleCharacter.objects.in_bulk([c.id for c in new_chars])
+    # new_chars = [c for c in new_chars if c.id not in char_map]
+    # SimpleCharacter.objects.bulk_create(new_chars)
+
+    # corp_map = Corporation.objects.in_bulk([c.id for c in new_corps])
+    # new_corps = [c for c in new_corps if c.id not in corp_map]
+    # Corporation.objects.bulk_create(new_corps)
+
+# ---------------------------------------------------------------------------
+# Parse an API result date into a datetime object
 def parse_api_date(s):
     return datetime.datetime.strptime(s, '%Y-%m-%d %H:%M:%S')
 
