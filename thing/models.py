@@ -785,11 +785,13 @@ class Contract(models.Model):
 
     issuer_char = models.ForeignKey(SimpleCharacter, related_name="contract_issuers")
     issuer_corp = models.ForeignKey(Corporation, related_name="contract_issuers")
-    assignee_char = models.ForeignKey(SimpleCharacter, blank=True, null=True, related_name="contract_assignees")
-    assignee_corp = models.ForeignKey(Corporation, blank=True, null=True, related_name="contract_assignees")
-    assignee_alliance = models.ForeignKey(Alliance, blank=True, null=True, related_name="contract_assignees")
-    acceptor_char = models.ForeignKey(SimpleCharacter, blank=True, null=True, related_name="contract_acceptors")
-    acceptor_corp = models.ForeignKey(Corporation, blank=True, null=True, related_name="contract_acceptors")
+    #assignee_char = models.ForeignKey(SimpleCharacter, blank=True, null=True, related_name="contract_assignees")
+    #assignee_corp = models.ForeignKey(Corporation, blank=True, null=True, related_name="contract_assignees")
+    #assignee_alliance = models.ForeignKey(Alliance, blank=True, null=True, related_name="contract_assignees")
+    #acceptor_char = models.ForeignKey(SimpleCharacter, blank=True, null=True, related_name="contract_acceptors")
+    #acceptor_corp = models.ForeignKey(Corporation, blank=True, null=True, related_name="contract_acceptors")
+    assignee_id = models.IntegerField(blank=True, null=True)
+    acceptor_id = models.IntegerField(blank=True, null=True)
 
     start_station = models.ForeignKey(Station, blank=True, null=True, related_name="contract_starts")
     end_station = models.ForeignKey(Station, blank=True, null=True, related_name="contract_ends")
