@@ -97,7 +97,6 @@ Future Plans
 - Take over the universe.
 - Skill plan creation.
 - Wallet Journal tracking.
-- Contract tracking.
 - Industry Job tracking.
 - CREST integration once CCP actually releases something.
 
@@ -112,28 +111,30 @@ There are some common requirements for any install method, you will need:
 - `South <http://south.aeracode.org/>`_ >=0.7
 - `Coffin <https://github.com/coffin/coffin/>`_ >=0.3
 - `Jinja2 <http://jinja.pocoo.org/>`_ >=2.6
-- The current EVE database dump (SQLite format) from `here <http://zofu.no-ip.de/>`_.
 - A database server and client library.
-   
    * `SQLite <http://www.sqlite.org>`_ is the simplest and is often included with Python.
    * `MySQL <http://www.mysql.com>`_ is another option and highly likely to be available on
      shared hosting. You will need the `MySQLdb <http://mysql-python.sourceforge.net/MySQLdb.html>`_
      client library.
    * `PostgreSQL <http://www.postgresql.org>`_ is the last option and would be my choice.
      You will need the `psycopg <http://initd.org/psycopg/>`_ client library.
+- The current EVE database dump from `here <http://zofu.no-ip.de/>`_, imported into a database.
 
 Common Install Steps
 --------------------
-#. Extract the EVEthing stuff somewhere.
+#. Make a new virtualenv: ``python virtualenv.py thingenv``.
+#. Activate the virtualenv: ``cd thingenv``, ``source bin/activate``.
+#. Clone the EVEthing git repository: ``git clone -b develop git://github.com/madcowfred/evething.git``.
+#. Install the required libraries using pip: ``cd evething``, ``pip install -r requirements.txt``.
 #. Copy evething/local_settings.example to evething/local_settings.py then open
-   evething/local_settings.py in some sort of text editor and edit setings.
+   evething/local_settings.py in some sort of text editor and edit things.
 #. ``python manage.py syncdb``, say yes and fill in useful information when it asks if you
    would like to create an admin user.
 #. ``python manage.py migrate thing --fake`` (so South knows what state the database is
    in for future migrations).
-#. ``python import.py`` to import the initial data from the database dump.
+#. ``python import.py`` to import the initial data from the SDE database.
 
-If you update EVEthing in the future, make sure you run ``python manage.py migrate thing``
+If you update EVEthing in the future, make sure to run ``python manage.py migrate thing``
 to apply any database schema changes!
 
 Common Post-install Steps
