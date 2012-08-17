@@ -860,8 +860,15 @@ def character_common(request, char, public=True, anonymous=False):
     skills = OrderedDict()
     skill_totals = {}
     cur = None
+
+    # Fake MarketGroup for unpublished skills
+    unpub_mg = MarketGroup(id=0, name="Unpublished")
+    unpub_mg.z_total_sp = 0
+    skills[unpub_mg] = []
+
     for cs in CharacterSkill.objects.select_related('skill__item__market_group').filter(character=char).order_by('skill__item__market_group__name', 'skill__item__name'):
-        mg = cs.skill.item.market_group
+        mg = cs.skill.item.market_group or unpub_mg
+        print cs.skill.item.name, repr(mg)
         if mg != cur:
             cur = mg
             cur.z_total_sp = 0
@@ -892,6 +899,11 @@ def character_common(request, char, public=True, anonymous=False):
         skills[cur].append(cs)
         cur.z_total_sp += cs.points
 
+    # Move the fake MarketGroup to the end if it has any skills
+    k, v = skills.popitem(False)
+    if v:
+        skills[k] = v
+
     
     # Retrieve skillplans
     user_ids = APIKey.objects.filter(characters__name=char.name).values_list('user_id', flat=True)
@@ -904,7 +916,7 @@ def character_common(request, char, public=True, anonymous=False):
         user_plans = []
         public_plans = SkillPlan.objects.filter(visibility=SkillPlan.GLOBAL_VISIBILITY)
 
-    # Appliy some icons to them
+    # Apply some icons to them
     for sp in list(user_plans) + list(public_plans):
         if sp.visibility == SkillPlan.PRIVATE_VISIBILITY:
             sp.z_icon = 'private'
