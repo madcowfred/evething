@@ -53,10 +53,13 @@ def home(request):
     now = datetime.datetime.utcnow()
     total_balance = 0
 
+    # Make a set of characters to hide
+    hide_characters = set(int(c) for c in profile.home_hide_characters.split(',') if c)
+
     # Initialise various data structures
     api_keys = set()
     training = set()
-    chars = OrderedDict()
+    chars = {}
     for apikey in APIKey.objects.prefetch_related('characters').filter(user=request.user).exclude(key_type=APIKey.CORPORATION_TYPE):
         api_keys.add(apikey)
         for char in apikey.characters.all():
@@ -179,8 +182,8 @@ def home(request):
     
 
     # Make separate lists of training and not training characters
-    first = [char for char in char_list if char.z_training]
-    last = [char for char in char_list if not char.z_training]
+    first = [char for char in char_list if char.z_training and char.id not in hide_characters]
+    last = [char for char in char_list if not char.z_training and char.id not in hide_characters]
 
     # Get corporations this user has APIKeys for
     corp_ids = APIKey.objects.select_related().filter(user=request.user.id).exclude(corp_character=None).values_list('corp_character__corporation', flat=True)
@@ -215,14 +218,21 @@ def account(request):
         message = None
         message_type = None
 
+    profile = request.user.get_profile()
+
+    characters = Character.objects.filter(apikeys__user=request.user).distinct()
+    home_hide_characters = set(int(c) for c in profile.home_hide_characters.split(',') if c)
+
     return render_to_response(
         'thing/account.html',
         {
             'message': message,
             'message_type': message_type,
-            'profile': request.user.get_profile(),
+            'profile': profile,
             'home_chars_per_row': (2, 3, 4, 6),
             'home_sort_orders': UserProfile.HOME_SORT_ORDERS,
+            'characters': characters,
+            'home_hide_characters': home_hide_characters,
             'themes': settings.THEMES,
             'icon_themes': settings.ICON_THEMES,
             'apikeys': APIKey.objects.filter(user=request.user).order_by('-valid', 'key_type', 'name'),
@@ -298,6 +308,10 @@ def account_settings(request):
         profile.home_sort_order = home_sort_order
 
     profile.home_sort_descending = (request.POST.get('home_sort_descending', '') == 'on')
+
+    # hide characters
+    print repr(request.POST.getlist('home_hide_characters'))
+    profile.home_hide_characters = ','.join(c for c in request.POST.getlist('home_hide_characters') if c.isdigit())
 
     profile.save()
 
