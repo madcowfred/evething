@@ -1337,12 +1337,13 @@ def trade(request):
     for camp in Campaign.objects.filter(user=request.user.id):
         title = '[%s]' % (camp.title)
         t_check.append((title, camp.slug, camp.get_transactions_filter(transactions)))
-    
+
     # Months
-    for dt in transactions.dates('date', 'month', order='DESC'):
-        name = '%s %s' % (MONTHS[dt.month], dt.year)
-        urlpart = '%s-%02d' % (dt.year, dt.month)
-        t_check.append((name, urlpart, transactions.filter(date__range=_month_range(dt.year, dt.month))))
+    agg = transactions.aggregate(min_date=Min('date'), max_date=Max('date'))
+    for year, month in months_in_range(agg['min_date'], agg['max_date']):
+        name = '%s %s' % (MONTHS[month], year)
+        urlpart = '%s-%02d' % (year, month)
+        t_check.append((name, urlpart, transactions.filter(date__range=_month_range(year, month))))
     
     # Get data and stuff
     t_data = []
@@ -1638,3 +1639,16 @@ def dictfetchall(cursor):
         dict(zip([col[0] for col in desc], row))
         for row in cursor.fetchall()
     ]
+
+def months_in_range(min_date, max_date):
+    months = []
+    for year in range(min_date.year, max_date.year + 1):
+        for month in range(1, 13):
+            if year == min_date.year and month < min_date.month:
+                continue
+            elif year == max_date.year and month > max_date.month:
+                continue
+            else:
+                months.append((year, month))
+
+    return months
