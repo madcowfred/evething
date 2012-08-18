@@ -244,9 +244,15 @@ def spawn_jobs():
             )
 
             start = True
-
+        
+        # Task was found, find out if it needs starting
         else:
             start = taskstate.queue_now(now)
+            # Make sure we update the state to queued!
+            if start:
+                taskstate.state = TaskState.QUEUED_STATE
+                taskstate.mod_time = now
+                taskstate.save()
 
         # If we need to queue this task, do so
         if start is True:
@@ -288,8 +294,14 @@ def spawn_jobs():
 
                         start = True
 
+                    # Task was found, find out if it needs starting
                     else:
                         start = taskstate.queue_now(now)
+                        # Make sure we update the state to queued!
+                        if start:
+                            taskstate.state = TaskState.QUEUED_STATE
+                            taskstate.mod_time = now
+                            taskstate.save()
 
                     # If we need to queue this task, do so
                     if start is True:
@@ -330,8 +342,14 @@ def spawn_jobs():
 
                     start = True
 
+                # Task was found, find out if it needs starting
                 else:
                     start = taskstate.queue_now(now)
+                    # Make sure we update the state to queued!
+                    if start:
+                        taskstate.state = TaskState.QUEUED_STATE
+                        taskstate.mod_time = now
+                        taskstate.save()
 
                 # If we need to queue this task, do so
                 if start is True:
