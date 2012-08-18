@@ -928,6 +928,9 @@ class BlueprintComponent(models.Model):
     count = models.IntegerField()
     needs_waste = models.BooleanField(default=True)
 
+    def __unicode__(self):
+        return '%dx %s' % (self.count, self.item.name)
+
 # ---------------------------------------------------------------------------
 # Blueprint instances - an owned blueprint
 class BlueprintInstance(models.Model):
