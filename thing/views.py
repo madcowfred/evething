@@ -160,6 +160,8 @@ def home(request):
                 'tooltip': 'Insufficient clone!',
             })
 
+    # Total SP
+    total_sp = sum(getattr(c, 'z_total_sp', 0) for c in chars.values())
 
     # Work out sort order
     char_list = chars.values()
@@ -189,9 +191,11 @@ def home(request):
     corp_ids = APIKey.objects.select_related().filter(user=request.user.id).exclude(corp_character=None).values_list('corp_character__corporation', flat=True)
     corporations = Corporation.objects.filter(pk__in=corp_ids)
 
-
-    # Total SP
-    total_sp = sum(getattr(c, 'z_total_sp', 0) for c in chars.values())
+    # Get old event stats for staff users
+    if request.user.is_staff:
+        task_count = TaskState.objects.filter(state=TaskState.QUEUED_STATE).aggregate(Count('id'))['id__count']
+    else:
+        task_count = 0
 
     return render_to_response(
         'thing/home.html',
@@ -202,7 +206,8 @@ def home(request):
             'total_sp': total_sp,
             'corporations': corporations,
             'characters': first + last,
-            'events': Event.objects.filter(user=request.user)[:10]
+            'events': Event.objects.filter(user=request.user)[:10],
+            'task_count': task_count,
         },
         context_instance=RequestContext(request)
     )
