@@ -314,6 +314,9 @@ def account_settings(request):
 
     profile.save()
 
+    request.session['message_type'] = 'success'
+    request.session['message'] = 'Settings changed successfully.'
+
     return redirect(account)
 
 # ---------------------------------------------------------------------------
