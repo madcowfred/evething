@@ -1119,7 +1119,7 @@ def character_skillplan_common(request, character, skillplan, public=True, anony
             entry.z_spph = int(entry.z_sppm * 60)
 
             # Calculate time remaining
-            if training_skill is not None and training_skill.skill_id == entry.sp_skill.skill_id:
+            if training_skill is not None and training_skill.skill_id == entry.sp_skill.skill_id and training_skill.to_level == entry.sp_skill.level:
                 entry.z_remaining = (training_skill.end_time - utcnow).total_seconds()
                 entry.z_training = True
             else:
