@@ -920,17 +920,19 @@ def contracts(url, apikey_id, taskstate_id, character_id):
             )
             new_contracts.append(contract)
 
+            # If this contract is a new contract in a non-completed state, log an event
             if contract.status in ('Outstanding', 'InProgress'):
                 if assigneeID in user_chars or assigneeID in user_corps:
-                    text = "Contract %s was created from '%s' to '%s' with status '%s'" % (
-                        contract, contract.get_issuer_name(), contract.get_assignee_name(),
-                        contract.status)
-                    
-                    new_events.append(Event(
-                        user_id=job.apikey.user.id,
-                        issued=now,
-                        text=text,
-                    ))
+                    assignee = char_map.get(assigneeID, corp_map.get(assigneeID, alliance_map.get(assigneeID)))
+                    if assignee is not None:
+                        text = "Contract %s was created from '%s' to '%s' with status '%s'" % (
+                            contract, contract.get_issuer_name(), assignee.name, contract.status)
+                        
+                        new_events.append(Event(
+                            user_id=job.apikey.user.id,
+                            issued=now,
+                            text=text,
+                        ))
 
 
     # And save the damn things

@@ -829,16 +829,6 @@ class Contract(models.Model):
         else:
             return self.issuer_char.name
 
-    def get_assignee_name(self):
-        if self.assignee_char:
-            return self.assignee_char.name
-        elif self.assignee_corp:
-            return self.assignee_corp.name
-        elif self.assignee_alliance:
-            return self.assignee_alliance.name
-        else:
-            return '-ALL-'
-
 # ---------------------------------------------------------------------------
 # Skill plan storage disaster
 class SkillPlan(models.Model):
