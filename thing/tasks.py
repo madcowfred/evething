@@ -764,6 +764,7 @@ def contracts(url, apikey_id, taskstate_id, character_id):
     contract_ids = set()
     station_ids = set()
     lookup_ids = set()
+    lookup_corp_ids = set()
     contract_rows = []
     # <row contractID="58108507" issuerID="2004011913" issuerCorpID="751993277" assigneeID="401273477"
     #      acceptorID="0" startStationID="60014917" endStationID="60003760" type="Courier" status="Outstanding"
@@ -792,7 +793,7 @@ def contracts(url, apikey_id, taskstate_id, character_id):
         station_ids.add(int(row.attrib['endStationID']))
 
         lookup_ids.add(int(row.attrib['issuerID']))
-        lookup_ids.add(int(row.attrib['issuerCorpID']))
+        lookup_corp_ids.add(int(row.attrib['issuerCorpID']))
 
         if row.attrib['assigneeID'] != '0':
             lookup_ids.add(int(row.attrib['assigneeID']))
@@ -803,12 +804,12 @@ def contracts(url, apikey_id, taskstate_id, character_id):
 
     # Fetch existing chars and corps
     char_map = SimpleCharacter.objects.in_bulk(lookup_ids)
-    corp_map = Corporation.objects.in_bulk(lookup_ids)
+    corp_map = Corporation.objects.in_bulk(lookup_ids | lookup_corp_ids)
     alliance_map = Alliance.objects.in_bulk(lookup_ids)
     
-    # Add all of the new IDs as *UNKNOWN* SimpleCharacters for now
+    # Add missing IDs as *UNKNOWN* SimpleCharacters for now
     new = []
-    for new_id in lookup_ids.difference(char_map, corp_map, alliance_map):
+    for new_id in lookup_ids.difference(char_map, corp_map, alliance_map, lookup_corp_ids):
         new.append(SimpleCharacter(
             id=new_id,
             name="*UNKNOWN*",
@@ -817,9 +818,20 @@ def contracts(url, apikey_id, taskstate_id, character_id):
     if new:
         SimpleCharacter.objects.bulk_create(new)
 
-    # Fetch stations
-    #char_map = SimpleCharacter.objects.in_bulk(lookup_ids)
-    #corp_map = Corporation.objects.in_bulk(lookup_ids)
+    # Add missing Corporations too
+    new = []
+    for new_id in lookup_corp_ids.difference(corp_map):
+        new.append(Corporation(
+            id=new_id,
+            name="*UNKNOWN*",
+        ))
+
+    if new:
+        Corporation.objects.bulk_create(new)
+
+    # Re-fetch data
+    char_map = SimpleCharacter.objects.in_bulk(lookup_ids)
+    corp_map = Corporation.objects.in_bulk(lookup_ids | lookup_corp_ids)
     station_map = Station.objects.in_bulk(station_ids)
 
     # Fetch all existing contracts
