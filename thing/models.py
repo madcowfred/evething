@@ -971,6 +971,34 @@ class BlueprintInstance(models.Model):
         
         return pt.quantize(Decimal('0'), rounding=ROUND_UP)
     
+    # Calculate the construction cost assuming ME50 components
+    def calc_capital_production_cost(self):
+        total_cost = Decimal(0)
+
+        components = self._get_components()
+        child_ids = []
+        counts = {}
+        for component, count in components:
+            child_ids.append(component.id)
+            counts[component] = count
+
+        comp_comps = {}
+        for child_comp in BlueprintComponent.objects.select_related().filter(blueprint__item__in=child_ids):
+            comp_comps.setdefault(child_comp.blueprint, []).append((child_comp.item, child_comp.count))
+
+        for bp, bp_comps in comp_comps.items():
+            bpi = BlueprintInstance(
+                user=self.user,
+                blueprint=bp,
+                original=True,
+                material_level=50,
+                productivity_level=0,
+            )
+            cost = bpi.calc_production_cost(components=bp_comps) * counts[bp.item]
+            total_cost += cost
+
+        return total_cost
+
     # Calculate production cost, taking ML and skills into account
     # TODO: fix this, skills not available
     # TODO: move factory cost/etc to a model attached to the User table
@@ -1011,7 +1039,7 @@ class BlueprintInstance(models.Model):
         comps = []
         
         if components is None:
-            components = BlueprintComponent.objects.filter(blueprint=self.blueprint).select_related(depth=1)
+            components = BlueprintComponent.objects.filter(blueprint=self.blueprint).select_related()
         
         for component in components:
             if component.needs_waste:

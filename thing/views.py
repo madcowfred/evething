@@ -536,13 +536,28 @@ def assets(request):
         
         # total value of this asset stack
         if ca.z_blueprint >= 0:
-            ca.z_total = ca.quantity * ca.z_item.sell_price
+            # capital ship, calculate build cost
+            if ca.z_item.item_group.name in ('Carrier', 'Dreadnought', 'Supercarrier', 'Titan'):
+                bpi = BlueprintInstance(
+                    user=request.user,
+                    blueprint=Blueprint.objects.get(item__name=ca.z_item.name),
+                    original=True,
+                    material_level=2,
+                    productivity_level=0,
+                )
+                ca.z_capital = True
+                ca.z_price = bpi.calc_capital_production_cost()
+            # anything else we just use the stored sell price
+            else:
+                ca.z_price = ca.z_item.sell_price
         # BPOs use the base price
         elif ca.z_blueprint == -1:
-            ca.z_total = ca.quantity * ca.z_item.base_price
+            ca.z_price = ca.z_item.base_price
         # BPCs count as 0 value
         else:
-            ca.z_total = 0
+            ca.z_price = 0
+        
+        ca.z_total = ca.quantity * ca.z_price
 
         # system/station asset
         if k is not None:
