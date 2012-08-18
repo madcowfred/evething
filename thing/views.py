@@ -1406,10 +1406,11 @@ def trade(request):
 
     # Months
     agg = transactions.aggregate(min_date=Min('date'), max_date=Max('date'))
-    for year, month in reversed(months_in_range(agg['min_date'], agg['max_date'])):
-        name = '%s %s' % (MONTHS[month], year)
-        urlpart = '%s-%02d' % (year, month)
-        t_check.append((name, urlpart, transactions.filter(date__range=_month_range(year, month))))
+    if agg['min_date'] is not None:
+        for year, month in reversed(months_in_range(agg['min_date'], agg['max_date'])):
+            name = '%s %s' % (MONTHS[month], year)
+            urlpart = '%s-%02d' % (year, month)
+            t_check.append((name, urlpart, transactions.filter(date__range=_month_range(year, month))))
     
     # Get data and stuff
     t_data = []
