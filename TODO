@@ -60,7 +60,6 @@
     = Explain how API data is pulled
     = Some way to see last pull/next pull time for keys
   - Implement skill plan creation (hahahaha oh god)
-    = Skill model needs to track pre-requisites
     = Use AJAX and modal windows for add/delete/re-order?
     = Step 1: basic adding of skills with pre-requisites
     = Step 2: deletion of skills with pre-requisites and a useful "are you sure?" prompt
