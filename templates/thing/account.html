@@ -82,6 +82,16 @@
             $('#keyname').text(keyname);
           });
           
+          // Bind skillplan type radios
+          $('#sp-type-blank').on('click', function() {
+            $('#sp-emp-file').hide();
+          });
+          $('#sp-type-emp').on('click', function() {
+            $('#sp-emp-file').show();
+          });
+          if ($('#sp-type-emp').attr('checked') == 'checked')
+            $('#sp-emp-file').show();
+
           // Bind skillplan edit icons
           $('.edit-skillplan').on('click', function(event) {
             var sp_id = $(this).parents('tr').attr('data-id');
@@ -401,6 +411,17 @@
                       </div>
                     </div>
                     <div class="control-group">
+                      <label class="control-label">Skillplan type</label>
+                      <div class="controls">
+                        <label class="radio inline">
+                          <input type="radio" name="sptype" id="sp-type-blank" value="blank" checked>Blank</input>
+                        </label>
+                        <label class="radio inline">
+                          <input type="radio" name="sptype" id="sp-type-emp" value="emp">From .EMP</input>
+                        </label>
+                      </div>
+                    </div>
+                    <div class="control-group" id="sp-emp-file" style="display: none">
                       <label class="control-label" for="file">.EMP file</label>
                       <div class="controls">
                         <input class="input-file" name="file" type="file">

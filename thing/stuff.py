@@ -11,7 +11,8 @@ from thing.models import *
 
 def handle_skillplan_upload(request):
     name = request.POST['name'].strip()
-    uf = request.FILES['file']
+    sptype = request.POST['sptype']
+    uf = request.FILES.get('file')
     visibility = request.POST['visibility']
 
     # Check that this name is unique for the user
@@ -20,30 +21,42 @@ def handle_skillplan_upload(request):
         request.session['message'] = "You already have a skill plan with that name!"
         return
 
-    # Check file size, 10KB should be more than large enough
-    if uf.size > 10240:
-        request.session['message_type'] = 'error'
-        request.session['message'] = "That file is too large!"
-        return
+    # File upload
+    if sptype == 'emp':
+        # File was chosen but not uploaded
+        if uf is None:
+            request.session['message_type'] = 'error'
+            request.session['message'] = "No file was uploaded!"
+            return
 
-    data = StringIO(uf.read())
+        # Check file size, 10KB should be more than large enough
+        if uf.size > 10240:
+            request.session['message_type'] = 'error'
+            request.session['message'] = "That file is too large!"
+            return
 
-    # Try opening it as a gzip file
-    gf = gzip.GzipFile(fileobj=data)
-    try:
-        data = gf.read()
-    except IOError:
-        request.session['message_type'] = 'error'
-        request.session['message'] = "That doesn't look like a .EMP file!"
-        return
+        data = StringIO(uf.read())
 
-    # Make sure it's valid XML
-    try:
-        root = ET.fromstring(data)
-    except ET.ParseError:
-        request.session['message_type'] = 'error'
-        request.session['message'] = "That doesn't look like a .EMP file!"
-        return
+        # Try opening it as a gzip file
+        gf = gzip.GzipFile(fileobj=data)
+        try:
+            data = gf.read()
+        except IOError:
+            request.session['message_type'] = 'error'
+            request.session['message'] = "That doesn't look like a .EMP file!"
+            return
+
+        # Make sure it's valid XML
+        try:
+            root = ET.fromstring(data)
+        except ET.ParseError:
+            request.session['message_type'] = 'error'
+            request.session['message'] = "That doesn't look like a .EMP file!"
+            return
+
+    # Blank
+    else:
+        root = None
 
     # FINALLY
     skillplan = SkillPlan.objects.create(
@@ -52,10 +65,11 @@ def handle_skillplan_upload(request):
         visibility=visibility,
     )
     
-    parse_emp_plan(skillplan, root)
+    if root is not None:
+        parse_emp_plan(skillplan, root)
 
     request.session['message_type'] = 'success'
-    request.session['message'] = "Skill plan uploaded successfully."
+    request.session['message'] = "Skill plan created successfully."
 
 
 def parse_emp_plan(skillplan, root):
