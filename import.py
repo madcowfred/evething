@@ -1,3 +1,5 @@
+import cPickle
+import igraph
 import os
 import sys
 import time
@@ -47,6 +49,24 @@ PACKAGED = {
     963: 5000,  # strategic cruiser
 }
 
+# Skill graph things
+PREREQ_SKILLS = {
+    182: 0,
+    183: 1,
+    184: 2,
+    1285: 3,
+    1289: 4,
+    1290: 5,
+}
+PREREQ_LEVELS = {
+    277: 0,
+    278: 1,
+    279: 2,
+    1286: 3,
+    1287: 4,
+    1288: 5,
+}
+
 # ---------------------------------------------------------------------------
 
 def time_func(text, f):
@@ -77,6 +97,8 @@ class Importer:
         time_func('InventoryFlag', self.import_inventoryflag)
         time_func('NPCFaction', self.import_npcfaction)
         time_func('NPCCorporation', self.import_npccorporation)
+
+        time_func('SkillGraph', self.build_skill_graph)
     
     # -----------------------------------------------------------------------
     # Regions
@@ -800,6 +822,63 @@ class Importer:
             RefType.objects.bulk_create(new)
 
         return added
+
+    # -----------------------------------------------------------------------
+    # Build the skill graph
+    def build_skill_graph(self):
+        skills = list(Skill.objects.select_related())
+
+        # Directed graph
+        g = igraph.Graph(len(skills), directed=True)
+
+        # Add skill information to vertices
+        id_v = {}
+        skill_data = {}
+        for i, skill in enumerate(skills):
+            id_v[skill.item.id] = i
+            skill_data[skill.item.id] = [{}, {}, {}, {}, {}, {}]
+            g.vs[i]['id'] = skill.item.id
+            g.vs[i]['label'] = skill.item.name
+
+        ids = ','.join(map(str, id_v.keys()))
+
+        # Gather skill pre-requisite data
+        self.cursor.execute("""
+            SELECT  typeID,
+                    attributeID,
+                    COALESCE(valueFloat, valueInt)
+            FROM    dgmTypeAttributes
+            WHERE   attributeID in (182, 183, 184, 1285, 1289, 1290, 277, 278, 279, 1286, 1287, 1288)
+                    AND typeID in (%s)
+        """ % (ids))
+
+        for row in self.cursor:
+            typeID = int(row[0])
+            attrID = int(row[1])
+            value = int(row[2])
+
+            if attrID in PREREQ_SKILLS:
+                skill_data[typeID][PREREQ_SKILLS[attrID]]['skill'] = value
+            elif attrID in PREREQ_LEVELS:
+                skill_data[typeID][PREREQ_LEVELS[attrID]]['level'] = value
+
+        #
+        for skillID, data in skill_data.items():
+            for d in data:
+                if len(d) != 2:
+                    continue
+
+                v_src = id_v[skillID]
+                v_dst = id_v[d['skill']]
+
+                g.add_edges((v_src, v_dst))
+                e_id = g.get_eid(v_src, v_dst)
+                
+                g.es[e_id]['level'] = d['level']
+        
+        cPickle.dump((g, id_v), open('skill_graph.pickle', 'w'))
+
+        return 1
 
 # ---------------------------------------------------------------------------
 
