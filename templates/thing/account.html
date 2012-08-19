@@ -81,6 +81,10 @@
             $('#keyid').text(keyid);
             $('#keyname').text(keyname);
           });
+
+          // Bind apikey build table magic
+          $('#build-table').on('change', '.apikey-build', apikey_build);
+          apikey_build();
           
           // Bind skillplan type radios
           $('#sp-type-blank').on('click', function() {
@@ -109,10 +113,6 @@
             $('#delete-skillplan-id').val(sp_id);
             $('#delete-skillplan-name').text(sp_name);
           });
-
-          // Bind apikey build table magic
-          $('#build-table').on('change', '.apikey-build', apikey_build);
-          apikey_build();
         });
       </script>
 {% endblock %}
@@ -411,7 +411,7 @@
                       </div>
                     </div>
                     <div class="control-group">
-                      <label class="control-label">Skillplan type</label>
+                      <label class="control-label">Plan type</label>
                       <div class="controls">
                         <label class="radio inline">
                           <input type="radio" name="sptype" id="sp-type-blank" value="blank" checked>Blank</input>
