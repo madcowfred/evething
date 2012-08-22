@@ -70,9 +70,10 @@ class APIJob:
             self.apikey = APIKey.objects.get(pk=apikey_id)
         except APIKey.DoesNotExist:
             self.ready = False
-        # Still valid?
-        if not self.apikey.valid:
-            self.ready = False
+        else:
+            # Still valid?
+            if not self.apikey.valid:
+                self.ready = False
 
         # Fetch TaskState
         try:
