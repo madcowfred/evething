@@ -63,6 +63,8 @@ CORP_URLS = {
 # Class to wrap things
 class APIJob:
     def __init__(self, apikey_id, taskstate_id):
+        self.ready = True
+
         # Fetch APIKey
         try:
             self.apikey = APIKey.objects.get(pk=apikey_id)
@@ -72,12 +74,11 @@ class APIJob:
         if not self.apikey.valid:
             self.ready = False
 
+        # Fetch TaskState
         try:
             self.taskstate = TaskState.objects.get(pk=taskstate_id)
         except TaskState.DoesNotExist:
             self.ready = False
-
-        self.ready = True
 
         self.root = None
         self.apicache = None
