@@ -171,7 +171,7 @@ class APIJob:
                     return False
 
                 if log_error:
-                    logger.error('(%s) %s: %s | %s -> %s', self.__class__.__name__, error.attrib['code'], error.text, current, until)
+                    logger.error('%s: %s | %s -> %s', error.attrib['code'], error.text, current, until)
 
                 # Mark key as invalid if it's an auth error
                 if error.attrib['code'] in ('202', '203', '204', '205', '210', '212', '207', '220', '222', '223'):
