@@ -63,8 +63,21 @@ CORP_URLS = {
 # Class to wrap things
 class APIJob:
     def __init__(self, apikey_id, taskstate_id):
-        self.apikey = APIKey.objects.get(pk=apikey_id)
-        self.taskstate = TaskState.objects.get(pk=taskstate_id)
+        # Fetch APIKey
+        try:
+            self.apikey = APIKey.objects.get(pk=apikey_id)
+        except APIKey.DoesNotExist:
+            self.ready = False
+        # Still valid?
+        if not self.apikey.valid:
+            self.ready = False
+
+        try:
+            self.taskstate = TaskState.objects.get(pk=taskstate_id)
+        except TaskState.DoesNotExist:
+            self.ready = False
+
+        self.ready = True
 
         self.root = None
         self.apicache = None
@@ -364,6 +377,8 @@ def spawn_jobs():
 @task
 def account_balance(url, apikey_id, taskstate_id, character_id):
     job = APIJob(apikey_id, taskstate_id)
+    if job.ready is False:
+        return
     #character = Character.objects.get(pk=character_id)
 
     params = { 'characterID': job.apikey.corp_character_id }
@@ -409,6 +424,8 @@ def account_balance(url, apikey_id, taskstate_id, character_id):
 @task
 def account_status(url, apikey_id, taskstate_id, zero):
     job = APIJob(apikey_id, taskstate_id)
+    if job.ready is False:
+        return
 
     # Fetch the API data
     if job.fetch_api(url, {}) is False or job.root is None:
@@ -427,6 +444,8 @@ def account_status(url, apikey_id, taskstate_id, zero):
 @task
 def api_key_info(url, apikey_id, taskstate_id):
     job = APIJob(apikey_id, taskstate_id)
+    if job.ready is False:
+        return
 
     # Fetch the API data
     if job.fetch_api(url, {}) is False or job.root is None:
@@ -517,6 +536,8 @@ def api_key_info(url, apikey_id, taskstate_id):
 @task
 def asset_list(url, apikey_id, taskstate_id, character_id):
     job = APIJob(apikey_id, taskstate_id)
+    if job.ready is False:
+        return
     character = Character.objects.get(pk=character_id)
 
     # Initialise for corporate query
@@ -638,6 +659,8 @@ def _asset_list_recurse(rows, rowset, container_id):
 @task
 def character_sheet(url, apikey_id, taskstate_id, character_id):
     job = APIJob(apikey_id, taskstate_id)
+    if job.ready is False:
+        return
     character = Character.objects.get(pk=character_id)
 
     # Fetch the API data
@@ -744,6 +767,8 @@ def character_sheet(url, apikey_id, taskstate_id, character_id):
 @task
 def contracts(url, apikey_id, taskstate_id, character_id):
     job = APIJob(apikey_id, taskstate_id)
+    if job.ready is False:
+        return
     character = Character.objects.get(pk=character_id)
     
     now = datetime.datetime.now()
@@ -978,6 +1003,8 @@ def contracts(url, apikey_id, taskstate_id, character_id):
 @task
 def corporation_sheet(url, apikey_id, taskstate_id, character_id):
     job = APIJob(apikey_id, taskstate_id)
+    if job.ready is False:
+        return
 
     params = { 'characterID': job.apikey.corp_character_id }
     if job.fetch_api(url, params) is False or job.root is None:
@@ -1041,6 +1068,8 @@ def corporation_sheet(url, apikey_id, taskstate_id, character_id):
 @task
 def locations(url, apikey_id, taskstate_id, character_id):
     job = APIJob(apikey_id, taskstate_id)
+    if job.ready is False:
+        return
     character = Character.objects.get(pk=character_id)
     
     # Initialise for character query
@@ -1086,6 +1115,8 @@ def locations(url, apikey_id, taskstate_id, character_id):
 @task
 def market_orders(url, apikey_id, taskstate_id, character_id):
     job = APIJob(apikey_id, taskstate_id)
+    if job.ready is False:
+        return
     character = Character.objects.get(pk=character_id)
     
     # Initialise for corporate key
@@ -1232,6 +1263,8 @@ def market_orders(url, apikey_id, taskstate_id, character_id):
 @task
 def skill_queue(url, apikey_id, taskstate_id, character_id):
     job = APIJob(apikey_id, taskstate_id)
+    if job.ready is False:
+        return
     character = Character.objects.get(pk=character_id)
 
     # Fetch the API data
@@ -1269,6 +1302,8 @@ def skill_queue(url, apikey_id, taskstate_id, character_id):
 @task
 def standings(url, apikey_id, taskstate_id, character_id):
     job = APIJob(apikey_id, taskstate_id)
+    if job.ready is False:
+        return
     character = Character.objects.get(pk=character_id)
 
     # Fetch the API data
@@ -1352,6 +1387,8 @@ def standings(url, apikey_id, taskstate_id, character_id):
 @task
 def wallet_transactions(url, apikey_id, taskstate_id, character_id):
     job = APIJob(apikey_id, taskstate_id)
+    if job.ready is False:
+        return
     character = Character.objects.get(pk=character_id)
 
     # Corporation key, visit each related CorpWallet
