@@ -175,6 +175,14 @@ class APIJob:
 
                 # Mark key as invalid if it's an auth error
                 if error.attrib['code'] in ('202', '203', '204', '205', '210', '212', '207', '220', '222', '223'):
+                    text = "Your API key #%d was marked invalid: %s %s" % (self.apikey.id, error.attrib['code'],
+                        error.text)
+                    Event.objects.create(
+                        user_id=self.apikey.user.id,
+                        issued=now,
+                        text=text,
+                    )
+
                     self.apikey.valid = False
                     self.apikey.save()
                 
