@@ -4,6 +4,7 @@
 .icons-success { background:url(../icons/silk/tick.png); }
 .icons-failure { background:url(../icons/silk/cross.png); }
 /* edit and delete icons */
+.icons-add { background:url(../icons/silk/add.png); }
 .icons-edit { background:url(../icons/silk/pencil.png); }
 .icons-delete { background:url(../icons/silk/bin.png); }
 /* information, obviously */
@@ -44,6 +45,8 @@
 .icons-skillplan-remap { background:url(../icons/silk/user_suit.png); }
 .icons-skillplan-injected { background:url(../icons/silk/book.png); }
 .icons-skillplan-unowned { background:url(../icons/silk/money.png); }
+.icons-skillplan-showing { background:url(../icons/silk/wand.png); }
+.icons-skillplan-selected { background:url(../icons/silk/resultset_next.png); }
 /* assets */
 .icons-asset-locked { background:url(../icons/silk/lock.png); }
 .icons-asset-bpo { background:url(../icons/silk/page.png); }

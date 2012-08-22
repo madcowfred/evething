@@ -1,0 +1,58 @@
+            <thead>
+              <tr class="c">
+                <th></th>
+                <th>Skill</th>
+                <th>Group</th>
+                <th>Pri</th>
+                <th>Sec</th>
+                <th>SP/hr</th>
+                <th>Time</th>
+              </tr>
+            </thead>
+            <tbody id="entries-tbody">
+              {% for entry in entries -%}
+              <tr class="c{% if entry.sp_skill %} skill-row{% endif %}" data-entry="{{ entry.id }}">
+                <td class="sp-trained"></td>
+                {% if entry.sp_remap -%}
+                <td class="l" colspan="6">
+                  <i class="icons-skillplan-remap"></i> Remap to
+                  <strong>{{ entry.sp_remap.int_stat }}</strong> Int /
+                  <strong>{{ entry.sp_remap.mem_stat }}</strong> Mem /
+                  <strong>{{ entry.sp_remap.per_stat }}</strong> Per /
+                  <strong>{{ entry.sp_remap.wil_stat }}</strong> Wil /
+                  <strong>{{ entry.sp_remap.cha_stat }}</strong> Cha
+                  </strong>
+                </td>
+                {%- else -%}
+                <td class="l" data-level="{{ entry.sp_skill.level }}">
+                  {{ entry.sp_skill.skill.item.name }} {{ entry.sp_skill.level|roman }}
+                </td>
+                <td class="sp-group">{{ entry.sp_skill.skill.item.item_group }}</td>
+                <td class="sp-small">{{ entry.sp_skill.skill.get_primary_attribute_display() }}</td>
+                <td class="sp-small">{{ entry.sp_skill.skill.get_secondary_attribute_display() }}</td>
+                <td class="sp-small">{{ entry.z_spph|commas }}</td>
+                <td class="r sp-time">{{ entry.z_remaining|duration }}</td>
+                {%- endif %}
+              </tr>
+              {%- else -%}
+              <tr class="c" data-entry="0">
+                <td class="sp-trained"></td>
+                <td class="l">
+                  Skill plan is empty.
+                </td>
+                <td class="sp-group"></td>
+                <td class="sp-small"></td>
+                <td class="sp-small"></td>
+                <td class="sp-small"></td>
+                <td class="sp-time"></td>
+              </tr>
+              {%- endfor %}
+            </tbody>
+            {% if entries -%}
+            <tfoot>
+              <tr>
+                <td></td>
+                <td colspan="6" class="r"><strong>Total plan time</strong>: {{ total_remaining|duration }}</td>
+              </tr>
+            </tfoot>
+            {%- endif %}

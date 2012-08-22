@@ -54,6 +54,10 @@ urlpatterns += patterns('thing.views',
     
     (r'^market_scan/$', 'market_scan'),
 
+    (r'^skillplan/(?P<skillplan_id>\d+)/$', 'skillplan'),
+    (r'^skillplan/entries/(?P<skillplan_id>\d+)/(?P<implants>\d+)/$', 'skillplan_entries'),
+    (r'^skillplan/ajax/add/(?P<skillplan_id>\d+)/(?P<entry_id>\d+)/(?P<skill_id>\d+)/(?P<add_level>\d+)/$', 'skillplan_ajax_add'),
+
     (r'^trade/$', 'trade'),
     (r'^trade/(?P<year>\d{4})-(?P<month>\d{2})/$', 'trade_timeframe'),
     (r'^trade/(?P<period>all)/$', 'trade_timeframe'),

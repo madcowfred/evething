@@ -1,7 +1,8 @@
 import calendar
+import cPickle
 import datetime
-import gzip
-import operator
+import igraph
+import json
 import re
 from collections import OrderedDict
 
@@ -12,7 +13,7 @@ from django.core.paginator import Paginator, EmptyPage, InvalidPage, PageNotAnIn
 from django.core.urlresolvers import reverse
 from django.db import connection
 from django.db.models import Q, Avg, Count, Max, Min, Sum
-from django.http import Http404
+from django.http import Http404, HttpResponse
 from django.shortcuts import redirect, get_object_or_404
 from django.template import RequestContext
 from django.views.decorators.debug import sensitive_post_parameters, sensitive_variables
@@ -1370,6 +1371,180 @@ def orders(request):
             'orders': orders,
             'total_row': total_row,
         },
+        context_instance=RequestContext(request)
+    )
+
+# ---------------------------------------------------------------------------
+# Skillplan editing
+@login_required
+def skillplan(request, skillplan_id):
+    skillplan = get_object_or_404(SkillPlan.objects.prefetch_related('entries'), pk=skillplan_id, user=request.user)
+    
+    # Check our GET variables
+    implants = request.GET.get('implants', '')
+    if implants.isdigit() and 0 <= int(implants) <= 5:
+        implants = int(implants)
+    else:
+        implants = 3
+
+    max_level = {}
+    for entry in skillplan.entries.select_related('sp_remap', 'sp_skill__skill__item__item_group'):
+        if entry.sp_skill is not None:
+            skill = entry.sp_skill.skill
+            max_level[skill] = max(max_level.get(skill, 0), entry.sp_skill.level)
+
+    # Group all skills by market group
+    skills = Skill.objects.select_related('item__item_group')
+    skills = skills.exclude(item__market_group__isnull=True)
+    skills = skills.order_by('item__item_group__name', 'item__name')
+
+    grouped_skills = OrderedDict()
+    for skill in skills:
+        if max_level.get(skill, 0) < 5:
+            skill.z_addable = True
+        grouped_skills.setdefault(skill.item.item_group, []).append(skill)
+
+    for group, skills in grouped_skills.items():
+        group.z_mod = len(skills) % 2
+
+    # Spit it out
+    return render_to_response(
+        'thing/skillplan.html',
+        dict(
+            grouped_skills=grouped_skills,
+            skillplan=skillplan,
+            implants=implants,
+        ),
+        context_instance=RequestContext(request)
+    )
+
+# ---------------------------------------------------------------------------
+# Skillplan AJAX add skill
+@login_required
+def skillplan_ajax_add(request, skillplan_id, entry_id, skill_id, add_level):
+    skill_id = int(skill_id)
+    add_level = int(add_level)
+    if not 1 <= add_level <= 5:
+        add_level = 1
+
+    # Fetch initial objects
+    skillplan = get_object_or_404(SkillPlan.objects.prefetch_related('entries'), pk=skillplan_id, user=request.user)
+    skill = get_object_or_404(Skill, item=skill_id)
+
+    # Get the max plan level for a skill
+    max_level = {}
+    position = 0
+    for entry in skillplan.entries.select_related('sp_remap', 'sp_skill__skill__item__item_group'):
+        position = max(position, entry.position)
+        if entry.sp_skill is not None:
+            max_level[entry.sp_skill.skill.item.id] = max(entry.sp_skill.level, max_level.get(entry.sp_skill.skill, 0))
+
+    # Load the pickled skill graph
+    g, id_v = cPickle.load(open('skill_graph.pickle', 'r'))
+    edges = g.get_edgelist()
+
+    # Get the prerequisites for this skill
+    result = [(skill_id, add_level)]
+    _recurse_skill_graph(g, id_v, edges, g.vs[id_v[skill_id]], result)
+
+    # Make sure those skills are in the skill plan
+    for skill_id, level in reversed(result):
+        curr_level = max_level.get(skill_id, 0)
+        if curr_level >= level:
+            continue
+
+        # Not in skill plan, add all missing levels
+        for i in range(curr_level + 1, level + 1):
+            sps = SPSkill.objects.create(
+                skill_id=skill_id,
+                level=i,
+                priority=3,
+            )
+            position += 1
+            spe = SPEntry.objects.create(
+                skill_plan=skillplan,
+                position=position,
+                sp_skill=sps,
+            )
+
+        # Update the max level so we don't add duplicates
+        max_level[skill_id] = level
+
+    # Return the JSON response
+    data = { 'status': 'success' }
+    return HttpResponse(json.dumps(data))
+
+# Recursively traverse the skill graph, adding required skills
+def _recurse_skill_graph(g, id_v, edges, v, result):
+    # Work out what skills v depends on
+    v_edges = [e for e in edges if e[0] == v.index]
+
+    for edge1, edge2 in v_edges:
+        e = g.es[g.get_eid(edge1, edge2)]
+        new_v = g.vs[edge2]
+        result.append((new_v['id'], e['level']))
+        _recurse_skill_graph(g, id_v, edges, new_v, result)
+
+# ---------------------------------------------------------------------------
+# Render the entries table for skillplan view
+@login_required
+def skillplan_entries(request, skillplan_id, implants):
+    skillplan = get_object_or_404(SkillPlan.objects.prefetch_related('entries'), pk=skillplan_id, user=request.user)
+    implants = int(implants)
+
+    # Initialise stats to default
+    remap_stats = dict(
+        int_attribute=20,
+        mem_attribute=20,
+        per_attribute=20,
+        wil_attribute=20,
+        cha_attribute=19,
+    )
+    implant_stats = {}
+    for stat in ('int', 'mem', 'per', 'wil', 'cha'):
+        k = '%s_bonus' % (stat)
+        implant_stats[k] = implants
+
+    # Iterate over all entries in this skill plan
+    entries = []
+    total_remaining = 0.0
+    max_level = {}
+    for entry in skillplan.entries.select_related('sp_remap', 'sp_skill__skill__item__item_group'):
+        # It's a remap entry
+        if entry.sp_remap is not None:
+            # Delete the previous remap if it's two in a row, that makes no sense
+            if entries and entries[-1].sp_remap is not None:
+                entries.pop()
+
+            remap_stats['int_attribute'] = entry.sp_remap.int_stat
+            remap_stats['mem_attribute'] = entry.sp_remap.mem_stat
+            remap_stats['per_attribute'] = entry.sp_remap.per_stat
+            remap_stats['wil_attribute'] = entry.sp_remap.wil_stat
+            remap_stats['cha_attribute'] = entry.sp_remap.cha_stat
+
+        # It's a skill entry
+        if entry.sp_skill is not None:
+            skill = entry.sp_skill.skill
+            max_level[skill] = entry.sp_skill.level
+
+            # Calculate SP/hr
+            entry.z_sppm = skill.get_sppm_stats(remap_stats, implant_stats)
+            entry.z_spph = int(entry.z_sppm * 60)
+
+            # Calculate time remaining
+            entry.z_remaining = (skill.get_sp_at_level(entry.sp_skill.level) - skill.get_sp_at_level(entry.sp_skill.level - 1)) / entry.z_sppm * 60
+
+            # Add time remaining to total
+            total_remaining += entry.z_remaining
+
+        entries.append(entry)
+
+    return render_to_response(
+        'thing/skillplan_entries.html',
+        dict(
+            entries=entries,
+            total_remaining=total_remaining,
+        ),
         context_instance=RequestContext(request)
     )
 

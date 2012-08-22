@@ -1,0 +1,313 @@
+{% extends "base.html" %}
+
+{% block extra_head %}
+      <script type="text/javascript">
+        ajax_wait = false;
+        skillplan_id = {{ skillplan.id }};
+
+        $(document).ready(function() {
+          // bind the skill group expander buttons
+          $('tr[data-group]').on('click', skill_group);
+
+          // bind the skill rank buttons
+          $('.skill-mod').on('click', mod_skill);
+
+          // bind row selection/deselection
+          $('#entries-table').on('click', 'tbody tr[data-entry]', function() { select_row.call(this, 'icons-skillplan-selected') });
+          $('#skills-table').on('click', 'tbody tr[data-skill]', function() { select_row.call(this, 'icons-skillplan-showing') });
+
+          // load content
+          reload_entries();
+        });
+        
+        // reload #entries-table
+        function reload_entries() {
+          ajax_wait = true;
+
+          var baseURL = "{{ 'thing.views.skillplan_entries'|url(999999, 888888) }}"; // templated
+          var implants = $('#implants').val();
+          var thisURL = baseURL.replace('999999', skillplan_id).replace('888888', implants);
+          $.get(thisURL, function(data) {
+            $('#entries-table').html(data);
+
+            // parse the new table, getting max ranks of skills
+            var ranks = new Array();
+            $('#entries-table tbody tr.skill-row').each(function() {
+              var $tr = $(this);
+              var $td = $('td:nth-child(2)', $tr);
+              var text = $.trim($td.text());
+              var skill = text.substr(0, text.lastIndexOf(" "));
+              var rank = parseInt($td.attr('data-level'));
+
+              ranks[skill] = Math.max(ranks[skill] || 0, rank);
+            });
+
+            // update the skill trees
+            $('#skills-table tr[data-skill]').each(function() {
+              var $tr = $(this);
+              var $td = $('td:nth-child(2)', $tr);
+              var skill = $.trim($td.text());
+              var level = ranks[skill] || 0;
+              var $span = $('span.skill-level', $tr);
+              $span.text(level);
+              if (level == 0) { $span.removeClass('badge-success'); }
+              else { $span.addClass('badge-success'); }
+            });
+
+            // click the selected skill row. twice.
+            $tr = $('#skills-table tr.sp-active-entry');
+            $tr.click();
+            $tr.click();
+          });
+
+          ajax_wait = false;
+        }
+
+        function mod_skill() {
+          var $this = $(this);
+          
+          // We can add this rank of the skill
+          if ($this.hasClass('badge-important')) {
+            if (ajax_wait) return;
+            
+            var baseURL = "{{ 'thing.views.skillplan_ajax_add'|url(999999, 888888, 777777, 666666) }}"; // templated
+
+            var skill_id = $('#skills-table tbody tr.sp-active-entry').attr('data-skill');
+            var level = $this.text();
+            console.log(level);
+
+            var $active = $('#entries-table tbody tr.sp-active-entry');
+            if ($active != undefined) {
+              var entry_id = $active.attr('data-entry');
+              if (entry_id === undefined) {
+                entry_id = 0;
+              }
+            }
+            else {
+              var entry_id = 0;
+            }
+
+            var thisURL = baseURL.replace('999999', skillplan_id).replace('888888', entry_id).replace('777777', skill_id).replace('666666', level);
+            
+            // AJAX time!
+            ajax_wait = true;
+            $.getJSON(thisURL, function(data) {
+              ajax_wait = false;
+              if (data.status == "success") {
+                reload_entries();
+              }
+              else {
+                // display error?
+              }
+            });
+          }
+        }
+
+        // expand/collapse a skill group
+        function skill_group() {
+          var $this = $(this);
+
+          if ($this.is('tr')) {
+            var $group = $this.attr('data-group');
+            var $i = $('i:nth-child(1)', $this);
+          }
+          else {
+            var $group = $this.parents('tr').attr('data-group');
+            var $i = $this;
+          }
+
+          if ($i.hasClass('icons-expand')) {
+            $i.addClass('icons-collapse').removeClass('icons-expand');
+            $('.parent-' + $group).each(function() {
+              $(this).show();
+            });
+          }
+          else {
+            $i.addClass('icons-expand').removeClass('icons-collapse');
+            $('.parent-' + $group).each(function() {
+              $(this).hide();
+            });
+          }
+        }
+
+        // mark a row in skills/entries tables as selected
+        function select_row(icon_class) {
+          var $tr = $(this);
+
+          if ($tr.hasClass('sp-active-entry')) { 
+            $tr.removeClass('sp-active-entry');
+            $('td:nth-child(1)', $tr).empty();
+            if ($tr.attr('data-skill') != undefined) {
+              $('#skill-box').hide();
+            }
+          }
+          else {
+            var $table = $tr.parents('table');
+            var $active = $('tbody tr.sp-active-entry', $table);
+            if ($active != undefined) {
+              $active.removeClass('sp-active-entry');
+              $('td:nth-child(1)', $active).empty();
+            }
+            
+            // add the selected icon
+            $tr.addClass('sp-active-entry');
+            $('td:nth-child(1)', $tr).html('<i class="' + icon_class + '"></i>');
+
+            // if it's a skill row, throw data into the big ol' box in the sky
+            if ($tr.attr('data-skill') != undefined) {
+              $('#skill-name').text($('td:nth-child(2)', $tr).text());
+              $('#skill-desc').html($tr.attr('data-desc').replace(/\n/g, '<br>'));
+              
+              var level = parseInt($('span.skill-level', $tr).text());
+              for (var i = 1; i <= 5; i++) {
+                if (i <= level) {
+                  $('#skill-' + i).removeClass('badge-important').addClass('badge-success');
+                  $('#time-' + i).text('Queued');
+                }
+                else {
+                  $('#skill-' + i).removeClass('badge-success').addClass('badge-important');
+                  $('#time-' + i).text('1m 1s');
+                }
+              }
+
+              $('#skill-box').show();
+            }
+          }
+        }
+      </script>
+{% endblock %}
+
+{% block title %}Edit Skill Plan: {{ skillplan.name }}{% endblock %}
+
+{% block content %}
+      <div class="row-fluid">
+        <div class="span3">
+          <h2>Edit Skill Plan</h2>
+
+          <ul class="unstyled">
+            <li><strong>Skill Plan</strong>: {{ skillplan.name }}</li>
+          </ul>
+
+          <form class="form-inline" action="">
+            <label class="select">
+              <select name="implants" id="implants" class="input-medium">
+                <option value="0"{% if implants == 0 %} selected{% endif %}>No implants</option>
+                <option value="2"{% if implants == 2 %} selected{% endif %}>+2 implants</option>
+                <option value="3"{% if implants == 3 %} selected{% endif %}>+3 implants</option>
+                <option value="4"{% if implants == 4 %} selected{% endif %}>+4 implants</option>
+                <option value="5"{% if implants == 5 %} selected{% endif %}>+5 implants</option>
+              </select>
+            </label>
+            &nbsp;
+            <button type="submit" class="btn">Apply</button>
+          </form>
+        </div>
+
+        <div class="span9" id="skill-box" style="display: none; margin-bottom: 10px;">
+          <div class="row-fluid">
+            <div class="span2">
+
+              <ul class="unstyled">
+                <li>
+                  <a href="#">
+                    <span class="badge badge-important skill-mod" id="skill-1">1</span>
+                  </a>
+                  <span id="time-1">1m 1s</span>
+                </li>
+                <li>
+                  <a href="#">
+                    <span class="badge badge-important skill-mod" id="skill-2">2</span>
+                  </a>
+                  <span id="time-2">1m 1s</span>
+                </li>
+                <li>
+                  <a href="#">
+                    <span class="badge badge-important skill-mod" id="skill-3">3</span>
+                  </a>
+                  <span id="time-3">1m 1s</span>
+                </li>
+                <li>
+                  <a href="#">
+                    <span class="badge badge-important skill-mod" id="skill-4">4</span>
+                  </a>
+                  <span id="time-4">1m 1s</span>
+                </li>
+                <li>
+                  <a href="#">
+                    <span class="badge badge-important skill-mod" id="skill-5">5</span>
+                  </a>
+                  <span id="time-5">1m 1s</span>
+                </li>
+              </ul>
+            </div>
+            <div class="span8">
+              <h3 id="skill-name"></h3>
+              <p id="skill-desc"></p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row-fluid">
+        <div class="span3">
+          <table class="table table-striped table-bordered table-condensed" id="skills-table">
+            <tbody>
+              {% for group, skills in grouped_skills.items() %}
+              <tr data-group="{{ group.id }}">
+                <td colspan="3">
+                  <i class="icons-expand sp-expand"></i>
+                  {{ group.name }}
+                </td>
+              </tr>
+              {% for skill in skills %}
+              <tr class="parent-{{ group.id }}" style="display: none" data-skill="{{ skill.item.id }}" data-rank="{{ skill.rank }}" data-desc="{{ skill.description }}">
+                <td class="sp-trained r"></td>
+                <td>{{ skill.item.name }}</td>
+                <td class="sp-trained c">
+                  <span class="badge skill-level">0</span>
+                </td>
+              </tr>
+              {% endfor %}
+              {% if group.z_mod %}<tr style="display: none"></tr>{% endif %}
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        <div class="span9">
+          <table class="table table-striped table-bordered table-condensed" id="entries-table">
+          </table>
+        </div>
+      </div>
+
+      {# remap modal -#}
+      <div class="modal hide" id="remap-modal">
+        <form class="form-inline">
+          {% csrf_token %}
+          <input type="hidden" name="skillplan_id" value="" id="delete-skillplan-id">
+          <div class="modal-header">
+            <a class="close" data-dismiss="modal"><i class="icons-close"></i></a>
+            <h3>Skill Remap</h3>
+          </div>
+          <div class="modal-body">
+            <fieldset>
+              <label class="control-label">Int</label>
+              <input type="text" name="int" class="input-mini" value="20">
+              <label class="control-label">Mem</label>
+              <input type="text" name="mem" class="input-mini" value="20">
+              <label class="control-label">Per</label>
+              <input type="text" name="per" class="input-mini" value="20">
+              <label class="control-label">Wil</label>
+              <input type="text" name="wil" class="input-mini" value="20">
+              <label class="control-label">Cha</label>
+              <input type="text" name="cha" class="input-mini" value="19">
+            </fieldset>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-danger" data-dismiss="modal">No</button>
+            <button class="btn btn-success">Yes</button>
+          </div>
+        </form>
+      </div>
+{% endblock %}
+
