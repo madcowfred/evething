@@ -150,7 +150,11 @@ class APIJob:
 
         # Parse the data if there is any
         if data:
-            self.root = ET.fromstring(data.encode('utf-8'))
+            try:
+                self.root = ET.fromstring(data.encode('utf-8'))
+            except ET.ParseError:
+                return False
+
             current = parse_api_date(self.root.find('currentTime').text)
             until = parse_api_date(self.root.find('cachedUntil').text)
 
