@@ -102,7 +102,12 @@ class APIJob:
             diff = until - utc_now
             self.taskstate.next_time = now + diff + datetime.timedelta(seconds=30)
         else:
-            self.taskstate.next_time = now + datetime.timedelta(seconds=30)
+            # If we have an APICache object, delay until the page is no longer cached
+            if self.apicache is not None:
+                self.taskstate.next_time = self.apicache.cached_until + datetime.timedelta(seconds=30)
+            # No APICache? Just delay for 30 minutes
+            else:
+                self.taskstate.next_time = now + datetime.timedelta(minutes=30)
 
         self.taskstate.save()
 
