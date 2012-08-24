@@ -13,7 +13,16 @@
               {% for entry in entries -%}
               <tr class="c{% if entry.sp_skill %} skill-row{% endif %}" data-entry="{{ entry.id }}">
                 <td class="sp-trained"></td>
-                {% if entry.sp_remap -%}
+                {% if entry.sp_skill -%}
+                <td class="l" data-level="{{ entry.sp_skill.level }}">
+                  {{ entry.z_skill.item.name }} {{ entry.z_roman }}
+                </td>
+                <td class="sp-group">{{ entry.z_skill.item.item_group }}</td>
+                <td class="sp-small">{{ entry.z_primary }}</td>
+                <td class="sp-small">{{ entry.z_secondary }}</td>
+                <td class="sp-small">{{ entry.z_spph|commas }}</td>
+                <td class="r sp-time">{{ entry.z_remaining|duration }}</td>
+                {%- else -%}
                 <td class="l" colspan="6">
                   <i class="icons-skillplan-remap"></i> Remap to
                   <strong>{{ entry.sp_remap.int_stat }}</strong> Int /
@@ -23,15 +32,6 @@
                   <strong>{{ entry.sp_remap.cha_stat }}</strong> Cha
                   </strong>
                 </td>
-                {%- else -%}
-                <td class="l" data-level="{{ entry.sp_skill.level }}">
-                  {{ entry.sp_skill.skill.item.name }} {{ entry.sp_skill.level|roman }}
-                </td>
-                <td class="sp-group">{{ entry.sp_skill.skill.item.item_group }}</td>
-                <td class="sp-small">{{ entry.sp_skill.skill.get_primary_attribute_display() }}</td>
-                <td class="sp-small">{{ entry.sp_skill.skill.get_secondary_attribute_display() }}</td>
-                <td class="sp-small">{{ entry.z_spph|commas }}</td>
-                <td class="r sp-time">{{ entry.z_remaining|duration }}</td>
                 {%- endif %}
               </tr>
               {%- else -%}

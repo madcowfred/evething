@@ -1505,27 +1505,35 @@ def skillplan_entries(request, skillplan_id, implants):
         k = '%s_bonus' % (stat)
         implant_stats[k] = implants
 
+    # Quick lookup for things
+    attr_map = dict(Skill.ATTRIBUTE_CHOICES)
+    roman = ('', 'I', 'II', 'III', 'IV', 'V')
+
+    # Fetch entries and skills all at once. This is done manually since it's roughly
+    # twice as fast as doing a nasty-ass join via the Django ORM.
+    entries = list(skillplan.entries.select_related('sp_remap', 'sp_skill'))
+    skill_ids = set()
+    for entry in entries:
+        if entry.sp_skill is not None:
+            skill_ids.add(entry.sp_skill.skill_id)
+
+    skill_map = Skill.objects.select_related().in_bulk(skill_ids)
+
     # Iterate over all entries in this skill plan
-    entries = []
+    rows = []
     total_remaining = 0.0
     max_level = {}
-    for entry in skillplan.entries.select_related('sp_remap', 'sp_skill__skill__item__item_group'):
-        # It's a remap entry
-        if entry.sp_remap is not None:
-            # Delete the previous remap if it's two in a row, that makes no sense
-            if entries and entries[-1].sp_remap is not None:
-                entries.pop()
-
-            remap_stats['int_attribute'] = entry.sp_remap.int_stat
-            remap_stats['mem_attribute'] = entry.sp_remap.mem_stat
-            remap_stats['per_attribute'] = entry.sp_remap.per_stat
-            remap_stats['wil_attribute'] = entry.sp_remap.wil_stat
-            remap_stats['cha_attribute'] = entry.sp_remap.cha_stat
-
+    for entry in entries:
         # It's a skill entry
         if entry.sp_skill is not None:
-            skill = entry.sp_skill.skill
-            max_level[skill] = entry.sp_skill.level
+            skill = skill_map[entry.sp_skill.skill_id]
+            entry.z_skill = skill
+            
+            entry.z_primary = attr_map[skill.primary_attribute]
+            entry.z_secondary = attr_map[skill.secondary_attribute]
+            entry.z_roman = roman[entry.sp_skill.level]
+
+            max_level[skill] = max(max_level.get(skill, 0), entry.sp_skill.level)
 
             # Calculate SP/hr
             entry.z_sppm = skill.get_sppm_stats(remap_stats, implant_stats)
@@ -1537,12 +1545,20 @@ def skillplan_entries(request, skillplan_id, implants):
             # Add time remaining to total
             total_remaining += entry.z_remaining
 
-        entries.append(entry)
+        # It's a remap entry
+        elif entry.sp_remap is not None:
+            remap_stats['int_attribute'] = entry.sp_remap.int_stat
+            remap_stats['mem_attribute'] = entry.sp_remap.mem_stat
+            remap_stats['per_attribute'] = entry.sp_remap.per_stat
+            remap_stats['wil_attribute'] = entry.sp_remap.wil_stat
+            remap_stats['cha_attribute'] = entry.sp_remap.cha_stat
+
+        rows.append(entry)
 
     return render_to_response(
         'thing/skillplan_entries.html',
         dict(
-            entries=entries,
+            entries=rows,
             total_remaining=total_remaining,
         ),
         context_instance=RequestContext(request)
