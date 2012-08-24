@@ -1,3 +1,5 @@
+/* spritemapper.output_css = sprite-icons-fugue-stars.css */
+/* spritemapper.output_image = ../icons/icons-fugue-stars.png */
 /* close icon on modal windows */
 .icons-close { background:url(../icons/fugue/cross.png); }
 /* success for good things, failure for bad things */
@@ -12,6 +14,8 @@
 .icons-expand { background:url(../icons/fugue/plus-circle.png); }
 .icons-collapse { background:url(../icons/fugue/minus-circle.png); }
 .icons-indent { background:url(../icons/fugue/arrow-000-medium.png); }
+/* screenshot mode */
+.icons-screenshot { background:url(../icons/fugue/picture.png); }
 /* various notifications */
 .icons-time-warning { background:url(../icons/fugue/alarm-clock--exclamation.png); }
 .icons-queue-empty { background:url(../icons/fugue/book--exclamation.png); }

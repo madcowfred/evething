@@ -1,3 +1,5 @@
+/* spritemapper.output_css = sprite-icons-default.css */
+/* spritemapper.output_image = ../icons/icons-default.png */
 /* close icon on modal windows */
 .icons-close { background:url(../icons/silk/cross.png); }
 /* success for good things, failure for bad things */
@@ -12,6 +14,8 @@
 .icons-expand { background:url(../icons/silk/add.png); }
 .icons-collapse { background:url(../icons/silk/delete.png); }
 .icons-indent { background:url(../icons/silk/bullet_go.png); }
+/* screenshot mode */
+.icons-screenshot { background:url(../icons/silk/photo.png); }
 /* various notifications */
 .icons-time-warning { background:url(../icons/silk/clock_red.png); }
 .icons-queue-empty { background:url(../icons/silk/book_error.png); }
