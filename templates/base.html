@@ -8,7 +8,7 @@
     <script src="{{ STATIC_URL }}js/bootstrap.min.js"></script>
     <script src="{{ STATIC_URL }}js/evething.js"></script>
     <link rel="icon" href="{{ STATIC_URL }}favicon.ico">
-    <link rel="stylesheet" href="{{ STATIC_URL }}css/bootstrap.min.css">
+    {#<link rel="stylesheet" href="{{ STATIC_URL }}css/bootstrap.min.css">#}
     {% if user.is_authenticated() -%}
     {%- with user.get_profile() as profile -%}
     <link rel="stylesheet" href="{{ STATIC_URL }}css/{{ profile.theme }}.css">
@@ -17,8 +17,8 @@
     {%- else -%}
     <link rel="stylesheet" href="{{ STATIC_URL }}css/icons-default.css">
     {%- endif %}
-    <link rel="stylesheet" href="{{ STATIC_URL }}css/evething.css">
-    <link rel="stylesheet" href="{{ STATIC_URL }}css/bootstrap-responsive.min.css">
+    {#<link rel="stylesheet" href="{{ STATIC_URL }}css/evething.css">
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/bootstrap-responsive.min.css">#}
     {%- block extra_head %}{% endblock %}
     <title>EVEthing: {% block title %}{% endblock %}</title>
   </head>

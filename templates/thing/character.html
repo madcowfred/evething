@@ -65,8 +65,8 @@
 {% endblock %}
 
 {% block content %}
-      <div class="row">
-        <div class="span3">
+      <div class="row-fluid">
+        <div class="span2">
           <div class="thumbnail">
             {% if anonymous -%}
             <img src="{{ STATIC_URL }}img/anonymous_character.jpg">
@@ -77,7 +77,7 @@
           
           {%- if not public %}
           <br>
-          <div class="well">
+          <div class="well well-small">
             <h3>Settings</h3>
             <form action="{% url thing.views.character_settings char.name %}" method="POST" style="margin: 0">
               {% csrf_token %}
@@ -146,7 +146,7 @@
           {% if public -%}
           <br>
           {%- endif %}
-          <div class="well">
+          <div class="well well-small">
             {% if not anonymous and user_plans -%}
             <h4>My Skill Plans</h4>
             <ul class="unstyled">
@@ -183,121 +183,115 @@
           {%- endif %}
         </div>
         
-        <div class="span9">
+        <div class="span10">
           <h2>
             {% if anonymous -%}
             {{ char.config.anon_key }}
-            {%- else %}
+            {%- else -%}
             {{ char.name }}
             {%- endif %}
           </h2>
-          <div class="row">
-            <div class="span7">
-              <div class="row">
-                <div class="span4">
-                  {% if not anonymous -%}
-                  <p><strong>Corp:</strong> {{ char.corporation.name }}</p>
-                  {%- endif %}
-                  {% if not anonymous and (not public or char.config.show_wallet) -%}
-                  <p><strong>Wallet:</strong> {{ char.wallet_balance|commas }} ISK</p>
-                  {%- endif %}
-                  <ul class="unstyled">
-                    <li><strong>Total SP:</strong> {{ char.get_total_skill_points()|commas }}</li>
-                    {% if not anonymous and (not public or char.config.show_clone) -%}
-                    <li><strong>Clone limit:</strong> {{ char.clone_skill_points|commas }} ({{ char.get_short_clone_name() }})</li>
+          <div class="row-fluid">
+            <div class="span4">
+              {% if not anonymous -%}
+              <p><strong>Corp:</strong> {{ char.corporation.name }}</p>
+              {%- endif %}
+              {% if not anonymous and (not public or char.config.show_wallet) -%}
+              <p><strong>Wallet:</strong> {{ char.wallet_balance|commas }} ISK</p>
+              {%- endif %}
+              <ul class="unstyled">
+                <li><strong>Total SP:</strong> {{ char.get_total_skill_points()|commas }}</li>
+                {% if not anonymous and (not public or char.config.show_clone) -%}
+                <li><strong>Clone limit:</strong> {{ char.clone_skill_points|commas }} ({{ char.get_short_clone_name() }})</li>
+                {%- endif %}
+              </ul>
+            </div>
+            <div class="span8 pull-right">
+              <table>
+                <tr class="r">
+                  <td><strong>Int:</strong></td>
+                  <td>{{ char.int_attribute }}</td>
+                  <td>
+                    {% if not anonymous and (not public or char.config.show_implants) -%}
+                    (+{{ char.int_bonus }})
+                    {%- else -%}
+                    (??)
                     {%- endif %}
-                  </ul>
-                </div>
-                <div class="span3 pull-right">
-                  <table>
-                    <tr class="r">
-                      <td><strong>Int:</strong></td>
-                      <td>{{ char.int_attribute }}</td>
-                      <td>
-                        {% if not anonymous and (not public or char.config.show_implants) -%}
-                        (+{{ char.int_bonus }})
-                        {%- else -%}
-                        (??)
-                        {%- endif %}
-                      </td>
-                    </tr>
-                    <tr class="r">
-                      <td><strong>Mem:</strong></td>
-                      <td>{{ char.mem_attribute }}</td>
-                      <td>
-                        {% if not anonymous and (not public or char.config.show_implants) -%}
-                        (+{{ char.mem_bonus }})
-                        {%- else -%}
-                        (??)
-                        {%- endif %}
-                      </td>
-                    </tr>
-                    <tr class="r">
-                      <td><strong>Per:</strong></td>
-                      <td>{{ char.per_attribute }}</td>
-                      <td>
-                        {% if not anonymous and (not public or char.config.show_implants) -%}
-                        (+{{ char.per_bonus }})
-                        {%- else -%}
-                        (??)
-                        {%- endif %}
-                      </td>
-                    </tr>
-                    <tr class="r">
-                      <td><strong>Wil:</strong></td>
-                      <td>{{ char.wil_attribute }}</td>
-                      <td>
-                        {% if not anonymous and (not public or char.config.show_implants) -%}
-                        (+{{ char.wil_bonus }})
-                        {%- else -%}
-                        (??)
-                        {%- endif %}
-                      </td>
-                    </tr>
-                    <tr class="r">
-                      <td><strong>Cha:</strong></td>
-                      <td>{{ char.cha_attribute }}</td>
-                      <td>
-                        {% if not anonymous and (not public or char.config.show_implants) -%}
-                        (+{{ char.cha_bonus }})
-                        {%- else -%}
-                        (??)
-                        {%- endif %}
-                      </td>
-                    </tr>
-                  </table>
-                  <br>
-                </div>
-              </div>
+                  </td>
+                </tr>
+                <tr class="r">
+                  <td><strong>Mem:</strong></td>
+                  <td>{{ char.mem_attribute }}</td>
+                  <td>
+                    {% if not anonymous and (not public or char.config.show_implants) -%}
+                    (+{{ char.mem_bonus }})
+                    {%- else -%}
+                    (??)
+                    {%- endif %}
+                  </td>
+                </tr>
+                <tr class="r">
+                  <td><strong>Per:</strong></td>
+                  <td>{{ char.per_attribute }}</td>
+                  <td>
+                    {% if not anonymous and (not public or char.config.show_implants) -%}
+                    (+{{ char.per_bonus }})
+                    {%- else -%}
+                    (??)
+                    {%- endif %}
+                  </td>
+                </tr>
+                <tr class="r">
+                  <td><strong>Wil:</strong></td>
+                  <td>{{ char.wil_attribute }}</td>
+                  <td>
+                    {% if not anonymous and (not public or char.config.show_implants) -%}
+                    (+{{ char.wil_bonus }})
+                    {%- else -%}
+                    (??)
+                    {%- endif %}
+                  </td>
+                </tr>
+                <tr class="r">
+                  <td><strong>Cha:</strong></td>
+                  <td>{{ char.cha_attribute }}</td>
+                  <td>
+                    {% if not anonymous and (not public or char.config.show_implants) -%}
+                    (+{{ char.cha_bonus }})
+                    {%- else -%}
+                    (??)
+                    {%- endif %}
+                  </td>
+                </tr>
+              </table>
+              <br>
             </div>
           </div>
 
           {% if queue and (anonymous or not public or char.config.show_skill_queue) -%}
-          <div class="row">
-            <div class="span9">
-              <div class="well well-small {% if queue_duration < 86400 %}alert-error{% else %}alert-success{% endif %}">
-                <h3>Skill Queue</h3>
-                <div>
-                  {{ queue.0.skill.item.name }} {{ queue.0.get_roman_level() }} (Rank {{ queue.0.skill.rank }}) --
-                  {{ queue.0.get_remaining()|duration }} remaining
-                  <div class="pull-right">{{ queue.0.end_time|date("Y-m-d H:i:s") }} UTC</div>
-                  <div style="width: 100%">
-                    <div class="progress progress-striped{% if queue_duration < 86400 %} progress-danger{% endif%} margin-half-top">
-                      <div class="bar" style="width: {{ queue.0.get_complete_percentage() }}%">{{ queue.0.get_complete_percentage() }}%</div>
-                    </div>
+          <div class="row-fluid">
+            <div class="span12 well well-small {% if queue_duration < 86400 %}alert-error{% else %}alert-success{% endif %}">
+              <h3>Skill Queue</h3>
+              <div>
+                {{ queue.0.skill.item.name }} {{ queue.0.get_roman_level() }} (Rank {{ queue.0.skill.rank }}) --
+                {{ queue.0.get_remaining()|duration }} remaining
+                <div class="pull-right">{{ queue.0.end_time|date("Y-m-d H:i:s") }} UTC</div>
+                <div style="width: 100%">
+                  <div class="progress progress-striped{% if queue_duration < 86400 %} progress-danger{% endif%} margin-half-top">
+                    <div class="bar" style="width: {{ queue.0.get_complete_percentage() }}%">{{ queue.0.get_complete_percentage() }}%</div>
                   </div>
                 </div>
-                {% if queue_rest %}
-                <div class="margin-half-top">
-                  {% for sq in queue_rest %}
-                  <div>
-                    {{ sq.skill.item.name }} {{ sq.get_roman_level() }} (Rank {{ sq.skill.rank }})
-                    <div class="pull-right">{{ sq.end_time|date("Y-m-d H:i:s") }} UTC</div>
-                  </div>
-                  {% endfor %}
-                </div>
-                {% endif %}
               </div>
+              {% if queue_rest %}
+              <div class="margin-half-top">
+                {% for sq in queue_rest %}
+                <div>
+                  {{ sq.skill.item.name }} {{ sq.get_roman_level() }} (Rank {{ sq.skill.rank }})
+                  <div class="pull-right">{{ sq.end_time|date("Y-m-d H:i:s") }} UTC</div>
+                </div>
+                {% endfor %}
+              </div>
+              {% endif %}
             </div>
           </div>
           {%- endif %}
@@ -312,33 +306,31 @@
           <div class="tab-content">
             <div class="tab-pane active" id="skills">
               {% for mg, css in skills.items() %}
-              <div class="row">
-                <div class="span9">
-                  <div class="well well-small">
-                    <div class="char-skill-box">
-                      <span class="char-skill-group">{{ mg.name }}</span>
-                      --
-                      <strong>{{ css|length }}</strong> skill{{ css|length|pluralize }} trained for <strong>{{ mg.z_total_sp|commas }}</strong> SP
-                    </div>
-                    {% for cs in css %}
-                    <div class="clearfix">
-                      {%- if cs.z_training %}<i class="icons-skill-training"></i>{% endif %}
-                      <span href="#" class="skill-hover{% if cs.z_class %} {{ cs.z_class }}{% endif %}" rel="popover" title="{{ cs.skill.item.name }}" data-content="{{ cs.skill.description }}">
-                        {{ cs.skill.item.name }} {{ cs.get_roman_level() }}
-                      </span>
-                      
-                      <div class="pull-right">
-                        {%- for icon in cs.z_icons %}
-                        <i class="icons-skill-{{ icon }} skill"></i>
-                        {%- endfor -%}
-                      </div>
-
-                      <div class="pull-right character-sp">{{ cs.skill.get_sp_at_level()|commas }} SP</div>
-                      <div class="pull-right character-sp">{{ cs.points|commas }} / </div>
-                      <div class="pull-right character-sp small">Rank {{ cs.skill.rank }}</div>
-                    </div>
-                    {% endfor %}
+              <div class="row-fluid">
+                <div class="span12 well well-small">
+                  <div class="char-skill-box">
+                    <span class="char-skill-group">{{ mg.name }}</span>
+                    --
+                    <strong>{{ css|length }}</strong> skill{{ css|length|pluralize }} trained for <strong>{{ mg.z_total_sp|commas }}</strong> SP
                   </div>
+                  {% for cs in css %}
+                  <div class="clearfix">
+                    {%- if cs.z_training %}<i class="icons-skill-training"></i>{% endif %}
+                    <span href="#" class="skill-hover{% if cs.z_class %} {{ cs.z_class }}{% endif %}" rel="popover" title="{{ cs.skill.item.name }}" data-content="{{ cs.skill.description }}">
+                      {{ cs.skill.item.name }} {{ cs.get_roman_level() }}
+                    </span>
+                    
+                    <div class="pull-right">
+                      {%- for icon in cs.z_icons %}
+                      <i class="icons-skill-{{ icon }} skill"></i>
+                      {%- endfor -%}
+                    </div>
+
+                    <div class="pull-right character-sp">{{ cs.skill.get_sp_at_level()|commas }} SP</div>
+                    <div class="pull-right character-sp">{{ cs.points|commas }} / </div>
+                    <div class="pull-right character-sp small">Rank {{ cs.skill.rank }}</div>
+                  </div>
+                  {% endfor %}
                 </div>
               </div>
               {% endfor %}
