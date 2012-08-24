@@ -194,7 +194,12 @@
           <div class="row-fluid">
             <div class="span4">
               {% if not anonymous -%}
-              <p><strong>Corp:</strong> {{ char.corporation.name }}</p>
+              <ul class="unstyled">
+                <li><strong>Corporation:</strong> {{ char.corporation.name }}</li>
+                {% if char.corporation.alliance -%}
+                <li><strong>Alliance:</strong> {{ char.corporation.alliance.name }}</li>
+                {%- endif %}
+              </ul>
               {%- endif %}
               {% if not anonymous and (not public or char.config.show_wallet) -%}
               <p><strong>Wallet:</strong> {{ char.wallet_balance|commas }} ISK</p>
