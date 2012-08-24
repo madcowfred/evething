@@ -8,10 +8,7 @@
     <script src="{{ STATIC_URL }}js/bootstrap.min.js"></script>
     <script src="{{ STATIC_URL }}js/evething.js"></script>
     <link rel="icon" href="{{ STATIC_URL }}favicon.ico">
-    <link rel="stylesheet" href="{{ STATIC_URL }}css/bootstrap.min.css">
-    <link rel="stylesheet" href="{{ STATIC_URL }}css/bootstrap-responsive.min.css">
-    <link rel="stylesheet" href="{{ STATIC_URL }}css/theme-default.css" />
-    <link rel="stylesheet" href="{{ STATIC_URL }}css/evething.css" />
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/theme-default.min.css" />
     <title>EVEthing: {% block title %}{% endblock %}</title>
   </head>
   
@@ -19,17 +16,21 @@
     <div class="navbar navbar-fixed-top">
       <div class="navbar-inner">
         <div class="container-fluid">
-          <a class="brand" href="https://github.com/madcowfred/evething">EVEthing</a>
+          <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+          <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </a>
+          <a class="brand" href="https://github.com/madcowfred/evething/tree/develop#readme">EVEthing</a>
           <div class="nav-collapse">
             <ul class="nav" id="nav-list">
-              <li><a href="{% url home %}"><i class="icon-home icon-white"></i>Home</a></li>
+              <li><a href="{% url home %}">Home</a></li>
             </ul>
 
-            <ul class="nav pull-right">
-              <li class="navbar-text">
-                <a href="{% url auth_login %}">Login</a>
-              </li>
-            </ul>
+            <p class="navbar-text pull-right">
+              <a href="{% url auth_login %}">Login</a>
+            </p>
           </div>
         </div>
       </div>
@@ -38,8 +39,15 @@
     <div class="container-fluid" id="container">
       {% block content %}{% endblock %}
       <hr class="nomargin">
-      <footer>
-        <p>&copy; Freddie 2012</p>
+      <footer class="small">
+        <p>
+          &copy; Freddie (EVE: Tazuki Falorn) 2012
+          <span class="pull-right">
+            Fugue icons by <a href="http://p.yusukekamiyamane.com/">Yusuke Kamiyamane</a>
+            <span class="divider">/</span>
+            Silk icons by <a href="http://famfamfam.com/lab/icons/silk/">Mark James</a>
+          </span>
+        </p>
       </footer>
     </div>
   </body>

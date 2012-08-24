@@ -14,6 +14,7 @@
     <link rel="stylesheet" href="{{ STATIC_URL }}css/{{ profile.icon_theme }}.css">
     {%- endwith -%}
     {%- else -%}
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/theme-default.min.css">
     <link rel="stylesheet" href="{{ STATIC_URL }}css/icons-default.css">
     {%- endif %}
     {%- block extra_head %}{% endblock %}
