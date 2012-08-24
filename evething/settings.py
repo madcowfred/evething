@@ -148,7 +148,7 @@ AUTH_PROFILE_MODULE = 'thing.UserProfile'
 
 # Themes
 THEMES = [
-    ('theme-default', '<Default>'),
+    ('theme-default.min', '<Default>'),
     ('theme-cyborg.min', 'Cyborg'),
     ('theme-slate.min', 'Slate'),
 ]
