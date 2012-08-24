@@ -5,3 +5,6 @@ recess --compress less/theme-default/bootstrap.less > base_static/css/theme-defa
 recess  --compile less/theme-slate/bootstrap.less > base_static/css/theme-slate.css
 recess --compress less/theme-slate/bootstrap.less > base_static/css/theme-slate.min.css
 
+recess  --compile less/theme-cyborg/bootstrap.less > base_static/css/theme-cyborg.css
+recess --compress less/theme-cyborg/bootstrap.less > base_static/css/theme-cyborg.min.css
+
