@@ -1,0 +1,3 @@
+#!/bin/sh
+recess  --compile less/theme-default/bootstrap.less > base_static/css/theme-default.css
+recess --compress less/theme-default/bootstrap.less > base_static/css/theme-default.min.css
