@@ -462,6 +462,8 @@ def account_skillplan_edit(request):
 # Assets
 @login_required
 def assets(request):
+    t1 = time.time()
+
     character_ids = list(Character.objects.filter(apikeys__user=request.user.id).values_list('id', flat=True))
     characters = Character.objects.in_bulk(character_ids)
     
@@ -469,13 +471,15 @@ def assets(request):
     corporations = Corporation.objects.in_bulk(corporation_ids)
 
     # apply our initial set of filters
-    assets = Asset.objects.select_related('system', 'station', 'inv_flag')
-    assets = assets.filter(
+    #assets = Asset.objects.select_related('system', 'station', 'inv_flag')
+    assets = Asset.objects.filter(
         Q(character__in=character_ids, corporation__isnull=True)
         |
         Q(corporation__in=corporation_ids)
     )
     assets = assets.distinct()
+
+    t2 = time.time()
 
     # retrieve any supplied filter values
     f_types = request.GET.getlist('type')
@@ -509,16 +513,37 @@ def assets(request):
     if not filters:
         filters.append(('', '', ''))
 
-    # fetch all items
-    items = Item.objects.select_related().in_bulk(assets.values_list('item_id', flat=True))
+    t3 = time.time()
+
+    # gather data for bulk fetching
+    inv_flag_ids = set()
+    item_ids = set()
+    station_ids = set()
+    system_ids = set()
+
+    for asset in assets:
+        inv_flag_ids.add(asset.inv_flag_id)
+        item_ids.add(asset.item_id)
+        if asset.station_id is not None:
+            station_ids.add(asset.station_id)
+        if asset.system_id is not None:
+            system_ids.add(asset.system_id)
+
+    inv_flag_map = InventoryFlag.objects.in_bulk(inv_flag_ids)
+    item_map = Item.objects.select_related().in_bulk(item_ids)
+    station_map = Station.objects.in_bulk(station_ids)
+    system_map = System.objects.in_bulk(system_ids)
+
+    t4 = time.time()
 
     # initialise data structures
     ca_lookup = {}
     loc_totals = {}
     systems = {}
 
-    for ca in assets.iterator():
-        ca.z_item = items[ca.item_id]
+    for ca in assets:
+        ca.z_inv_flag = inv_flag_map[ca.inv_flag_id]
+        ca.z_item = item_map[ca.item_id]
 
         # corporation and character
         if ca.corporation_id:
@@ -526,7 +551,8 @@ def assets(request):
         ca.z_character = characters[ca.character_id]
 
         # work out if this is a system or station asset
-        k = ca.system_or_station()
+        #k = ca.system_or_station()
+        k = getattr(system_map.get(ca.system_id, station_map.get(ca.station_id)), 'name', None)
 
         # zz blueprints
         if ca.z_item.item_group.category.name == 'Blueprint':
@@ -588,17 +614,19 @@ def assets(request):
 
             # Celestials (containers) need some special casing
             if parent.z_item.item_group.category.name == 'Celestial':
-                if ca.inv_flag.name == 'Locked':
+                if ca.z_inv_flag.name == 'Locked':
                     ca.z_locked = True
 
                 ca.z_group = ca.z_item.item_group.category.name
 
             else:
                 # inventory group
-                ca.z_group = ca.inv_flag.nice_name()
+                ca.z_group = ca.z_inv_flag.nice_name()
                 # corporation hangar
                 if ca.z_group.startswith('CorpSAG') and hasattr(ca, 'z_corporation'):
                     ca.z_group = getattr(ca.z_corporation, 'division%s' % (ca.z_group[-1]))
+
+    t5 = time.time()
 
     # add contents to the parent total
     for cas in systems.values():
@@ -608,11 +636,13 @@ def assets(request):
                 #    ca.z_total += content.z_total
 
                 # decorate/sort/undecorate argh
-                temp = [(c.inv_flag.sort_order(), c.z_item.name, c) for c in ca.z_contents]
+                temp = [(c.z_inv_flag.sort_order(), c.z_item.name, c) for c in ca.z_contents]
                 temp.sort()
                 ca.z_contents = [s[2] for s in temp]
 
                 ca.z_mod = len(ca.z_contents) % 2
+
+    t6 = time.time()
 
     # get a total asset value
     total_value = sum(loc_totals.values())
@@ -625,7 +655,9 @@ def assets(request):
 
     sorted_systems = sorted(systems.items())
 
-    return render_to_response(
+    t7 = time.time()
+
+    output = render_to_response(
         'thing/assets.html',
         {
             'characters': characters,
@@ -637,6 +669,19 @@ def assets(request):
         },
         context_instance=RequestContext(request)
     )
+
+    t8 = time.time()
+
+    if settings.DEBUG is True:
+        print '%.4fs  init' % (t2 - t1)
+        print '%.4fs  filters' % (t3 - t2)
+        print '%.4fs  bulk data' % (t4 - t3)
+        print '%.4fs  work loop' % (t5 - t4)
+        print '%.4fs  parent totals' % (t6 - t5)
+        print '%.4fs  sort + total' % (t7 - t6)
+        print '%.4fs  template' % (t8 - t7)
+
+    return output
 
 # ---------------------------------------------------------------------------
 # List of blueprints we own
