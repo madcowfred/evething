@@ -424,43 +424,55 @@ def account_skillplan_add(request):
 # Delete a skillplan
 @login_required
 def account_skillplan_delete(request):
-    try:
-        skillplan = SkillPlan.objects.get(user=request.user, id=request.POST.get('skillplan_id', '0'))
-    
-    except SkillPlan.DoesNotExist:
-        request.session['message_type'] = 'error'
-        request.session['message'] = 'You do not own that skill plan!'
-    
-    else:
-        request.session['message_type'] = 'success'
-        request.session['message'] = 'Skill plan "%s" deleted successfully!' % (skillplan.name)
+    skillplan_id = request.POST.get('skillplan_id', '')
+    if skillplan_id.isdigit():
+        try:
+            skillplan = SkillPlan.objects.get(user=request.user, id=skillplan_id)
         
-        # Delete all of the random things for this skillplan
-        entries = SPEntry.objects.filter(skill_plan=skillplan)
-        SPRemap.objects.filter(pk__in=[e.sp_remap_id for e in entries if e.sp_remap_id]).delete()
-        SPSkill.objects.filter(pk__in=[e.sp_skill_id for e in entries if e.sp_skill_id]).delete()
-        entries.delete()
-        skillplan.delete()
+        except SkillPlan.DoesNotExist:
+            request.session['message_type'] = 'error'
+            request.session['message'] = 'You do not own that skill plan!'
+        
+        else:
+            request.session['message_type'] = 'success'
+            request.session['message'] = 'Skill plan "%s" deleted successfully!' % (skillplan.name)
+            
+            # Delete all of the random things for this skillplan
+            entries = SPEntry.objects.filter(skill_plan=skillplan)
+            SPRemap.objects.filter(pk__in=[e.sp_remap_id for e in entries if e.sp_remap_id]).delete()
+            SPSkill.objects.filter(pk__in=[e.sp_skill_id for e in entries if e.sp_skill_id]).delete()
+            entries.delete()
+            skillplan.delete()
+
+    else:
+        request.session['message_type'] = 'error'
+        request.session['message'] = 'You seem to be doing silly things, stop that.'
 
     return redirect('%s#tab_skillplans' % (reverse(account)))
 
 # Edit a skillplan
 @login_required
 def account_skillplan_edit(request):
-    try:
-        skillplan = SkillPlan.objects.get(user=request.user, id=request.POST.get('skillplan_id', '0'))
-    
-    except SkillPlan.DoesNotExist:
-        request.session['message_type'] = 'error'
-        request.session['message'] = 'You do not own that skill plan!'
-    
-    else:
-        skillplan.name = request.POST['name']
-        skillplan.visibility = request.POST['visibility']
-        skillplan.save()
+    skillplan_id = request.POST.get('skillplan_id', '')
+    if skillplan_id.isdigit():
+        try:
+            skillplan = SkillPlan.objects.get(user=request.user, id=skillplan_id)
+        
+        except SkillPlan.DoesNotExist:
+            request.session['message_type'] = 'error'
+            request.session['message'] = 'You do not own that skill plan!'
+        
+        else:
+            skillplan.name = request.POST['name']
+            skillplan.visibility = request.POST['visibility']
+            skillplan.save()
 
-        request.session['message_type'] = 'success'
-        request.session['message'] = 'Skill plan "%s" edited successfully!' % (skillplan.name)
+            request.session['message_type'] = 'success'
+            request.session['message'] = 'Skill plan "%s" edited successfully!' % (skillplan.name)
+
+    else:
+        request.session['message_type'] = 'error'
+        request.session['message'] = 'You seem to be doing silly things, stop that.'
 
     return redirect('%s#tab_skillplans' % (reverse(account)))
 
