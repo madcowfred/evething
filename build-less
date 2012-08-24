@@ -8,3 +8,5 @@ recess --compress less/theme-slate/bootstrap.less > base_static/css/theme-slate.
 recess  --compile less/theme-cyborg/bootstrap.less > base_static/css/theme-cyborg.css
 recess --compress less/theme-cyborg/bootstrap.less > base_static/css/theme-cyborg.min.css
 
+recess  --compile less/theme-cerulean/bootstrap.less > base_static/css/theme-cerulean.css
+recess --compress less/theme-cerulean/bootstrap.less > base_static/css/theme-cerulean.min.css

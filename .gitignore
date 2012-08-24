@@ -1,6 +1,7 @@
 *.db
 *.pyc
 local_settings.py
+base_static/css/theme-cerulean.css
 base_static/css/theme-cyborg.css
 base_static/css/theme-default.css
 base_static/css/theme-slate.css
