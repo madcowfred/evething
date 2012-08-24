@@ -150,10 +150,7 @@ class APIJob:
             # Fetch the URL
             full_url = urljoin(settings.API_HOST, url)
             try:
-                #r = requests.post(full_url, params, headers=HEADERS, config={ 'max_retries': 1 })
-                #logger.info('Requesting %s', full_url)
                 r = _session.post(full_url, params, prefetch=True)
-                #logger.info('Retrieved %s', full_url)
                 data = r.text
             except socket.error:
                 return False
