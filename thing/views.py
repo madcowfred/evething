@@ -363,18 +363,24 @@ def account_apikey_add(request):
 # Delete an API key
 @login_required
 def account_apikey_delete(request):
-    try:
-        apikey = APIKey.objects.get(user=request.user.id, id=request.POST.get('apikey_id', '0'))
-    
-    except APIKey.DoesNotExist:
-        request.session['message_type'] = 'error'
-        request.session['message'] = 'You do not have an API key with that KeyID!'
-    
-    else:
-        request.session['message_type'] = 'success'
-        request.session['message'] = 'API key %s deleted successfully!' % (apikey.id)
+    apikey_id = request.POST.get('apikey_id', '')
+    if apikey_id.isdigit():
+        try:
+            apikey = APIKey.objects.get(user=request.user.id, id=apikey_id)
         
-        apikey.delete()
+        except APIKey.DoesNotExist:
+            request.session['message_type'] = 'error'
+            request.session['message'] = 'You do not have an API key with that KeyID!'
+        
+        else:
+            request.session['message_type'] = 'success'
+            request.session['message'] = 'API key %s deleted successfully!' % (apikey.id)
+            
+            apikey.delete()
+
+    else:
+        request.session['message_type'] = 'error'
+        request.session['message'] = 'You seem to be doing silly things, stop that.'
 
     return redirect('%s#tab_apikeys' % (reverse(account)))
 
