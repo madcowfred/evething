@@ -148,16 +148,16 @@ AUTH_PROFILE_MODULE = 'thing.UserProfile'
 
 # Themes
 THEMES = [
-    ('theme-default.min', '<Default>'),
-    ('theme-cerulean.min', 'Cerulean'),
-    ('theme-cyborg.min', 'Cyborg'),
-    ('theme-slate.min', 'Slate'),
+    ('default', '<Default>'),
+    ('cerulean', 'Cerulean'),
+    ('cyborg', 'Cyborg'),
+    ('slate', 'Slate'),
 ]
 
 # Icon themes
 ICON_THEMES = [
-    ('icons-default', '<Default>'),
-    ('icons-fugue-stars', 'Fugue/Stars'),
+    ('default', '<Default>'),
+    ('fugue-stars', 'Fugue/Stars'),
 ]
 
 

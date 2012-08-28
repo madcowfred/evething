@@ -23,8 +23,8 @@ class UserProfile(models.Model):
     user = models.OneToOneField(User)
 
     # Global options
-    theme = models.CharField(max_length=32, default='theme-default')
-    icon_theme = models.CharField(max_length=32, default='icons-default')
+    theme = models.CharField(max_length=32, default='default')
+    icon_theme = models.CharField(max_length=32, default='default')
     show_clock = models.BooleanField(default=True)
     show_item_icons = models.BooleanField(default=False)
     show_assets = models.BooleanField(default=True)

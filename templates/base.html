@@ -6,8 +6,8 @@
     <link rel="icon" href="{{ STATIC_URL }}favicon.ico">
     {% if user.is_authenticated() -%}
     {%- with user.get_profile() as profile -%}
-    <link rel="stylesheet" href="{{ STATIC_URL }}css/{{ profile.theme }}.css">
-    <link rel="stylesheet" href="{{ STATIC_URL }}css/sprite-{{ profile.icon_theme }}.css">
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/theme-{{ profile.theme }}.min.css">
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/sprite-icons-{{ profile.icon_theme }}.min.css">
     {%- endwith -%}
     {%- else -%}
     <link rel="stylesheet" href="{{ STATIC_URL }}css/theme-default.min.css">
