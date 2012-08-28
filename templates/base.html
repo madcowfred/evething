@@ -7,7 +7,7 @@
     {% if user.is_authenticated() -%}
     {%- with user.get_profile() as profile -%}
     <link rel="stylesheet" href="{{ STATIC_URL }}css/theme-{{ profile.theme }}.min.css">
-    <link rel="stylesheet" href="{{ STATIC_URL }}css/sprite-icons-{{ profile.icon_theme }}.min.css">
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/sprite-icons-{{ profile.icon_theme }}.css">
     {%- endwith -%}
     {%- else -%}
     <link rel="stylesheet" href="{{ STATIC_URL }}css/theme-default.min.css">
