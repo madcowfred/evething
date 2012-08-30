@@ -4,16 +4,70 @@
 {% block title %}Home{% endblock %}
 
 {% block extra_head %}
-  <script type="text/javascript">
-  function toggle_tooltips() {
-    $('i').each(function() {
-      $this = $(this);
-      if ($this.attr('rel') == 'tooltip') {
-        $this.tooltip('toggle');
-      }
-    });
-  }
-  </script>
+      <script type="text/javascript">
+        $(document).ready(function() {
+          // make tooltips appear to the right of icons
+          $("[rel=tooltip]").each(function () {
+            $(this).data('tooltip').options.placement = 'right';
+          });
+        });
+
+        var tooltips_on = false;
+        function toggle_tooltips() {
+          $("[rel=tooltip]").each(function () {
+            if (tooltips_on)
+              $(this).tooltip('hide');
+            else
+              $(this).tooltip('show');
+          });
+          tooltips_on = !tooltips_on;
+        }
+
+        function screenshot_mode() {
+          // replace sensitive data with placeholders
+          $('.sensitive').each(function () {
+            var $this = $(this);
+            var $oldname = $this.attr('oldname');
+
+            if ($oldname === undefined) {
+              $this.attr('oldname', $this.text());
+              if ($this.hasClass('character-name'))
+                $this.text('Character Name');
+              else if ($this.hasClass('apikey-name'))
+                $this.text('apikey.name');
+              else if ($this.hasClass('corporation-name'))
+                $this.text('corporation.name [ticker]');
+            }
+            else {
+              $this.text($oldname);
+              $this.removeAttr('oldname');
+            }
+          });
+
+          var seen_tooltips = Array();
+          $('.well').each(function () {
+            var $well = $(this);
+            var seen = false;
+            
+            $('[rel=tooltip]', $well.children('div')).each(function () {
+              var $img = $(this);
+              if (seen == false && seen_tooltips[$img.attr('src')] == null) {
+                seen = true;
+                seen_tooltips[$img.attr('src')] = true;
+
+                if ($img.attr('shown') === undefined) {
+                  $img.tooltip('show');
+                  $img.attr('shown', 'yup');
+                }
+                else {
+                  $img.tooltip('hide');
+                  $img.removeAttr('shown');
+                }
+              }
+            });
+          });
+        }
+      </script>
 {% endblock %}
 
 {% block content %}
@@ -22,23 +76,31 @@
         <span><strong>Total Balance:</strong> {{ total_balance|commas }} ISK</span>
         <span class="divider">/</span>
         <span><strong>Total SP:</strong> {{ total_sp|commas }}</span>
-        <span class="pull-right"><a href="#" onclick="toggle_tooltips();">Toggle tooltips</a></span>
+        <span class="pull-right">
+          {% if user.is_staff -%}
+          <strong>Queued task{{ task_count|pluralize }}:</strong> {{ task_count|commas }}
+          <span class="divider">/</span>
+          {%- endif %}
+          <a href="#" onclick="screenshot_mode();">
+            <i class="icons-screenshot" title="Screenshot sanitised mode"></i>
+          </a>
+        </span>
       </div>
     </div>
-    {% for chars in characters|tablecols:4 %}
+    {% for chars in characters|tablecols(profile.home_chars_per_row) %}
     <div class="row-fluid">
       {% for character in chars %}
       {% if character %}
-      <div class="span3">
-        <div class="well-small well{% if character.apikey in not_training %} alert-error{% endif %}">
+      <div class="span{{ 12 // profile.home_chars_per_row }}">
+        <div class="well-small well{% if character.z_apikey in not_training %} alert-error{% endif %}">
           <div>
             <span class="large">
-              <a href="{% url thing.views.character character.name %}">
-                {% if sanitise %}Character Name{% else %}{{ character.name }}{% endif %}
+              <a href="{% url thing.views.character character.name %}" class="sensitive character-name">
+                {{ character.name }}
               </a>
             </span>
-            <span class="small pull-right">
-              [{{ character.z_sanitised_api|default:character.apikey.name }}]
+            <span class="small pull-right sensitive apikey-name">
+              [{{ character.z_apikey.name }}]
             </span>
           </div>
 
@@ -51,7 +113,7 @@
 
           {% if character.z_training %}
           <div class="margin-half-top">
-            <span>{{ character.z_training.sq.skill.item.name }} {{ character.z_training.sq.get_roman_level }}</span>
+            <span>{{ character.z_training.sq.skill.item.name }} {{ character.z_training.sq.get_roman_level() }}</span>
             <span class="small">(Rank {{ character.z_training.sq.skill.rank }})</span>
             <br>
             <em class="small">{{ character.z_training.skill_duration|shortduration }} @ {{ character.z_training.sp_per_hour }} SP/hr</em>
@@ -67,12 +129,10 @@
           {% if character.z_notifications %}
           <div class="margin-half-top smaller">
             {% for notif in character.z_notifications %}
-            {% spaceless %}
-            <i class="icon-{{ notif.icon }}" rel="tooltip" title="{{ notif.tooltip }}"></i>
+            <i class="icons-{{ notif.icon }}" rel="tooltip" title="{{ notif.tooltip }}"></i>
             {% if notif.span_class %}<span class="{{ notif.span_class }}">{% endif %}
             {{ notif.text }}
             {% if notif.span_class %}</span>{% endif %}
-            {% endspaceless %}
             {% endfor %}
           </div>
           {% endif %}
@@ -88,9 +148,9 @@
     <div class="row-fluid">
       {% for corporation in corporations %}
       <div class="span3">
-        <h4>
-          {% if sanitise %}corporation.name [corporation.ticker]{% else %}{{ corporation.name }} [{{ corporation.ticker }}]{% endif %}
-        </h4>
+        <h5 class="sensitive corporation-name">
+          {{ corporation.name }} [{{ corporation.ticker }}]
+        </h5>
         <table class="table table-striped table-bordered table-condensed">
           <thead>
             <tr class="l">
@@ -99,7 +159,7 @@
             </tr>
           </thead>
           <tbody>
-            {% for wallet in corporation.corpwallet_set.all %}
+            {% for wallet in corporation.corpwallet_set.all() %}
             <tr>
               <td>{{ wallet.description }}</td>
               <td class="r">{{ wallet.balance|commas }}</td>
@@ -119,7 +179,7 @@
       <h4>Event log</h4>
       <ul>
         {% for event in events %}
-        <li>{{ event.get_age|duration }} ago <strong>/</strong> {{ event.text|safe }}</li>
+        <li>{{ event.get_age()|duration }} ago <strong>/</strong> {{ event.text|safe }}</li>
         {% endfor %}
       </ul>
       <span><a href="{% url thing.views.events %}">See all</a></span>

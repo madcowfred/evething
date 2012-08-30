@@ -103,11 +103,13 @@ INSTALLED_APPS = (
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
-    'django.contrib.sites',
+    #'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.admin',
     'django.contrib.admindocs',
+    'south',
+    'djcelery',
     'mptt',
     'thing',
 )
@@ -140,7 +142,112 @@ LOGIN_REDIRECT_URL = '/'
 # email address that server mails appear to be from
 SERVER_EMAIL = 'evething@wafflemonster.org'
 
+# Auth profile thing
+AUTH_PROFILE_MODULE = 'thing.UserProfile'
+
+
+# Themes
+THEMES = [
+    ('default', '<Default>'),
+    ('cerulean', 'Cerulean'),
+    ('cyborg', 'Cyborg'),
+    ('slate', 'Slate'),
+]
+
+# Icon themes
+ICON_THEMES = [
+    ('default', '<Default>'),
+    ('fugue-stars', 'Fugue/Stars'),
+]
+
+
 # load local settings
 from local_settings import *
-
 TEMPLATE_DEBUG = DEBUG
+
+
+# Celery setup
+import djcelery
+djcelery.setup_loader()
+
+# Rename the default queue
+from kombu import Exchange, Queue
+
+# We're not using rate limits so might as well disable them to save some CPU
+CELERY_DISABLE_RATE_LIMITS = True
+# Set a soft task time limit of 5 minutes
+CELERYD_TASK_SOFT_TIME_LIMIT = 300
+# Set the prefetch multiplier to 1 so super slow tasks aren't breaking everything
+CELERYD_PREFETCH_MULTIPLIER = 1
+# Set up our queues
+CELERY_DEFAULT_QUEUE = 'et_medium'
+CELERY_QUEUES = (
+    Queue('et_medium', Exchange('et_medium'), routing_key='et_medium'),
+    Queue('et_high', Exchange('et_high'), routing_key='et_high'),
+    Queue('et_low', Exchange('et_low'), routing_key='et_low'),
+)
+
+# Periodic tasks
+from datetime import timedelta
+CELERYBEAT_SCHEDULE = {
+    # spawn jobs every 30 seconds
+    'spawn-jobs': {
+        'task': 'thing.tasks.spawn_jobs',
+        'schedule': timedelta(seconds=30),
+        'options': {
+            'expires': 28,
+            'queue': 'et_high',
+        },
+        'args': (),
+    },
+
+    # clean up broken tasks every 5 minutes
+    'taskstate-cleanup': {
+        'task': 'thing.tasks.taskstate_cleanup',
+        'schedule': timedelta(minutes=5),
+        'options': {
+            'queue': 'et_high',
+        },
+        'args': (),
+    },
+    
+    # clean up the API cache every 30 seconds
+    'apicache-cleanup': {
+        'task': 'thing.tasks.apicache_cleanup',
+        'schedule': timedelta(seconds=30),
+        'options': {
+            'queue': 'et_high',
+        },
+        'args': (),
+    },
+
+    # update history data every 4 hours
+    'history-updater': {
+        'task': 'thing.tasks.history_updater',
+        'schedule': timedelta(hours=4),
+        'options': {
+            'expires': 239 * 60,
+        },
+        'args': (),
+    },
+
+    # update price data every 15 minutes
+    'price-updater': {
+        'task': 'thing.tasks.price_updater',
+        'schedule': timedelta(minutes=15),
+        'options': {
+            'expires': 14 * 60,
+        },
+        'args': (),
+    },
+
+    # update conquerable stations every hour
+    'conquerable-stations': {
+        'task': 'thing.tasks.conquerable_stations',
+        'schedule': timedelta(hours=1),
+        'options': {
+            'expires': 59 * 60,
+        },
+        'args': (),
+    },
+}

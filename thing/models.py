@@ -1,6 +1,7 @@
 from django.contrib.auth.models import User
 from django.db import models
 from django.db.models import Q, Avg, Sum
+from django.db.models.signals import post_save
 from mptt.models import MPTTModel, TreeForeignKey
 
 import datetime
@@ -9,33 +10,119 @@ import time
 from decimal import *
 
 # ---------------------------------------------------------------------------
+# Profile information for a user
+class UserProfile(models.Model):
+    HOME_SORT_ORDERS = (
+        ('apiname', 'APIKey name'),
+        ('charname', 'Character name'),
+        ('corpname', 'Corporation name'),
+        ('totalsp', 'Total SP'),
+        ('wallet', 'Wallet balance'),
+    )
+
+    user = models.OneToOneField(User)
+
+    # Global options
+    theme = models.CharField(max_length=32, default='default')
+    icon_theme = models.CharField(max_length=32, default='default')
+    show_clock = models.BooleanField(default=True)
+    show_item_icons = models.BooleanField(default=False)
+    show_assets = models.BooleanField(default=True)
+    show_blueprints = models.BooleanField(default=True)
+    show_contracts = models.BooleanField(default=True)
+    show_orders = models.BooleanField(default=True)
+    show_trade = models.BooleanField(default=True)
+    show_transactions = models.BooleanField(default=True)
+    show_market_scan = models.BooleanField(default=True)
+
+    # Home view options
+    home_chars_per_row = models.IntegerField(default=4)
+    home_sort_order = models.CharField(choices=HOME_SORT_ORDERS, max_length=12, default='apiname')
+    home_sort_descending = models.BooleanField(default=False)
+    home_hide_characters = models.TextField(default='')
+
+# Magical hook so this gets called when a new user is created
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        UserProfile.objects.create(user=instance)
+
+post_save.connect(create_user_profile, sender=User)
+
+# ---------------------------------------------------------------------------
 # API keys
 class APIKey(models.Model):
     ACCOUNT_TYPE = 'Account'
     CHARACTER_TYPE = 'Character'
     CORPORATION_TYPE = 'Corporation'
-    
+
+    API_KEY_INFO_MASK = 0
+
+    CHAR_ACCOUNT_STATUS_MASK = 33554432
+    CHAR_ASSET_LIST_MASK = 2
+    CHAR_CHARACTER_SHEET_MASK = 8
+    CHAR_CONTRACTS_MASK = 67108864
+    CHAR_LOCATIONS_MASK = 134217728
+    CHAR_MARKET_ORDERS_MASK = 4096
+    CHAR_SKILL_QUEUE_MASK = 262144
+    CHAR_STANDINGS_MASK = 524288
+    CHAR_WALLET_JOURNAL_MASK = 2097152
+    CHAR_WALLET_TRANSACTIONS_MASK = 4194304
+
+    MASKS_CHAR = (
+        CHAR_ACCOUNT_STATUS_MASK,
+        CHAR_ASSET_LIST_MASK,
+        CHAR_CHARACTER_SHEET_MASK,
+        CHAR_CONTRACTS_MASK,
+        CHAR_LOCATIONS_MASK,
+        CHAR_MARKET_ORDERS_MASK,
+        CHAR_SKILL_QUEUE_MASK,
+        CHAR_STANDINGS_MASK,
+        CHAR_WALLET_TRANSACTIONS_MASK,
+    )
+
+    CORP_ACCOUNT_BALANCE_MASK = 1
+    CORP_ASSET_LIST_MASK = 2
+    CORP_CONTRACTS_MASK = 8388608
+    CORP_CORPORATION_SHEET_MASK = 8
+    CORP_MARKET_ORDERS_MASK = 4096
+    CORP_WALLET_JOURNAL_MASK = 1048576
+    CORP_WALLET_TRANSACTIONS_MASK = 2097152
+
+    MASKS_CORP = (
+        CORP_ACCOUNT_BALANCE_MASK,
+        CORP_ASSET_LIST_MASK,
+        CORP_CONTRACTS_MASK,
+        CORP_CORPORATION_SHEET_MASK,
+        CORP_MARKET_ORDERS_MASK,
+        CORP_WALLET_TRANSACTIONS_MASK,
+    )
+
     user = models.ForeignKey(User)
     
-    id = models.IntegerField(primary_key=True, verbose_name='Key ID')
+    keyid = models.IntegerField(verbose_name='Key ID')
     vcode = models.CharField(max_length=64, verbose_name='Verification code')
     name = models.CharField(max_length=64)
     
+    valid = models.BooleanField(default=True)
+
     access_mask = models.BigIntegerField(null=True, blank=True)
     key_type = models.CharField(max_length=16, null=True, blank=True)
     expires = models.DateTimeField(null=True, blank=True)
-    valid = models.BooleanField(default=True)
+    paid_until = models.DateTimeField(null=True, blank=True)
+    
+    characters = models.ManyToManyField('Character', related_name='apikeys')
     
     # this is only used for corporate keys, ugh
     corp_character = models.ForeignKey('Character', null=True, blank=True, related_name='corporate_apikey')
     
-    paid_until = models.DateTimeField(null=True, blank=True)
-
     class Meta:
-        ordering = ('id',)
+        ordering = ('keyid',)
     
     def __unicode__(self):
-        return '#%s (%s)' % (self.id, self.key_type)
+        return '#%s, keyId: %s (%s)' % (self.id, self.keyid, self.key_type)
+
+    def get_key_info(self):
+        return '%s,%s' % (self.keyid, self.vcode)
 
     def get_masked_vcode(self):
         return '%s%s%s' % (self.vcode[:4], '*' * 16, self.vcode[-4:])
@@ -46,13 +133,56 @@ class APIKey(models.Model):
         else:
             return 0
 
+    def get_masks(self):
+        if self.access_mask is None:
+            return []
+        elif self.key_type in (APIKey.ACCOUNT_TYPE, APIKey.CHARACTER_TYPE):
+            return [mask for mask in self.MASKS_CHAR if self.access_mask & mask == mask]
+        elif self.key_type == APIKey.CORPORATION_TYPE:
+            return [mask for mask in self.MASKS_CORP if self.access_mask & mask == mask]
+        else:
+            return []
+
+# ---------------------------------------------------------------------------
+
+class TaskState(models.Model):
+    READY_STATE = 0
+    QUEUED_STATE = 1
+    ACTIVE_STATE = 2
+    STATES = (
+        (READY_STATE, 'Ready'),
+        (QUEUED_STATE, 'Queued'),
+        (ACTIVE_STATE, 'Active'),
+    )
+
+    key_info = models.CharField(max_length=80, db_index=True)
+    url = models.CharField(max_length=64, db_index=True)
+    parameter = models.IntegerField()
+    state = models.IntegerField(db_index=True)
+
+    mod_time = models.DateTimeField(db_index=True)
+    next_time = models.DateTimeField(db_index=True)
+
+    # Are we ready to queue?
+    def queue_now(self, now):
+        return ((self.state == self.READY_STATE) and self.next_time <= now)
+
+# ---------------------------------------------------------------------------
 # API cache entries
 class APICache(models.Model):
     url = models.URLField()
-    parameters = models.CharField(max_length=1024)
-    cached_until = models.DateTimeField()
+    parameters = models.TextField()
     text = models.TextField()
-    completed_ok = models.BooleanField()
+
+    cached_until = models.DateTimeField()
+    completed_ok = models.BooleanField(default=False)
+    error_displayed = models.BooleanField(default=False)
+
+    # called when the API call completes successfully
+    def completed(self):
+        self.completed_ok = True
+        #self.text = ''
+        self.save()
 
 # ---------------------------------------------------------------------------
 # Events
@@ -68,11 +198,26 @@ class Event(models.Model):
         return (datetime.datetime.now() - self.issued).total_seconds()
 
 # ---------------------------------------------------------------------------
+# Factions
+class Faction(models.Model):
+    id = models.IntegerField(primary_key=True)
+    name = models.CharField(max_length=64)
+
+# ---------------------------------------------------------------------------
+# Alliances
+class Alliance(models.Model):
+    id = models.IntegerField(primary_key=True)
+    name = models.CharField(max_length=64)
+    short_name = models.CharField(max_length=5)
+
+# ---------------------------------------------------------------------------
 # Corporations
 class Corporation(models.Model):
     id = models.IntegerField(primary_key=True)
     name = models.CharField(max_length=64)
     ticker = models.CharField(max_length=5, blank=True, null=True)
+
+    alliance = models.ForeignKey(Alliance, blank=True, null=True)
 
     division1 = models.CharField(max_length=64, blank=True, null=True)
     division2 = models.CharField(max_length=64, blank=True, null=True)
@@ -108,36 +253,45 @@ class CorpWallet(models.Model):
 
 # ---------------------------------------------------------------------------
 # Characters
+class SimpleCharacter(models.Model):
+    id = models.IntegerField(primary_key=True)
+    name = models.CharField(max_length=64)
+
 class Character(models.Model):
     id = models.IntegerField(primary_key=True)
-    apikey = models.ForeignKey(APIKey, null=True, blank=True)
+    #apikey = models.ForeignKey(APIKey, null=True, blank=True)
     
     name = models.CharField(max_length=64)
     corporation = models.ForeignKey(Corporation)
     
-    wallet_balance = models.DecimalField(max_digits=18, decimal_places=2)
+    wallet_balance = models.DecimalField(max_digits=18, decimal_places=2, default=0.0)
     
-    cha_attribute = models.SmallIntegerField()
-    int_attribute = models.SmallIntegerField()
-    mem_attribute = models.SmallIntegerField()
-    per_attribute = models.SmallIntegerField()
-    wil_attribute = models.SmallIntegerField()
-    cha_bonus = models.SmallIntegerField()
-    int_bonus = models.SmallIntegerField()
-    mem_bonus = models.SmallIntegerField()
-    per_bonus = models.SmallIntegerField()
-    wil_bonus = models.SmallIntegerField()
+    cha_attribute = models.SmallIntegerField(default=0)
+    int_attribute = models.SmallIntegerField(default=0)
+    mem_attribute = models.SmallIntegerField(default=0)
+    per_attribute = models.SmallIntegerField(default=0)
+    wil_attribute = models.SmallIntegerField(default=0)
+    cha_bonus = models.SmallIntegerField(default=0)
+    int_bonus = models.SmallIntegerField(default=0)
+    mem_bonus = models.SmallIntegerField(default=0)
+    per_bonus = models.SmallIntegerField(default=0)
+    wil_bonus = models.SmallIntegerField(default=0)
     
-    clone_name = models.CharField(max_length=32)
-    clone_skill_points= models.IntegerField()
+    clone_name = models.CharField(max_length=32, default='')
+    clone_skill_points= models.IntegerField(default=0)
 
+    # Skill stuff
     skills = models.ManyToManyField('Skill', related_name='learned_by', through='CharacterSkill')
     skill_queue = models.ManyToManyField('Skill', related_name='training_by', through='SkillQueue')
     
+    # Standings stuff
+    faction_standings = models.ManyToManyField('Faction', related_name='has_standings', through='FactionStanding')
+    corporation_standings = models.ManyToManyField('Corporation', related_name='has_standings', through='CorporationStanding')
+
     # industry stuff
     factory_cost = models.DecimalField(max_digits=8, decimal_places=2, default=0.0)
     factory_per_hour = models.DecimalField(max_digits=8, decimal_places=2, default=0.0)
-    sales_tax = models.DecimalField(max_digits=3, decimal_places=2, default=1.0)
+    sales_tax = models.DecimalField(max_digits=3, decimal_places=2, default=1.5)
     brokers_fee = models.DecimalField(max_digits=3, decimal_places=2, default=1.0)
     
     class Meta:
@@ -159,18 +313,27 @@ class Character(models.Model):
     def get_total_skill_points(self):
         return CharacterSkill.objects.filter(character=self).aggregate(total_sp=Sum('points'))['total_sp']
 
+# Character configuration information
 class CharacterConfig(models.Model):
     character = models.OneToOneField(Character, unique=True, primary_key=True, related_name='config')
 
-    is_public = models.BooleanField()
-    show_clone = models.BooleanField()
-    show_implants = models.BooleanField()
-    show_skill_queue = models.BooleanField()
-    show_wallet = models.BooleanField()
-    anon_key = models.CharField(max_length=16, blank=True, null=True)
+    is_public = models.BooleanField(default=False)
+    show_clone = models.BooleanField(default=False)
+    show_implants = models.BooleanField(default=False)
+    show_skill_queue = models.BooleanField(default=False)
+    show_standings = models.BooleanField(default=False)
+    show_wallet = models.BooleanField(default=False)
+    anon_key = models.CharField(max_length=16, blank=True, null=True, default='')
 
     def __unicode__(self):
         return self.character.name
+
+# Magical hook so this gets called when a new user is created
+def create_characterconfig(sender, instance, created, **kwargs):
+    if created:
+        CharacterConfig.objects.create(character=instance)
+
+post_save.connect(create_characterconfig, sender=Character)
 
 # Character skills
 class CharacterSkill(models.Model):
@@ -219,6 +382,26 @@ class SkillQueue(models.Model):
     def get_remaining(self):
         remaining = (self.end_time - datetime.datetime.utcnow()).total_seconds()
         return int(remaining)
+
+# Faction standings
+class FactionStanding(models.Model):
+    faction = models.ForeignKey('Faction')
+    character = models.ForeignKey('character')
+
+    standing = models.DecimalField(max_digits=4, decimal_places=2)
+
+    class Meta:
+        ordering = ('-standing',)
+
+# Corporation standings
+class CorporationStanding(models.Model):
+    corporation = models.ForeignKey('Corporation')
+    character = models.ForeignKey('character')
+
+    standing = models.DecimalField(max_digits=4, decimal_places=2)
+
+    class Meta:
+        ordering = ('-standing',)
 
 # ---------------------------------------------------------------------------
 # Regions
@@ -355,6 +538,7 @@ class Item(models.Model):
     # 0.0025 -> 10,000,000,000
     volume = models.DecimalField(max_digits=16, decimal_places=4, default=0)
     
+    base_price = models.DecimalField(max_digits=15, decimal_places=2, default=0)
     sell_price = models.DecimalField(max_digits=15, decimal_places=2, default=0)
     buy_price = models.DecimalField(max_digits=15, decimal_places=2, default=0)
     
@@ -395,6 +579,7 @@ class Skill(models.Model):
 
     item = models.OneToOneField(Item, primary_key=True)
     rank = models.SmallIntegerField()
+    description = models.TextField()
     primary_attribute = models.SmallIntegerField(choices=ATTRIBUTE_CHOICES)
     secondary_attribute = models.SmallIntegerField(choices=ATTRIBUTE_CHOICES)
 
@@ -408,12 +593,25 @@ class Skill(models.Model):
         else:
             return int(math.ceil(2 ** ((2.5 * level) - 2.5) * 250 * self.rank))
 
-    def get_sp_per_minute(self, character):
+    def get_sp_per_minute(self, character, force_bonus=None):
         pri_attrs = Skill.ATTRIBUTE_MAP[self.primary_attribute]
         sec_attrs = Skill.ATTRIBUTE_MAP[self.secondary_attribute]
 
-        pri = getattr(character, pri_attrs[0]) + getattr(character, pri_attrs[1])
-        sec = getattr(character, sec_attrs[0]) + getattr(character, sec_attrs[1])
+        if force_bonus is None:
+            pri = getattr(character, pri_attrs[0]) + getattr(character, pri_attrs[1])
+            sec = getattr(character, sec_attrs[0]) + getattr(character, sec_attrs[1])
+        else:
+            pri = getattr(character, pri_attrs[0]) + force_bonus
+            sec = getattr(character, sec_attrs[0]) + force_bonus
+
+        return pri + (sec / 2.0)
+
+    def get_sppm_stats(self, stats, implants):
+        pri_attrs = Skill.ATTRIBUTE_MAP[self.primary_attribute]
+        sec_attrs = Skill.ATTRIBUTE_MAP[self.secondary_attribute]
+
+        pri = stats.get(pri_attrs[0]) + implants.get(pri_attrs[1])
+        sec = stats.get(sec_attrs[0]) + implants.get(sec_attrs[1])
 
         return pri + (sec / 2.0)
 
@@ -471,17 +669,25 @@ class Campaign(models.Model):
 # Wallet transactions
 class Transaction(models.Model):
     station = models.ForeignKey(Station)
-    character = models.ForeignKey(Character)
     item = models.ForeignKey(Item)
-    
+
+    character = models.ForeignKey(Character)
     corp_wallet = models.ForeignKey(CorpWallet, null=True, blank=True)
-    
-    transaction_id = models.BigIntegerField()
+    other_char = models.ForeignKey(SimpleCharacter, null=True, blank=True)
+    other_corp = models.ForeignKey(Corporation, null=True, blank=True)
+
+    transaction_id = models.BigIntegerField(db_index=True)
     date = models.DateTimeField(db_index=True)
     buy_transaction = models.BooleanField()
     quantity = models.IntegerField()
     price = models.DecimalField(max_digits=14, decimal_places=2)
     total_price = models.DecimalField(max_digits=17, decimal_places=2)
+
+# ---------------------------------------------------------------------------
+# RefTypes
+class RefType(models.Model):
+    id = models.IntegerField(primary_key=True)
+    name = models.CharField(max_length=64)
 
 # ---------------------------------------------------------------------------
 # Market orders
@@ -543,7 +749,7 @@ class InventoryFlag(models.Model):
             return self.name
 
 # ---------------------------------------------------------------------------
-
+# Assets
 class Asset(MPTTModel):
     id = models.BigIntegerField(primary_key=True)
 
@@ -571,6 +777,116 @@ class Asset(MPTTModel):
 
 #    def __unicode__(self):
 #        return '%s' % (self.name)
+
+# ---------------------------------------------------------------------------
+# Contracts
+class Contract(models.Model):
+    contract_id = models.IntegerField(db_index=True)
+
+    issuer_char = models.ForeignKey(SimpleCharacter, related_name="contract_issuers")
+    issuer_corp = models.ForeignKey(Corporation, related_name="contract_issuers")
+    #assignee_char = models.ForeignKey(SimpleCharacter, blank=True, null=True, related_name="contract_assignees")
+    #assignee_corp = models.ForeignKey(Corporation, blank=True, null=True, related_name="contract_assignees")
+    #assignee_alliance = models.ForeignKey(Alliance, blank=True, null=True, related_name="contract_assignees")
+    #acceptor_char = models.ForeignKey(SimpleCharacter, blank=True, null=True, related_name="contract_acceptors")
+    #acceptor_corp = models.ForeignKey(Corporation, blank=True, null=True, related_name="contract_acceptors")
+    assignee_id = models.IntegerField(blank=True, null=True)
+    acceptor_id = models.IntegerField(blank=True, null=True)
+
+    start_station = models.ForeignKey(Station, blank=True, null=True, related_name="contract_starts")
+    end_station = models.ForeignKey(Station, blank=True, null=True, related_name="contract_ends")
+
+    type = models.CharField(max_length=16)
+    status = models.CharField(max_length=24)
+    title = models.CharField(max_length=64)
+    for_corp = models.BooleanField()
+    public = models.BooleanField()
+
+    date_issued = models.DateTimeField()
+    date_expired = models.DateTimeField()
+    date_accepted = models.DateTimeField(blank=True, null=True)
+    date_completed = models.DateTimeField(blank=True, null=True)
+    num_days = models.IntegerField()
+
+    price = models.DecimalField(max_digits=15, decimal_places=2)
+    reward = models.DecimalField(max_digits=15, decimal_places=2)
+    collateral = models.DecimalField(max_digits=15, decimal_places=2)
+    buyout = models.DecimalField(max_digits=15, decimal_places=2)
+    volume = models.DecimalField(max_digits=16, decimal_places=4)
+
+    def __unicode__(self):
+        if self.type == 'Courier':
+            return '#%d (%s, %s -> %s)' % (self.contract_id, self.type, self.start_station.short_name, self.end_station.short_name)
+        else:
+            return '#%d (%s, %s)' % (self.contract_id, self.type, self.start_station.short_name)
+
+    class Meta:
+        ordering = ('-date_issued',)
+    
+    def get_issuer_name(self):
+        if self.for_corp:
+            return self.issuer_corp.name
+        else:
+            return self.issuer_char.name
+
+# ---------------------------------------------------------------------------
+# Skill plan storage disaster
+class SkillPlan(models.Model):
+    PRIVATE_VISIBILITY = 1
+    PUBLIC_VISIBILITY = 2
+    GLOBAL_VISIBILITY = 3
+    VISIBILITY_CHOICES = (
+        (PRIVATE_VISIBILITY, 'Private'),
+        (PUBLIC_VISIBILITY, 'Public'),
+        (GLOBAL_VISIBILITY, 'Global'),
+    )
+
+    user = models.ForeignKey(User)
+
+    name = models.CharField(max_length=64)
+    visibility = models.IntegerField(default=1, choices=VISIBILITY_CHOICES)
+
+    class Meta:
+        ordering = ('name',)
+
+    def __unicode__(self):
+        return '%s - %s' % (self.user.username, self.name)
+
+class SPEntry(models.Model):
+    skill_plan = models.ForeignKey(SkillPlan, related_name='entries')
+
+    position = models.IntegerField()
+
+    sp_remap = models.ForeignKey('SPRemap', blank=True, null=True)
+    sp_skill = models.ForeignKey('SPSkill', blank=True, null=True)
+
+    class Meta:
+        ordering = ('position',)
+
+    def __unicode__(self):
+        if self.sp_remap is None:
+            return str(self.sp_skill)
+        else:
+            return str(self.sp_remap)
+
+class SPRemap(models.Model):
+    int_stat = models.IntegerField()
+    mem_stat = models.IntegerField()
+    per_stat = models.IntegerField()
+    wil_stat = models.IntegerField()
+    cha_stat = models.IntegerField()
+
+    def __unicode__(self):
+        return 'Int: %d, Mem: %d, Per: %d, Wil: %d, Cha: %d' % (self.int_stat, self.mem_stat,
+            self.per_stat, self.wil_stat, self.cha_stat)
+
+class SPSkill(models.Model):
+    skill = models.ForeignKey(Skill)
+    level = models.IntegerField()
+    priority = models.IntegerField()
+
+    def __unicode__(self):
+        return '%s, level %d, priority %d' % (self.skill.item.name, self.level, self.priority)
 
 # ---------------------------------------------------------------------------
 # Industry jobs
@@ -612,6 +928,9 @@ class BlueprintComponent(models.Model):
     count = models.IntegerField()
     needs_waste = models.BooleanField(default=True)
 
+    def __unicode__(self):
+        return '%dx %s' % (self.count, self.item.name)
+
 # ---------------------------------------------------------------------------
 # Blueprint instances - an owned blueprint
 class BlueprintInstance(models.Model):
@@ -652,6 +971,34 @@ class BlueprintInstance(models.Model):
         
         return pt.quantize(Decimal('0'), rounding=ROUND_UP)
     
+    # Calculate the construction cost assuming ME50 components
+    def calc_capital_production_cost(self):
+        total_cost = Decimal(0)
+
+        components = self._get_components()
+        child_ids = []
+        counts = {}
+        for component, count in components:
+            child_ids.append(component.id)
+            counts[component] = count
+
+        comp_comps = {}
+        for child_comp in BlueprintComponent.objects.select_related().filter(blueprint__item__in=child_ids):
+            comp_comps.setdefault(child_comp.blueprint, []).append((child_comp.item, child_comp.count))
+
+        for bp, bp_comps in comp_comps.items():
+            bpi = BlueprintInstance(
+                user=self.user,
+                blueprint=bp,
+                original=True,
+                material_level=50,
+                productivity_level=0,
+            )
+            cost = bpi.calc_production_cost(components=bp_comps) * counts[bp.item]
+            total_cost += cost
+
+        return total_cost
+
     # Calculate production cost, taking ML and skills into account
     # TODO: fix this, skills not available
     # TODO: move factory cost/etc to a model attached to the User table
@@ -692,7 +1039,7 @@ class BlueprintInstance(models.Model):
         comps = []
         
         if components is None:
-            components = BlueprintComponent.objects.filter(blueprint=self.blueprint).select_related(depth=1)
+            components = BlueprintComponent.objects.filter(blueprint=self.blueprint).select_related()
         
         for component in components:
             if component.needs_waste:

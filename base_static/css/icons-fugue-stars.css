@@ -1,0 +1,55 @@
+/* spritemapper.output_css = sprite-icons-fugue-stars.css */
+/* spritemapper.output_image = ../icons/icons-fugue-stars.png */
+/* close icon on modal windows */
+.icons-close { background:url(../icons/fugue/cross.png); }
+/* success for good things, failure for bad things */
+.icons-success { background:url(../icons/fugue/tick.png); }
+.icons-failure { background:url(../icons/fugue/cross.png); }
+/* edit and delete icons */
+.icons-edit { background:url(../icons/fugue/pencil.png); }
+.icons-delete { background:url(../icons/fugue/bin.png); }
+/* information, obviously */
+.icons-information { background:url(../icons/fugue/information.png); }
+/* expand/collapse/indent things */
+.icons-expand { background:url(../icons/fugue/plus-circle.png); }
+.icons-collapse { background:url(../icons/fugue/minus-circle.png); }
+.icons-indent { background:url(../icons/fugue/arrow-000-medium.png); }
+/* screenshot mode */
+.icons-screenshot { background:url(../icons/fugue/picture.png); }
+/* various notifications */
+.icons-time-warning { background:url(../icons/fugue/alarm-clock--exclamation.png); }
+.icons-queue-empty { background:url(../icons/fugue/book--exclamation.png); }
+.icons-queue-space { background:url(../icons/fugue/book.png); }
+.icons-missing-implants { background:url(../icons/fugue/brain--exclamation.png); }
+.icons-inadequate-clone { background:url(../icons/fugue/user-nude.png); }
+/* character sheet skills */
+.icons-skill-untrained { background:url(../icons/fugue/star-empty.png); }
+.icons-skill-partial { background:url(../icons/fugue/star-half.png); }
+.icons-skill-trained { background:url(../icons/fugue/star.png); }
+.icons-skill-fives { background:url(../icons/fugue/heart.png); }
+.icons-skill-training { background:url(../icons/fugue/flag-green.png); }
+/* things */
+.icons-player { background:url(../icons/fugue/user.png); }
+.icons-other-player { background:url(../icons/fugue/user-thief.png); }
+.icons-corporation { background:url(../icons/fugue/users.png); }
+.icons-alliance { background:url(../icons/fugue/building.png); }
+/* contracts */
+.icons-contract-public { background:url(../icons/fugue/globe.png); }
+.icons-contract-completed { background:url(../icons/fugue/tick.png); }
+.icons-contract-inprogress { background:url(../icons/fugue/truck-box-label.png); }
+.icons-contract-failed { background:url(../icons/fugue/cross.png); }
+.icons-contract-outstanding { background:url(../icons/fugue/hourglass.png); }
+.icons-contract-unknown { background:url(../icons/fugue/bug.png); }
+/* visibility of things */
+.icons-visibility-private { background:url(../icons/fugue/lock.png); }
+.icons-visibility-public { background:url(../icons/fugue/eye.png); }
+.icons-visibility-global { background:url(../icons/fugue/globe.png); }
+/* skill plans */
+.icons-skillplan-remap { background:url(../icons/fugue/puzzle.png); }
+.icons-skillplan-injected { background:url(../icons/fugue/brain.png); }
+.icons-skillplan-unowned { background:url(../icons/fugue/money.png); }
+/* assets */
+.icons-asset-locked { background:url(../icons/fugue/lock.png); }
+.icons-asset-bpo { background:url(../icons/fugue/document.png); }
+.icons-asset-bpc { background:url(../icons/fugue/document-copy.png); }
+.icons-asset-eft { background:url(../icons/fugue/rocket-fly.png); }

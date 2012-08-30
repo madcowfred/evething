@@ -1,8 +1,5 @@
 body {
-    margin-top: 50px;
-}
-.navbar-text {
-    color: #EFEFEF;
+    padding-top: 50px;
 }
 
 .pos { color: #009800; }
@@ -24,6 +21,30 @@ ul.children li {
   margin-left: 8px;
 }
 
+i.skill {
+  margin-left: -3px;
+}
+img.icon {
+  margin-left: -3px;
+}
+
+/* icon definitions borrowed from Bootstrap */
+[class^="icons-"],
+[class*=" icons-"] {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  *margin-right: .3em;
+  line-height: 16px;
+  vertical-align: text-top;
+  background-repeat: no-repeat;
+}
+
+[class^="icons-"]:last-child,
+[class*=" icons-"]:last-child {
+  *margin-left: 0;
+}
+
 /* character sheet */
 .char-skill-box {
   margin-top: 0.3em;
@@ -32,6 +53,9 @@ ul.children li {
 .char-skill-group {
   font-size: 1.6em;
   font-weight: bold;
+}
+.skill-hover {
+  border-bottom: 1px dotted;
 }
 
 /* table alignment, urgh */
@@ -83,6 +107,80 @@ td.assets-value {
 }
 td.assets-total {
   font-weight: bold;
+}
+tr.asset-sneaky {
+  display: none;
+}
+
+/* account:apikeys */
+td.api-id {
+  width: 2.7em;
+}
+td.api-keyid {
+  width: 4.5em;
+}
+td.api-vcode {
+  width: 16em;
+}
+td.api-type {
+  width: 6.5em;
+}
+td.api-mask {
+  width: 6em;
+}
+td.api-expires {
+  width: 7em;
+}
+td.api-time {
+  width: 10em;
+}
+td.api-icon {
+  width: 2em;
+}
+
+/* bpcalc layout */
+td.bpc-tiny {
+  width: 1em;
+}
+td.bpc-small {
+  width: 4em;
+}
+td.bpc-medium {
+  width: 5.5em;
+}
+td.bpc-large {
+  width: 8em;
+}
+
+/* contracts layout */
+td.con-id {
+  width: 6em;
+  text-align: right;
+}
+td.con-date {
+  width: 10.5em;
+  text-align: center;
+}
+td.con-type {
+  width: 7.5em;
+  text-align: center;
+}
+td.con-status {
+  width: 8.5em;
+}
+
+/* skillplan layout */
+td.sp-trained {
+  width: 3em;
+}
+td.sp-group {
+  width: 15em;
+}
+td.sp-small {
+  width: 4.5em;
+}
+td.sp-time {
+  width: 8.5em;
 }
 
 /* various layout things */
@@ -136,31 +234,8 @@ i.nomargin {
 }
 
 /* override bootstrap settings */
-.navbar-inner {
-  background-color: #1e2940;
-  background-image: -moz-linear-gradient(top, #1e2940, #162038);
-  background-image: -ms-linear-gradient(top, #1e2940, #162038);
-  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#1e2940), to(#162038));
-  background-image: -webkit-linear-gradient(top, #1e2940, #162038);
-  background-image: -o-linear-gradient(top, #1e2940, #162038);
-  background-image: linear-gradient(top, #1e2940, #162038);
-}
-.navbar .nav > li > a {
-  color: #e8e8e8;
-}
-.navbar .nav .active > a,.navbar .nav .active > a:hover {
-  background-color: #2C3853;
-}
 .table-condensed th, .table-condensed td {
   padding: 3px 4px;
-}
-.progress {
-  background-image: -moz-linear-gradient(top, #cfcfcf, #dadada);
-  background-image: -ms-linear-gradient(top, #cfcfcf, #dadada);
-  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#cfcfcf), to(#dadada));
-  background-image: -webkit-linear-gradient(top, #cfcfcf, #dadada);
-  background-image: -o-linear-gradient(top, #cfcfcf, #dadada);
-  background-image: linear-gradient(top, #cfcfcf, #dadada);
 }
 .well-info {
   margin-bottom: 1em;
@@ -171,11 +246,14 @@ i.nomargin {
 .well-small .progress {
   margin-bottom: 2px;
 }
-.progress .bar {
-  text-shadow: 0 0 5px #000000;
-}
 .modal-footer {
   padding: 8px 9px 9px;
+}
+.form-horizontal .control-group {
+  margin-bottom: 8px;
+}
+legend {
+  margin-bottom: 0;
 }
 
 /* tablesorter styles */

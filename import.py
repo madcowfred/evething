@@ -1,5 +1,4 @@
 import os
-import sqlite3
 import sys
 import time
 import urllib2
@@ -9,12 +8,15 @@ import xml.etree.ElementTree as ET
 os.environ['DJANGO_SETTINGS_MODULE'] = 'evething.settings'
 from django.conf import settings
 
+from django.db import connections
+
 from thing.models import *
 
 # ---------------------------------------------------------------------------
 
-SDE_FILE = 'esc10-sqlite3-v1.db'
-STATION_URL = '%s/eve/ConquerableStationList.xml.aspx' % (settings.API_HOST)
+#ALLIANCE_URL = '%s/eve/AllianceList.xml.aspx' % (settings.API_HOST)
+#REF_TYPES_URL = '%s/eve/RefTypes.xml.aspx' % (settings.API_HOST)
+#STATION_URL = '%s/eve/ConquerableStationList.xml.aspx' % (settings.API_HOST)
 
 # Override volume for ships, assembled volume is mostly useless :ccp:
 PACKAGED = {
@@ -59,40 +61,36 @@ def time_func(text, f):
 
 class Importer:
     def __init__(self):
-        if os.path.isfile(SDE_FILE):
-            self.conn = sqlite3.connect(SDE_FILE)
-            self.cursor = self.conn.cursor()
-        else:
-            self.conn = None
+        self.cursor = connections['import'].cursor()
     
     def import_all(self):
-        if self.conn is not None:
-            time_func('Region', self.import_region)
-            time_func('Constellation', self.import_constellation)
-            time_func('System', self.import_system)
-            time_func('Station', self.import_station)
-            time_func('MarketGroup', self.import_marketgroup)
-            time_func('ItemCategory', self.import_itemcategory)
-            time_func('ItemGroup', self.import_itemgroup)
-            time_func('Item', self.import_item)
-            time_func('Blueprint', self.import_blueprint)
-            time_func('Skill', self.import_skill)
-            time_func('InventoryFlag', self.import_inventoryflag)
-        
-        time_func('Conquerable Station', self.import_conquerable_station)
+        time_func('Region', self.import_region)
+        time_func('Constellation', self.import_constellation)
+        time_func('System', self.import_system)
+        time_func('Station', self.import_station)
+        time_func('MarketGroup', self.import_marketgroup)
+        time_func('ItemCategory', self.import_itemcategory)
+        time_func('ItemGroup', self.import_itemgroup)
+        time_func('Item', self.import_item)
+        time_func('Blueprint', self.import_blueprint)
+        time_func('Skill', self.import_skill)
+        time_func('InventoryFlag', self.import_inventoryflag)
+        time_func('NPCFaction', self.import_npcfaction)
+        time_func('NPCCorporation', self.import_npccorporation)
     
     # -----------------------------------------------------------------------
     # Regions
     def import_region(self):
         added = 0
         
-        self.cursor.execute('SELECT regionID, regionName FROM mapRegions WHERE regionName != "Unknown"')
+        self.cursor.execute("SELECT regionID, regionName FROM mapRegions WHERE regionName != 'Unknown'")
         bulk_data = {}
         for row in self.cursor:
             bulk_data[int(row[0])] = row[1:]
         
         data_map = Region.objects.in_bulk(bulk_data.keys())
         
+        new = []
         for id, data in bulk_data.items():
             if id in data_map:
                 continue
@@ -101,8 +99,11 @@ class Importer:
                 id=id,
                 name=data[0],
             )
-            region.save()
+            new.append(region)
             added += 1
+
+        if new:
+            Region.objects.bulk_create(new)
         
         return added
     
@@ -120,6 +121,7 @@ class Importer:
         
         data_map = Constellation.objects.in_bulk(bulk_data.keys())
         
+        new = []
         for id, data in bulk_data.items():
             if id in data_map or not data[0] or not data[1]:
                 continue
@@ -129,9 +131,12 @@ class Importer:
                 name=data[0],
                 region_id=data[1],
             )
-            con.save()
+            new.append(con)
             added += 1
         
+        if new:
+            Constellation.objects.bulk_create(new)
+
         return added
     
     # -----------------------------------------------------------------------
@@ -148,6 +153,7 @@ class Importer:
         
         data_map = System.objects.in_bulk(bulk_data.keys())
         
+        new = []
         for id, data in bulk_data.items():
             if id in data_map or not data[0] or not data[1]:
                 continue
@@ -157,8 +163,11 @@ class Importer:
                 name=data[0],
                 constellation_id=data[1],
             )
-            system.save()
+            new.append(system)
             added += 1
+
+        if new:
+            System.objects.bulk_create(new)
         
         return added
     
@@ -176,6 +185,7 @@ class Importer:
         
         data_map = Station.objects.in_bulk(bulk_data.keys())
         
+        new = []
         for id, data in bulk_data.items():
             if id in data_map or not data[0] or not data[1]:
                 continue
@@ -185,45 +195,15 @@ class Importer:
                 name=data[0],
                 system_id=data[1],
             )
-            station.save()
+            station._make_shorter_name()
+            new.append(station)
             added += 1
         
+        if new:
+            Station.objects.bulk_create(new)
+
         return added
-    
-    # -----------------------------------------------------------------------
-    # Conquerable stations
-    def import_conquerable_station(self):
-        added = 0
-        
-        data = urllib2.urlopen(STATION_URL).read()
-        root = ET.fromstring(data)
-        
-        bulk_data = {}
-        # <row stationID="61000042" stationName="442-CS V - 442 S T A L I N G R A D" stationTypeID="21644" solarSystemID="30002616" corporationID="1001879801" corporationName="VVS Corporition"/>
-        for row in root.findall('result/rowset/row'):
-            bulk_data[int(row.attrib['stationID'])] = row
-        
-        data_map = Station.objects.in_bulk(bulk_data.keys())
-        
-        for id, row in bulk_data.items():
-            station = data_map.get(id, None)
-            if station is not None:
-                # update the station name
-                if station.name != row.attrib['stationName']:
-                    station.name = row.attrib['stationName']
-                    station.save()
-                continue
-            
-            station = Station(
-                id=id,
-                name=row.attrib['stationName'],
-                system_id=row.attrib['solarSystemID'],
-            )
-            station.save()
-            added += 1
-        
-        return added
-    
+
     # -----------------------------------------------------------------------
     # Market groups
     def import_marketgroup(self):
@@ -241,11 +221,6 @@ class Importer:
         while bulk_data:
             items = list(bulk_data.items())
             for id, data in items:
-                # if we've already added this marketgroup, cache and skip
-                if id in data_map:
-                    del bulk_data[id]
-                    continue
-                
                 if data[1] is None:
                     parent = None
                 else:
@@ -253,6 +228,16 @@ class Importer:
                     try:
                         parent = MarketGroup.objects.get(pk=data[1])
                     except MarketGroup.DoesNotExist:
+                        continue
+                
+                # if we've already added this marketgroup, check that the parent
+                # hasn't changed
+                mg = data_map.get(id, None)
+                if mg is not None:
+                    if parent is not None and mg.parent.id != parent.id:
+                        mg.delete()
+                    else:
+                        del bulk_data[id]
                         continue
                 
                 mg = MarketGroup(
@@ -281,6 +266,7 @@ class Importer:
         
         data_map = ItemCategory.objects.in_bulk(bulk_data.keys())
         
+        new = []
         for id, data in bulk_data.items():
             if id in data_map or not data[0]:
                 continue
@@ -289,8 +275,11 @@ class Importer:
                 id=id,
                 name=data[0],
             )
-            ic.save()
+            new.append(ic)
             added += 1
+
+        if new:
+            ItemCategory.objects.bulk_create(new)
         
         return added
     
@@ -308,8 +297,9 @@ class Importer:
         
         data_map = ItemGroup.objects.in_bulk(bulk_data.keys())
         
+        new = []
         for id, data in bulk_data.items():
-            if data[1]:
+            if not data[1]:
                 continue
 
             ig = data_map.get(id, None)
@@ -325,8 +315,11 @@ class Importer:
                 name=data[0],
                 category_id=data[1],
             )
-            ig.save()
+            new.append(ig)
             added += 1
+
+        if new:
+            ItemGroup.objects.bulk_create(new)
         
         return added
     
@@ -335,7 +328,7 @@ class Importer:
     def import_item(self):
         added = 0
         
-        self.cursor.execute('SELECT typeID, typeName, groupID, marketGroupID, portionSize, volume FROM invTypes')
+        self.cursor.execute('SELECT typeID, typeName, groupID, marketGroupID, portionSize, volume, basePrice FROM invTypes')
         
         bulk_data = {}
         for row in self.cursor:
@@ -343,16 +336,25 @@ class Importer:
         
         data_map = Item.objects.in_bulk(bulk_data.keys())
         
+        new = []
         for id, data in bulk_data.items():
             if not data[1]:
                 continue
             
-            # handle renamed items
+            portion_size = Decimal(data[3])
+            volume = PACKAGED.get(data[1], Decimal(str(data[4])))
+            base_price = Decimal(data[5])
+
+            # handle modified items
             item = data_map.get(id, None)
             if item is not None:
-                if item.name != data[0]:
-                    print '==> Renamed %r to %r' % (item.name, data[0])
+                if item.name != data[0] or item.portion_size != portion_size or item.volume != volume or \
+                   item.base_price != base_price:
+                    print '==> Updated data for #%s (%r)' % (item.id, item.name)
                     item.name = data[0]
+                    item.portion_size = portion_size
+                    item.volume = volume
+                    item.base_price = base_price
                     item.save()
                 continue
             
@@ -361,11 +363,15 @@ class Importer:
                 name=data[0],
                 item_group_id=data[1],
                 market_group_id=data[2],
-                portion_size=data[3],
-                volume=PACKAGED.get(int(data[1]), data[4]),
+                portion_size=portion_size,
+                volume=volume,
+                base_price=base_price,
             )
-            item.save()
+            new.append(item)
             added += 1
+
+        if new:
+            Item.objects.bulk_create(new)
         
         return added
     
@@ -387,6 +393,7 @@ class Importer:
         
         data_map = Blueprint.objects.in_bulk(bulk_data.keys())
         
+        new = []
         for id, data in bulk_data.items():
             if not data[0] or not data[1]:
                 continue
@@ -397,30 +404,34 @@ class Importer:
                     print '==> Renamed %r to %r' % (bp.name, data[0])
                     bp.name = data[0]
                     bp.save()
-                continue
-            
-            bp = Blueprint(
-                id=id,
-                name=data[0],
-                item_id=data[1],
-                production_time=data[2],
-                productivity_modifier=data[3],
-                material_modifier=data[4],
-                waste_factor=data[5],
-            )
-            bp.save()
-            added += 1
-            
+            else:
+                new.append(Blueprint(
+                    id=id,
+                    name=data[0],
+                    item_id=data[1],
+                    production_time=data[2],
+                    productivity_modifier=data[3],
+                    material_modifier=data[4],
+                    waste_factor=data[5],
+                ))
+                added += 1
+
+        if new:
+            Blueprint.objects.bulk_create(new)
+
+
+        # Collect all components
+        new = []
+        for id, data in bulk_data.items():
             # Base materials
-            self.cursor.execute('SELECT materialTypeID, quantity FROM invTypeMaterials WHERE typeID=?', (data[1],))
+            self.cursor.execute('SELECT materialTypeID, quantity FROM invTypeMaterials WHERE typeID=%s', (data[1],))
             for baserow in self.cursor:
-                bpc = BlueprintComponent(
+                new.append(BlueprintComponent(
                     blueprint_id=id,
                     item_id=baserow[0],
                     count=baserow[1],
                     needs_waste=True,
-                )
-                bpc.save()
+                ))
                 added += 1
             
             # Extra materials. activityID 1 is manufacturing - categoryID 16 is skill requirements
@@ -431,21 +442,26 @@ class Importer:
                 ON      r.requiredTypeID = t.typeID
                 INNER JOIN invGroups AS g
                 ON      t.groupID = g.groupID
-                WHERE   r.typeID = ?
+                WHERE   r.typeID = %s
                         AND r.activityID = 1
                         AND g.categoryID <> 16
             """, (id,))
             
             for extrarow in self.cursor:
-                bpc = BlueprintComponent(
+                new.append(BlueprintComponent(
                     blueprint_id=id,
                     item_id=extrarow[0],
                     count=extrarow[1],
                     needs_waste=False,
-                )
-                bpc.save()
+                ))
                 added += 1
-        
+
+        # If there's any new ones just drop and recreate the whole lot, easier
+        # than trying to work out what has changed for every single blueprint
+        if new:
+            BlueprintComponent.objects.all().delete()
+            BlueprintComponent.objects.bulk_create(new)
+
         return added
     
     # -----------------------------------------------------------------------
@@ -453,20 +469,31 @@ class Importer:
     def import_skill(self):
         added = 0
 
+        #                    AND invTypes.published = 1
         skills = {}
         self.cursor.execute("""
-            SELECT DISTINCT invTypes.typeID, CAST(dgmTypeAttributes.valueFloat AS integer) AS rank
+            SELECT  DISTINCT invTypes.typeID,
+                    dgmTypeAttributes.valueFloat AS rank,
+                    invTypes.description
             FROM    invTypes
             INNER JOIN invGroups ON (invTypes.groupID = invGroups.groupID)
             INNER JOIN dgmTypeAttributes ON (invTypes.typeID = dgmTypeAttributes.typeID)
             WHERE   invGroups.categoryID = 16
-                    AND invTypes.published = 1
                     AND dgmTypeAttributes.attributeID = 275
                     AND dgmTypeAttributes.valueFloat IS NOT NULL
             ORDER BY invTypes.typeID
         """)
         for row in self.cursor:
-            skills[row[0]] = { 'rank': row[1], }
+            # Handle NULL descriptions
+            if row[2] is None:
+                desc = ''
+            else:
+                desc = row[2].strip()
+
+            skills[row[0]] = {
+                'rank': int(row[1]),
+                'description': desc,
+            }
 
         # Primary/secondary attributes
         self.cursor.execute("""
@@ -494,19 +521,33 @@ class Importer:
         for skill in Skill.objects.all():
             skill_map[skill.item_id] = skill
 
+        new = []
         for id, data in skills.items():
             # TODO: add value verification
-            if id in skill_map:
+            skill = skill_map.get(id, None)
+            if skill is not None:
+                if skill.rank != data['rank'] or skill.description != data['description'] or \
+                   skill.primary_attribute != data['pri'] or skill.secondary_attribute != data['sec']:
+
+                    skill.rank = data['rank']
+                    skill.description = data['description']
+                    skill.primary_attribute = data['pri']
+                    skill.secondary_attribute = data['sec']
+                    skill.save()
+                    print '==> Updated skill details for #%d' % (id)
                 continue
 
-            skill = Skill(
+            new.append(Skill(
                 item_id=id,
                 rank=data['rank'],
                 primary_attribute=data['pri'],
                 secondary_attribute=data['sec'],
-            )
-            skill.save()
+                description=data['description'],
+            ))
             added += 1
+
+        if new:
+            Skill.objects.bulk_create(new)
 
         return added
 
@@ -540,6 +581,7 @@ class Importer:
 
         data_map = InventoryFlag.objects.in_bulk(bulk_data.keys())
 
+        new = []
         for id, data in bulk_data.items():
             if not data[0] or not data[1]:
                 continue
@@ -559,10 +601,207 @@ class Importer:
                 name=data[0],
                 text=data[1],
             )
-            flag.save()
+            new.append(flag)
             added += 1
 
+        if new:
+            InventoryFlag.objects.bulk_create(new)
+
         return added
+
+    # -----------------------------------------------------------------------
+    # NPC Factions
+    def import_npcfaction(self):
+        added = 0
+
+        self.cursor.execute('SELECT factionID, factionName FROM chrFactions')
+
+        bulk_data = {}
+        for row in self.cursor:
+            bulk_data[int(row[0])] = row[1]
+
+        data_map = Faction.objects.in_bulk(bulk_data.keys())
+
+        new = []
+        for id, name in bulk_data.items():
+            faction = data_map.get(id, None)
+            if faction is not None:
+                if faction.name != name:
+                    print '==> Renamed %r to %r' % (faction.name, name)
+                    faction.name = name
+                    faction.save()
+                continue
+
+            faction = Faction(
+                id=id,
+                name=name,
+            )
+            new.append(faction)
+            added += 1
+
+        if new:
+            Faction.objects.bulk_create(new)
+
+        return added
+
+    # -----------------------------------------------------------------------
+    # NPC Corporations
+    def import_npccorporation(self):
+        added = 0
+
+        self.cursor.execute("""
+            SELECT  c.corporationID, i.itemName
+            FROM    crpNPCCorporations c, invNames i
+            WHERE   c.corporationID = i.itemID
+        """)
+
+        bulk_data = {}
+        for row in self.cursor:
+            bulk_data[int(row[0])] = row[1]
+
+        data_map = Corporation.objects.in_bulk(bulk_data.keys())
+
+        new = []
+        for id, name in bulk_data.items():
+            corp = data_map.get(id, None)
+            if corp is not None:
+                if corp.name != name:
+                    print '==> Renamed %r to %r' % (corp.name, name)
+                    corp.name = name
+                    corp.save()
+                continue
+
+            corp = Corporation(
+                id=id,
+                name=name,
+            )
+            new.append(corp)
+            added += 1
+
+        if new:
+            Corporation.objects.bulk_create(new)
+
+        return added
+
+    # -----------------------------------------------------------------------
+    # Alliances
+    def import_alliance(self):
+        added = 0
+
+        data = urllib2.urlopen(ALLIANCE_URL).read()
+        root = ET.fromstring(data)
+
+        bulk_data = {}
+        for row in root.findall('result/rowset/row'):
+            bulk_data[int(row.attrib['allianceID'])] = row
+
+        data_map = Alliance.objects.in_bulk(bulk_data.keys())
+
+        new = []
+        # <row name="Goonswarm Federation" shortName="CONDI" allianceID="1354830081" executorCorpID="1344654522" memberCount="8960" startDate="2010-06-01 05:36:00"/>
+        for id, row in bulk_data.items():
+            alliance = data_map.get(id, None)
+            if alliance is not None:
+                pass
+
+            else:
+                alliance = Alliance(
+                    id=id,
+                    name=row.attrib['name'],
+                    short_name=row.attrib['shortName'],
+                )
+                new.append(alliance)
+                added += 1
+
+        if new:
+            Alliance.objects.bulk_create(new)
+
+        # update any corporations in each alliance
+        for id, row in bulk_data.items():
+            corp_ids = []
+            for corp_row in row.findall('rowset/row'):
+                corp_ids.append(int(corp_row.attrib['corporationID']))
+
+            Corporation.objects.filter(pk__in=corp_ids).update(alliance=id)
+            Corporation.objects.filter(alliance_id=id).exclude(pk__in=corp_ids).update(alliance=None)
+
+        return added
+
+    # -----------------------------------------------------------------------
+    # Conquerable stations
+    def import_conquerable_station(self):
+        added = 0
+        
+        data = urllib2.urlopen(STATION_URL).read()
+        root = ET.fromstring(data)
+        
+        bulk_data = {}
+        # <row stationID="61000042" stationName="442-CS V - 442 S T A L I N G R A D" stationTypeID="21644" solarSystemID="30002616" corporationID="1001879801" corporationName="VVS Corporition"/>
+        for row in root.findall('result/rowset/row'):
+            bulk_data[int(row.attrib['stationID'])] = row
+        
+        data_map = Station.objects.in_bulk(bulk_data.keys())
+        
+        new = []
+        for id, row in bulk_data.items():
+            station = data_map.get(id, None)
+            if station is not None:
+                # update the station name
+                if station.name != row.attrib['stationName']:
+                    station.name = row.attrib['stationName']
+                    station.save()
+                continue
+            
+            station = Station(
+                id=id,
+                name=row.attrib['stationName'],
+                system_id=row.attrib['solarSystemID'],
+            )
+            new.append(station)
+            added += 1
+        
+        if new:
+            Station.objects.bulk_create(new)
+
+        return added
+
+    # -----------------------------------------------------------------------
+    # RefTypes (journal entries)
+    def import_reftypes(self):
+        added = 0
+
+        data = urllib2.urlopen(REF_TYPES_URL).read()
+        root = ET.fromstring(data)
+
+        bulk_data = {}
+        # <row refTypeID="0" refTypeName="Undefined" />
+        for row in root.findall('result/rowset/row'):
+            bulk_data[int(row.attrib['refTypeID'])] = row
+
+        data_map = RefType.objects.in_bulk(bulk_data.keys())
+
+        new = []
+        for id, row in bulk_data.items():
+            reftype = data_map.get(id)
+            if reftype is not None:
+                if reftype.name != row.attrib['refTypeName']:
+                    reftype.name = row.attrib['refTypeName']
+                    reftype.save()
+                continue
+
+            reftype = RefType(
+                id=id,
+                name=row.attrib['refTypeName'],
+            )
+            new.append(reftype)
+            added += 1
+
+        if new:
+            RefType.objects.bulk_create(new)
+
+        return added
+
+# ---------------------------------------------------------------------------
 
 if __name__ == '__main__':
     importer = Importer()

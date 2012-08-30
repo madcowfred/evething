@@ -26,10 +26,9 @@ $(document).ready(function() {
 
 {% block content %}
       <div class="row-fluid">
-        <div class="span1">&nbsp;</div>
-        <div class="span10">
+        <div class="span12">
           <h2>Item Sales for {{ timeframe }}</h2>
-          <table id="trade-table" class="table table-striped table-bordered table-condensed">
+          <table id="trade-table" class="table table-striped table-bordered table-condensed small">
             <thead>
               <tr>
                 <td colspan="2"></td>
@@ -40,7 +39,7 @@ $(document).ready(function() {
               </tr>
               <tr class="c">
                 <th class="l">Item</th>
-                <th class="l">Cat</th>
+                <th class="l">Category</th>
                 <th>#</th>
                 <th>Total</th>
                 <th>#</th>
@@ -53,31 +52,31 @@ $(document).ready(function() {
               </tr>
             </thead>
             <tbody>
-              {% for item in items %}
+              {% for item in items -%}
               <tr class="r">
-                <td class="l"><a href="{% url thing.views.transactions_item item.pk urlpart %}">{{ item.name }}</a></td>
-                <td class="l">{{ item.cat_name }}</td>
+                <td class="l"><a href="{{ 'thing.views.transactions_item'|url(item.pk, urlpart) }}">{{ item.name }}</a></td>
+                <td class="l">{{ item.item_group.category.name }}</td>
                 <td>
-                  <a href="#" title="Min: {{ item.buy_minimum|humanize }} | Avg: {{ item.buy_average|humanize }} | Max: {{ item.buy_maximum|humanize }}">
-                    {{ item.buy_quantity|humanize }}
+                  <a href="#" title="Min: {{ item.t.buy_minimum|humanize }} | Avg: {{ item.t.buy_average|humanize }} | Max: {{ item.t.buy_maximum|humanize }}">
+                    {{ item.t.buy_quantity|commas }}
                   </a>
                 </td>
-                <td>{{ item.buy_total|humanize }}</td>
+                <td>{{ item.t.buy_total|commas }}</td>
                 <td>
-                  <a href="#" title="Min: {{ item.sell_minimum|humanize }} | Avg: {{ item.sell_average|humanize }} | Max: {{ item.sell_maximum|humanize }}">
-                    {{ item.sell_quantity|humanize }}
+                  <a href="#" title="Min: {{ item.t.sell_minimum|humanize }} | Avg: {{ item.t.sell_average|humanize }} | Max: {{ item.t.sell_maximum|humanize }}">
+                    {{ item.t.sell_quantity|commas }}
                   </a>
                 </td>
-                <td>{{ item.sell_total|humanize }}</td>
-                <td>{{ item.z_average_profit|humanize }}</td>
-                <td>{{ item.z_average_profit_per }}%</td>
-                <td>{{ item.balance|humanize|balance }}</td>
-                <td>{{ item.z_projected_average|humanize|balance }}</td>
-                <td>{{ item.z_outstanding_average|humanize|balance }}</td>
+                <td>{{ item.t.sell_total|commas }}</td>
+                <td>{{ item.t.average_profit|commas }}</td>
+                <td>{{ item.t.average_profit_per }}%</td>
+                <td>{{ item.t.balance|commas|balance }}</td>
+                <td>{{ item.t.projected_average|commas|balance }}</td>
+                <td>{{ item.t.outstanding|commas|balance }}</td>
               </tr>
-              {% empty %}
+              {% else %}
               <tr>
-                <td colspan="11">No items have yet been traded.</td>
+                <td colspan="11">No items have been traded for this time period.</td>
               </tr>
               {% endfor %}
             </tbody>

@@ -1,42 +1,134 @@
-* API Keys page:
-  - "this key has not yet updated" or something instead of just NONE NONE NONE
-  - explain how API data is pulled
-  - way to see last pull/next pull time for keys
-  - warn when a key doesn't have the required mask to pull AccountStatus (game time warnings)
+* documentation:
+  - Pages need to explain what the hell they do
+  - Celery:
+    = python manage.py celery worker -E -Q et_medium -c 4 -n et_medium.host
+    = python manage.py celery worker -E -Q et_low -c 2 -n et_low.host
+    = python manage.py celery worker -E -Q et_high -c 1 -n et_high.host
+    = python manage.py celery beat
+  - api_updater deprecated
+  - history_updater deprecated
+  - price_updater deprecated
 
-* Character Sheet page:
-  - Possibly start all categories collapsed with "Category - 5.3 million SP - 5.7%", expandable
-  - Expand all/collapse all JavaScript links
+* features:
+  - Industry jobs:
+    = Implement database model
+    = Events for job installation/completion/etc
+  - Wallet journal:
+    = Implement database model
+    = ISK per hour graph for mission rewards/rat bounties/etc
+    = Corporation graph too?
 
-* Assets page:
+* misc:
+  - Get some less awful themes, oh dear
+  - Email warnings
+    = Let user configure email address (save to auth_user email field?)
+      # Implement email verification because people are idiots
+    = Configurable:
+      # Frequency (once, hourly, daily)
+        % Will need a new database model to store events that have been issued
+      # Things to email about (insufficient clone, room in skill queue, account not in training, account time <10 days)
+  - Implement proper APIKey access_mask checks:
+    = User A has a full (all masks) key for account 'example'
+    = User B has a minimal (say, basic character info only) key for account 'example'
+    = User B can actually see all data related to this account, even though their APIKey.access_mask is much more limited
+    = Will require modifying all view code to use .extra() and a binary AND on the access_mask field, ugh
+      # apikey.get_masks() and comparing the list to apikey.foo_MASK maybe? Possibly slow.
+
+* tasks.alliance_list:
+  - Port from import.py, timer?
+
+* tasks.api_key_info:
+  = When a key is successfully updated, check the APICache for any 221 "derp check access" errors. If any are found, purge
+    them from the cache and also the related TaskState object.
+
+* tasks.asset_list:
+  = Only call Locations API straight after assets are updated, this SHOULD ensure we never get that stupid "user may not own
+  all of those IDs" error ever again.
+
+* tasks.price_updater:
+  - Add support for other sources of market data (EVE-Central, EVEMarketData?)
+
+* tasks.ref_types:
+  - Port from import.py, timer?
+
+* views.account:
+  - Move Event Log to this page
+  - Add a way to create Campaign objects
+  - API Keys:
+    = Warn when a key doesn't have the required mask to pull AccountStatus (game time warnings)
+    = Display "data for this key has not yet been pulled" instead of just NONE NONE NONE
+    = Explain how API data is pulled
+    = Some way to see last pull/next pull time for keys
+  - Implement skill plan creation (hahahaha oh god)
+    = Use AJAX and modal windows for add/delete/re-order?
+    = Step 1: basic adding of skills with pre-requisites
+    = Step 2: deletion of skills with pre-requisites and a useful "are you sure?" prompt
+    = Step 3: re-ordering of entries
+      # Basic updating - if you move position 32 to position 2, you can update that in two queries:
+        % UPDATE thing_entry SET position = position + 1 WHERE skillplan_id = n AND (position >= 2 AND position <= 1)
+        % UPDATE thing_entry SET position = 2 WHERE id = n
+      # Complex updating - deal with pre-requisites, urgh
+
+* views.assets:
   - Add a volume column
   - Improve search features:
-    = Types: value, total value, containers only, group only
+    = Types:
+      # Value
+      # Total value
+      # Containers only toggle?
+      # Item group
+      # Station name
+      # System name
     = Magical JS buttons to add/remove extra search filters
-  - Work out why the initial CharacterAsset view query is so slow, 1300 rows shouldn't take half a second. Possibly
-    related to the pile of horrible LEFT OUTER JOINs, try querying (items, characters, etc) separately and caching.
+  - Work out why the initial Asset view query is so slow, 1300 rows shouldn't take half a second. Possibly
+    related to the pile of horrible LEFT OUTER JOINs, try querying (items, characters, etc) separately.
 
-* Account Settings page:
-  - new page, add various account settings that don't exist right now
-    = number of accounts per row on home page (2, 3, 4, 6)
-    = theme selection (I assume people will want a dark theme)
-  - combine API Keys into this page
-  - combine Change Password into this page
-
-* Blueprints page:
-  - Work out a way to be able to say "I want to make 100 Blackbirds and 100 Railguns to go on them" and get a BPCalc
-    page out of it.
+* views.blueprints:
+  - Work out a way to be able to say "I want to make 100 Blackbirds and 300 rigs to go on them" and get a BPCalc
+    summary page out of it.
   - Profitability dumping to buys instead of using sells?
 
-* Multiple user accounts using keys for the same game account needs to work without weird things happening
+* views.character:
+  - Make categories expandable/collapsible
+  - Expand all/collapse all JavaScript links
+  - Standings tab needs agent standings
+  - Ability to see a post-skill-plan character sheet?
+  - Add employment history
+  - Skill tooltips:
+    = Move to their own icon
+    = Should display primary/secondary attributes
+    = Should display training time for each further level
 
-* Wallet journal:
-  - ohgod
-  - ISK per hour graph for mission rewards/rat bounties/etc
-  - Corporation graph too?
+* views.contracts:
+  - Work out how in the hell to track them for Trade
+  - Summary table similar to orders
+
+* views.home:
+  - Fix mobile browser bugs:
+    = Home page does not do responsive things with some themes (slate at least)
+  - Add options to hide corp wallet/event log sections
+
+* views.market_scan:
+  - Add different scan types (assets+blueprints can take forever):
+    = Assets
+    = Blueprints
+    = [All]
+
+* views.trade:
+  - Add contract sums to the overview page
+
+* views.transactions:
+  - Ability to search transactions via:
+    = character
+    = partial item name
+    = date (before x, after x, between x and y)
+    = wallets?
+    = client
+  - Clickable Client column to filter further
+
 
 * api_updater:
-  - make SystemEventLog objects for start/finish with basic stats so I can maybe track performance issues easier
-
-* Documentation:
-  - pages need to explain what the hell they do
+  - Make SystemEvent objects for admin-related events
+  - Convert everything over to using Django 1.4 bulk saves
+    = Standings, WalletTransactions done
+  - DEPRECATED

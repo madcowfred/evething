@@ -18,14 +18,18 @@
               </tr>
             </thead>
             <tbody>
-              {% for transaction in transactions %}
+              {% for transaction in transactions -%}
               <tr class="r">
                 <td class="l"><a href="{% url thing.views.trade_timeframe transaction.urlpart %}">{{ transaction.name }}</a></td>
                 <td>{{ transaction.buy_total|commas }}</td>
                 <td>{{ transaction.sell_total|commas }}</td>
                 <td>{{ transaction.balance|commas|balance }}</td>
               </tr>
-              {% endfor %}
+              {%- else -%}
+              <tr>
+                <td colspan="4">No transactions found.</td>
+              </tr>
+              {%- endfor %}
             </tbody>
           </table>
         </div>

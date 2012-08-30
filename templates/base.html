@@ -3,14 +3,21 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+    <link rel="icon" href="{{ STATIC_URL }}favicon.ico">
+    {% if user.is_authenticated() -%}
+    {%- with user.get_profile() as profile -%}
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/theme-{{ profile.theme }}.min.css">
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/sprite-icons-{{ profile.icon_theme }}.css">
+    {%- endwith -%}
+    {%- else -%}
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/theme-default.min.css">
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/sprite-icons-default.css">
+    {%- endif %}
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
     <script src="{{ STATIC_URL }}js/jquery.tablesorter.min.js"></script>
     <script src="{{ STATIC_URL }}js/bootstrap.min.js"></script>
     <script src="{{ STATIC_URL }}js/evething.js"></script>
-    <link rel="stylesheet" href="{{ STATIC_URL }}css/bootstrap.min.css">
-    <link rel="stylesheet" href="{{ STATIC_URL }}css/bootstrap-responsive.min.css">
-    <link rel="stylesheet" href="{{ STATIC_URL }}css/evething.css" />
-    {% block extra_head %}{% endblock %}
+    {%- block extra_head %}{% endblock %}
     <title>EVEthing: {% block title %}{% endblock %}</title>
   </head>
   
@@ -18,50 +25,65 @@
     <div class="navbar navbar-fixed-top">
       <div class="navbar-inner">
         <div class="container-fluid">
-          <a class="brand" href="https://github.com/madcowfred/evething">EVEthing</a>
+          <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+          <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </a>
+          <a class="brand" href="https://github.com/madcowfred/evething/tree/develop#readme">EVEthing</a>
           <div class="nav-collapse">
             <ul class="nav" id="nav-list">
-              <li><a href="{% url home %}"><i class="icon-home icon-white"></i>Home</a></li>
-              {% if user.is_authenticated %}
-              <li><a href="{% url thing.views.blueprints %}">Blueprints</a></li>
-              <li><a href="{% url thing.views.orders %}">Orders</a></li>
-              <li><a href="{% url thing.views.trade %}">Trade</a></li>
-              <li><a href="{% url thing.views.transactions %}">Transactions</a></li>
+              <li><a href="{% url home %}">Home</a></li>
+              {% if user.is_authenticated() -%}
+              {%- with user.get_profile() as profile -%}
               <li class="divider-vertical"></li>
-              <li><a href="{% url thing.views.market_scan %}">Market Scan</a></li>
-              <li class="divider-vertical"></li>
-              <li><a href="{% url thing.views.assets %}"><i class="icon-bell icon-white"></i> Assets</a></li>
-              <li><a href="#" style="text-decoration: line-through">Contracts</a></li>
-              <li><a href="#" style="text-decoration: line-through">Industry</a></li>
-              {% endif %}
+              {% if profile.show_assets %}<li><a href="{% url thing.views.assets %}">Assets</a></li>{% endif %}
+              {% if profile.show_blueprints %}<li><a href="{% url thing.views.blueprints %}">Blueprints</a></li>{% endif %}
+              {% if profile.show_contracts %}<li><a href="{% url thing.views.contracts %}">Contracts</a></li>{% endif %}
+              {% if profile.show_orders %}<li><a href="{% url thing.views.orders %}">Orders</a></li>{% endif %}
+              {% if profile.show_trade %}<li><a href="{% url thing.views.trade %}">Trade</a></li>{% endif %}
+              {% if profile.show_transactions %}<li><a href="{% url thing.views.transactions %}">Transactions</a></li>{% endif %}
+              {% if profile.show_market_scan -%}
+              <li class="visible-desktop"></li>
+              <li class="visible-desktop"><a href="{% url thing.views.market_scan %}">Market Scan</a></li>
+              {%- endif -%}
+              {%- endwith -%}
+              {%- endif %}
             </ul>
 
             <ul class="nav pull-right">
-              <li class="navbar-text">
-                {% spaceless %}
-                {% if user.is_authenticated %}
-                {{ user.username }}
-                {% else %}
-                <a href="{% url auth_login %}">Login</a>
-                {% endif %}
-                {% endspaceless %}
+              {% if user.is_authenticated() -%}
+              {%- with user.get_profile() as profile -%}
+              <li class="navbar-text visible-desktop"{% if not profile.show_clock %} style="display: none"{% endif %}>
+                <p class="navbar-text"><span id="utc-time"></span> EVE</p> 
               </li>
-              {% if user.is_authenticated %}
+              {% if profile.show_clock %}<li class="divider-vertical"></li>{% endif %}
+              {%- endwith -%}
+              {%- endif %}
+              {% if user.is_authenticated() -%}
               <li class="dropdown">
                 <a class="dropdown-toggle" data-toggle="dropdown" href="#">
-                  <i class="icon-cog icon-white"></i>
+                  {{ user.username }}
                   <b class="caret"></b>
                 </a>
                 <ul class="dropdown-menu">
-                  <li><a href="{% url thing.views.apikeys %}">API keys</a></li>
+                  <li><a href="{% url thing.views.account %}">Account Management</a></li>
+                  <li class="divider"></li>
                   <li><a href="{% url thing.views.events %}">Event log</a></li>
                   <li class="divider"></li>
-                  <li><a href="{% url auth_password_change %}">Change Password</a></li>
+                  {% if user.is_staff -%}
+                  <li><a href="{% url admin:index %}">Site Administration</a></li>
                   <li class="divider"></li>
+                  {%- endif %}
                   <li><a href="{% url auth_logout %}">Logout</a>
                 </ul>
               </li>
-              {% endif %}
+              {%- else -%}
+              <li class="navbar-text">
+                <a href="{% url auth_login %}">Login</a>
+              </li>
+              {%- endif %}
             </ul>
           </div>
         </div>
@@ -71,8 +93,15 @@
     <div class="container-fluid" id="container">
       {% block content %}{% endblock %}
       <hr class="nomargin">
-      <footer>
-        <p>&copy; Freddie 2012</p>
+      <footer class="small">
+        <p>
+          &copy; Freddie (EVE: Tazuki Falorn) 2012
+          <span class="pull-right">
+            Fugue icons by <a href="http://p.yusukekamiyamane.com/">Yusuke Kamiyamane</a>
+            <span class="divider">/</span>
+            Silk icons by <a href="http://famfamfam.com/lab/icons/silk/">Mark James</a>
+          </span>
+        </p>
       </footer>
     </div>
   </body>
