@@ -283,6 +283,11 @@
                   <td class="skill-rank">Rank {{ cs.skill.rank }}</td>
                   <td class="skill-sp">{{ cs.points|commas }} /</td>
                   <td class="skill-sp">{{ cs.skill.get_sp_at_level()|commas }} SP</td>
+                  <td class="skill-icons">
+                    {% for icon in cs.z_icons -%}
+                    <i class="icons-skill-{{ icon }}"></i>
+                    {%- endfor %}
+                  </td>
                 </tr>
                 {%- endfor %}
               </table>
