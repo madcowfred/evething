@@ -20,7 +20,7 @@
         {%- endif %}
         
         // hover thing for skill descriptions
-        $('span[rel="popover"]').popover({ animation: false });
+        $('.skill-hover').popover({ animation: false, trigger: 'hover' });
 
         // Javascript to enable link to tab
         var prefix = 'tab_';
