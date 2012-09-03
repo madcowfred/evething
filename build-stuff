@@ -1,18 +1,14 @@
 #!/bin/sh
 echo Building theme-default...
-recess  --compile less/theme-default/bootstrap.less > base_static/css/theme-default.css
 recess --compress less/theme-default/bootstrap.less > base_static/css/theme-default.min.css
 
 echo Building theme-slate...
-recess  --compile less/theme-slate/bootstrap.less > base_static/css/theme-slate.css
 recess --compress less/theme-slate/bootstrap.less > base_static/css/theme-slate.min.css
 
 echo Building theme-cyborg...
-recess  --compile less/theme-cyborg/bootstrap.less > base_static/css/theme-cyborg.css
 recess --compress less/theme-cyborg/bootstrap.less > base_static/css/theme-cyborg.min.css
 
 echo Building theme-cerulean...
-recess  --compile less/theme-cerulean/bootstrap.less > base_static/css/theme-cerulean.css
 recess --compress less/theme-cerulean/bootstrap.less > base_static/css/theme-cerulean.min.css
 
 #spritemapper base_static/css/icons-default.css
