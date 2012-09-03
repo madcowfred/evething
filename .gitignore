@@ -1,4 +1,6 @@
 *.db
 *.pyc
 local_settings.py
+skill_graph.pickle
+js/bootstrap.js
 static/js/evething.js
