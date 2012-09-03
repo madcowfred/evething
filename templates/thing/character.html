@@ -304,35 +304,28 @@
 
           <div class="tab-content">
             <div class="tab-pane active" id="skills">
-              {% for mg, css in skills.items() %}
-              <div class="row-fluid">
-                <div class="span12 well well-small">
-                  <div class="char-skill-box">
-                    <span class="char-skill-group">{{ mg.name }}</span>
-                    --
-                    <strong>{{ css|length }}</strong> skill{{ css|length|pluralize }} trained for <strong>{{ mg.z_total_sp|commas }}</strong> SP
-                  </div>
-                  {% for cs in css %}
-                  <div class="clearfix">
+              {% for mg, css in skills.items() -%}
+              <div class="margin-half-bot">
+                <span class="char-skill-group">{{ mg.name }}</span>
+                --
+                <strong>{{ css|length }}</strong> skill{{ css|length|pluralize }} trained for <strong>{{ mg.z_total_sp|commas }}</strong> SP
+              </div>
+              <table class="table table-striped table-condensed table-hover">
+                {% for cs in css -%}
+                <tr>
+                  <td>
                     {%- if cs.z_training %}<i class="icons-skill-training"></i>{% endif %}
                     <span href="#" class="skill-hover{% if cs.z_class %} {{ cs.z_class }}{% endif %}" rel="popover" title="{{ cs.skill.item.name }}" data-content="{{ cs.skill.description }}">
                       {{ cs.skill.item.name }} {{ cs.get_roman_level() }}
                     </span>
-                    
-                    <div class="pull-right">
-                      {%- for icon in cs.z_icons %}
-                      <i class="icons-skill-{{ icon }} skill"></i>
-                      {%- endfor -%}
-                    </div>
-
-                    <div class="pull-right character-sp">{{ cs.skill.get_sp_at_level()|commas }} SP</div>
-                    <div class="pull-right character-sp">{{ cs.points|commas }} / </div>
-                    <div class="pull-right character-sp small">Rank {{ cs.skill.rank }}</div>
-                  </div>
-                  {% endfor %}
-                </div>
-              </div>
-              {% endfor %}
+                  </td>
+                  <td class="skill-rank">Rank {{ cs.skill.rank }}</td>
+                  <td class="skill-sp">{{ cs.points|commas }} /</td>
+                  <td class="skill-sp">{{ cs.skill.get_sp_at_level()|commas }} SP</td>
+                </tr>
+                {%- endfor %}
+              </table>
+              {%- endfor %}
             </div>
 
             {% if not anonymous and (not public or char.config.show_standings) %}
