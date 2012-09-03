@@ -1025,13 +1025,8 @@ def character_common(request, char, public=True, anonymous=False):
                 Q(visibility=SkillPlan.PUBLIC_VISIBILITY)
             )
         )
-        #user_plans = SkillPlan.objects.filter(user=request.user)
-        #qs = Q(visibility=SkillPlan.GLOBAL_VISIBILITY) | (Q(user__in=user_ids) & Q(visibility=SkillPlan.PUBLIC_VISIBILITY))
-        #public_plans = SkillPlan.objects.exclude(user=request.user).filter(qs).order_by('user__username', 'name')
     else:
         plans = SkillPlan.objects.filter(visibility=SkillPlan.GLOBAL_VISIBILITY)
-        #user_plans = []
-        #public_plans = SkillPlan.objects.filter(visibility=SkillPlan.GLOBAL_VISIBILITY)
 
     # Sort out the plans and apply icon states
     user_plans = []
@@ -1058,11 +1053,9 @@ def character_common(request, char, public=True, anonymous=False):
             'public': public,
             'anonymous': anonymous,
             'total_sp': total_sp,
-            'skill_loop': range(1, 6),
             'skills': skills,
             'skill_totals': skill_totals,
             'queue': queue,
-            'queue_rest': queue[1:],
             'queue_duration': queue_duration,
             'user_plans': user_plans,
             'public_plans': public_plans,
