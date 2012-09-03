@@ -918,7 +918,6 @@ def bpcalc(request):
 # Display a character page
 def character(request, character_name):
     queryset = Character.objects.select_related('config', 'corporation')
-    queryset = queryset.prefetch_related('apikeys', 'faction_standings', 'corporation_standings')
     char = get_object_or_404(queryset, name=character_name)
 
     # Check access
@@ -966,6 +965,8 @@ def character_common(request, char, public=True, anonymous=False):
     cur = None
 
     # Fake MarketGroup for unpublished skills
+    total_sp = 0
+
     unpub_mg = MarketGroup(id=0, name="Unpublished")
     unpub_mg.z_total_sp = 0
     skills[unpub_mg] = []
@@ -1001,6 +1002,7 @@ def character_common(request, char, public=True, anonymous=False):
 
         skills[cur].append(cs)
         cur.z_total_sp += cs.points
+        total_sp += cs.points
 
     # Move the fake MarketGroup to the end if it has any skills
     k, v = skills.popitem(False)
@@ -1012,21 +1014,40 @@ def character_common(request, char, public=True, anonymous=False):
     user_ids = APIKey.objects.filter(characters__name=char.name).values_list('user_id', flat=True)
 
     if anonymous is False and request.user.is_authenticated():
-        user_plans = SkillPlan.objects.filter(user=request.user)
-        qs = Q(visibility=SkillPlan.GLOBAL_VISIBILITY) | (Q(user__in=user_ids) & Q(visibility=SkillPlan.PUBLIC_VISIBILITY))
-        public_plans = SkillPlan.objects.exclude(user=request.user).filter(qs).order_by('user__username', 'name')
+        plans = SkillPlan.objects.filter(
+            Q(user=request.user)
+            |
+            Q(visibility=SkillPlan.GLOBAL_VISIBILITY)
+            |
+            (
+                Q(user__in=user_ids)
+                &
+                Q(visibility=SkillPlan.PUBLIC_VISIBILITY)
+            )
+        )
+        #user_plans = SkillPlan.objects.filter(user=request.user)
+        #qs = Q(visibility=SkillPlan.GLOBAL_VISIBILITY) | (Q(user__in=user_ids) & Q(visibility=SkillPlan.PUBLIC_VISIBILITY))
+        #public_plans = SkillPlan.objects.exclude(user=request.user).filter(qs).order_by('user__username', 'name')
     else:
-        user_plans = []
-        public_plans = SkillPlan.objects.filter(visibility=SkillPlan.GLOBAL_VISIBILITY)
+        plans = SkillPlan.objects.filter(visibility=SkillPlan.GLOBAL_VISIBILITY)
+        #user_plans = []
+        #public_plans = SkillPlan.objects.filter(visibility=SkillPlan.GLOBAL_VISIBILITY)
 
-    # Apply some icons to them
-    for sp in list(user_plans) + list(public_plans):
+    # Sort out the plans and apply icon states
+    user_plans = []
+    public_plans = []
+    for sp in plans:
         if sp.visibility == SkillPlan.PRIVATE_VISIBILITY:
             sp.z_icon = 'private'
         elif sp.visibility == SkillPlan.PUBLIC_VISIBILITY:
             sp.z_icon = 'public'
         elif sp.visibility == SkillPlan.GLOBAL_VISIBILITY:
             sp.z_icon = 'global'
+
+        if sp.user_id == request.user.id:
+            user_plans.append(sp)
+        else:
+            public_plans.append(sp)
 
 
     # Render template
@@ -1036,6 +1057,7 @@ def character_common(request, char, public=True, anonymous=False):
             'char': char,
             'public': public,
             'anonymous': anonymous,
+            'total_sp': total_sp,
             'skill_loop': range(1, 6),
             'skills': skills,
             'skill_totals': skill_totals,

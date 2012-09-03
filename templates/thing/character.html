@@ -205,7 +205,7 @@
               <p><strong>Wallet:</strong> {{ char.wallet_balance|commas }} ISK</p>
               {%- endif %}
               <ul class="unstyled">
-                <li><strong>Total SP:</strong> {{ char.get_total_skill_points()|commas }}</li>
+                <li><strong>Total SP:</strong> {{ total_sp|commas }}</li>
                 {% if not anonymous and (not public or char.config.show_clone) -%}
                 <li><strong>Clone limit:</strong> {{ char.clone_skill_points|commas }} ({{ char.get_short_clone_name() }})</li>
                 {%- endif %}
