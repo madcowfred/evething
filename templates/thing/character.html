@@ -78,7 +78,7 @@
           {%- if not public %}
           <br>
           <div class="well well-small">
-            <h3>Settings</h3>
+            <h4 class="nomargin">Settings</h4>
             <form action="{% url thing.views.character_settings char.name %}" method="POST" style="margin: 0">
               {% csrf_token %}
               <input type="hidden" name="character_id" value="{{ char.id }}">
@@ -148,7 +148,7 @@
           {%- endif %}
           <div class="well well-small">
             {% if not anonymous and user_plans -%}
-            <h4>My Skill Plans</h4>
+            <h4 class="nomargin">My Skill Plans</h4>
             <ul class="unstyled">
               {% for sp in user_plans -%}
               <li>
@@ -159,7 +159,7 @@
             </ul>
             {%- endif %}
             {% if public_plans -%}
-            <h4>Global Skill Plans</h4>
+            <h4 class="nomargin">Global Skill Plans</h4>
             <ul class="unstyled">
               {% for sp in public_plans -%}
               <li>
@@ -184,13 +184,7 @@
         </div>
         
         <div class="span9">
-          <h2>
-            {% if anonymous -%}
-            {{ char.config.anon_key }}
-            {%- else -%}
-            {{ char.name }}
-            {%- endif %}
-          </h2>
+          <h2 class="nomargin">{% if anonymous %}{{ char.config.anon_key }}{% else %}{{ char.name }}{% endif %}</h2>
           <div class="row-fluid">
             <div class="span4">
               {% if not anonymous -%}
