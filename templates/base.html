@@ -13,8 +13,6 @@
     <link rel="stylesheet" href="{{ STATIC_URL }}css/theme-default.min.css">
     <link rel="stylesheet" href="{{ STATIC_URL }}css/sprite-icons-default.css">
     {%- endif %}
-    <script src="{{ STATIC_URL }}js/evething.min.js"></script>
-    {%- block extra_head %}{% endblock %}
     <title>EVEthing: {% block title %}{% endblock %}</title>
   </head>
   
@@ -101,5 +99,8 @@
         </p>
       </footer>
     </div>
+
+    <script src="{{ STATIC_URL }}js/evething.min.js"></script>
+    {%- block extra_js %}{% endblock %}
   </body>
 </html>

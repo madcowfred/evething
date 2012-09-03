@@ -3,7 +3,7 @@
 
 {% block title %}Assets{% endblock %}
 
-{% block extra_head %}
+{% block extra_js %}
     <script type="text/javascript">
       var characters = new Array();
       {% for character in characters.values() %}characters[{{ loop.index0 }}] = new Array({{ character.id }}, "{{ character.name|safe }}");
@@ -20,97 +20,95 @@
       {% if fv %}selected[{{ loop.index0 }}] = {{ fv }};{% endif %}
       {% endfor -%}
 
-      $(document).ready(function (){
-        // bind value loader to type boxes
-        $('#filters').on('change', '.filter-type', function() {
-          $select = $(this).nextAll('.filter-value:first');
-          $select.empty();
+      // bind value loader to type boxes
+      $('#filters').on('change', '.filter-type', function() {
+        $select = $(this).nextAll('.filter-value:first');
+        $select.empty();
 
-          var $v = $(this).val();
-          if ($v == 'char') {
-            for (i = 0; i < characters.length; i++) {
-              $select.append($('<option>', { value: characters[i][0] }).text(characters[i][1]));
-            }
+        var $v = $(this).val();
+        if ($v == 'char') {
+          for (i = 0; i < characters.length; i++) {
+            $select.append($('<option>', { value: characters[i][0] }).text(characters[i][1]));
           }
-          else if ($v == 'corp') {
-            for (i = 0; i < corporations.length; i++) {
-              $select.append($('<option>', { value: corporations[i][0] }).text(corporations[i][1]));
-            }
+        }
+        else if ($v == 'corp') {
+          for (i = 0; i < corporations.length; i++) {
+            $select.append($('<option>', { value: corporations[i][0] }).text(corporations[i][1]));
           }
-          else {
-            $select.append($('<option>', { value: '' }).text(''));
-          }
-        });
+        }
+        else {
+          $select.append($('<option>', { value: '' }).text(''));
+        }
+      });
 
-        // trigger each one to force an update
-        $('.filter-type').each(function() {
-          $(this).change();
-        })
+      // trigger each one to force an update
+      $('.filter-type').each(function() {
+        $(this).change();
+      })
 
-        // set them to the correct values
-        var i = 0;
-        $('.filter-value').each(function() {
-          $(this).val(selected[i]);
-          i++;
-        });
+      // set them to the correct values
+      var i = 0;
+      $('.filter-value').each(function() {
+        $(this).val(selected[i]);
+        i++;
+      });
 
-        // bind the asset expander buttons
-        $(".asset-expand").on('click', function() {
-          var $this = $(this);
-          
-          if ($this.hasClass('icons-expand')) {
-            $this.addClass('icons-collapse').removeClass('icons-expand');
-            $($this.attr('data-target')).each(function() {
-              $(this).show();
-            });
-          }
-          else {
-            $this.addClass('icons-expand').removeClass('icons-collapse');
-            $($this.attr('data-target')).each(function() {
-              $(this).hide();
-            });
-          }
-        });
-
-        // bind the ship EFT fitting buttons
-        $(".asset-eft").on('click', function() {
-          var $this = $(this);
-          var data_target = $('i:nth-child(1)', $this.parent()).attr('data-target');
-
-          var parts = $.trim($(this).parent().text()).split(' - ');
-          var ship_type = $.trim(parts[0]);
-          if (parts.length == 2) {
-            ship_name = $.trim(parts[1]);
-          }
-          else {
-            ship_name = "From Assets";
-          }
-
-          $('#eft-textarea').empty();
-          $('#eft-textarea').append('[' + ship_type + ', ' + ship_name + ']\n');
-
-          var last_slot = null;
-
-          $(data_target).each(function() {
-            var slot = $.trim($('td:nth-child(3)', $(this)).text());
-            if (slot.substr(-4) == "Slot") {
-              if (last_slot && last_slot != slot) {
-                $('#eft-textarea').append('\n');
-              }
-              last_slot = slot;
-
-              var name = $.trim($('td:nth-child(2)', $(this)).text());
-              $('#eft-textarea').append(name + '\n');
-              //console.log("%s: %s", slot, name);
-            }
+      // bind the asset expander buttons
+      $(".asset-expand").on('click', function() {
+        var $this = $(this);
+        
+        if ($this.hasClass('icons-expand')) {
+          $this.addClass('icons-collapse').removeClass('icons-expand');
+          $($this.attr('data-target')).each(function() {
+            $(this).show();
           });
+        }
+        else {
+          $this.addClass('icons-expand').removeClass('icons-collapse');
+          $($this.attr('data-target')).each(function() {
+            $(this).hide();
+          });
+        }
+      });
 
-          $('#eft-modal').modal('show');
+      // bind the ship EFT fitting buttons
+      $(".asset-eft").on('click', function() {
+        var $this = $(this);
+        var data_target = $('i:nth-child(1)', $this.parent()).attr('data-target');
+
+        var parts = $.trim($(this).parent().text()).split(' - ');
+        var ship_type = $.trim(parts[0]);
+        if (parts.length == 2) {
+          ship_name = $.trim(parts[1]);
+        }
+        else {
+          ship_name = "From Assets";
+        }
+
+        $('#eft-textarea').empty();
+        $('#eft-textarea').append('[' + ship_type + ', ' + ship_name + ']\n');
+
+        var last_slot = null;
+
+        $(data_target).each(function() {
+          var slot = $.trim($('td:nth-child(3)', $(this)).text());
+          if (slot.substr(-4) == "Slot") {
+            if (last_slot && last_slot != slot) {
+              $('#eft-textarea').append('\n');
+            }
+            last_slot = slot;
+
+            var name = $.trim($('td:nth-child(2)', $(this)).text());
+            $('#eft-textarea').append(name + '\n');
+            //console.log("%s: %s", slot, name);
+          }
         });
 
-        $('#eft-modal').on('shown', function() {
-          $('#eft-textarea').select();
-        });
+        $('#eft-modal').modal('show');
+      });
+
+      $('#eft-modal').on('shown', function() {
+        $('#eft-textarea').select();
       });
     </script>
 {% endblock %}
