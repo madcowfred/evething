@@ -66,12 +66,12 @@
 
 {% block content %}
       <div class="row-fluid">
-        <div class="span2">
+        <div class="span3 character-side">
           <div class="thumbnail">
             {% if anonymous -%}
-            <img src="{{ STATIC_URL }}img/anonymous_character.jpg">
+            <img src="{{ STATIC_URL }}img/anonymous_character.jpg" height="256" width="256" class="img-rounded">
             {%- else %}
-            <img src="http://image.eveonline.com/Character/{{ char.id }}_256.jpg">
+            <img src="http://image.eveonline.com/Character/{{ char.id }}_256.jpg" height="256" width="256" class="img-rounded">
             {%- endif %}
           </div>
           
@@ -183,7 +183,7 @@
           {%- endif %}
         </div>
         
-        <div class="span10">
+        <div class="span9">
           <h2>
             {% if anonymous -%}
             {{ char.config.anon_key }}
