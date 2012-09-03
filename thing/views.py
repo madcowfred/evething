@@ -917,7 +917,7 @@ def bpcalc(request):
 # ---------------------------------------------------------------------------
 # Display a character page
 def character(request, character_name):
-    queryset = Character.objects.select_related('config', 'corporation')
+    queryset = Character.objects.select_related('config', 'corporation__alliance')
     char = get_object_or_404(queryset, name=character_name)
 
     # Check access
