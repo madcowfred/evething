@@ -192,9 +192,7 @@
                 {%- endif %}
               </ul>
               {%- endif %}
-              {% if not anonymous and (not public or char.config.show_wallet) -%}
-              <p><strong>Wallet:</strong> {{ char.wallet_balance|commas }} ISK</p>
-              {%- endif %}
+              {% if show.wallet %}<p><strong>Wallet:</strong> {{ char.wallet_balance|commas }} ISK</p>{% endif %}
               <ul class="unstyled">
                 <li><strong>Total SP:</strong> {{ total_sp|commas }}</li>
                 {% if not anonymous and (not public or char.config.show_clone) -%}
@@ -207,64 +205,34 @@
                 <tr class="r">
                   <td><strong>Int:</strong></td>
                   <td>{{ char.int_attribute }}</td>
-                  <td>
-                    {% if not anonymous and (not public or char.config.show_implants) -%}
-                    (+{{ char.int_bonus }})
-                    {%- else -%}
-                    (??)
-                    {%- endif %}
-                  </td>
+                  <td>({% if show.implants %}+{{ char.int_bonus }}{% else %}??{% endif %})</td>
                 </tr>
                 <tr class="r">
                   <td><strong>Mem:</strong></td>
                   <td>{{ char.mem_attribute }}</td>
-                  <td>
-                    {% if not anonymous and (not public or char.config.show_implants) -%}
-                    (+{{ char.mem_bonus }})
-                    {%- else -%}
-                    (??)
-                    {%- endif %}
-                  </td>
+                  <td>({% if show.implants %}+{{ char.mem_bonus }}{% else %}??{% endif %})</td>
                 </tr>
                 <tr class="r">
                   <td><strong>Per:</strong></td>
                   <td>{{ char.per_attribute }}</td>
-                  <td>
-                    {% if not anonymous and (not public or char.config.show_implants) -%}
-                    (+{{ char.per_bonus }})
-                    {%- else -%}
-                    (??)
-                    {%- endif %}
-                  </td>
+                  <td>({% if show.implants %}+{{ char.per_bonus }}{% else %}??{% endif %})</td>
                 </tr>
                 <tr class="r">
                   <td><strong>Wil:</strong></td>
                   <td>{{ char.wil_attribute }}</td>
-                  <td>
-                    {% if not anonymous and (not public or char.config.show_implants) -%}
-                    (+{{ char.wil_bonus }})
-                    {%- else -%}
-                    (??)
-                    {%- endif %}
-                  </td>
+                  <td>({% if show.implants %}+{{ char.wil_bonus }}{% else %}??{% endif %})</td>
                 </tr>
                 <tr class="r">
                   <td><strong>Cha:</strong></td>
                   <td>{{ char.cha_attribute }}</td>
-                  <td>
-                    {% if not anonymous and (not public or char.config.show_implants) -%}
-                    (+{{ char.cha_bonus }})
-                    {%- else -%}
-                    (??)
-                    {%- endif %}
-                  </td>
+                  <td>({% if show.implants %}+{{ char.cha_bonus }}{% else %}??{% endif %})</td>
                 </tr>
               </table>
               <br>
             </div>
           </div>
 
-          {% if queue and (anonymous or not public or char.config.show_skill_queue) -%}
+          {% if show.queue -%}
           <div class="row-fluid">
             <div class="span12 well well-small {% if queue_duration < 86400 %}alert-error{% else %}alert-success{% endif %}">
               <h3>Skill Queue</h3>
@@ -294,9 +262,7 @@
 
           <ul class="nav nav-tabs" id="tabs">
             <li class="active"><a href="#skills" data-toggle="tab">Skills</a></li>
-            {% if not anonymous and (not public or char.config.show_standings) -%}
-            <li><a href="#standings" data-toggle="tab">Standings</a></li>
-            {%- endif %}
+            {% if show.standings %}<li><a href="#standings" data-toggle="tab">Standings</a></li>{% endif %}
           </ul>
 
           <div class="tab-content">
@@ -323,7 +289,7 @@
               {%- endfor %}
             </div>
 
-            {% if not anonymous and (not public or char.config.show_standings) %}
+            {% if show.standings %}
             <div class="tab-pane" id="standings">
               <table class="table table-striped table-condensed table-hover">
                 <thead>

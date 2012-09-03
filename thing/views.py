@@ -1044,6 +1044,13 @@ def character_common(request, char, public=True, anonymous=False):
         else:
             public_plans.append(sp)
 
+    # Do various visibility things here instead of in awful template code
+    show = {
+        'implants': not anonymous and (not public or char.config.show_implants),
+        'queue': queue and (anonymous or not public or char.config.show_skill_queue),
+        'standings': not anonymous and (not public or char.config.show_standings),
+        'wallet': not anonymous and (not public or char.config.show_wallet),
+    }
 
     # Render template
     return render_to_response(
@@ -1052,6 +1059,7 @@ def character_common(request, char, public=True, anonymous=False):
             'char': char,
             'public': public,
             'anonymous': anonymous,
+            'show': show,
             'total_sp': total_sp,
             'skills': skills,
             'skill_totals': skill_totals,
