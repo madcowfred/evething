@@ -11,14 +11,16 @@ from thing.models import *
 
 
 class TimerThing:
-    def __init__(self):
+    def __init__(self, name):
         self.times = []
-        self.add_time('start')
+        self.add_time('name')
 
     def add_time(self, name):
         self.times.append([time.time(), name])
 
     def finished(self):
+        print 'TimerThing: %s' % (self.times[0][1])
+        print '-' * 23
         for i in range(1, len(self.times)):
             t, name = self.times[i]
             print '%-15s: %.3fs' % (name, t - self.times[i-1][0])

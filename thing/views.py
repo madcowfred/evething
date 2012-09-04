@@ -43,7 +43,7 @@ TWO_PLACES = Decimal('0.00')
 # Home page
 @login_required
 def home(request):
-    tt = TimerThing()
+    tt = TimerThing('home')
 
     # Create the user's profile if it doesn't already exist
     try:
