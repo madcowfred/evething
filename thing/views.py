@@ -501,7 +501,7 @@ def account_skillplan_edit(request):
 # Assets
 @login_required
 def assets(request):
-    t1 = time.time()
+    tt = TimerThing('assets')
 
     character_ids = list(Character.objects.filter(apikeys__user=request.user.id).values_list('id', flat=True))
     characters = Character.objects.in_bulk(character_ids)
@@ -518,7 +518,7 @@ def assets(request):
     )
     assets = assets.distinct()
 
-    t2 = time.time()
+    tt.add_time('init')
 
     # retrieve any supplied filter values
     f_types = request.GET.getlist('type')
@@ -552,7 +552,10 @@ def assets(request):
     if not filters:
         filters.append(('', '', ''))
 
-    t3 = time.time()
+    tt.add_time('filters')
+
+    # grab all assets
+    #asset_list = list(assets)
 
     # gather data for bulk fetching
     inv_flag_ids = set()
@@ -568,18 +571,23 @@ def assets(request):
         if asset.system_id is not None:
             system_ids.add(asset.system_id)
 
-    inv_flag_map = InventoryFlag.objects.in_bulk(inv_flag_ids)
-    item_map = Item.objects.select_related().in_bulk(item_ids)
-    station_map = Station.objects.in_bulk(station_ids)
-    system_map = System.objects.in_bulk(system_ids)
+    tt.add_time('bulk prep')
 
-    t4 = time.time()
+    inv_flag_map = InventoryFlag.objects.in_bulk(inv_flag_ids)
+    tt.add_time('bulk invflag')
+    item_map = Item.objects.select_related().in_bulk(item_ids)
+    tt.add_time('bulk item')
+    station_map = Station.objects.in_bulk(station_ids)
+    tt.add_time('bulk station')
+    system_map = System.objects.in_bulk(system_ids)
+    tt.add_time('bulk system')
 
     # initialise data structures
     ca_lookup = {}
     loc_totals = {}
     systems = {}
 
+    #print len(asset_list)
     for ca in assets:
         ca.z_inv_flag = inv_flag_map[ca.inv_flag_id]
         ca.z_item = item_map[ca.item_id]
@@ -603,18 +611,8 @@ def assets(request):
         if ca.z_blueprint >= 0:
             # capital ship, calculate build cost
             if ca.z_item.item_group.name in ('Carrier', 'Dreadnought', 'Supercarrier', 'Titan'):
-                bpi = BlueprintInstance(
-                    user=request.user,
-                    blueprint=Blueprint.objects.get(item__name=ca.z_item.name),
-                    original=True,
-                    material_level=2,
-                    productivity_level=0,
-                )
                 ca.z_capital = True
-                ca.z_price = bpi.calc_capital_production_cost()
-            # anything else we just use the stored sell price
-            else:
-                ca.z_price = ca.z_item.sell_price
+            ca.z_price = ca.z_item.sell_price
         # BPOs use the base price
         elif ca.z_blueprint == -1:
             ca.z_price = ca.z_item.base_price
@@ -665,7 +663,7 @@ def assets(request):
                 if ca.z_group.startswith('CorpSAG') and hasattr(ca, 'z_corporation'):
                     ca.z_group = getattr(ca.z_corporation, 'division%s' % (ca.z_group[-1]))
 
-    t5 = time.time()
+    tt.add_time('main loop')
 
     # add contents to the parent total
     for cas in systems.values():
@@ -681,7 +679,7 @@ def assets(request):
 
                 ca.z_mod = len(ca.z_contents) % 2
 
-    t6 = time.time()
+    tt.add_time('parents')
 
     # get a total asset value
     total_value = sum(loc_totals.values())
@@ -694,9 +692,9 @@ def assets(request):
 
     sorted_systems = sorted(systems.items())
 
-    t7 = time.time()
+    tt.add_time('sort')
 
-    output = render_to_response(
+    out = render_to_response(
         'thing/assets.html',
         {
             'characters': characters,
@@ -709,18 +707,11 @@ def assets(request):
         context_instance=RequestContext(request)
     )
 
-    t8 = time.time()
+    tt.add_time('template')
+    if settings.DEBUG:
+        tt.finished()
 
-    if settings.DEBUG is True:
-        print '%.4fs  init' % (t2 - t1)
-        print '%.4fs  filters' % (t3 - t2)
-        print '%.4fs  bulk data' % (t4 - t3)
-        print '%.4fs  work loop' % (t5 - t4)
-        print '%.4fs  parent totals' % (t6 - t5)
-        print '%.4fs  sort + total' % (t7 - t6)
-        print '%.4fs  template' % (t8 - t7)
-
-    return output
+    return out
 
 # ---------------------------------------------------------------------------
 # List of blueprints we own

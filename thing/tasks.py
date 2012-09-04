@@ -1725,6 +1725,18 @@ def price_updater():
             item.sell_price = t.find('sell/min').text
             item.save()
 
+    # Calculate capital ship costs now
+    for bp in Blueprint.objects.select_related('item').filter(item__item_group__name__in=('Carrier', 'Dreadnought', 'Supercarrier', 'Titan')):
+        bpi = BlueprintInstance(
+            user=None,
+            blueprint=bp,
+            original=True,
+            material_level=2,
+            productivity_level=0,
+        )
+        bp.item.sell_price = bpi.calc_capital_production_cost()
+        bp.item.save()
+
 # ---------------------------------------------------------------------------
 @task
 def unknown_characters():
