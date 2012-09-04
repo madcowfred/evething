@@ -2,14 +2,6 @@
 EVEthing
 ========
 
-USE THE DEVELOP TREE.
-USE THE DEVELOP TREE.
-USE THE DEVELOP TREE.
-USE THE DEVELOP TREE.
-USE THE DEVELOP TREE.
-
-(this tree won't be updated until an actual release occurs, good luck with that)
-
 EVEthing is a terribly named web application intended to ease the pain of managing your
 EVE space empire.
 
@@ -136,10 +128,9 @@ Common Install Steps
 #. Install the required libraries using pip: ``cd evething``, ``pip install -r requirements.txt``.
 #. Copy evething/local_settings.example to evething/local_settings.py then open
    evething/local_settings.py in some sort of text editor and edit things.
-#. ``python manage.py syncdb``, say yes and fill in useful information when it asks if you
-   would like to create an admin user.
-#. ``python manage.py migrate thing --fake`` (so South knows what state the database is
-   in for future migrations).
+#. ``python manage.py syncdb``, say NO when it asks if you would like to create an admin user.
+#. ``python manage.py migrate --all``, this will apply database migrations in order.
+#. ``python manage.py createsuperuser`` to create a new superuser.
 #. ``python import.py`` to import the initial data from the SDE database.
 
 If you update EVEthing in the future, make sure to run ``python manage.py migrate thing``
@@ -147,7 +138,7 @@ to apply any database schema changes!
 
 Common Post-install Steps
 -------------------------
-#. Log in as the admin user you created earlier.
+#. Log in as the superuser you created earlier.
 #. Click the username dropdown in the top right and head to Account Management.
 #. Add one or more API keys.
 #. ``python api_updater.py`` and wait while it pulls a huge pile of information.
