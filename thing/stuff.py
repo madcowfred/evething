@@ -13,7 +13,7 @@ from thing.models import *
 class TimerThing:
     def __init__(self, name):
         self.times = []
-        self.add_time('name')
+        self.add_time(name)
 
     def add_time(self, name):
         self.times.append([time.time(), name])
