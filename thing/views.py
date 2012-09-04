@@ -554,9 +554,6 @@ def assets(request):
 
     tt.add_time('filters')
 
-    # grab all assets
-    #asset_list = list(assets)
-
     # gather data for bulk fetching
     inv_flag_ids = set()
     item_ids = set()
@@ -571,7 +568,7 @@ def assets(request):
         if asset.system_id is not None:
             system_ids.add(asset.system_id)
 
-    tt.add_time('bulk prep')
+    tt.add_time('assets prep')
 
     inv_flag_map = InventoryFlag.objects.in_bulk(inv_flag_ids)
     tt.add_time('bulk invflag')
