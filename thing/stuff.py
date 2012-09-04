@@ -1,4 +1,5 @@
 import gzip
+import time
 from cStringIO import StringIO
 
 try:
@@ -7,6 +8,20 @@ except:
     import xml.etree.ElementTree as ET
 
 from thing.models import *
+
+
+class TimerThing:
+    def __init__(self):
+        self.times = []
+        self.add_time('start')
+
+    def add_time(self, name):
+        self.times.append([time.time(), name])
+
+    def finished(self):
+        for i in range(1, len(self.times)):
+            t, name = self.times[i]
+            print '%-15s: %.3fs' % (name, t - self.times[i-1][0])
 
 
 def handle_skillplan_upload(request):
