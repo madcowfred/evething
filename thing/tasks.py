@@ -573,10 +573,10 @@ def asset_list(url, apikey_id, taskstate_id, character_id):
 
     # Initialise for corporate query
     if job.apikey.corp_character:
-        a_filter = Asset.objects.filter(character=character, corporation=job.apikey.corp_character.corporation)
+        a_filter = Asset.objects.filter(character=character, corporation_id=job.apikey.corp_character.corporation.id)
     # Initialise for character query
     else:
-        a_filter = Asset.objects.filter(character=character, corporation__isnull=True)
+        a_filter = Asset.objects.filter(character=character, corporation_id__isnull=True)
 
     # Fetch the API data
     params = { 'characterID': character.id }
@@ -633,7 +633,7 @@ def asset_list(url, apikey_id, taskstate_id, character_id):
                 singleton=data[7],
             )
             if job.apikey.corp_character:
-                asset.corporation = job.apikey.corp_character.corporation
+                asset.corporation_id = job.apikey.corp_character.corporation.id
             asset.save()
 
             asset_map[id] = asset
