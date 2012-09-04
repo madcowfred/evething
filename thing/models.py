@@ -934,7 +934,7 @@ class BlueprintComponent(models.Model):
 # ---------------------------------------------------------------------------
 # Blueprint instances - an owned blueprint
 class BlueprintInstance(models.Model):
-    user = models.ForeignKey(User)
+    user = models.ForeignKey(User, blank=True, null=True)
     blueprint = models.ForeignKey(Blueprint)
     
     original = models.BooleanField()
