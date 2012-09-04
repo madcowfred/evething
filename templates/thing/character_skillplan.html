@@ -1,13 +1,5 @@
 {% extends "base.html" %}
 
-{% block extra_head %}
-      <script type="text/javascript">
-  // aaa
-        $(document).ready(function() {
-        });
-      </script>
-{% endblock %}
-
 {% block title %}Skill Plan: {% if anonymous %}{{ char.config.anon_key }}{% else %}{{ char.name }}{% endif %}, {{ skillplan.name }}{% endblock %}
 
 {% block content %}

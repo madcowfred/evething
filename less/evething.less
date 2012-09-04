@@ -45,19 +45,6 @@ img.icon {
   *margin-left: 0;
 }
 
-/* character sheet */
-.char-skill-box {
-  margin-top: 0.3em;
-  margin-bottom: 0.3em;
-}
-.char-skill-group {
-  font-size: 1.6em;
-  font-weight: bold;
-}
-.skill-hover {
-  border-bottom: 1px dotted;
-}
-
 /* table alignment, urgh */
 tr.c th,
 tr.c td { text-align: center; }
@@ -152,6 +139,31 @@ td.bpc-large {
   width: 8em;
 }
 
+/* character layout */
+.char-skill-box {
+  margin-top: 0.3em;
+  margin-bottom: 0.3em;
+}
+.char-skill-group {
+  font-size: 1.3em;
+  font-weight: bold;
+}
+.skill-hover {
+  border-bottom: 1px dotted;
+}
+td.skill-rank {
+  width: 4em;
+  font-size: 0.9em;
+}
+td.skill-sp {
+  width: 6.5em;
+  text-align: right;
+}
+td.skill-icons {
+  width: 7em;
+  text-align: right;
+}
+
 /* contracts layout */
 td.con-id {
   width: 6em;
@@ -210,6 +222,9 @@ td.sp-time {
   padding: 0;
 }
 
+div.character-side {
+  width: 256px!important;
+}
 div.character-sp {
   text-align: right;
   margin-right: 0.8em;
@@ -231,6 +246,13 @@ hr.nomargin {
 }
 i.nomargin {
   margin-right: -1px;
+}
+h2.nomargin, h3.nomargin, h4.nomargin {
+  margin-top: 0px;
+  margin-bottom: 4px;
+}
+ul.unstyled {
+  margin-bottom: 0px;
 }
 
 /* override bootstrap settings */

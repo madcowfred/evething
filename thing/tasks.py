@@ -1606,7 +1606,7 @@ CONQUERABLE_STATION_URL = urljoin(settings.API_HOST, '/eve/ConquerableStationLis
 
 @task
 def conquerable_stations():
-    r = requests.get(CONQUERABLE_STATION_URL, headers=HEADERS)
+    r = _session.get(CONQUERABLE_STATION_URL, prefetch=True)
     root = ET.fromstring(r.text)
 
     # Build a stationID:row dictionary
@@ -1661,7 +1661,7 @@ def history_updater():
     for i in range(0, len(item_ids), 50):
         # Fetch the XML
         url = HISTORY_URL % (','.join(str(z) for z in item_ids[i:i+50]))
-        r = requests.get(url, headers=HEADERS)
+        r = _session.get(url, prefetch=True)
         root = ET.fromstring(r.text)
         
         # Do stuff
@@ -1715,7 +1715,7 @@ def price_updater():
     for i in range(0, len(item_ids), PRICE_PER_REQUEST):
         # Retrieve market data and parse the XML
         url = PRICE_URL % (','.join(str(item_id) for item_id in item_ids[i:i+PRICE_PER_REQUEST]))
-        r = requests.get(url, headers=HEADERS)
+        r = _session.get(url, prefetch=True)
         root = ET.fromstring(r.text)
         
         # Update item prices

@@ -3,25 +3,25 @@
 
 {% block title %}Trade: {{ timeframe }}{% endblock %}
 
-{% block extra_head %}
-<script type="text/javascript">
-$(document).ready(function() {
-  $("#trade-table").tablesorter({
-    'headers': {
-      2: { sorter: 'human' },
-      3: { sorter: 'human' },
-      4: { sorter: 'human' },
-      5: { sorter: 'human' },
-      6: { sorter: 'human' },
-      //7: { sorter: 'human' },
-      8: { sorter: 'human' },
-      9: { sorter: 'human' },
-      10: { sorter: 'human' },
-    },
-    'sortList': [[8, 1]],
-  });
-});
-</script>
+{% block extra_js %}
+    <script type="text/javascript">
+      $(document).ready(function() {
+        $("#trade-table").tablesorter({
+          'headers': {
+            2: { sorter: 'human' },
+            3: { sorter: 'human' },
+            4: { sorter: 'human' },
+            5: { sorter: 'human' },
+            6: { sorter: 'human' },
+            //7: { sorter: 'human' },
+            8: { sorter: 'human' },
+            9: { sorter: 'human' },
+            10: { sorter: 'human' },
+          },
+          'sortList': [[8, 1]],
+        });
+      });
+    </script>
 {% endblock %}
 
 {% block content %}

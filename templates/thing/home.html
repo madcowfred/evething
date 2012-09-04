@@ -3,71 +3,71 @@
 
 {% block title %}Home{% endblock %}
 
-{% block extra_head %}
-      <script type="text/javascript">
-        $(document).ready(function() {
-          // make tooltips appear to the right of icons
-          $("[rel=tooltip]").each(function () {
-            $(this).data('tooltip').options.placement = 'right';
-          });
+{% block extra_js %}
+    <script type="text/javascript">
+      $(document).ready(function() {
+        // make tooltips appear to the right of icons
+        $("[rel=tooltip]").each(function () {
+          $(this).data('tooltip').options.placement = 'right';
+        });
+      });
+
+      var tooltips_on = false;
+      function toggle_tooltips() {
+        $("[rel=tooltip]").each(function () {
+          if (tooltips_on)
+            $(this).tooltip('hide');
+          else
+            $(this).tooltip('show');
+        });
+        tooltips_on = !tooltips_on;
+      }
+
+      function screenshot_mode() {
+        // replace sensitive data with placeholders
+        $('.sensitive').each(function () {
+          var $this = $(this);
+          var $oldname = $this.attr('oldname');
+
+          if ($oldname === undefined) {
+            $this.attr('oldname', $this.text());
+            if ($this.hasClass('character-name'))
+              $this.text('Character Name');
+            else if ($this.hasClass('apikey-name'))
+              $this.text('apikey.name');
+            else if ($this.hasClass('corporation-name'))
+              $this.text('corporation.name [ticker]');
+          }
+          else {
+            $this.text($oldname);
+            $this.removeAttr('oldname');
+          }
         });
 
-        var tooltips_on = false;
-        function toggle_tooltips() {
-          $("[rel=tooltip]").each(function () {
-            if (tooltips_on)
-              $(this).tooltip('hide');
-            else
-              $(this).tooltip('show');
-          });
-          tooltips_on = !tooltips_on;
-        }
+        var seen_tooltips = Array();
+        $('.well').each(function () {
+          var $well = $(this);
+          var seen = false;
+          
+          $('[rel=tooltip]', $well.children('div')).each(function () {
+            var $img = $(this);
+            if (seen == false && seen_tooltips[$img.attr('src')] == null) {
+              seen = true;
+              seen_tooltips[$img.attr('src')] = true;
 
-        function screenshot_mode() {
-          // replace sensitive data with placeholders
-          $('.sensitive').each(function () {
-            var $this = $(this);
-            var $oldname = $this.attr('oldname');
-
-            if ($oldname === undefined) {
-              $this.attr('oldname', $this.text());
-              if ($this.hasClass('character-name'))
-                $this.text('Character Name');
-              else if ($this.hasClass('apikey-name'))
-                $this.text('apikey.name');
-              else if ($this.hasClass('corporation-name'))
-                $this.text('corporation.name [ticker]');
-            }
-            else {
-              $this.text($oldname);
-              $this.removeAttr('oldname');
-            }
-          });
-
-          var seen_tooltips = Array();
-          $('.well').each(function () {
-            var $well = $(this);
-            var seen = false;
-            
-            $('[rel=tooltip]', $well.children('div')).each(function () {
-              var $img = $(this);
-              if (seen == false && seen_tooltips[$img.attr('src')] == null) {
-                seen = true;
-                seen_tooltips[$img.attr('src')] = true;
-
-                if ($img.attr('shown') === undefined) {
-                  $img.tooltip('show');
-                  $img.attr('shown', 'yup');
-                }
-                else {
-                  $img.tooltip('hide');
-                  $img.removeAttr('shown');
-                }
+              if ($img.attr('shown') === undefined) {
+                $img.tooltip('show');
+                $img.attr('shown', 'yup');
               }
-            });
+              else {
+                $img.tooltip('hide');
+                $img.removeAttr('shown');
+              }
+            }
           });
-        }
-      </script>
+        });
+      }
+    </script>
 {% endblock %}
 
 {% block content %}

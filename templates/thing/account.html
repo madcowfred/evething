@@ -1,110 +1,110 @@
 {% extends "base.html" %}
 
-{% block extra_head %}
-      <script type="text/javascript">
-        var savedTD = null;
-        var savedHTML = null;
+{% block extra_js %}
+    <script type="text/javascript">
+      var savedTD = null;
+      var savedHTML = null;
 
-        var mask_map = Array();
-        mask_map[2] = 'AssetList';
-        mask_map[8] = 'CharacterSheet';
-        mask_map[4096] = 'MarketOrders';
-        mask_map[262144] = 'SkillQueue';
-        mask_map[524288] = 'Standings';
-        mask_map[4194304] = 'WalletTransactions';
-        mask_map[33554432] = 'AccountStatus';
-        mask_map[67108864] = 'Contracts';
-        mask_map[134217728] = 'Locations';
+      var mask_map = Array();
+      mask_map[2] = 'AssetList';
+      mask_map[8] = 'CharacterSheet';
+      mask_map[4096] = 'MarketOrders';
+      mask_map[262144] = 'SkillQueue';
+      mask_map[524288] = 'Standings';
+      mask_map[4194304] = 'WalletTransactions';
+      mask_map[33554432] = 'AccountStatus';
+      mask_map[67108864] = 'Contracts';
+      mask_map[134217728] = 'Locations';
 
-        function apikey_build() {
-          $('#apikey-required').empty();
+      function apikey_build() {
+        $('#apikey-required').empty();
 
-          var n = 0;
-          $('.apikey-build:checked').each(function() {
-            masks = $(this).attr('data-masks').split(';');
-            for (i in masks) {
-              mask = parseInt(masks[i]);
-              if ((n & mask) == 0) {
-                n += mask;
-                $('#apikey-required').append('<li>' + mask_map[mask] + '</li>');
-              }
+        var n = 0;
+        $('.apikey-build:checked').each(function() {
+          masks = $(this).attr('data-masks').split(';');
+          for (i in masks) {
+            mask = parseInt(masks[i]);
+            if ((n & mask) == 0) {
+              n += mask;
+              $('#apikey-required').append('<li>' + mask_map[mask] + '</li>');
             }
-          });
-          $('#apikey-link').attr('href', 'https://support.eveonline.com/api/Key/CreatePredefined/' + n);
-          if (n == 0) {
-            $('#apikey-required').append('<li>None</li>');
           }
-        }
-
-        $(document).ready(function() {
-          // Enable linking to a tab with a #location
-          var prefix = 'tab_';
-          var hash = document.location.hash;
-          if (hash) {
-            $('.nav-tabs a[href=' + hash.replace(prefix, "") + ']').tab('show');
-          }
-          
-          // Change window hash for page reload
-          $('.nav-tabs a').on('shown', function (e) {
-            window.location.hash = e.target.hash.replace('#', '#' + prefix);
-          });
-
-          // Bind apikey edit icons
-          $('#key-table').on('click', 'a.apikey-edit', function(event) {
-            var keyid = $('td:nth-child(3)', $(this).parents('tr')).attr('data-id');
-            var keyname = $('td:nth-child(5)', $(this).parents('tr')).text();
-
-            if (savedTD) {
-              $(savedTD).html(savedHTML);
-              savedTD = null;
-              savedHTML = null;
-            }
-            savedTD = $('td:nth-child(4)', $(this).parents('tr'));
-            savedHTML = savedTD.html();
-
-            var html = [];
-            html.push('<form action="{% url thing.views.account_apikey_edit %}" method="POST" class="form-inline nomargin">');
-            html.push("{% csrf_token %}");
-            html.push('<input type="hidden" class="nomargin" name="apikey_id" value="' + keyid + '">')
-            html.push('<input type="text" class="edit-name nomargin input-medium" name="name" id="magic_keyname" value="' + $.trim(keyname) + '">');
-            html.push('</form>');
-
-            $('td:nth-child(5)', $(this).parents('tr')).html(html.join(''));
-            $('#magic_keyname').focus();
-          });
-
-          // Bind apikey delete icons
-          $('#key-table').on('click', 'a.apikey-delete', function(event) {
-            var keyid = $('td:nth-child(3)', $(this).parents('tr')).attr('data-id');
-            var keyname = $.trim($('td:nth-child(5)', $(this).parents('tr')).text());
-            $('#delete-keyid-input').val(keyid);
-            $('#keyid').text(keyid);
-            $('#keyname').text(keyname);
-          });
-          
-          // Bind skillplan edit icons
-          $('.edit-skillplan').on('click', function(event) {
-            var sp_id = $(this).parents('tr').attr('data-id');
-            var sp_name = $('td:nth-child(2)', $(this).parents('tr')).text();
-            var sp_vis = $(this).parents('tr').attr('data-vis');
-            $('#edit-skillplan-id').val(sp_id);
-            $('#edit-skillplan-name').val(sp_name);
-            $('#edit-skillplan-visibility').val(sp_vis);
-          });
-
-          // Bind skillplan delete icons
-          $('.delete-skillplan').on('click', function(event) {
-            var sp_id = $(this).parents('tr').attr('data-id');
-            var sp_name = $('td:nth-child(2)', $(this).parents('tr')).text();
-            $('#delete-skillplan-id').val(sp_id);
-            $('#delete-skillplan-name').text(sp_name);
-          });
-
-          // Bind apikey build table magic
-          $('#build-table').on('change', '.apikey-build', apikey_build);
-          apikey_build();
         });
-      </script>
+        $('#apikey-link').attr('href', 'https://support.eveonline.com/api/Key/CreatePredefined/' + n);
+        if (n == 0) {
+          $('#apikey-required').append('<li>None</li>');
+        }
+      }
+
+      $(document).ready(function() {
+        // Enable linking to a tab with a #location
+        var prefix = 'tab_';
+        var hash = document.location.hash;
+        if (hash) {
+          $('.nav-tabs a[href=' + hash.replace(prefix, "") + ']').tab('show');
+        }
+        
+        // Change window hash for page reload
+        $('.nav-tabs a').on('shown', function (e) {
+          window.location.hash = e.target.hash.replace('#', '#' + prefix);
+        });
+
+        // Bind apikey edit icons
+        $('#key-table').on('click', 'a.apikey-edit', function(event) {
+          var keyid = $('td:nth-child(3)', $(this).parents('tr')).attr('data-id');
+          var keyname = $('td:nth-child(5)', $(this).parents('tr')).text();
+
+          if (savedTD) {
+            $(savedTD).html(savedHTML);
+            savedTD = null;
+            savedHTML = null;
+          }
+          savedTD = $('td:nth-child(4)', $(this).parents('tr'));
+          savedHTML = savedTD.html();
+
+          var html = [];
+          html.push('<form action="{% url thing.views.account_apikey_edit %}" method="POST" class="form-inline nomargin">');
+          html.push("{% csrf_token %}");
+          html.push('<input type="hidden" class="nomargin" name="apikey_id" value="' + keyid + '">')
+          html.push('<input type="text" class="edit-name nomargin input-medium" name="name" id="magic_keyname" value="' + $.trim(keyname) + '">');
+          html.push('</form>');
+
+          $('td:nth-child(5)', $(this).parents('tr')).html(html.join(''));
+          $('#magic_keyname').focus();
+        });
+
+        // Bind apikey delete icons
+        $('#key-table').on('click', 'a.apikey-delete', function(event) {
+          var keyid = $('td:nth-child(3)', $(this).parents('tr')).attr('data-id');
+          var keyname = $.trim($('td:nth-child(5)', $(this).parents('tr')).text());
+          $('#delete-keyid-input').val(keyid);
+          $('#keyid').text(keyid);
+          $('#keyname').text(keyname);
+        });
+        
+        // Bind skillplan edit icons
+        $('.edit-skillplan').on('click', function(event) {
+          var sp_id = $(this).parents('tr').attr('data-id');
+          var sp_name = $('td:nth-child(2)', $(this).parents('tr')).text();
+          var sp_vis = $(this).parents('tr').attr('data-vis');
+          $('#edit-skillplan-id').val(sp_id);
+          $('#edit-skillplan-name').val(sp_name);
+          $('#edit-skillplan-visibility').val(sp_vis);
+        });
+
+        // Bind skillplan delete icons
+        $('.delete-skillplan').on('click', function(event) {
+          var sp_id = $(this).parents('tr').attr('data-id');
+          var sp_name = $('td:nth-child(2)', $(this).parents('tr')).text();
+          $('#delete-skillplan-id').val(sp_id);
+          $('#delete-skillplan-name').text(sp_name);
+        });
+
+        // Bind apikey build table magic
+        $('#build-table').on('change', '.apikey-build', apikey_build);
+        apikey_build();
+      });
+    </script>
 {% endblock %}
 
 {% block title %}Account Management{% endblock %}
