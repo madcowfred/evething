@@ -43,12 +43,16 @@ TWO_PLACES = Decimal('0.00')
 # Home page
 @login_required
 def home(request):
+    tt = TimerThing()
+
     # Create the user's profile if it doesn't already exist
     try:
         profile = request.user.get_profile()
     except UserProfile.DoesNotExist:
         profile = UserProfile(user=request.user)
         profile.save()
+
+    tt.add_time('profile')
 
     now = datetime.datetime.utcnow()
     total_balance = 0
@@ -60,6 +64,7 @@ def home(request):
     api_keys = set()
     training = set()
     chars = {}
+
     for apikey in APIKey.objects.prefetch_related('characters').filter(user=request.user).exclude(key_type=APIKey.CORPORATION_TYPE):
         api_keys.add(apikey)
         for char in apikey.characters.all():
@@ -67,6 +72,8 @@ def home(request):
             char.z_apikey = apikey
             char.z_training = {}
             total_balance += char.wallet_balance
+
+    tt.add_time('apikeys')
 
     # Do skill training check - this can't be in the model because it
     # scales like crap doing individual queries
@@ -83,9 +90,15 @@ def home(request):
         
         char.z_training['queue_duration'] = (sq.end_time - utcnow).total_seconds()
 
+    tt.add_time('training')
+
     # Do total skill point aggregation
+    total_sp = 0
     for cs in CharacterSkill.objects.select_related().filter(character__in=chars).values('character').annotate(total_sp=Sum('points')):
         chars[cs['character']].z_total_sp = cs['total_sp']
+        total_sp += cs['total_sp']
+
+    tt.add_time('total_sp')
 
     # Work out who is and isn't training
     not_training = api_keys - training
@@ -160,8 +173,7 @@ def home(request):
                 'tooltip': 'Insufficient clone!',
             })
 
-    # Total SP
-    total_sp = sum(getattr(c, 'z_total_sp', 0) for c in chars.values())
+    tt.add_time('notifications')
 
     # Work out sort order
     char_list = chars.values()
@@ -182,6 +194,7 @@ def home(request):
 
     char_list = [s[-1] for s in temp]
     
+    tt.add_time('sort')
 
     # Make separate lists of training and not training characters
     first = [char for char in char_list if char.z_training and char.id not in hide_characters]
@@ -197,7 +210,9 @@ def home(request):
     else:
         task_count = 0
 
-    return render_to_response(
+    tt.add_time('misc junk')
+
+    out = render_to_response(
         'thing/home.html',
         {
             'profile': profile,
@@ -211,6 +226,12 @@ def home(request):
         },
         context_instance=RequestContext(request)
     )
+
+    tt.add_time('template')
+    if settings.DEBUG:
+        tt.finished()
+
+    return out
 
 # ---------------------------------------------------------------------------
 # Various account stuff
