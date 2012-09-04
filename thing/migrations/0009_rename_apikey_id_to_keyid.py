@@ -10,7 +10,7 @@ class Migration(SchemaMigration):
     def forwards(self, orm):
         db.delete_primary_key('thing_apikey')
         db.rename_column('thing_apikey', 'id', 'keyid')
-        db.add_column('thing_apikey', 'id', models.AutoField(primary_key=True))
+        db.add_column('thing_apikey', 'id', models.AutoField(primary_key=True, default=0), keep_default=False)
 
     def backwards(self, orm):
         db.delete_primary_key('thing_apikey')
