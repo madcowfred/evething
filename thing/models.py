@@ -756,7 +756,8 @@ class Asset(MPTTModel):
     parent = TreeForeignKey('self', blank=True, null=True, related_name='children')
 
     character = models.ForeignKey(Character, blank=True, null=True)
-    corporation = models.ForeignKey(Corporation, blank=True, null=True)
+    #corporation = models.ForeignKey(Corporation, blank=True, null=True)
+    corporation_id = models.IntegerField(blank=True, null=True)
     system = models.ForeignKey(System, blank=True, null=True)
     station = models.ForeignKey(Station, blank=True, null=True)
 

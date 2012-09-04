@@ -512,9 +512,9 @@ def assets(request):
     # apply our initial set of filters
     #assets = Asset.objects.select_related('system', 'station', 'inv_flag')
     assets = Asset.objects.filter(
-        Q(character__in=character_ids, corporation__isnull=True)
+        Q(character__in=character_ids, corporation_id__isnull=True)
         |
-        Q(corporation__in=corporation_ids)
+        Q(corporation_id__in=corporation_ids)
     )
     assets = assets.distinct()
 
@@ -589,13 +589,11 @@ def assets(request):
         ca.z_inv_flag = inv_flag_map[ca.inv_flag_id]
         ca.z_item = item_map[ca.item_id]
 
-        # corporation and character
-        if ca.corporation_id:
-            ca.z_corporation = corporations[ca.corporation_id]
+        # character and corporation
         ca.z_character = characters[ca.character_id]
+        ca.z_corporation = corporations.get(ca.corporation_id)
 
         # work out if this is a system or station asset
-        #k = ca.system_or_station()
         k = getattr(system_map.get(ca.system_id, station_map.get(ca.station_id)), 'name', None)
 
         # zz blueprints
@@ -657,7 +655,7 @@ def assets(request):
                 # inventory group
                 ca.z_group = ca.z_inv_flag.nice_name()
                 # corporation hangar
-                if ca.z_group.startswith('CorpSAG') and hasattr(ca, 'z_corporation'):
+                if ca.z_corporation is not None and ca.z_group.startswith('CorpSAG'):
                     ca.z_group = getattr(ca.z_corporation, 'division%s' % (ca.z_group[-1]))
 
     tt.add_time('main loop')
