@@ -276,29 +276,30 @@ def spawn_jobs():
         func, url, queue = API_KEY_INFO_URL
         taskstate = status[key_info].get((url, 0), None)
 
-        # If task isn't found, make a new taskstate and queue the task
-        if taskstate is None:
-            taskstate = TaskState.objects.create(
-                key_info=key_info,
-                url=url,
-                parameter=0,
-                state=TaskState.QUEUED_STATE,
-                mod_time=now,
-                next_time=now,
-            )
+        # # If task isn't found, make a new taskstate and queue the task
+        # if taskstate is None:
+        #     taskstate = TaskState.objects.create(
+        #         key_info=key_info,
+        #         url=url,
+        #         parameter=0,
+        #         state=TaskState.QUEUED_STATE,
+        #         mod_time=now,
+        #         next_time=now,
+        #     )
 
-            start = True
+        #     start = True
         
-        # Task was found, find out if it needs starting
-        else:
-            start = taskstate.queue_now(now)
-            # Make sure we update the state to queued!
-            if start:
-                taskstate.state = TaskState.QUEUED_STATE
-                taskstate.mod_time = now
-                taskstate.save()
+        # # Task was found, find out if it needs starting
+        # else:
+        #     start = taskstate.queue_now(now)
+        #     # Make sure we update the state to queued!
+        #     if start:
+        #         taskstate.state = TaskState.QUEUED_STATE
+        #         taskstate.mod_time = now
+        #         taskstate.save()
 
         # If we need to queue this task, do so
+        taskstate, start = _init_taskstate(taskstate, key_info, url, 0, now)
         if start is True:
             f = globals()[func]
             f.apply_async(
@@ -325,29 +326,30 @@ def spawn_jobs():
 
                     taskstate = status[key_info].get((url, parameter), None)
 
-                    # If task isn't found, make a new taskstate and queue the task
-                    if taskstate is None:
-                        taskstate = TaskState.objects.create(
-                            key_info=key_info,
-                            url=url,
-                            parameter=parameter,
-                            state=TaskState.QUEUED_STATE,
-                            mod_time=now,
-                            next_time=now,
-                        )
+                    # # If task isn't found, make a new taskstate and queue the task
+                    # if taskstate is None:
+                    #     taskstate = TaskState.objects.create(
+                    #         key_info=key_info,
+                    #         url=url,
+                    #         parameter=parameter,
+                    #         state=TaskState.QUEUED_STATE,
+                    #         mod_time=now,
+                    #         next_time=now,
+                    #     )
 
-                        start = True
+                    #     start = True
 
-                    # Task was found, find out if it needs starting
-                    else:
-                        start = taskstate.queue_now(now)
-                        # Make sure we update the state to queued!
-                        if start:
-                            taskstate.state = TaskState.QUEUED_STATE
-                            taskstate.mod_time = now
-                            taskstate.save()
+                    # # Task was found, find out if it needs starting
+                    # else:
+                    #     start = taskstate.queue_now(now)
+                    #     # Make sure we update the state to queued!
+                    #     if start:
+                    #         taskstate.state = TaskState.QUEUED_STATE
+                    #         taskstate.mod_time = now
+                    #         taskstate.save()
 
                     # If we need to queue this task, do so
+                    taskstate, start = _init_taskstate(taskstate, key_info, url, parameter, now)
                     if start is True:
                         f = globals()[func]
                         f.apply_async(
@@ -373,35 +375,61 @@ def spawn_jobs():
 
                 taskstate = status[key_info].get((url, character.id), None)
 
-                # If task isn't found, make a new taskstate and queue the task
-                if taskstate is None:
-                    taskstate = TaskState.objects.create(
-                        key_info=key_info,
-                        url=url,
-                        parameter=character.id,
-                        state=TaskState.QUEUED_STATE,
-                        mod_time=now,
-                        next_time=now,
-                    )
+                # # If task isn't found, make a new taskstate and queue the task
+                # if taskstate is None:
+                #     taskstate = TaskState.objects.create(
+                #         key_info=key_info,
+                #         url=url,
+                #         parameter=character.id,
+                #         state=TaskState.QUEUED_STATE,
+                #         mod_time=now,
+                #         next_time=now,
+                #     )
 
-                    start = True
+                #     start = True
 
-                # Task was found, find out if it needs starting
-                else:
-                    start = taskstate.queue_now(now)
-                    # Make sure we update the state to queued!
-                    if start:
-                        taskstate.state = TaskState.QUEUED_STATE
-                        taskstate.mod_time = now
-                        taskstate.save()
+                # # Task was found, find out if it needs starting
+                # else:
+                #     start = taskstate.queue_now(now)
+                #     # Make sure we update the state to queued!
+                #     if start:
+                #         taskstate.state = TaskState.QUEUED_STATE
+                #         taskstate.mod_time = now
+                #         taskstate.save()
 
                 # If we need to queue this task, do so
+                taskstate, start = _init_taskstate(taskstate, key_info, url, character.id, now)
                 if start is True:
                     f = globals()[func]
                     f.apply_async(
                         args=(url, apikey.id, taskstate.id, character.id),
                         queue=queue,
                     )
+
+def _init_taskstate(taskstate, key_info, url, parameter, now):
+    # If task isn't found, make a new taskstate and queue the task
+    if taskstate is None:
+        taskstate = TaskState.objects.create(
+            key_info=key_info,
+            url=url,
+            parameter=parameter,
+            state=TaskState.QUEUED_STATE,
+            mod_time=now,
+            next_time=now,
+        )
+
+        start = True
+    
+    # Task was found, find out if it needs starting
+    else:
+        start = taskstate.queue_now(now)
+        # Make sure we update the state to queued!
+        if start:
+            taskstate.state = TaskState.QUEUED_STATE
+            taskstate.mod_time = now
+            taskstate.save()
+
+    return taskstate, start
 
 # ---------------------------------------------------------------------------
 # Account balances
