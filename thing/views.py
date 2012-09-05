@@ -1162,6 +1162,8 @@ def character_anonymous_skillplan(request, anon_key, skillplan_id):
     return character_skillplan_common(request, character, skillplan, anonymous=True)
 
 def character_skillplan_common(request, character, skillplan, public=True, anonymous=False):
+    tt = TimerThing('skillplan_common')
+
     utcnow = datetime.datetime.utcnow()
 
     implants_visible = not public
@@ -1177,10 +1179,14 @@ def character_skillplan_common(request, character, skillplan, public=True, anony
 
     show_trained = ('show_trained' in request.GET)
 
+    tt.add_time('init')
+
     # Build a CharacterSkill lookup dictionary
     learned = {}
-    for cs in CharacterSkill.objects.filter(character=character).select_related():
+    for cs in CharacterSkill.objects.filter(character=character).select_related('skill__item'):
         learned[cs.skill.item.id] = cs
+
+    tt.add_time('char skills')
 
     # Possibly get training information
     training_skill = None
@@ -1188,6 +1194,8 @@ def character_skillplan_common(request, character, skillplan, public=True, anony
         sqs = list(SkillQueue.objects.select_related('skill__item').filter(character=character, end_time__gte=utcnow))
         if sqs:
             training_skill = sqs[0]
+
+    tt.add_time('training')
 
     # Initialise stat stuff
     remap_stats = dict(
@@ -1231,14 +1239,14 @@ def character_skillplan_common(request, character, skillplan, public=True, anony
                 # Mark it as injected if level 0
                 if cs.level == 0:
                     entry.z_injected = True
-                
                 # It might already be trained
-                if cs.level >= entry.sp_skill.level:
+                elif cs.level >= entry.sp_skill.level:
                     # If we don't care about trained skills, skip this skill entirely
                     if not show_trained:
                         continue
 
                     entry.z_trained = True
+            # Not learned, need to buy it
             else:
                 entry.z_buy = True
 
@@ -1268,7 +1276,9 @@ def character_skillplan_common(request, character, skillplan, public=True, anony
 
         entries.append(entry)
 
-    return render_to_response(
+    tt.add_time('skillplan loop')
+
+    out = render_to_response(
         'thing/character_skillplan.html',
         {
             'show_trained': show_trained,
@@ -1282,6 +1292,12 @@ def character_skillplan_common(request, character, skillplan, public=True, anony
         },
         context_instance=RequestContext(request)
     )
+
+    tt.add_time('template')
+    if settings.DEBUG:
+        tt.finished()
+
+    return out
 
 # ---------------------------------------------------------------------------
 # Contracts
