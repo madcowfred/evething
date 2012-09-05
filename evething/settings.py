@@ -248,6 +248,16 @@ CELERYBEAT_SCHEDULE = {
         'args': (),
     },
 
+    # update alliance list every hour
+    'alliance-list': {
+        'task': 'thing.tasks.alliance_list',
+        'schedule': timedelta(hours=1),
+        'options': {
+            'expires': 59 * 60,
+        },
+        'args': (),
+    },
+
     # update conquerable stations every hour
     'conquerable-stations': {
         'task': 'thing.tasks.conquerable_stations',

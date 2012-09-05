@@ -1563,6 +1563,47 @@ def _wallet_transactions_work(url, job, character, corp_wallet=None):
 # ---------------------------------------------------------------------------
 # Other periodic tasks
 # ---------------------------------------------------------------------------
+# Periodic task to update the alliance list and Corporation.alliance fields
+ALLIANCE_LIST_URL = urljoin(settings.API_HOST, '/eve/AllianceList.xml.aspx')
+
+@task
+def alliance_list():
+    r = _session.get(ALLIANCE_LIST_URL, prefetch=True)
+    root = ET.fromstring(r.text)
+
+    bulk_data = {}
+    for row in root.findall('result/rowset/row'):
+        bulk_data[int(row.attrib['allianceID'])] = row
+
+    data_map = Alliance.objects.in_bulk(bulk_data.keys())
+
+    new = []
+    # <row name="Goonswarm Federation" shortName="CONDI" allianceID="1354830081" executorCorpID="1344654522" memberCount="8960" startDate="2010-06-01 05:36:00"/>
+    for id, row in bulk_data.items():
+        alliance = data_map.get(id, None)
+        if alliance is not None:
+            continue
+
+        new.append(Alliance(
+            id=id,
+            name=row.attrib['name'],
+            short_name=row.attrib['shortName'],
+        ))
+
+    if new:
+        Alliance.objects.bulk_create(new)
+
+    # update any corporations in each alliance
+    for id, row in bulk_data.items():
+        corp_ids = []
+        for corp_row in row.findall('rowset/row'):
+            corp_ids.append(int(corp_row.attrib['corporationID']))
+
+        if corp_ids:
+            Corporation.objects.filter(pk__in=corp_ids).update(alliance=id)
+            Corporation.objects.filter(alliance_id=id).exclude(pk__in=corp_ids).update(alliance=None)
+
+# ---------------------------------------------------------------------------
 # Periodic task to update conquerable statio names
 CONQUERABLE_STATION_URL = urljoin(settings.API_HOST, '/eve/ConquerableStationList.xml.aspx')
 
