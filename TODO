@@ -80,8 +80,6 @@
       # Station name
       # System name
     = Magical JS buttons to add/remove extra search filters
-  - Work out why the initial Asset view query is so slow, 1300 rows shouldn't take half a second. Possibly
-    related to the pile of horrible LEFT OUTER JOINs, try querying (items, characters, etc) separately.
 
 * views.blueprints:
   - Work out a way to be able to say "I want to make 100 Blackbirds and 300 rigs to go on them" and get a BPCalc
@@ -100,12 +98,9 @@
     = Should display training time for each further level
 
 * views.contracts:
-  - Work out how in the hell to track them for Trade
   - Summary table similar to orders
 
 * views.home:
-  - Fix mobile browser bugs:
-    = Home page does not do responsive things with some themes (slate at least)
   - Add options to hide corp wallet/event log sections
 
 * views.market_scan:
