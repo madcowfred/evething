@@ -303,7 +303,7 @@
                   </tr>
                 </thead>
                 <tbody>
-                  {% for fs in char.factionstanding_set.select_related().all() %}
+                  {% for fs in faction_standings %}
                   <tr>
                     <td>{{ fs.faction.name }}</td>
                     <td class="r">{{ fs.standing }}</td>
@@ -320,7 +320,7 @@
                   </tr>
                 </thead>
                 <tbody>
-                  {% for cs in char.corporationstanding_set.select_related().all() %}
+                  {% for cs in corp_standings %}
                   <tr>
                     <td>{{ cs.corporation.name }}</td>
                     <td class="r">{{ cs.standing }}</td>

@@ -953,6 +953,8 @@ def character_anonymous(request, anon_key):
 
 # Common code for character views
 def character_common(request, char, public=True, anonymous=False):
+    tt = TimerThing('character_common')
+
     # Retrieve skill queue
     queue = SkillQueue.objects.select_related('skill__item', 'character__corporation').filter(character=char, end_time__gte=datetime.datetime.utcnow()).order_by('end_time')
     if (public is False or anonymous is True or char.config.show_skill_queue) and queue:
@@ -964,6 +966,8 @@ def character_common(request, char, public=True, anonymous=False):
         training_id = None
         training_level = None
         queue_duration = None
+
+    tt.add_time('skill queue')
 
     # Retrieve the list of skills and group them by market group
     skills = OrderedDict()
@@ -1015,6 +1019,7 @@ def character_common(request, char, public=True, anonymous=False):
     if v:
         skills[k] = v
 
+    tt.add_time('skill group')
 
     # Retrieve skillplans
     user_ids = APIKey.objects.filter(characters__name=char.name).values_list('user_id', flat=True)
@@ -1050,6 +1055,8 @@ def character_common(request, char, public=True, anonymous=False):
         else:
             public_plans.append(sp)
 
+    tt.add_time('skill plans')
+
     # Do various visibility things here instead of in awful template code
     show = {
         'implants': not anonymous and (not public or char.config.show_implants),
@@ -1058,8 +1065,15 @@ def character_common(request, char, public=True, anonymous=False):
         'wallet': not anonymous and (not public or char.config.show_wallet),
     }
 
+    if show['standings']:
+        faction_standings = char.factionstanding_set.select_related().all()
+        corp_standings = char.corporationstanding_set.select_related().all()
+    else:
+        faction_standings = []
+        corp_standings = []
+
     # Render template
-    return render_to_response(
+    out = render_to_response(
         'thing/character.html',
         {
             'char': char,
@@ -1073,9 +1087,17 @@ def character_common(request, char, public=True, anonymous=False):
             'queue_duration': queue_duration,
             'user_plans': user_plans,
             'public_plans': public_plans,
+            'faction_standings': faction_standings,
+            'corp_standings': corp_standings,
         },
         context_instance=RequestContext(request)
     )
+
+    tt.add_time('template')
+    if settings.DEBUG:
+        tt.finished()
+
+    return out
 
 ANON_KEY_RE = re.compile(r'^[a-z0-9]+$')
 @login_required
