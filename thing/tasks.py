@@ -64,7 +64,7 @@ CHAR_URLS = {
 }
 CORP_URLS = {
     APIKey.CORP_ACCOUNT_BALANCE_MASK: ('account_balance', '/corp/AccountBalance.xml.aspx', 'et_medium'),
-    APIKey.CORP_ASSET_LIST_MASK: ('asset_list', '/char/AssetList.xml.aspx', 'et_medium'),
+    APIKey.CORP_ASSET_LIST_MASK: ('asset_list', '/corp/AssetList.xml.aspx', 'et_medium'),
     APIKey.CORP_CONTRACTS_MASK: ('contracts', '/corp/Contracts.xml.aspx', 'et_medium'),
     APIKey.CORP_CORPORATION_SHEET_MASK: ('corporation_sheet', '/corp/CorporationSheet.xml.aspx', 'et_medium'),
     APIKey.CORP_MARKET_ORDERS_MASK: ('market_orders', '/corp/MarketOrders.xml.aspx', 'et_medium'),
