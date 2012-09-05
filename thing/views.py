@@ -516,7 +516,7 @@ def assets(request):
         |
         Q(corporation_id__in=corporation_ids)
     )
-    assets = assets.distinct()
+    #assets = assets.distinct()
 
     tt.add_time('init')
 
@@ -533,9 +533,9 @@ def assets(request):
             # character
             if ft == 'char' and fv.isdigit():
                 if fc == 'eq':
-                    assets = assets.filter(character_id=fv, corporation__isnull=True)
+                    assets = assets.filter(character_id=fv, corporation_id__isnull=True)
                 elif fc == 'ne':
-                    assets = assets.exclude(character_id=fv, corporation__isnull=True)
+                    assets = assets.exclude(character_id=fv, corporation_id__isnull=True)
 
                 filters.append((ft, fc, int(fv)))
 
