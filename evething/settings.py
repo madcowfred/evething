@@ -111,6 +111,8 @@ INSTALLED_APPS = (
     'south',
     'djcelery',
     'mptt',
+    'jinja2cache',
+    'coffin',
     'thing',
 )
 
@@ -165,6 +167,11 @@ ICON_THEMES = [
 from local_settings import *
 TEMPLATE_DEBUG = DEBUG
 
+
+# Jinja2 cache
+JINJA2_CACHE_ENABLED = True
+JINJA2_CACHE_BACKEND = 'locmem://'
+JINJA2_CACHE_MSTAT_DISABLED = True
 
 # Celery setup
 import djcelery
