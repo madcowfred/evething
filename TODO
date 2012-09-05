@@ -34,9 +34,6 @@
     = Will require modifying all view code to use .extra() and a binary AND on the access_mask field, ugh
       # apikey.get_masks() and comparing the list to apikey.foo_MASK maybe? Possibly slow.
 
-* tasks.alliance_list:
-  - Port from import.py, timer?
-
 * tasks.api_key_info:
   = When a key is successfully updated, check the APICache for any 221 "derp check access" errors. If any are found, purge
     them from the cache and also the related TaskState object.
