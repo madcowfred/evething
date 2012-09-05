@@ -24,6 +24,8 @@ class TimerThing:
         for i in range(1, len(self.times)):
             t, name = self.times[i]
             print '%-15s: %.3fs' % (name, t - self.times[i-1][0])
+        print '-' * 23
+        print '%-15s: %.3fs' % ('total', self.times[-1][0] - self.times[0][0])
 
 
 def handle_skillplan_upload(request):
