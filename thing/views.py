@@ -1066,8 +1066,8 @@ def character_common(request, char, public=True, anonymous=False):
     }
 
     if show['standings']:
-        faction_standings = char.factionstanding_set.select_related().all()
-        corp_standings = char.corporationstanding_set.select_related().all()
+        faction_standings = list(char.factionstanding_set.select_related().all())
+        corp_standings = list(char.corporationstanding_set.select_related().all())
     else:
         faction_standings = []
         corp_standings = []
