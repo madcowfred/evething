@@ -1700,48 +1700,68 @@ def price_updater():
         bp.item.save()
 
 # ---------------------------------------------------------------------------
+# Periodic task to try to fix *UNKNOWN* SimpleCharacter objects
+CHAR_NAME_URL = urljoin(settings.API_HOST, '/eve/CharacterName.xml.aspx')
+CORP_SHEET_URL = urljoin(settings.API_HOST, CORP_URLS[APIKey.CORP_CORPORATION_SHEET_MASK][1])
+
 @task
-def unknown_characters():
-    pass
-    # new_chars = []
-    # new_corps = []
+def fix_unknown_simplecharacters():
+    # Fetch all unknown SimpleCharacter objects
+    sc_map = {}
+    for sc in SimpleCharacter.objects.filter(name='*UNKNOWN*'):
+        sc_map[sc.id] = sc
+    
+    ids = sc_map.keys()
+    if len(ids) == 0:
+        return
 
-    # # Go look up all of those names now
-    # lookup_map = {}
-    # for i in range(0, len(new_ids), 250):
-    #     params = { 'ids': ','.join(map(str, new_ids[i:i+250])) }
-    #     if job.fetch_api(CHAR_NAME_URL, params, use_auth=False) is False or job.root is None:
-    #         logger.warn('uh-oh')
-    #         return
+    # Go fetch names for them
+    name_map = {}
+    for i in range(0, len(ids), 250):
+        params = { 'ids': ','.join(map(str, ids[i:i+250])) }
 
-    #     # <row name="Tazuki Falorn" characterID="1759080617"/>
-    #     for row in job.root.findall('result/rowset/row'):
-    #         lookup_map[int(row.attrib['characterID'])] = row.attrib['name']
+        r = _session.post(CHAR_NAME_URL, params, prefetch=True)
+        root = ET.fromstring(r.text)
 
-    # # Ugh, now go look up all of the damn names just in case they're corporations
-    # for id, name in lookup_map.items():
-    #     params = { 'corporationID': id }
-    #     # Not a corporation
-    #     if job.fetch_api(CORP_SHEET_URL, params, use_auth=False, log_error=False) is False or job.root is None:
-    #         new_chars.append(SimpleCharacter(
-    #             id=id,
-    #             name=name,
-    #         ))
-    #     else:
-    #         new_corps.append(Corporation(
-    #             id=id,
-    #             name=name,
-    #             ticker=job.root.find('result/ticker').text,
-    #         ))
+        error = root.find('error')
+        if error is not None:
+            logger.warn('fix_unknown_characters: %s', error.text)
+            continue
 
-    # # Now we can go create all of those new objects
-    # char_map = SimpleCharacter.objects.in_bulk([c.id for c in new_chars])
-    # new_chars = [c for c in new_chars if c.id not in char_map]
-    # SimpleCharacter.objects.bulk_create(new_chars)
+        # <row name="Tazuki Falorn" characterID="1759080617"/>
+        for row in root.findall('result/rowset/row'):
+            name_map[int(row.attrib['characterID'])] = row.attrib['name']
 
-    # corp_map = Corporation.objects.in_bulk([c.id for c in new_corps])
-    # new_corps = [c for c in new_corps if c.id not in corp_map]
-    # Corporation.objects.bulk_create(new_corps)
+    if len(name_map) == 0:
+        return
+
+    # Ugh, now go look up all of the damn names just in case they're corporations
+    new_corps = []
+    for id, name in name_map.items():
+        params = { 'corporationID': id }
+        r = _session.post(CORP_SHEET_URL, params, prefetch=True)
+        root = ET.fromstring(r.text)
+
+        error = root.find('error')
+        if error is not None:
+            # Not a corporation, update the SimpleCharacter object
+            sc = sc_map.get(id)
+            sc.name = name
+            sc.save()
+        else:
+            new_corps.append(Corporation(
+                id=id,
+                name=name,
+                ticker=root.find('result/ticker').text,
+            ))
+
+    # Now we can create the new corporation objects
+    corp_map = Corporation.objects.in_bulk([c.id for c in new_corps])
+    new_corps = [c for c in new_corps if c.id not in corp_map]
+    Corporation.objects.bulk_create(new_corps)
+
+    # And finally delete all of the things we probably added
+    SimpleCharacter.objects.filter(pk__in=name_map.keys(), name='*UNKNOWN*').delete()
 
 # ---------------------------------------------------------------------------
 # Parse an API result date into a datetime object
