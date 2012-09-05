@@ -594,7 +594,7 @@ def assets(request):
         ca.z_corporation = corporations.get(ca.corporation_id)
 
         # work out if this is a system or station asset
-        k = getattr(system_map.get(ca.system_id, station_map.get(ca.station_id)), 'name', None)
+        k = getattr(station_map.get(ca.station_id, system_map.get(ca.system_id)), 'name', None)
 
         # zz blueprints
         if ca.z_item.item_group.category.name == 'Blueprint':
@@ -646,8 +646,7 @@ def assets(request):
 
             # Celestials (containers) need some special casing
             if parent.z_item.item_group.category.name == 'Celestial':
-                if ca.z_inv_flag.name == 'Locked':
-                    ca.z_locked = True
+                ca.z_locked = (ca.z_inv_flag.name == 'Locked')
 
                 ca.z_group = ca.z_item.item_group.category.name
 
