@@ -77,6 +77,7 @@ class APIKey(models.Model):
         CHAR_MARKET_ORDERS_MASK,
         CHAR_SKILL_QUEUE_MASK,
         CHAR_STANDINGS_MASK,
+        CHAR_WALLET_JOURNAL_MASK,
         CHAR_WALLET_TRANSACTIONS_MASK,
     )
 
@@ -94,6 +95,7 @@ class APIKey(models.Model):
         CORP_CONTRACTS_MASK,
         CORP_CORPORATION_SHEET_MASK,
         CORP_MARKET_ORDERS_MASK,
+        CORP_WALLET_JOURNAL_MASK,
         CORP_WALLET_TRANSACTIONS_MASK,
     )
 
@@ -664,6 +666,30 @@ class Campaign(models.Model):
             ),
             date__range=(self.start_date, self.end_date),
         )
+
+# ---------------------------------------------------------------------------
+# Wallet journal entries
+class JournalEntry(models.Model):
+    id = models.BigIntegerField(primary_key=True)
+    
+    character = models.ForeignKey(Character)
+    corp_wallet = models.ForeignKey(CorpWallet, null=True, blank=True)
+
+    date = models.DateTimeField(db_index=True)
+    ref_type = models.ForeignKey('RefType')
+    
+    owner1_id = models.IntegerField()
+    owner2_id = models.IntegerField()
+    
+    arg_name = models.CharField(max_length=128)
+    arg_id = models.BigIntegerField()
+    
+    amount = models.DecimalField(max_digits=14, decimal_places=2)
+    balance = models.DecimalField(max_digits=17, decimal_places=2)
+    reason = models.CharField(max_length=128)
+
+    tax_corp = models.ForeignKey(Corporation, null=True, blank=True)
+    tax_amount = models.DecimalField(max_digits=14, decimal_places=2)
 
 # ---------------------------------------------------------------------------
 # Wallet transactions

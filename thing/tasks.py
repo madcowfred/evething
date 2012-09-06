@@ -56,10 +56,11 @@ CHAR_URLS = {
     APIKey.CHAR_ASSET_LIST_MASK: ('asset_list', '/char/AssetList.xml.aspx', 'et_medium'),
     APIKey.CHAR_CHARACTER_SHEET_MASK: ('character_sheet', '/char/CharacterSheet.xml.aspx', 'et_medium'),
     APIKey.CHAR_CONTRACTS_MASK: ('contracts', '/char/Contracts.xml.aspx', 'et_medium'),
-    #APIKey.CHAR_LOCATIONS_MASK: ('locations', '/char/Locations.xml.aspx', 'et_medium'),
+    # APIKey.CHAR_LOCATIONS_MASK: ('locations', '/char/Locations.xml.aspx', 'et_medium'),
     APIKey.CHAR_MARKET_ORDERS_MASK: ('market_orders', '/char/MarketOrders.xml.aspx', 'et_medium'),
     APIKey.CHAR_SKILL_QUEUE_MASK: ('skill_queue', '/char/SkillQueue.xml.aspx', 'et_medium'),
     APIKey.CHAR_STANDINGS_MASK: ('standings', '/char/Standings.xml.aspx', 'et_medium'),
+    APIKey.CHAR_WALLET_JOURNAL_MASK: ('wallet_journal', '/char/WalletJournal.xml.aspx', 'et_medium'),
     APIKey.CHAR_WALLET_TRANSACTIONS_MASK: ('wallet_transactions', '/char/WalletTransactions.xml.aspx', 'et_medium'),
 }
 CORP_URLS = {
@@ -68,6 +69,7 @@ CORP_URLS = {
     APIKey.CORP_CONTRACTS_MASK: ('contracts', '/corp/Contracts.xml.aspx', 'et_medium'),
     APIKey.CORP_CORPORATION_SHEET_MASK: ('corporation_sheet', '/corp/CorporationSheet.xml.aspx', 'et_medium'),
     APIKey.CORP_MARKET_ORDERS_MASK: ('market_orders', '/corp/MarketOrders.xml.aspx', 'et_medium'),
+    APIKey.CORP_WALLET_JOURNAL_MASK: ('wallet_journal', '/corp/WalletJournal.xml.aspx', 'et_medium'),
     APIKey.CORP_WALLET_TRANSACTIONS_MASK: ('wallet_transactions', '/corp/WalletTransactions.xml.aspx', 'et_medium'),
 }
 
@@ -1374,6 +1376,145 @@ def standings(url, apikey_id, taskstate_id, character_id):
 
     # completed ok
     job.completed()
+
+# ---------------------------------------------------------------------------
+# Fetch wallet journal entries
+@task
+def wallet_journal(url, apikey_id, taskstate_id, character_id):
+    job = APIJob(apikey_id, taskstate_id)
+    if job.ready is False:
+        return
+    character = Character.objects.get(pk=character_id)
+
+    # Corporation key, visit each related CorpWallet
+    if job.apikey.corp_character:
+        for corpwallet in job.apikey.corp_character.corporation.corpwallet_set.all():
+            result = _wallet_journal_work(url, job, character, corpwallet)
+            if result is False:
+                job.failed()
+                return
+
+    # Account/character key
+    else:
+        result = _wallet_journal_work(url, job, character)
+        if result is False:
+            job.failed()
+            return
+
+    job.completed()
+
+# Do the actual work for wallet journal entries
+def _wallet_journal_work(url, job, character, corp_wallet=None):
+    # Generate a character id map
+    char_id_map = {}
+    for char in Character.objects.all():
+        char_id_map[char.id] = char
+
+    # Initialise stuff
+    params = {
+        'characterID': character.id,
+        'rowCount': TRANSACTION_ROWS,
+    }
+
+    # Corporation key
+    if job.apikey.corp_character:
+        params['accountKey'] = corp_wallet.account_key
+        j_filter = JournalEntry.objects.filter(corp_wallet=corp_wallet)
+    # Account/Character key
+    else:
+        j_filter = JournalEntry.objects.filter(corp_wallet=None, character=character)
+
+    # Loop until we run out of entries
+    bulk_data = OrderedDict()
+    ref_type_ids = set()
+    tax_corp_ids = set()
+    
+    while True:
+        if job.fetch_api(url, params) is False or job.root is None:
+            return False
+
+        refID = 0
+        count = 0
+        for row in job.root.findall('result/rowset/row'):
+            count += 1
+
+            refID = int(row.attrib['refID'])
+            ref_type_ids.add(int(row.attrib['refTypeID']))
+            if row.attrib.get('taxReceiverID', ''):
+                tax_corp_ids.add(int(row.attrib['taxReceiverID']))
+
+            bulk_data[refID] = row
+
+        if count == TRANSACTION_ROWS:
+            params['fromID'] = refID
+        else:
+            break
+
+    # If we found some data, deal with it
+    if bulk_data:
+        # Fetch all existing journal entries
+        j_map = j_filter.in_bulk(bulk_data.keys())
+        # Fetch ref types
+        rt_map = RefType.objects.in_bulk(ref_type_ids)
+        # Fetch tax corporations
+        corp_map = Corporation.objects.in_bulk(tax_corp_ids)
+
+        new = []
+        for refID, row in bulk_data.items():
+            # Skip JournalEntry objects that we already have
+            if refID in j_map:
+                continue
+
+            # RefType
+            refTypeID = int(row.attrib['refTypeID'])
+            ref_type = rt_map.get(refTypeID)
+            if ref_type is None:
+                logger.warn('wallet_journal: invalid refTypeID #%s', refTypeID)
+                continue
+
+            # Tax receiver corporation ID - doesn't exist for /corp/ calls?
+            taxReceiverID = row.attrib.get('taxReceiverID', '')
+            if taxReceiverID.isdigit():
+                tax_corp = corp_map.get(int(taxReceiverID))
+                if tax_corp is None:
+                    logger.warn('wallet_journal: invalid taxReceiverID #%s', taxReceiverID)
+                    continue
+            else:
+                tax_corp = None
+
+            # Tax amount - doesn't exist for /corp/ calls?
+            taxAmount = row.attrib.get('taxAmount', '')
+            if taxAmount:
+                tax_amount = Decimal(taxAmount)
+            else:
+                tax_amount = 0
+
+            # Create the JournalEntry
+            je = JournalEntry(
+                id=refID,
+                character=character,
+                date=parse_api_date(row.attrib['date']),
+                ref_type=ref_type,
+                owner1_id=row.attrib['ownerID1'],
+                owner2_id=row.attrib['ownerID2'],
+                arg_name=row.attrib['argName1'],
+                arg_id=row.attrib['argID1'],
+                amount=Decimal(row.attrib['amount']),
+                balance=Decimal(row.attrib['balance']),
+                reason=row.attrib['reason'],
+                tax_corp=tax_corp,
+                tax_amount=tax_amount,
+            )
+            if job.apikey.corp_character:
+                je.corp_wallet = corp_wallet
+
+            new.append(je)
+
+        # Now we can add the entries if there are any
+        if new:
+            JournalEntry.objects.bulk_create(new)
+
+    return True
 
 # ---------------------------------------------------------------------------
 # Fetch wallet transactions
