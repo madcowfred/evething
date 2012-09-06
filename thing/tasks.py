@@ -1762,7 +1762,7 @@ def fix_unknown_simplecharacters():
         params = { 'ids': ','.join(map(str, ids[i:i+250])) }
 
         r = _session.post(CHAR_NAME_URL, params, prefetch=True)
-        root = ET.fromstring(r.text)
+        root = ET.fromstring(unicode(r.text, errors='ignore'))
 
         error = root.find('error')
         if error is not None:
