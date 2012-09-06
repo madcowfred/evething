@@ -169,7 +169,7 @@ class APIJob:
         # Parse the data if there is any
         if data:
             try:
-                self.root = ET.fromstring(data.encode('utf-8'))
+                self.root = parse_xml(data)
             except ET.ParseError:
                 return False
 
@@ -1569,7 +1569,7 @@ ALLIANCE_LIST_URL = urljoin(settings.API_HOST, '/eve/AllianceList.xml.aspx')
 @task
 def alliance_list():
     r = _session.get(ALLIANCE_LIST_URL, prefetch=True)
-    root = ET.fromstring(r.text)
+    root = parse_xml(r.text)
 
     bulk_data = {}
     for row in root.findall('result/rowset/row'):
@@ -1610,7 +1610,7 @@ CONQUERABLE_STATION_URL = urljoin(settings.API_HOST, '/eve/ConquerableStationLis
 @task
 def conquerable_stations():
     r = _session.get(CONQUERABLE_STATION_URL, prefetch=True)
-    root = ET.fromstring(r.text)
+    root = parse_xml(r.text)
 
     # Build a stationID:row dictionary
     bulk_data = {}
@@ -1665,7 +1665,7 @@ def history_updater():
         # Fetch the XML
         url = HISTORY_URL % (','.join(str(z) for z in item_ids[i:i+50]))
         r = _session.get(url, prefetch=True)
-        root = ET.fromstring(r.text)
+        root = parse_xml(r.text)
         
         # Do stuff
         for t in root.findall('price_history/type'):
@@ -1719,7 +1719,7 @@ def price_updater():
         # Retrieve market data and parse the XML
         url = PRICE_URL % (','.join(str(item_id) for item_id in item_ids[i:i+PRICE_PER_REQUEST]))
         r = _session.get(url, prefetch=True)
-        root = ET.fromstring(r.text)
+        root = parse_xml(r.text)
         
         # Update item prices
         for t in root.findall('price_data/type'):
@@ -1762,7 +1762,7 @@ def fix_unknown_simplecharacters():
         params = { 'ids': ','.join(map(str, ids[i:i+250])) }
 
         r = _session.post(CHAR_NAME_URL, params, prefetch=True)
-        root = ET.fromstring(unicode(r.text, errors='ignore'))
+        root = parse_xml(r.text)
 
         error = root.find('error')
         if error is not None:
@@ -1781,7 +1781,7 @@ def fix_unknown_simplecharacters():
     for id, name in name_map.items():
         params = { 'corporationID': id }
         r = _session.post(CORP_SHEET_URL, params, prefetch=True)
-        root = ET.fromstring(r.text)
+        root = parse_xml(r.text)
 
         error = root.find('error')
         if error is not None:
@@ -1803,6 +1803,11 @@ def fix_unknown_simplecharacters():
 
     # And finally delete all of the things we probably added
     SimpleCharacter.objects.filter(pk__in=name_map.keys(), name='*UNKNOWN*').delete()
+
+# ---------------------------------------------------------------------------
+# Parse data into an XML ElementTree
+def parse_xml(data):
+    return ET.fromstring(data.encode('utf-8'))
 
 # ---------------------------------------------------------------------------
 # Parse an API result date into a datetime object
