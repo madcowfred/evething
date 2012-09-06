@@ -10,10 +10,11 @@ class Migration(SchemaMigration):
     def forwards(self, orm):
         # Adding model 'JournalEntry'
         db.create_table('thing_journalentry', (
-            ('id', self.gf('django.db.models.fields.BigIntegerField')(primary_key=True)),
+            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('character', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['thing.Character'])),
             ('corp_wallet', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['thing.CorpWallet'], null=True, blank=True)),
             ('date', self.gf('django.db.models.fields.DateTimeField')(db_index=True)),
+            ('ref_id', self.gf('django.db.models.fields.BigIntegerField')()),
             ('ref_type', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['thing.RefType'])),
             ('owner1_id', self.gf('django.db.models.fields.IntegerField')()),
             ('owner2_id', self.gf('django.db.models.fields.IntegerField')()),
@@ -21,7 +22,7 @@ class Migration(SchemaMigration):
             ('arg_id', self.gf('django.db.models.fields.BigIntegerField')()),
             ('amount', self.gf('django.db.models.fields.DecimalField')(max_digits=14, decimal_places=2)),
             ('balance', self.gf('django.db.models.fields.DecimalField')(max_digits=17, decimal_places=2)),
-            ('reason', self.gf('django.db.models.fields.CharField')(max_length=128)),
+            ('reason', self.gf('django.db.models.fields.CharField')(max_length=255)),
             ('tax_corp', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['thing.Corporation'], null=True, blank=True)),
             ('tax_amount', self.gf('django.db.models.fields.DecimalField')(max_digits=14, decimal_places=2)),
         ))
@@ -323,10 +324,11 @@ class Migration(SchemaMigration):
             'character': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['thing.Character']"}),
             'corp_wallet': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['thing.CorpWallet']", 'null': 'True', 'blank': 'True'}),
             'date': ('django.db.models.fields.DateTimeField', [], {'db_index': 'True'}),
-            'id': ('django.db.models.fields.BigIntegerField', [], {'primary_key': 'True'}),
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'owner1_id': ('django.db.models.fields.IntegerField', [], {}),
             'owner2_id': ('django.db.models.fields.IntegerField', [], {}),
-            'reason': ('django.db.models.fields.CharField', [], {'max_length': '128'}),
+            'reason': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
+            'ref_id': ('django.db.models.fields.BigIntegerField', [], {}),
             'ref_type': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['thing.RefType']"}),
             'tax_amount': ('django.db.models.fields.DecimalField', [], {'max_digits': '14', 'decimal_places': '2'}),
             'tax_corp': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['thing.Corporation']", 'null': 'True', 'blank': 'True'})

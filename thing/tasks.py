@@ -1453,7 +1453,9 @@ def _wallet_journal_work(url, job, character, corp_wallet=None):
     # If we found some data, deal with it
     if bulk_data:
         # Fetch all existing journal entries
-        j_map = j_filter.in_bulk(bulk_data.keys())
+        j_map = {}
+        for je in j_filter.filter(ref_id__in=bulk_data.keys()):
+            j_map[je.ref_id] = je
         # Fetch ref types
         rt_map = RefType.objects.in_bulk(ref_type_ids)
         # Fetch tax corporations
@@ -1491,9 +1493,9 @@ def _wallet_journal_work(url, job, character, corp_wallet=None):
 
             # Create the JournalEntry
             je = JournalEntry(
-                id=refID,
                 character=character,
                 date=parse_api_date(row.attrib['date']),
+                ref_id=refID,
                 ref_type=ref_type,
                 owner1_id=row.attrib['ownerID1'],
                 owner2_id=row.attrib['ownerID2'],

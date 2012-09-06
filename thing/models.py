@@ -670,12 +670,11 @@ class Campaign(models.Model):
 # ---------------------------------------------------------------------------
 # Wallet journal entries
 class JournalEntry(models.Model):
-    id = models.BigIntegerField(primary_key=True)
-    
     character = models.ForeignKey(Character)
     corp_wallet = models.ForeignKey(CorpWallet, null=True, blank=True)
 
     date = models.DateTimeField(db_index=True)
+    ref_id = models.BigIntegerField()
     ref_type = models.ForeignKey('RefType')
     
     owner1_id = models.IntegerField()
@@ -686,7 +685,7 @@ class JournalEntry(models.Model):
     
     amount = models.DecimalField(max_digits=14, decimal_places=2)
     balance = models.DecimalField(max_digits=17, decimal_places=2)
-    reason = models.CharField(max_length=128)
+    reason = models.CharField(max_length=255)
 
     tax_corp = models.ForeignKey(Corporation, null=True, blank=True)
     tax_amount = models.DecimalField(max_digits=14, decimal_places=2)
