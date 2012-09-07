@@ -1828,9 +1828,8 @@ def transactions_item(request, item_id, year=None, month=None, period=None, slug
 # Wallet journal
 @login_required
 def wallet_journal(request):
-    character_ids = list(Character.objects.filter(name='Tazuki Falorn', apikeys__user=request.user.id).values_list('id', flat=True))
-    #corporation_ids = list(APIKey.objects.filter(user=request.user).exclude(corp_character=None).values_list('corp_character__corporation__id', flat=True))
-    corporation_ids = []
+    character_ids = list(Character.objects.filter(apikeys__user=request.user.id).values_list('id', flat=True))
+    corporation_ids = list(APIKey.objects.filter(user=request.user).exclude(corp_character=None).values_list('corp_character__corporation__id', flat=True))
 
     journal_ids = JournalEntry.objects.filter(
         (
