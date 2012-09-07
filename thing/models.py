@@ -33,6 +33,7 @@ class UserProfile(models.Model):
     show_orders = models.BooleanField(default=True)
     show_trade = models.BooleanField(default=True)
     show_transactions = models.BooleanField(default=True)
+    show_wallet_journal = models.BooleanField(default=True)
     show_market_scan = models.BooleanField(default=True)
 
     # Home view options
