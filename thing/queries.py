@@ -82,7 +82,7 @@ WHERE   blueprint_id IN (
 )
 UNION
 SELECT  a.item_id
-FROM    a.thing_asset, thing_item i, thing_itemgroup ig
+FROM    thing_asset a, thing_item i, thing_itemgroup ig
 WHERE   a.item_id = i.id
         AND i.item_group_id = ig.id
         AND ig.category_id != 9
