@@ -56,12 +56,16 @@ WHERE   blueprint_id IN (
             WHERE   user_id = %s
 )
 UNION
-SELECT  item_id
-FROM    thing_asset ca, thing_character c, thing_apikey_characters ac, thing_apikey a
+SELECT  ca.item_id
+FROM    thing_asset ca, thing_character c, thing_apikey_characters ac, thing_apikey a,
+        thing_item i, thing_itemgroup ig
 WHERE   ca.character_id = c.id
         AND c.id = ac.character_id
         AND ac.apikey_id = a.id
         AND a.user_id = %s
+        AND ca.item_id = i.id
+        AND i.item_group_id = ig.id
+        AND ig.category_id != 9
 """
 
 # item_ids for all BlueprintInstance objects and related components
@@ -77,8 +81,11 @@ WHERE   blueprint_id IN (
             FROM    thing_blueprintinstance
 )
 UNION
-SELECT  item_id
-FROM    thing_asset
+SELECT  a.item_id
+FROM    a.thing_asset, thing_item i, thing_itemgroup ig
+WHERE   a.item_id = i.id
+        AND i.item_group_id = ig.id
+        AND ig.category_id != 9
 """
 
 
