@@ -34,6 +34,7 @@
                 <th>Amount</th>
                 <th>Balance</th>
                 <th>Reason</th>
+                <th>Arg</th>
               </tr>
             </thead>
             <tbody>
@@ -42,7 +43,7 @@
               <tr>
                 <td class="journal-date">{{ entry.date|date("Y-m-d H:i") }}</td>
                 <td>{{ entry.z_reftype }}</td>
-                <td class="journal-owner">
+                <td>
                   {% if entry.z_owner1_char -%}
                   <i class="icons-{% if not entry.z_owner1_mine %}other-{% endif %}player"></i>
                   {{ entry.z_owner1_char }}
@@ -56,7 +57,7 @@
                   Unknown ID: {{ entry.owner1_id }}
                   {%- endif %}
                 </td>
-                <td class="journal-owner">
+                <td>
                   {% if entry.z_owner2_char -%}
                   <i class="icons-{% if not entry.z_owner2_mine %}other-{% endif %}player"></i>
                   {{ entry.z_owner2_char }}
@@ -70,15 +71,16 @@
                   Unknown ID: {{ entry.owner2_id }}
                   {%- endif %}
                 </td>
-                <td class="journal-money">
+                <td class="journal-amount">
                   {% if entry.amount >= 0 -%}
                   <span class="pos">+{{ entry.amount|commas }}</span>
                   {%- else -%}
                   <span class="neg">{{ entry.amount|commas }}</span>
                   {%- endif %}
                 </td>
-                <td class="journal-money">{{ entry.balance|commas }}</td>
+                <td class="journal-balance">{{ entry.balance|commas }}</td>
                 <td>{{ entry.reason }}</td>
+                <td>{{ entry.z_arg }}</td>
               </tr>
               {%- else -%}
               <tr>

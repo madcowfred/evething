@@ -1828,8 +1828,9 @@ def transactions_item(request, item_id, year=None, month=None, period=None, slug
 # Wallet journal
 @login_required
 def wallet_journal(request):
-    character_ids = list(Character.objects.filter(apikeys__user=request.user.id).values_list('id', flat=True))
-    corporation_ids = list(APIKey.objects.filter(user=request.user).exclude(corp_character=None).values_list('corp_character__corporation__id', flat=True))
+    character_ids = list(Character.objects.filter(name='Tazuki Falorn', apikeys__user=request.user.id).values_list('id', flat=True))
+    #corporation_ids = list(APIKey.objects.filter(user=request.user).exclude(corp_character=None).values_list('corp_character__corporation__id', flat=True))
+    corporation_ids = []
 
     journal_ids = JournalEntry.objects.filter(
         (
@@ -1888,32 +1889,61 @@ def wallet_journal(request):
             next.append(i)
 
     # Do some stuff with entries
+    item_ids = set()
     owner_ids = set()
     reftype_ids = set()
+    station_ids = set()
+
     for entry in entries:
         owner_ids.add(entry.owner1_id)
         owner_ids.add(entry.owner2_id)
         reftype_ids.add(entry.ref_type_id)
 
+        # Insurance
+        if entry.ref_type_id == 19:
+            item_ids.add(int(entry.arg_name))
+        # Clone Transfer
+        elif entry.ref_type_id == 52:
+            station_ids.add(int(entry.arg_id))
+
     char_map = SimpleCharacter.objects.in_bulk(owner_ids)
     corp_map = Corporation.objects.in_bulk(owner_ids)
     alliance_map = Alliance.objects.in_bulk(owner_ids)
+    item_map = Item.objects.in_bulk(item_ids)
     rt_map = RefType.objects.in_bulk(reftype_ids)
+    station_map = Station.objects.in_bulk(station_ids)
+
+    print item_map
 
     for entry in entries:
+        # Owner 1
         if entry.owner1_id in character_ids:
             entry.z_owner1_mine = True
         entry.z_owner1_char = char_map.get(entry.owner1_id)
         entry.z_owner1_corp = corp_map.get(entry.owner1_id)
         entry.z_owner1_alliance = alliance_map.get(entry.owner1_id)
 
+        # Owner 2
         if entry.owner2_id in character_ids:
             entry.z_owner2_mine = True
         entry.z_owner2_char = char_map.get(entry.owner2_id)
         entry.z_owner2_corp = corp_map.get(entry.owner2_id)
         entry.z_owner2_alliance = alliance_map.get(entry.owner2_id)
 
+        # RefType
         entry.z_reftype = rt_map.get(entry.ref_type_id)
+
+        # Insurance, arg_name is the Item id fo the ship that exploded
+        if entry.ref_type_id == 19:
+            item = item_map.get(int(entry.arg_name))
+            if item:
+                entry.z_arg = item.name
+        # Clone Transfer, arg_name is the name of the station you're going to
+        elif entry.ref_type_id == 52:
+            station = station_map.get(entry.arg_id)
+            if station:
+                entry.z_arg = station.short_name
+
 
     # Render template
     return render_to_response(
