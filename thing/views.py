@@ -1825,6 +1825,109 @@ def transactions_item(request, item_id, year=None, month=None, period=None, slug
     )
 
 # ---------------------------------------------------------------------------
+# Wallet journal
+@login_required
+def wallet_journal(request):
+    character_ids = list(Character.objects.filter(apikeys__user=request.user.id).values_list('id', flat=True))
+    corporation_ids = list(APIKey.objects.filter(user=request.user).exclude(corp_character=None).values_list('corp_character__corporation__id', flat=True))
+
+    journal_ids = JournalEntry.objects.filter(
+        (
+            Q(character__in=character_ids)
+            &
+            Q(corp_wallet__isnull=True)
+        )
+        |
+        Q(corp_wallet__corporation__in=corporation_ids)
+    )
+
+    # Get only the ids, at this point joining the rest is unnecessary
+    journal_ids = journal_ids.values_list('pk', flat=True)
+
+    # Create a new paginator
+    paginator = Paginator(journal_ids, 100)
+
+    # Make sure page request is an int, default to 1st page
+    try:
+        page = int(request.GET.get('page', '1'))
+    except ValueError:
+        page = 1
+    
+    # If page request is out of range, deliver last page of results
+    try:
+        paginated = paginator.page(request.GET.get('page'))
+    except PageNotAnInteger:
+        # Page is not an integer, use first page
+        paginated = paginator.page(1)
+    except EmptyPage:
+        # Page is out of range, deliver last page
+        paginated = paginator.page(paginator.num_pages)
+
+    # Actually execute the query to avoid a nested subquery
+    paginated_ids = list(paginated.object_list.all())
+    entries = JournalEntry.objects.filter(pk__in=paginated_ids).select_related('character', 'corp_wallet__corporation')
+    
+    # Do page number things
+    hp = paginated.has_previous()
+    hn = paginated.has_next()
+    prev = []
+    next = []
+
+    if hp:
+        # prev and next, use 1 of each
+        if hn:
+            prev.append(paginated.previous_page_number())
+            next.append(paginated.next_page_number())
+        # no next, add up to 2 previous links
+        else:
+            for i in range(paginated.number - 1, 0, -1)[:2]:
+                prev.append(i)
+    else:
+        # no prev, add up to 2 next links
+        for i in range(paginated.number + 1, paginator.num_pages)[:2]:
+            next.append(i)
+
+    # Do some stuff with entries
+    owner_ids = set()
+    reftype_ids = set()
+    for entry in entries:
+        owner_ids.add(entry.owner1_id)
+        owner_ids.add(entry.owner2_id)
+        reftype_ids.add(entry.ref_type_id)
+
+    char_map = SimpleCharacter.objects.in_bulk(owner_ids)
+    corp_map = Corporation.objects.in_bulk(owner_ids)
+    alliance_map = Alliance.objects.in_bulk(owner_ids)
+    rt_map = RefType.objects.in_bulk(reftype_ids)
+
+    for entry in entries:
+        if entry.owner1_id in character_ids:
+            entry.z_owner1_mine = True
+        entry.z_owner1_char = char_map.get(entry.owner1_id)
+        entry.z_owner1_corp = corp_map.get(entry.owner1_id)
+        entry.z_owner1_alliance = alliance_map.get(entry.owner1_id)
+
+        if entry.owner2_id in character_ids:
+            entry.z_owner2_mine = True
+        entry.z_owner2_char = char_map.get(entry.owner2_id)
+        entry.z_owner2_corp = corp_map.get(entry.owner2_id)
+        entry.z_owner2_alliance = alliance_map.get(entry.owner2_id)
+
+        entry.z_reftype = rt_map.get(entry.ref_type_id)
+
+    # Render template
+    return render_to_response(
+        'thing/wallet_journal.html',
+        {
+            'entries': entries,
+            'paginated': paginated,
+            'next': next,
+            'prev': prev,
+        },
+        context_instance=RequestContext(request)
+    )
+
+# ---------------------------------------------------------------------------
 # Get a range of days for a year/month eg (01, 31)
 def _month_range(year, month):
     start = datetime.datetime(year, month, 1)

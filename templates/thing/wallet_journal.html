@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% load thing_extras %}
+
+{% block title %}Wallet Journal{% endblock %}
+
+{% block content %}
+      <div class="row-fluid">
+        <div class="span12">
+          <h2>Wallet Journal</h2>
+          <div class="pagination pagination-centered">
+            <ul>
+              {% if prev %}
+              <li><a href="?page={{ prev.0 }}">&laquo;</a></li>
+              {% for p in prev %}<li><a href="?page={{ p }}">{{ p }}</a></li>{% endfor %}
+              {% else %}
+              <li class="disabled"><a href="#">&laquo;</a></li>
+              {% endif %}
+              <li class="active"><a href="#">{{ paginated.number }}</a></li>
+              {% if next %}
+              {% for n in next %}<li><a href="?page={{ n }}">{{ n }}</a></li>{% endfor %}
+              <li><a href="?page={{ next.0 }}">&raquo;</a></li>
+              {% else %}
+              <li class="disabled"><a href="#">&raquo;</a></li>
+              {% endif %}
+            </ul>
+          </div>
+          <table class="table table-striped table-bordered table-condensed table-hover">
+            <thead>
+              <tr class="c">
+                <th>Date</th>
+                <th>RefType</th>
+                <th>Owner 1</th>
+                <th>Owner 2</th>
+                <th>Amount</th>
+                <th>Balance</th>
+                <th>Reason</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% with user.get_profile().show_item_icons as show_item_icons -%}
+              {% for entry in entries -%}
+              <tr>
+                <td class="journal-date">{{ entry.date|date("Y-m-d H:i") }}</td>
+                <td>{{ entry.z_reftype }}</td>
+                <td class="journal-owner">
+                  {% if entry.z_owner1_char -%}
+                  <i class="icons-{% if not entry.z_owner1_mine %}other-{% endif %}player"></i>
+                  {{ entry.z_owner1_char }}
+                  {%- elif entry.z_owner1_corp -%}
+                  <i class="icons-corporation"></i>
+                  {{ entry.z_owner1_corp }}
+                  {%- elif entry.z_owner1_alliance -%}
+                  <i class="icons-alliance"></i>
+                  {{ entry.z_owner1_alliance }}
+                  {%- elif entry.owner1_id > 0 -%}
+                  Unknown ID: {{ entry.owner1_id }}
+                  {%- endif %}
+                </td>
+                <td class="journal-owner">
+                  {% if entry.z_owner2_char -%}
+                  <i class="icons-{% if not entry.z_owner2_mine %}other-{% endif %}player"></i>
+                  {{ entry.z_owner2_char }}
+                  {%- elif entry.z_owner2_corp -%}
+                  <i class="icons-corporation"></i>
+                  {{ entry.z_owner2_corp }}
+                  {%- elif entry.z_owner2_alliance -%}
+                  <i class="icons-alliance"></i>
+                  {{ entry.z_owner2_alliance }}
+                  {%- elif entry.owner2_id > 0 -%}
+                  Unknown ID: {{ entry.owner2_id }}
+                  {%- endif %}
+                </td>
+                <td class="journal-money">
+                  {% if entry.amount >= 0 -%}
+                  <span class="pos">+{{ entry.amount|commas }}</span>
+                  {%- else -%}
+                  <span class="neg">{{ entry.amount|commas }}</span>
+                  {%- endif %}
+                </td>
+                <td class="journal-money">{{ entry.balance|commas }}</td>
+                <td>{{ entry.reason }}</td>
+              </tr>
+              {%- else -%}
+              <tr>
+                <td colspan="3">No matching transactions.</td>
+              </tr>
+              {%- endfor %}
+              {%- endwith %}
+            </tbody>
+          </table>
+          <div class="pagination pagination-centered">
+            <ul>
+              {% if prev %}
+              <li><a href="?page={{ prev.0 }}">&laquo;</a></li>
+              {% for p in prev %}<li><a href="?page={{ p }}">{{ p }}</a></li>{% endfor %}
+              {% else %}
+              <li class="disabled"><a href="#">&laquo;</a></li>
+              {% endif %}
+              <li class="active"><a href="#">{{ paginated.number }}</a></li>
+              {% if next %}
+              {% for n in next %}<li><a href="?page={{ n }}">{{ n }}</a></li>{% endfor %}
+              <li><a href="?page={{ next.0 }}">&raquo;</a></li>
+              {% else %}
+              <li class="disabled"><a href="#">&raquo;</a></li>
+              {% endif %}
+            </ul>
+          </div>
+        </div>
+      </div>
+{% endblock %}
