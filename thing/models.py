@@ -259,6 +259,9 @@ class SimpleCharacter(models.Model):
     id = models.IntegerField(primary_key=True)
     name = models.CharField(max_length=64)
 
+    def __unicode__(self):
+        return self.name
+
 class Character(models.Model):
     id = models.IntegerField(primary_key=True)
     #apikey = models.ForeignKey(APIKey, null=True, blank=True)
@@ -690,6 +693,9 @@ class JournalEntry(models.Model):
     tax_corp = models.ForeignKey(Corporation, null=True, blank=True)
     tax_amount = models.DecimalField(max_digits=14, decimal_places=2)
 
+    class Meta:
+        ordering = ('-date',)
+
 # ---------------------------------------------------------------------------
 # Wallet transactions
 class Transaction(models.Model):
@@ -713,6 +719,9 @@ class Transaction(models.Model):
 class RefType(models.Model):
     id = models.IntegerField(primary_key=True)
     name = models.CharField(max_length=64)
+
+    def __unicode__(self):
+        return self.name
 
 # ---------------------------------------------------------------------------
 # Market orders
