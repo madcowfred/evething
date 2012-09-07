@@ -1912,8 +1912,6 @@ def wallet_journal(request):
     rt_map = RefType.objects.in_bulk(reftype_ids)
     station_map = Station.objects.in_bulk(station_ids)
 
-    print item_map
-
     for entry in entries:
         # Owner 1
         if entry.owner1_id in character_ids:
