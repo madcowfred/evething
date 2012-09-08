@@ -7,15 +7,20 @@ import requests
 import sys
 import threading
 import time
+
+from Queue import Queue
+from decimal import *
+from urlparse import urljoin
+
 try:
     import xml.etree.cElementTree as ET
 except:
     import xml.etree.ElementTree as ET
 
-from Queue import Queue
-from collections import OrderedDict
-from decimal import *
-from urlparse import urljoin
+try:
+    from collections import OrderedDict
+except:
+    from ordereddict import OrderedDict
 
 # Aurgh
 os.environ['DJANGO_SETTINGS_MODULE'] = 'evething.settings'

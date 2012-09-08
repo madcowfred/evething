@@ -4,7 +4,6 @@ import socket
 import sys
 import time
 
-from collections import OrderedDict
 from decimal import *
 from urlparse import urljoin
 
@@ -12,6 +11,11 @@ try:
     import xml.etree.cElementTree as ET
 except ImportError:
     import xml.etree.ElementTree as ET
+
+try:
+    from collections import OrderedDict
+except ImportError:
+    from ordereddict import OrderedDict
 
 from django.conf import settings
 from django.core.urlresolvers import reverse
