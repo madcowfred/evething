@@ -37,7 +37,7 @@ _session = requests.session(
         'max_retries': 1
     },
     headers={
-        'User-Agent': 'EVEthing-tasks (keep-alive test)',
+        'User-Agent': 'EVEthing-tasks (keep-alive)',
     },
 )
 
