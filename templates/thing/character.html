@@ -67,16 +67,15 @@
 {% block content %}
       <div class="row-fluid">
         <div class="span3 character-side">
-          <div class="thumbnail">
+          <div class="image">
             {% if anonymous -%}
             <img src="{{ STATIC_URL }}img/anonymous_character.jpg" height="256" width="256" class="img-rounded">
-            {%- else %}
+            {%- else -%}
             <img src="http://image.eveonline.com/Character/{{ char.id }}_256.jpg" height="256" width="256" class="img-rounded">
             {%- endif %}
           </div>
           
           {%- if not public %}
-          <br>
           <div class="well well-small">
             <h4 class="nomargin">Settings</h4>
             <form action="{% url thing.views.character_settings char.name %}" method="POST" style="margin: 0">
