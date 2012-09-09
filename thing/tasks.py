@@ -81,11 +81,15 @@ CORP_URLS = {
 # Class to wrap things
 class APIJob:
     def __init__(self, apikey_id, taskstate_id):
+        connection.queries = []
+        self.start = time.time()
+        self.api_total_time = 0.0
+
         self.ready = True
 
         # Fetch APIKey
         try:
-            self.apikey = APIKey.objects.get(pk=apikey_id)
+            self.apikey = APIKey.objects.select_related('corp_character__corporation', 'user').get(pk=apikey_id)
         except APIKey.DoesNotExist:
             self.ready = False
         else:
@@ -105,6 +109,19 @@ class APIJob:
     def completed(self):
         self.apicache.completed()
         self._taskstate_ready()
+
+        if settings.DEBUG:
+            print '%.3fs  %d queries (%.3fs)  API: %.2fs' % (time.time() - self.start,
+                len(connection.queries), sum(float(q['time']) for q in connection.queries),
+                self.api_total_time
+            )
+            for query in connection.queries:
+                if query['sql'].startswith('INSERT INTO "thing_apicache"'):
+                    print '%02.3fs  INSERT INTO "thing_apicache" ...' % (float(query['time']),)
+                elif query['sql'].startswith('UPDATE "thing_apicache"'):
+                    print '%02.3fs  UPDATE "thing_apicache" ...' % (float(query['time']),)
+                else:
+                    print '%02.3fs  %s' % (float(query['time']), query['sql'])
 
     def failed(self):
         self._taskstate_ready()
@@ -155,6 +172,7 @@ class APIJob:
             
             # Fetch the URL
             full_url = urljoin(settings.API_HOST, url)
+            start = time.time()
             try:
                 r = _session.post(full_url, params, prefetch=True)
                 data = r.text
@@ -162,6 +180,8 @@ class APIJob:
                 return False
             except SoftTimeLimitExceeded:
                 return False
+
+            self.api_total_time += (time.time() - start)
 
             # If the status code is bad return False
             if not r.status_code == requests.codes.ok:
@@ -856,6 +876,7 @@ def contracts(url, apikey_id, taskstate_id, character_id):
             id=new_id,
             name="*UNKNOWN*",
         ))
+        char_map[new_id] = new[-1]
 
     if new:
         SimpleCharacter.objects.bulk_create(new)
@@ -867,13 +888,14 @@ def contracts(url, apikey_id, taskstate_id, character_id):
             id=new_id,
             name="*UNKNOWN*",
         ))
+        corp_map[new_id] = new[-1]
 
     if new:
         Corporation.objects.bulk_create(new)
 
     # Re-fetch data
-    char_map = SimpleCharacter.objects.in_bulk(lookup_ids)
-    corp_map = Corporation.objects.in_bulk(lookup_ids | lookup_corp_ids)
+    #char_map = SimpleCharacter.objects.in_bulk(lookup_ids)
+    #corp_map = Corporation.objects.in_bulk(lookup_ids | lookup_corp_ids)
     station_map = Station.objects.in_bulk(station_ids)
 
     # Fetch all existing contracts
@@ -1130,6 +1152,7 @@ def market_orders(url, apikey_id, taskstate_id, character_id):
     else:
         o_filter = MarketOrder.objects.filter(corp_wallet=None, character=character)
 
+    o_filter = o_filter.select_related('item')
 
     # Generate a character id map
     char_id_map = {}
@@ -1144,7 +1167,7 @@ def market_orders(url, apikey_id, taskstate_id, character_id):
     
     # Generate an order_id map
     order_map = {}
-    for mo in o_filter.select_related('item'):
+    for mo in o_filter:
         order_map[mo.order_id] = mo
     
     # Iterate over the returned result set
