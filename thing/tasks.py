@@ -49,10 +49,6 @@ HEADERS = {
 # number of rows to request per WalletTransactions call, max is 2560
 TRANSACTION_ROWS = 2560
 
-CHAR_NAME_URL = '/eve/CharacterName.xml.aspx'
-CORP_SHEET_URL = '/corp/CorporationSheet.xml.aspx'
-
-
 API_KEY_INFO_URL = ('api_key_info', '/account/APIKeyInfo.xml.aspx', 'et_low')
 
 CHAR_URLS = {
