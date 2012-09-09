@@ -530,11 +530,9 @@ def assets(request):
     
     if len(f_search) == 1:
         search = f_search[0]
-    else:
-        search=""
-    query=Q()
-    for word in split(search, ' '):
-        query = query &( Q(character__name__icontains = word) |
+        query=Q()
+        for word in split(search, ' '):
+            query = query &( Q(character__name__icontains = word) |
             Q(character__corporation__name__icontains  = word) |
             Q(system__name__icontains = word) |
             Q(system__constellation__region__name = word) |
@@ -544,8 +542,9 @@ def assets(request):
             Q(item__name__icontains = word) |
             Q(name__icontains = word) |
             Q(parent__isnull = False)) #keeps the childs
-    
-    assets = assets.filter(query)
+            assets = assets.filter(query)
+    else:
+        search=""
 
     tt.add_time('filters')
 
