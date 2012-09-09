@@ -3,6 +3,8 @@ import datetime
 import gzip
 import operator
 import re
+from string import split
+from django.db.models.query import QuerySet
 
 try:
     from collections import OrderedDict
@@ -523,38 +525,27 @@ def assets(request):
     #assets = assets.distinct()
 
     tt.add_time('init')
-
-    # retrieve any supplied filter values
-    f_types = request.GET.getlist('type')
-    f_comps = request.GET.getlist('comp')
-    f_values = request.GET.getlist('value')
-
-    # run.
-    filters = []
-    if len(f_types) == len(f_comps) == len(f_values):
-        # type, comparison, value
-        for ft, fc, fv in zip(f_types, f_comps, f_values):
-            # character
-            if ft == 'char' and fv.isdigit():
-                if fc == 'eq':
-                    assets = assets.filter(character_id=fv, corporation_id__isnull=True)
-                elif fc == 'ne':
-                    assets = assets.exclude(character_id=fv, corporation_id__isnull=True)
-
-                filters.append((ft, fc, int(fv)))
-
-            # corporation
-            elif ft == 'corp' and fv.isdigit():
-                if fc == 'eq':
-                    assets = assets.filter(corporation_id=fv)
-                elif fc == 'ne':
-                    assets = assets.exclude(corporation_id=fv)
-
-                filters.append((ft, fc, int(fv)))
-
-    # if no valid filters were found, add a dummy one
-    if not filters:
-        filters.append(('', '', ''))
+    # retrieve any supplied search values
+    f_search = request.GET.getlist('search')
+    
+    if len(f_search) == 1:
+        search = f_search[0]
+    else:
+        search=""
+    query=Q()
+    for word in split(search, ' '):
+        query = query &( Q(character__name__icontains = word) |
+            Q(character__corporation__name__icontains  = word) |
+            Q(system__name__icontains = word) |
+            Q(system__constellation__region__name = word) |
+            Q(station__system__constellation__region__name__icontains = word) |
+            Q(station__system__name__icontains = word) |
+            Q(station__name__icontains = word) |
+            Q(item__name__icontains = word) |
+            Q(name__icontains = word) |
+            Q(parent__isnull = False)) #keeps the childs
+    
+    assets = assets.filter(query)
 
     tt.add_time('filters')
 
@@ -697,7 +688,7 @@ def assets(request):
         {
             'characters': characters,
             'corporations': corporations,
-            'filters': filters,
+            'search'   : search,
             'total_value': total_value,
             'systems': sorted_systems,
             'loc_totals': loc_totals,
