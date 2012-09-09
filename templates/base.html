@@ -52,14 +52,14 @@
               {% if user.is_authenticated() -%}
               {%- with user.get_profile() as profile -%}
               <li class="navbar-text visible-desktop"{% if not profile.show_clock %} style="display: none"{% endif %}>
-                <p class="navbar-text"><span id="utc-time"></span> EVE</p> 
+                <span id="utc-time"></span> EVE
               </li>
               {% if profile.show_clock %}<li class="divider-vertical"></li>{% endif %}
               {%- endwith -%}
               {%- endif %}
               {% if user.is_authenticated() -%}
               <li class="dropdown">
-                <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                <a class="dropdown-toggle" data-toggle="dropdown" href="#" role="button">
                   {{ user.username }}
                   <b class="caret"></b>
                 </a>
@@ -76,7 +76,7 @@
                 </ul>
               </li>
               {%- else -%}
-              <li class="navbar-text">
+              <li>
                 <a href="{% url auth_login %}">Login</a>
               </li>
               {%- endif %}
