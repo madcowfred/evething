@@ -1033,13 +1033,13 @@ def character_common(request, char, public=True, anonymous=False):
             Q(user=request.user)
             |
             Q(visibility=SkillPlan.GLOBAL_VISIBILITY)
-            |
-            (
-                Q(user__in=user_ids)
-                &
-                Q(visibility=SkillPlan.PUBLIC_VISIBILITY)
-            )
         )
+        # |
+        # (
+        #     Q(user__in=user_ids)
+        #     &
+        #     Q(visibility=SkillPlan.PUBLIC_VISIBILITY)
+        # )
     else:
         plans = SkillPlan.objects.filter(visibility=SkillPlan.GLOBAL_VISIBILITY)
 
