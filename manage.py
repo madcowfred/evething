@@ -1,6 +1,16 @@
 #!/usr/bin/env python
 
-import os, sys
+import os
+import sys
+
+# try using cdecimal for faster Decimal type
+try:
+    import cdecimal
+except ImportError:
+    pass
+else:
+    sys.modules["decimal"] = cdecimal
+    print 'cdecimal'
 
 if __name__ == "__main__":
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "evething.settings")
