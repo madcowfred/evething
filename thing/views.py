@@ -72,10 +72,11 @@ def home(request):
     for apikey in APIKey.objects.prefetch_related('characters').filter(user=request.user).exclude(key_type=APIKey.CORPORATION_TYPE):
         api_keys.add(apikey)
         for char in apikey.characters.all():
-            chars[char.id] = char
-            char.z_apikey = apikey
-            char.z_training = {}
-            total_balance += char.wallet_balance
+            if char.id not in chars:
+                chars[char.id] = char
+                char.z_apikey = apikey
+                char.z_training = {}
+                total_balance += char.wallet_balance
 
     tt.add_time('apikeys')
 
@@ -1307,7 +1308,7 @@ def character_skillplan_common(request, character, skillplan, public=True, anony
 # Contracts
 @login_required
 def contracts(request):
-    characters = list(Character.objects.filter(apikeys__user=request.user.id).values_list('id', flat=True))
+    characters = list(Character.objects.filter(apikeys__user=request.user.id).distinct().values_list('id', flat=True))
     corporations = list(APIKey.objects.filter(user=request.user).exclude(corp_character=None).values_list('corp_character__corporation__id', flat=True))
 
     # Whee~
