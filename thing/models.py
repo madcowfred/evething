@@ -149,8 +149,16 @@ class APIKey(models.Model):
     # Mark this key as invalid and clear associated characters
     def invalidate(self):
         self.valid = False
-        self.characters.clear()
+        # Maybe clear characters later?
+        #self.characters.clear()
         self.save()
+
+    # Delete ALL related data for this key
+    def purge_data(self):
+        self.invalidate()
+
+        from celery.execute import send_task
+        send_task('thing.tasks.purge_data', args=[self.id], kwargs={}, queue='et_high')
 
 # ---------------------------------------------------------------------------
 

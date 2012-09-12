@@ -20,6 +20,7 @@ except ImportError:
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.db import connection, transaction, IntegrityError
+from django.db.models import Count
 
 from thing import queries
 from thing.models import *
@@ -1724,6 +1725,38 @@ def _wallet_transactions_work(url, job, character, corp_wallet=None):
             params['beforeTransID'] = transaction_id
         else:
             break
+
+# ---------------------------------------------------------------------------
+# Purge all data related to an APIKey, woo
+# ---------------------------------------------------------------------------
+@task
+def purge_data(apikey_id):
+    try:
+        apikey = APIKey.objects.get(pk=apikey_id)
+    except APIKey.DoesNotExist:
+        logger.warn('purge_data called with an invalid apikey_id')
+        return
+
+    # Account/Character keys
+    now = datetime.datetime.now()
+    if apikey.key_type in (APIKey.ACCOUNT_TYPE, APIKey.CHARACTER_TYPE):
+        # Get the characters for this key along with a count of related APIKeys
+        for char in apikey.characters.annotate(key_count=Count('apikeys')):
+            if char.key_count == 1:
+                char.delete()
+                text = "All data for character '%s' has been purged" % (char.name)
+            else:
+                text = "All data for character '%s' was not purged due to other API keys referencing it" % (char.name)
+
+            Event.objects.create(
+                user_id=apikey.user_id,
+                issued=now,
+                text=text,
+            )
+
+        # Delete the API key if there are no characters remaining
+        if apikey.characters.count() == 0:
+            apikey.delete()
 
 # ---------------------------------------------------------------------------
 # Other periodic tasks

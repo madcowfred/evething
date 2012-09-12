@@ -429,6 +429,30 @@ def account_apikey_edit(request):
 
     return redirect('%s#tab_apikeys' % (reverse(account)))
 
+# Purge an API key's data
+@login_required
+def account_apikey_purge(request):
+    apikey_id = request.POST.get('apikey_id', '')
+    if apikey_id.isdigit():
+        try:
+            apikey = APIKey.objects.get(user=request.user.id, id=apikey_id)
+        
+        except APIKey.DoesNotExist:
+            request.session['message_type'] = 'error'
+            request.session['message'] = 'You do not have an API key with that KeyID!'
+        
+        else:
+            request.session['message_type'] = 'success'
+            request.session['message'] = 'API key %s purge queued successfully!' % (apikey.id)
+
+            apikey.purge_data()
+
+    else:
+        request.session['message_type'] = 'error'
+        request.session['message'] = 'You seem to be doing silly things, stop that.'
+
+    return redirect('%s#tab_apikeys' % (reverse(account)))
+
 # ---------------------------------------------------------------------------
 # Add a skillplan
 @login_required

@@ -72,14 +72,23 @@
           $('td:nth-child(5)', $(this).parents('tr')).html(html.join(''));
           $('#magic_keyname').focus();
         });
+        
+        // Bind apikey purge icons
+        $('#key-table').on('click', 'a.apikey-purge', function(event) {
+          var keyid = $('td:nth-child(3)', $(this).parents('tr')).attr('data-id');
+          var keyname = $.trim($('td:nth-child(5)', $(this).parents('tr')).text());
+          $('#purge-keyid-input').val(keyid);
+          $('#purge-keyid').text(keyid);
+          $('#purge-keyname').text(keyname);
+        });
 
         // Bind apikey delete icons
         $('#key-table').on('click', 'a.apikey-delete', function(event) {
           var keyid = $('td:nth-child(3)', $(this).parents('tr')).attr('data-id');
           var keyname = $.trim($('td:nth-child(5)', $(this).parents('tr')).text());
           $('#delete-keyid-input').val(keyid);
-          $('#keyid').text(keyid);
-          $('#keyname').text(keyname);
+          $('#delete-keyid').text(keyid);
+          $('#delete-keyname').text(keyname);
         });
         
         // Bind skillplan edit icons
@@ -272,7 +281,7 @@
                     {% for apikey in apikeys %}
                     <tr>
                       <td class="r api-id">{{ apikey.id }}</td>
-                      <td class="c api-icon">
+                      <td class="c api-valid">
                         {% if apikey.valid -%}
                         <i class="icons-success"></i>
                         {%- else -%}
@@ -312,9 +321,14 @@
                         {%- endwith -%}
                         {%- endif %}
                       </td>
-                      <td class="c api-icon">
+                      <td class="c api-icons">
                         {% if apikey.valid -%}
-                        <a class="apikey-delete" data-toggle="modal" href="#delete-apikey-modal"><i class="icons-delete"></i></a>
+                        <a class="apikey-purge" data-toggle="modal" href="#purge-apikey-modal" rel="tooltip" title="Purge API key data">
+                          <i class="icons-account-purge"></i>
+                        </a>
+                        <a class="apikey-delete" data-toggle="modal" href="#delete-apikey-modal" rel="tooltip" title="Delete API key">
+                          <i class="icons-delete"></i>
+                        </a>
                         {%- endif %}
                       </td>
                     </tr>
@@ -464,6 +478,31 @@
               </form>
             </div>
             {%- endif %}
+                  
+            {# apikeys: purge modal -#}
+            <div class="modal hide" id="purge-apikey-modal">
+              <form action="{% url thing.views.account_apikey_purge %}" method="POST" class="form-inline">
+                {% csrf_token %}
+                <input type="hidden" name="apikey_id" value="a" id="purge-keyid-input">
+                <div class="modal-header">
+                  <a class="close" data-dismiss="modal"><i class="icons-close"></i></a>
+                  <h3>Purge Confirmation</h3>
+                </div>
+                <div class="modal-body">
+                  <p>
+                    Are you sure you wish to purge API key #<strong><span id="purge-keyid"></span></strong> ("<span id="purge-keyname"></span>")?
+                    This will delete <strong>ALL</strong> data related to the characters referenced by this API key!
+                  </p>
+                  <div class="alert alert-error">
+                    <strong>WARNING</strong>: this is permanent, the only way to recover historical data is from a database backup!
+                  </div>
+                </div>
+                <div class="modal-footer">
+                  <button class="btn btn-danger" data-dismiss="modal">No</button>
+                  <button type="submit" class="btn btn-success">Yes</button>
+                </div>
+              </form>
+            </div>
 
             {# apikeys: delete modal -#}
             <div class="modal hide" id="delete-apikey-modal">
@@ -476,10 +515,16 @@
                 </div>
                 <div class="modal-body">
                   <p>
-                    Are you sure you wish to delete API key #<strong><span id="keyid"></span></strong> ("<span id="keyname"></span>")?
+                    Are you sure you wish to delete API key #<strong><span id="delete-keyid"></span></strong> ("<span id="delete-keyname"></span>")?
                     This will unlink the associated characters from your account and any related data will no longer be visible to you!
                   </p>
-                  <p>Note: you can regain access to the data later by re-adding this API key.</p>
+                  <p>
+                    Note: you can regain access to the data later by re-adding this API key.
+                  </p>
+                  <div class="alert alert-error">
+                      <strong>WARNING</strong>: if you hit the big red 'Purge' button <u>all data related to this key will be deleted</u>.
+                      There is no way to restore it short of restoring from a backup!
+                  </div>
                 </div>
                 <div class="modal-footer">
                   <button class="btn btn-danger" data-dismiss="modal">No</button>
