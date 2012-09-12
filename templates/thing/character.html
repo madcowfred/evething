@@ -283,8 +283,8 @@
                   <td class="skill-sp">{{ cs.points|commas }} /</td>
                   <td class="skill-sp">{{ cs.skill.get_sp_at_level()|commas }} SP</td>
                   <td class="skill-icons">
-                    {% for icon in cs.z_icons -%}
-                    <i class="icons-skill-{{ icon }}"></i>
+                    {% for icon,time_to_complete in cs.z_skill_level_info -%}
+                    <i class="icons-skill-{{ icon }}" title="{{time_to_complete}}"></i>
                     {%- endfor %}
                   </td>
                 </tr>

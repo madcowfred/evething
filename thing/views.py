@@ -983,6 +983,9 @@ def character_common(request, char, public=True, anonymous=False):
             skills[cur] = []
 
         cs.z_icons = []
+        cs.z_time_to_complete = []
+        cs.z_time_to_complete.extend(['trained'] * cs.level)
+
         # level 5 skill = 5 special icons
         if cs.level == 5:
             cs.z_icons.extend(['fives'] * 5)
@@ -990,7 +993,6 @@ def character_common(request, char, public=True, anonymous=False):
         # 0-4 = n icons
         else:
             cs.z_icons.extend(['trained'] * cs.level)
-
         # training skill can have a training icon
         if anonymous is False and cs.skill.item.id == training_id:
             cs.z_icons.append('partial')
@@ -1000,9 +1002,23 @@ def character_common(request, char, public=True, anonymous=False):
         # partially trained skills get a partial icon
         elif cs.points > cs.skill.get_sp_at_level(cs.level):
             cs.z_icons.append('partial')
-
-        # then fill out the rest with empty icons
+        
+        #Calculation of time needed to train skill for the remaining skills
+        buf = cs.points
+        for level in range(cs.level+1,6):
+            points_to_level = cs.skill.get_sp_at_level(level) - buf
+            minutes_to_level = points_to_level/cs.skill.get_sp_per_minute(char)
+            hours_to_level = int(minutes_to_level/60)
+            days_to_level = int(hours_to_level/24)
+            time_to_complete = "complete in "
+            if days_to_level>0 : time_to_complete += "%sd " %days_to_level
+            if hours_to_level>0 : time_to_complete += "%sh " %(hours_to_level%24)
+            if minutes_to_level>0 : time_to_complete += "%dm" %(minutes_to_level%60)
+            cs.z_time_to_complete.append(time_to_complete)
+            buf = cs.skill.get_sp_at_level(level)
+        # then fill out the rest with empty icons  
         cs.z_icons.extend(['untrained'] * (5 - len(cs.z_icons)))
+        cs.z_skill_level_info = zip(cs.z_icons,cs.z_time_to_complete)
 
         skills[cur].append(cs)
         cur.z_total_sp += cs.points
