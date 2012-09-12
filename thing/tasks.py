@@ -1894,7 +1894,7 @@ def price_updater():
             item.save()
 
     # Calculate capital ship costs now
-    for bp in Blueprint.objects.select_related('item').filter(item__item_group__name__in=('Carrier', 'Dreadnought', 'Supercarrier', 'Titan')):
+    for bp in Blueprint.objects.select_related('item').filter(item__item_group__name__in=('Capital Industrial Ship', 'Carrier', 'Dreadnought', 'Supercarrier', 'Titan')):
         bpi = BlueprintInstance(
             user=None,
             blueprint=bp,
