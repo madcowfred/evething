@@ -10,7 +10,15 @@ class Migration(SchemaMigration):
     def forwards(self, orm):
         db.delete_primary_key('thing_apikey')
         db.rename_column('thing_apikey', 'id', 'keyid')
-        db.add_column('thing_apikey', 'id', models.AutoField(primary_key=True, default=0), keep_default=False)
+        if db.backend_name == 'postgres':
+            db.execute("ALTER TABLE thing_apikey ADD COLUMN id INTEGER NOT NULL PRIMARY KEY")
+            db.execute("CREATE SEQUENCE thing_apikey_id_seq")
+            db.execute("SELECT setval('thing_apikey_id_seq', 1)")
+            db.execute("ALTER TABLE thing_apikey ALTER COLUMN id SET DEFAULT nextval('thing_apikey_id_seq'::regclass)")
+        elif db.backend_name == 'mysql':    
+            db.add_column('thing_apikey', 'id', models.AutoField(primary_key=True))
+        elif db.backend_name == 'sqlite':
+            db.add_column('thing_apikey', 'id', models.AutoField(primary_key=True, default=0), keep_default=False)
 
     def backwards(self, orm):
         db.delete_primary_key('thing_apikey')
