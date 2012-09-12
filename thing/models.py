@@ -146,6 +146,12 @@ class APIKey(models.Model):
         else:
             return []
 
+    # Mark this key as invalid and clear associated characters
+    def invalidate(self):
+        self.valid = False
+        self.characters.clear()
+        self.save()
+
 # ---------------------------------------------------------------------------
 
 class TaskState(models.Model):

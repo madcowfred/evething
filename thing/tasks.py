@@ -227,8 +227,7 @@ class APIJob:
                         text=text,
                     )
 
-                    self.apikey.valid = False
-                    self.apikey.save()
+                    self.apikey.invalidate()
                 
                 apicache.error_displayed = True
                 apicache.save()
