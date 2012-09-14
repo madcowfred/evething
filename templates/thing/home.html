@@ -92,7 +92,7 @@
       {% for character in chars %}
       {% if character %}
       <div class="span{{ 12 // profile.home_chars_per_row }}">
-        <div class="well-small well{% if character.z_apikey in not_training %} alert-error{% endif %}">
+        <div class="well-small well{% if character.z_apikey in not_training %} alert alert-error{% endif %}">
           <div>
             <span class="large">
               <a href="{% url thing.views.character character.name %}" class="sensitive character-name">

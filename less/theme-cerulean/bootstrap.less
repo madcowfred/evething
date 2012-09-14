@@ -1,5 +1,5 @@
 /*!
- * Bootstrap v2.1.0
+ * Bootstrap v2.1.1
  *
  * Copyright 2012 Twitter, Inc
  * Licensed under the Apache License v2.0
@@ -9,58 +9,65 @@
  */
 
 // CSS Reset
-@import "reset.less";
+@import "../bootstrap-2.1.1/reset.less";
 
 // Core variables and mixins
 @import "variables.less"; // Modify this for custom colors, font-sizes, etc
-@import "mixins.less";
+@import "../bootstrap-2.1.1/mixins.less";
 
 // Grid system and page structure
-@import "scaffolding.less";
-@import "grid.less";
-@import "layouts.less";
+@import "../bootstrap-2.1.1/scaffolding.less";
+@import "../bootstrap-2.1.1/grid.less";
+@import "../bootstrap-2.1.1/layouts.less";
 
 // Base CSS
-@import "type.less";
-@import "code.less";
-@import "forms.less";
-@import "tables.less";
+@import "../bootstrap-2.1.1/type.less";
+@import "../bootstrap-2.1.1/code.less";
+@import "../bootstrap-2.1.1/forms.less";
+@import "../bootstrap-2.1.1/tables.less";
 
 // Components: common
-//@import "sprites.less";
-@import "dropdowns.less";
-@import "wells.less";
-@import "component-animations.less";
-@import "close.less";
+@import "../bootstrap-2.1.1/sprites.less";
+@import "../bootstrap-2.1.1/dropdowns.less";
+@import "../bootstrap-2.1.1/wells.less";
+@import "../bootstrap-2.1.1/component-animations.less";
+@import "../bootstrap-2.1.1/close.less";
 
 // Components: Buttons & Alerts
-@import "buttons.less";
-@import "button-groups.less";
-@import "alerts.less"; // Note: alerts share common CSS with buttons and thus have styles in buttons.less
+@import "../bootstrap-2.1.1/buttons.less";
+@import "../bootstrap-2.1.1/button-groups.less";
+@import "../bootstrap-2.1.1/alerts.less"; // Note: alerts share common CSS with buttons and thus have styles in buttons.less
 
 // Components: Nav
-@import "navs.less";
-@import "navbar.less";
-@import "breadcrumbs.less";
-@import "pagination.less";
-@import "pager.less";
+@import "../bootstrap-2.1.1/navs.less";
+@import "../bootstrap-2.1.1/navbar.less";
+@import "../bootstrap-2.1.1/breadcrumbs.less";
+@import "../bootstrap-2.1.1/pagination.less";
+@import "../bootstrap-2.1.1/pager.less";
 
 // Components: Popovers
-@import "modals.less";
-@import "tooltip.less";
-@import "popovers.less";
+@import "../bootstrap-2.1.1/modals.less";
+@import "../bootstrap-2.1.1/tooltip.less";
+@import "../bootstrap-2.1.1/popovers.less";
 
 // Components: Misc
-//@import "thumbnails.less";
-@import "labels-badges.less";
-@import "progress-bars.less";
-//@import "accordion.less";
-//@import "carousel.less";
-//@import "hero-unit.less";
+@import "../bootstrap-2.1.1/thumbnails.less";
+@import "../bootstrap-2.1.1/labels-badges.less";
+@import "../bootstrap-2.1.1/progress-bars.less";
+@import "../bootstrap-2.1.1/accordion.less";
+@import "../bootstrap-2.1.1/carousel.less";
+@import "../bootstrap-2.1.1/hero-unit.less";
 
 // Utility classes
-@import "utilities.less"; // Has to be last to override when necessary
+@import "../bootstrap-2.1.1/utilities.less"; // Has to be last to override when necessary
 
+@import "bootswatch.less";
 @import "../evething.less";
 
-@import "responsive.less";
+
+// Responsive
+@import "../bootstrap-2.1.1/responsive-utilities.less";
+@import "../bootstrap-2.1.1/responsive-1200px-min.less";
+@import "../bootstrap-2.1.1/responsive-768px-979px.less";
+@import "../bootstrap-2.1.1/responsive-767px-max.less";
+@import "../bootstrap-2.1.1/responsive-navbar.less";
