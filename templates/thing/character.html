@@ -233,7 +233,7 @@
 
           {% if show.queue -%}
           <div class="row-fluid">
-            <div class="span12 well well-small alert {% if queue_duration < 86400 %}alert-error{% else %}alert-success{% endif %}">
+            <div class="span12 alert {% if queue_duration < 86400 %}alert-error{% else %}alert-success{% endif %}">
               <h3>Skill Queue</h3>
               <div>
                 {{ queue.0.skill.item.name }} {{ queue.0.get_roman_level() }} (Rank {{ queue.0.skill.rank }}) --
