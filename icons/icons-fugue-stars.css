@@ -1,5 +1,5 @@
-/* spritemapper.output_css = sprite-icons-fugue-stars.css */
-/* spritemapper.output_image = ../icons/icons-fugue-stars.png */
+/* spritemapper.output_css = ../static/css/sprite-icons-fugue-stars.css */
+/* spritemapper.output_image = ../static/img/icons-fugue-stars.png */
 /* close icon on modal windows */
 .icons-close { background:url(../icons/fugue/cross.png); }
 /* success for good things, failure for bad things */

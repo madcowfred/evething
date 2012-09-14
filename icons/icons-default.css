@@ -1,5 +1,5 @@
-/* spritemapper.output_css = sprite-icons-default.css */
-/* spritemapper.output_image = ../icons/icons-default.png */
+/* spritemapper.output_css = ../static/css/sprite-icons-default.css */
+/* spritemapper.output_image = ../static/img/icons-default.png */
 /* close icon on modal windows */
 .icons-close { background:url(../icons/silk/cross.png); }
 /* success for good things, failure for bad things */
