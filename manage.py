@@ -10,7 +10,6 @@ except ImportError:
     pass
 else:
     sys.modules["decimal"] = cdecimal
-    print 'cdecimal'
 
 if __name__ == "__main__":
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "evething.settings")
