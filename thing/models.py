@@ -161,7 +161,16 @@ class APIKey(models.Model):
         send_task('thing.tasks.purge_data', args=[self.id], kwargs={}, queue='et_high')
 
 # ---------------------------------------------------------------------------
+# APIKey permanent failure log
+class APIKeyFailure(models.Model):
+    user = models.ForeignKey(User)
+    keyid = models.IntegerField()
 
+    fail_time = models.DateTimeField(db_index=True)
+    fail_reason = models.CharField(max_length=255)
+
+# ---------------------------------------------------------------------------
+# Task state
 class TaskState(models.Model):
     READY_STATE = 0
     QUEUED_STATE = 1

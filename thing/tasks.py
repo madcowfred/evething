@@ -218,8 +218,12 @@ class APIJob:
                 if log_error:
                     logger.error('%s: %s | %s -> %s', error.attrib['code'], error.text, current, until)
 
-                # Mark key as invalid if it's an auth error
+                # Permanent key errors
                 if error.attrib['code'] in ('202', '203', '204', '205', '210', '212', '207', '220', '222', '223'):
+                    # Mark the key as invalid
+                    self.apikey.invalidate()
+
+                    # Log an error event for the user
                     text = "Your API key #%d was marked invalid: %s %s" % (self.apikey.id, error.attrib['code'],
                         error.text)
                     Event.objects.create(
@@ -228,8 +232,15 @@ class APIJob:
                         text=text,
                     )
 
-                    self.apikey.invalidate()
-                
+                    # Log a key failure
+                    fail_reason = '%s: %s' % (error.attrib['code'], error.text)
+                    APIKeyFailure.objects.create(
+                        user_id=self.apikey.user.id,
+                        keyid=self.apikey.keyid,
+                        fail_time=now,
+                        fail_reason=fail_reason,
+                    )
+               
                 apicache.error_displayed = True
                 apicache.save()
                 

@@ -322,14 +322,12 @@
                         {%- endif %}
                       </td>
                       <td class="c api-icons">
-                        {% if apikey.valid -%}
                         <a class="apikey-purge" data-toggle="modal" href="#purge-apikey-modal" rel="tooltip" title="Purge API key data">
                           <i class="icons-account-purge"></i>
                         </a>
                         <a class="apikey-delete" data-toggle="modal" href="#delete-apikey-modal" rel="tooltip" title="Delete API key">
                           <i class="icons-delete"></i>
                         </a>
-                        {%- endif %}
                       </td>
                     </tr>
                     {% endfor %}
