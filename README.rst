@@ -163,8 +163,9 @@ Apache Install
 --------------
 You will need to install Apache and `mod_wsgi <http://code.google.com/p/modwsgi/>`_.
 
-#. Make a directory somewhere to act as the site root (and possibly contain static files).
-   Do NOT use the same directory you placed the EVEthing files earlier.
+#. Make a directory somewhere to act as the site root. Do NOT use the same directory you
+   placed the EVEthing files earlier.
+#. Make a 'static' sub-directory inside this directory.
 #. Add a vhost to your Apache config with these extra directives:
 
    ::
@@ -189,6 +190,7 @@ You will need to install Apache and `mod_wsgi <http://code.google.com/p/modwsgi/
       </Directory>
 
 #. Reload Apache config.
+#. Run ``python manage.py collectstatic``, answer 'yes'.
 #. Open http://whatever/ in a web browser.
 #. To force an EVEthing reload later (updated code or changed config) simply ``touch wsgi.py``
    in the EVEthing directory.
