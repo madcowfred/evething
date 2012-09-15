@@ -1,13 +1,6 @@
 * documentation:
   - Pages need to explain what the hell they do
-  - Celery:
-    = python manage.py celery worker -E -Q et_medium -c 4 -n et_medium.host
-    = python manage.py celery worker -E -Q et_low -c 2 -n et_low.host
-    = python manage.py celery worker -E -Q et_high -c 1 -n et_high.host
-    = python manage.py celery beat
   - api_updater deprecated
-  - history_updater deprecated
-  - price_updater deprecated
 
 * features:
   - Industry jobs:
