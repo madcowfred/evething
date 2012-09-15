@@ -107,7 +107,7 @@ class APIJob:
         self.apicache.completed()
         self._taskstate_ready()
 
-        if settings.DEBUG:
+        if settings.DEBUG and False:
             print '%.3fs  %d queries (%.3fs)  API: %.2fs' % (time.time() - self.start,
                 len(connection.queries), sum(float(q['time']) for q in connection.queries),
                 self.api_total_time
@@ -157,11 +157,11 @@ class APIJob:
             params['vCode'] = self.apikey.vcode
 
         # Check the API cache for this URL/params combo
-        now = datetime.datetime.utcnow()
+        utcnow = datetime.datetime.utcnow()
         params_repr = repr(sorted(params.items()))
         
         # Retrieve the latest APICache object
-        apicaches = list(APICache.objects.filter(url=url, parameters=params_repr, cached_until__gt=now).order_by('-cached_until')[:1])
+        apicaches = list(APICache.objects.filter(url=url, parameters=params_repr, cached_until__gt=utcnow).order_by('-cached_until')[:1])
         
         # Data is not cached, fetch new data
         if len(apicaches) == 0:
@@ -220,6 +220,8 @@ class APIJob:
 
                 # Permanent key errors
                 if error.attrib['code'] in ('202', '203', '204', '205', '210', '212', '207', '220', '222', '223'):
+                    now = datetime.datetime.now()
+
                     # Mark the key as invalid
                     self.apikey.invalidate()
 
@@ -240,7 +242,27 @@ class APIJob:
                         fail_time=now,
                         fail_reason=fail_reason,
                     )
-               
+
+                    # Check if we need to punish this user for their sins
+                    one_week_ago = now - datetime.timedelta(7)
+                    count = APIKeyFailure.objects.filter(user=self.apikey.user, fail_time__gt=one_week_ago).count()
+                    limit = getattr(settings, 'API_FAILURE_LIMIT', 3)
+                    if limit > 0 and count >= limit:
+                        # Disable their ability to add keys
+                        profile = self.apikey.user.get_profile()
+                        profile.can_add_keys = False
+                        profile.save()
+
+                        # Log that we did so
+                        text = "Limit of %d API key failures per 7 days exceeded, you may no longer add keys." % (
+                            limit)
+                        Event.objects.create(
+                            user_id=self.apikey.user.id,
+                            issued=now,
+                            text=text,
+                        )
+
+
                 apicache.error_displayed = True
                 apicache.save()
                 

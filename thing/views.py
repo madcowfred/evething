@@ -372,6 +372,10 @@ def account_apikey_add(request):
             request.session['message_type'] = 'error'
             request.session['message'] = 'You already have an API key with that KeyID!'
 
+        elif request.user.get_profile().can_add_keys is False:
+            request.session['message_type'] = 'error'
+            request.session['message'] = 'You are not allowed to add API keys!'
+
         else:
             apikey = APIKey(
                 user_id=request.user.id,

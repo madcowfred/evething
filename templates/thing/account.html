@@ -334,6 +334,7 @@
                   </tbody>
                 </table>
 
+                {% if profile.can_add_keys -%}
                 <form action="{% url thing.views.account_apikey_add %}" method="POST" class="form-inline">
                   {% csrf_token %}
                   <input type="text" name="name" class="input-medium" placeholder="Name" rel="tooltip" title="This is to help you remember what this key is for. It will be displayed on the Home screen.">
@@ -341,6 +342,12 @@
                   <input type="text" name="vcode" class="input-xlarge" placeholder="vCode">
                   <button type="submit" class="btn btn-success">Add Key</button>
                 </form>
+                {%- else -%}
+                <div class="alert alert-error">
+                  Due to multiple permanent API key failures your ability to add keys has been revoked, please contact an admin if you wish to
+                  have your access reinstated.
+                </div>
+                {%- endif %}
 
                 <div id="build-table" class="well well-info">
                   <p>

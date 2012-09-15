@@ -22,6 +22,9 @@ class UserProfile(models.Model):
 
     user = models.OneToOneField(User)
 
+    # User can add APIKeys
+    can_add_keys = models.BooleanField(default=True)
+
     # Global options
     theme = models.CharField(max_length=32, default='default')
     icon_theme = models.CharField(max_length=32, default='default')
