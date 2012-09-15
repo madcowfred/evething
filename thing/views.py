@@ -132,6 +132,18 @@ def home(request):
                     'span_class': 'low-game-time',
                 })
 
+        # API key warnings
+        if char.z_apikey.expires:
+            timediff = (char.z_apikey.expires - now).total_seconds()
+            print char.z_apikey.expires, timediff
+
+            if timediff < EXPIRE_WARNING:
+                char.z_notifications.append({
+                    'icon': 'api-warning',
+                    'text': shortduration(timediff),
+                    'tooltip': 'API key is close to expiring!',
+                })
+
         # Empty skill queue
         if char.z_apikey in not_training:
             char.z_notifications.append({

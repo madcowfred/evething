@@ -18,6 +18,7 @@
 .icons-screenshot { background:url(fugue/picture.png); }
 /* various notifications */
 .icons-time-warning { background:url(fugue/alarm-clock--exclamation.png); }
+.icons-api-warning { background:url(fugue/key.png); }
 .icons-queue-empty { background:url(fugue/book--exclamation.png); }
 .icons-queue-space { background:url(fugue/book.png); }
 .icons-missing-implants { background:url(fugue/brain--exclamation.png); }
