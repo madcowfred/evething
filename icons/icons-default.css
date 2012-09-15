@@ -1,57 +1,57 @@
 /* spritemapper.output_css = ../static/css/sprite-icons-default.css */
 /* spritemapper.output_image = ../static/img/icons-default.png */
 /* close icon on modal windows */
-.icons-close { background:url(../icons/silk/cross.png); }
+.icons-close { background:url(silk/cross.png); }
 /* success for good things, failure for bad things */
-.icons-success { background:url(../icons/silk/tick.png); }
-.icons-failure { background:url(../icons/silk/cross.png); }
+.icons-success { background:url(silk/tick.png); }
+.icons-failure { background:url(silk/cross.png); }
 /* edit and delete icons */
-.icons-edit { background:url(../icons/silk/pencil.png); }
-.icons-delete { background:url(../icons/silk/bin.png); }
+.icons-edit { background:url(silk/pencil.png); }
+.icons-delete { background:url(silk/bin.png); }
 /* information, obviously */
-.icons-information { background:url(../icons/silk/information.png); }
+.icons-information { background:url(silk/information.png); }
 /* expand/collapse/indent things */
-.icons-expand { background:url(../icons/silk/add.png); }
-.icons-collapse { background:url(../icons/silk/delete.png); }
-.icons-indent { background:url(../icons/silk/bullet_go.png); }
+.icons-expand { background:url(silk/add.png); }
+.icons-collapse { background:url(silk/delete.png); }
+.icons-indent { background:url(silk/bullet_go.png); }
 /* screenshot mode */
-.icons-screenshot { background:url(../icons/silk/photo.png); }
+.icons-screenshot { background:url(silk/photo.png); }
 /* various notifications */
-.icons-time-warning { background:url(../icons/silk/clock_red.png); }
-.icons-queue-empty { background:url(../icons/silk/book_error.png); }
-.icons-queue-space { background:url(../icons/silk/book.png); }
-.icons-missing-implants { background:url(../icons/silk/plugin_error.png); }
-.icons-inadequate-clone { background:url(../icons/silk/user_red.png); }
+.icons-time-warning { background:url(silk/clock_red.png); }
+.icons-queue-empty { background:url(silk/book_error.png); }
+.icons-queue-space { background:url(silk/book.png); }
+.icons-missing-implants { background:url(silk/plugin_error.png); }
+.icons-inadequate-clone { background:url(silk/user_red.png); }
 /* character sheet skills */
-.icons-skill-untrained { background:url(../icons/silk/weather_clouds.png); }
-.icons-skill-partial { background:url(../icons/silk/weather_cloudy.png); }
-.icons-skill-trained { background:url(../icons/silk/weather_sun.png); }
-.icons-skill-fives { background:url(../icons/silk/rainbow.png); }
-.icons-skill-training { background:url(../icons/silk/flag_green.png); }
+.icons-skill-untrained { background:url(silk/weather_clouds.png); }
+.icons-skill-partial { background:url(silk/weather_cloudy.png); }
+.icons-skill-trained { background:url(silk/weather_sun.png); }
+.icons-skill-fives { background:url(silk/rainbow.png); }
+.icons-skill-training { background:url(silk/flag_green.png); }
 /* things */
-.icons-player { background:url(../icons/silk/user.png); }
-.icons-other-player { background:url(../icons/silk/user_gray.png); }
-.icons-corporation { background:url(../icons/silk/group.png); }
-.icons-alliance { background:url(../icons/silk/building.png); }
+.icons-player { background:url(silk/user.png); }
+.icons-other-player { background:url(silk/user_gray.png); }
+.icons-corporation { background:url(silk/group.png); }
+.icons-alliance { background:url(silk/building.png); }
 /* contracts */
-.icons-contract-public { background:url(../icons/silk/world.png); }
-.icons-contract-completed { background:url(../icons/silk/tick.png); }
-.icons-contract-inprogress { background:url(../icons/silk/lorry_go.png); }
-.icons-contract-failed { background:url(../icons/silk/cross.png); }
-.icons-contract-outstanding { background:url(../icons/silk/hourglass.png); }
-.icons-contract-unknown { background:url(../icons/silk/bug.png); }
+.icons-contract-public { background:url(silk/world.png); }
+.icons-contract-completed { background:url(silk/tick.png); }
+.icons-contract-inprogress { background:url(silk/lorry_go.png); }
+.icons-contract-failed { background:url(silk/cross.png); }
+.icons-contract-outstanding { background:url(silk/hourglass.png); }
+.icons-contract-unknown { background:url(silk/bug.png); }
 /* visibility of things */
-.icons-visibility-private { background:url(../icons/silk/lock.png); }
-.icons-visibility-public { background:url(../icons/silk/eye.png); }
-.icons-visibility-global { background:url(../icons/silk/world.png); }
+.icons-visibility-private { background:url(silk/lock.png); }
+.icons-visibility-public { background:url(silk/eye.png); }
+.icons-visibility-global { background:url(silk/world.png); }
 /* skill plans */
-.icons-skillplan-remap { background:url(../icons/silk/user_suit.png); }
-.icons-skillplan-injected { background:url(../icons/silk/book.png); }
-.icons-skillplan-unowned { background:url(../icons/silk/money.png); }
+.icons-skillplan-remap { background:url(silk/user_suit.png); }
+.icons-skillplan-injected { background:url(silk/book.png); }
+.icons-skillplan-unowned { background:url(silk/money.png); }
 /* assets */
-.icons-asset-locked { background:url(../icons/silk/lock.png); }
-.icons-asset-bpo { background:url(../icons/silk/page.png); }
-.icons-asset-bpc { background:url(../icons/silk/page_copy.png); }
-.icons-asset-eft { background:url(../icons/silk/wrench.png); }
+.icons-asset-locked { background:url(silk/lock.png); }
+.icons-asset-bpo { background:url(silk/page.png); }
+.icons-asset-bpc { background:url(silk/page_copy.png); }
+.icons-asset-eft { background:url(silk/wrench.png); }
 /* account stuff */
-.icons-account-purge { background:url(../icons/silk/bomb.png); }
+.icons-account-purge { background:url(silk/bomb.png); }
