@@ -2,6 +2,7 @@ from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.db import connection
 #from django.db.models import Q, Avg, Count, Max, Min, Sum
+from django.shortcuts import redirect, get_object_or_404
 from django.template import RequestContext
 
 from coffin.shortcuts import *
