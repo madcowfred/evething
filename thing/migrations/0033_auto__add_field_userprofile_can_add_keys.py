@@ -8,26 +8,16 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        db.delete_primary_key('thing_apikey')
-        db.rename_column('thing_apikey', 'id', 'keyid')
-        if db.backend_name == 'postgres':
-            db.execute("ALTER TABLE thing_apikey ADD COLUMN id INTEGER NOT NULL PRIMARY KEY")
-            db.execute("CREATE SEQUENCE thing_apikey_id_seq")
-            db.execute("SELECT setval('thing_apikey_id_seq', 1)")
-            db.execute("ALTER TABLE thing_apikey ALTER COLUMN id SET DEFAULT nextval('thing_apikey_id_seq'::regclass)")
-        elif db.backend_name == 'mysql':
-            db.add_column('thing_apikey', 'id', models.AutoField(primary_key=True))
-        elif db.backend_name == 'sqlite':
-            db.add_column('thing_apikey', 'id', models.AutoField(primary_key=True, default=0), keep_default=False)
-        # try a fallback for any other weird databases
-        else:
-            db.add_column('thing_apikey', 'id', models.AutoField(primary_key=True))
+        # Adding field 'UserProfile.can_add_keys'
+        db.add_column('thing_userprofile', 'can_add_keys',
+                      self.gf('django.db.models.fields.BooleanField')(default=True),
+                      keep_default=False)
+
 
     def backwards(self, orm):
-        db.delete_primary_key('thing_apikey')
-        db.delete_column('thing_apikey', 'id')
-        db.rename_column('thing_apikey', 'keyid', 'id')
-        db.create_primary_key('thing_apikey', 'id')
+        # Deleting field 'UserProfile.can_add_keys'
+        db.delete_column('thing_userprofile', 'can_add_keys')
+
 
     models = {
         'auth.group': {
@@ -66,6 +56,12 @@ class Migration(SchemaMigration):
             'model': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '100'})
         },
+        'thing.alliance': {
+            'Meta': {'object_name': 'Alliance'},
+            'id': ('django.db.models.fields.IntegerField', [], {'primary_key': 'True'}),
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '64'}),
+            'short_name': ('django.db.models.fields.CharField', [], {'max_length': '5'})
+        },
         'thing.apicache': {
             'Meta': {'object_name': 'APICache'},
             'cached_until': ('django.db.models.fields.DateTimeField', [], {}),
@@ -79,20 +75,30 @@ class Migration(SchemaMigration):
         'thing.apikey': {
             'Meta': {'ordering': "('keyid',)", 'object_name': 'APIKey'},
             'access_mask': ('django.db.models.fields.BigIntegerField', [], {'null': 'True', 'blank': 'True'}),
+            'characters': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "'apikeys'", 'symmetrical': 'False', 'to': "orm['thing.Character']"}),
             'corp_character': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'corporate_apikey'", 'null': 'True', 'to': "orm['thing.Character']"}),
             'expires': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'key_type': ('django.db.models.fields.CharField', [], {'max_length': '16', 'null': 'True', 'blank': 'True'}),
-            'keyid': ('django.db.models.fields.IntegerField', [], {'primary_key': 'True'}),
+            'keyid': ('django.db.models.fields.IntegerField', [], {}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '64'}),
             'paid_until': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
             'user': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['auth.User']"}),
             'valid': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
             'vcode': ('django.db.models.fields.CharField', [], {'max_length': '64'})
         },
+        'thing.apikeyfailure': {
+            'Meta': {'object_name': 'APIKeyFailure'},
+            'fail_reason': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
+            'fail_time': ('django.db.models.fields.DateTimeField', [], {'db_index': 'True'}),
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'keyid': ('django.db.models.fields.IntegerField', [], {}),
+            'user': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['auth.User']"})
+        },
         'thing.asset': {
             'Meta': {'object_name': 'Asset'},
             'character': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['thing.Character']", 'null': 'True', 'blank': 'True'}),
-            'corporation': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['thing.Corporation']", 'null': 'True', 'blank': 'True'}),
+            'corporation_id': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
             'id': ('django.db.models.fields.BigIntegerField', [], {'primary_key': 'True'}),
             'inv_flag': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['thing.InventoryFlag']"}),
             'item': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['thing.Item']"}),
@@ -134,7 +140,7 @@ class Migration(SchemaMigration):
             'material_level': ('django.db.models.fields.IntegerField', [], {'default': '0'}),
             'original': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'productivity_level': ('django.db.models.fields.IntegerField', [], {'default': '0'}),
-            'user': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['auth.User']"})
+            'user': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['auth.User']", 'null': 'True', 'blank': 'True'})
         },
         'thing.campaign': {
             'Meta': {'ordering': "('title',)", 'object_name': 'Campaign'},
@@ -199,8 +205,35 @@ class Migration(SchemaMigration):
             'name': ('django.db.models.fields.CharField', [], {'max_length': '64'}),
             'region': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['thing.Region']"})
         },
+        'thing.contract': {
+            'Meta': {'ordering': "('-date_issued',)", 'object_name': 'Contract'},
+            'acceptor_id': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
+            'assignee_id': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
+            'buyout': ('django.db.models.fields.DecimalField', [], {'max_digits': '15', 'decimal_places': '2'}),
+            'collateral': ('django.db.models.fields.DecimalField', [], {'max_digits': '15', 'decimal_places': '2'}),
+            'contract_id': ('django.db.models.fields.IntegerField', [], {'db_index': 'True'}),
+            'date_accepted': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
+            'date_completed': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
+            'date_expired': ('django.db.models.fields.DateTimeField', [], {}),
+            'date_issued': ('django.db.models.fields.DateTimeField', [], {}),
+            'end_station': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'contract_ends'", 'null': 'True', 'to': "orm['thing.Station']"}),
+            'for_corp': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'issuer_char': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'contract_issuers'", 'to': "orm['thing.SimpleCharacter']"}),
+            'issuer_corp': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'contract_issuers'", 'to': "orm['thing.Corporation']"}),
+            'num_days': ('django.db.models.fields.IntegerField', [], {}),
+            'price': ('django.db.models.fields.DecimalField', [], {'max_digits': '15', 'decimal_places': '2'}),
+            'public': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'reward': ('django.db.models.fields.DecimalField', [], {'max_digits': '15', 'decimal_places': '2'}),
+            'start_station': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'contract_starts'", 'null': 'True', 'to': "orm['thing.Station']"}),
+            'status': ('django.db.models.fields.CharField', [], {'max_length': '24'}),
+            'title': ('django.db.models.fields.CharField', [], {'max_length': '64'}),
+            'type': ('django.db.models.fields.CharField', [], {'max_length': '16'}),
+            'volume': ('django.db.models.fields.DecimalField', [], {'max_digits': '16', 'decimal_places': '4'})
+        },
         'thing.corporation': {
             'Meta': {'ordering': "('name',)", 'object_name': 'Corporation'},
+            'alliance': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['thing.Alliance']", 'null': 'True', 'blank': 'True'}),
             'division1': ('django.db.models.fields.CharField', [], {'max_length': '64', 'null': 'True', 'blank': 'True'}),
             'division2': ('django.db.models.fields.CharField', [], {'max_length': '64', 'null': 'True', 'blank': 'True'}),
             'division3': ('django.db.models.fields.CharField', [], {'max_length': '64', 'null': 'True', 'blank': 'True'}),
@@ -254,6 +287,7 @@ class Migration(SchemaMigration):
         },
         'thing.item': {
             'Meta': {'object_name': 'Item'},
+            'base_price': ('django.db.models.fields.DecimalField', [], {'default': '0', 'max_digits': '15', 'decimal_places': '2'}),
             'buy_price': ('django.db.models.fields.DecimalField', [], {'default': '0', 'max_digits': '15', 'decimal_places': '2'}),
             'id': ('django.db.models.fields.IntegerField', [], {'primary_key': 'True'}),
             'item_group': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['thing.ItemGroup']"}),
@@ -273,6 +307,24 @@ class Migration(SchemaMigration):
             'category': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['thing.ItemCategory']"}),
             'id': ('django.db.models.fields.IntegerField', [], {'primary_key': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '64'})
+        },
+        'thing.journalentry': {
+            'Meta': {'ordering': "('-date',)", 'object_name': 'JournalEntry'},
+            'amount': ('django.db.models.fields.DecimalField', [], {'max_digits': '14', 'decimal_places': '2'}),
+            'arg_id': ('django.db.models.fields.BigIntegerField', [], {}),
+            'arg_name': ('django.db.models.fields.CharField', [], {'max_length': '128'}),
+            'balance': ('django.db.models.fields.DecimalField', [], {'max_digits': '17', 'decimal_places': '2'}),
+            'character': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['thing.Character']"}),
+            'corp_wallet': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['thing.CorpWallet']", 'null': 'True', 'blank': 'True'}),
+            'date': ('django.db.models.fields.DateTimeField', [], {'db_index': 'True'}),
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'owner1_id': ('django.db.models.fields.IntegerField', [], {}),
+            'owner2_id': ('django.db.models.fields.IntegerField', [], {}),
+            'reason': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
+            'ref_id': ('django.db.models.fields.BigIntegerField', [], {}),
+            'ref_type': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['thing.RefType']"}),
+            'tax_amount': ('django.db.models.fields.DecimalField', [], {'max_digits': '14', 'decimal_places': '2'}),
+            'tax_corp': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['thing.Corporation']", 'null': 'True', 'blank': 'True'})
         },
         'thing.marketgroup': {
             'Meta': {'object_name': 'MarketGroup'},
@@ -323,12 +375,25 @@ class Migration(SchemaMigration):
             'id': ('django.db.models.fields.IntegerField', [], {'primary_key': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '64'})
         },
+        'thing.simplecharacter': {
+            'Meta': {'object_name': 'SimpleCharacter'},
+            'id': ('django.db.models.fields.IntegerField', [], {'primary_key': 'True'}),
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '64'})
+        },
         'thing.skill': {
             'Meta': {'object_name': 'Skill'},
+            'description': ('django.db.models.fields.TextField', [], {}),
             'item': ('django.db.models.fields.related.OneToOneField', [], {'to': "orm['thing.Item']", 'unique': 'True', 'primary_key': 'True'}),
             'primary_attribute': ('django.db.models.fields.SmallIntegerField', [], {}),
             'rank': ('django.db.models.fields.SmallIntegerField', [], {}),
             'secondary_attribute': ('django.db.models.fields.SmallIntegerField', [], {})
+        },
+        'thing.skillplan': {
+            'Meta': {'ordering': "('name',)", 'object_name': 'SkillPlan'},
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '64'}),
+            'user': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['auth.User']"}),
+            'visibility': ('django.db.models.fields.IntegerField', [], {'default': '1'})
         },
         'thing.skillqueue': {
             'Meta': {'ordering': "('start_time',)", 'object_name': 'SkillQueue'},
@@ -340,6 +405,30 @@ class Migration(SchemaMigration):
             'start_sp': ('django.db.models.fields.IntegerField', [], {}),
             'start_time': ('django.db.models.fields.DateTimeField', [], {}),
             'to_level': ('django.db.models.fields.SmallIntegerField', [], {})
+        },
+        'thing.spentry': {
+            'Meta': {'ordering': "('position',)", 'object_name': 'SPEntry'},
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'position': ('django.db.models.fields.IntegerField', [], {}),
+            'skill_plan': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'entries'", 'to': "orm['thing.SkillPlan']"}),
+            'sp_remap': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['thing.SPRemap']", 'null': 'True', 'blank': 'True'}),
+            'sp_skill': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['thing.SPSkill']", 'null': 'True', 'blank': 'True'})
+        },
+        'thing.spremap': {
+            'Meta': {'object_name': 'SPRemap'},
+            'cha_stat': ('django.db.models.fields.IntegerField', [], {}),
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'int_stat': ('django.db.models.fields.IntegerField', [], {}),
+            'mem_stat': ('django.db.models.fields.IntegerField', [], {}),
+            'per_stat': ('django.db.models.fields.IntegerField', [], {}),
+            'wil_stat': ('django.db.models.fields.IntegerField', [], {})
+        },
+        'thing.spskill': {
+            'Meta': {'object_name': 'SPSkill'},
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'level': ('django.db.models.fields.IntegerField', [], {}),
+            'priority': ('django.db.models.fields.IntegerField', [], {}),
+            'skill': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['thing.Skill']"})
         },
         'thing.station': {
             'Meta': {'object_name': 'Station'},
@@ -354,6 +443,16 @@ class Migration(SchemaMigration):
             'id': ('django.db.models.fields.IntegerField', [], {'primary_key': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '32'})
         },
+        'thing.taskstate': {
+            'Meta': {'object_name': 'TaskState'},
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'key_info': ('django.db.models.fields.CharField', [], {'max_length': '80', 'db_index': 'True'}),
+            'mod_time': ('django.db.models.fields.DateTimeField', [], {'db_index': 'True'}),
+            'next_time': ('django.db.models.fields.DateTimeField', [], {'db_index': 'True'}),
+            'parameter': ('django.db.models.fields.IntegerField', [], {}),
+            'state': ('django.db.models.fields.IntegerField', [], {'db_index': 'True'}),
+            'url': ('django.db.models.fields.CharField', [], {'max_length': '64', 'db_index': 'True'})
+        },
         'thing.transaction': {
             'Meta': {'object_name': 'Transaction'},
             'buy_transaction': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
@@ -362,19 +461,34 @@ class Migration(SchemaMigration):
             'date': ('django.db.models.fields.DateTimeField', [], {'db_index': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'item': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['thing.Item']"}),
+            'other_char': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['thing.SimpleCharacter']", 'null': 'True', 'blank': 'True'}),
+            'other_corp': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['thing.Corporation']", 'null': 'True', 'blank': 'True'}),
             'price': ('django.db.models.fields.DecimalField', [], {'max_digits': '14', 'decimal_places': '2'}),
             'quantity': ('django.db.models.fields.IntegerField', [], {}),
             'station': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['thing.Station']"}),
             'total_price': ('django.db.models.fields.DecimalField', [], {'max_digits': '17', 'decimal_places': '2'}),
-            'transaction_id': ('django.db.models.fields.BigIntegerField', [], {})
+            'transaction_id': ('django.db.models.fields.BigIntegerField', [], {'db_index': 'True'})
         },
         'thing.userprofile': {
             'Meta': {'object_name': 'UserProfile'},
+            'can_add_keys': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
             'home_chars_per_row': ('django.db.models.fields.IntegerField', [], {'default': '4'}),
+            'home_hide_characters': ('django.db.models.fields.TextField', [], {'default': "''"}),
             'home_sort_descending': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'home_sort_order': ('django.db.models.fields.CharField', [], {'default': "'apiname'", 'max_length': '12'}),
+            'icon_theme': ('django.db.models.fields.CharField', [], {'default': "'default'", 'max_length': '32'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'theme': ('django.db.models.fields.CharField', [], {'default': "'theme-default'", 'max_length': '32'}),
+            'show_assets': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
+            'show_blueprints': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
+            'show_clock': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
+            'show_contracts': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
+            'show_item_icons': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'show_market_scan': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
+            'show_orders': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
+            'show_trade': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
+            'show_transactions': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
+            'show_wallet_journal': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
+            'theme': ('django.db.models.fields.CharField', [], {'default': "'default'", 'max_length': '32'}),
             'user': ('django.db.models.fields.related.OneToOneField', [], {'to': "orm['auth.User']", 'unique': 'True'})
         }
     }

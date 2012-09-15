@@ -74,10 +74,11 @@ def home(request):
     for apikey in APIKey.objects.prefetch_related('characters').filter(user=request.user).exclude(key_type=APIKey.CORPORATION_TYPE):
         api_keys.add(apikey)
         for char in apikey.characters.all():
-            chars[char.id] = char
-            char.z_apikey = apikey
-            char.z_training = {}
-            total_balance += char.wallet_balance
+            if char.id not in chars:
+                chars[char.id] = char
+                char.z_apikey = apikey
+                char.z_training = {}
+                total_balance += char.wallet_balance
 
     tt.add_time('apikeys')
 
@@ -373,6 +374,10 @@ def account_apikey_add(request):
             request.session['message_type'] = 'error'
             request.session['message'] = 'You already have an API key with that KeyID!'
 
+        elif request.user.get_profile().can_add_keys is False:
+            request.session['message_type'] = 'error'
+            request.session['message'] = 'You are not allowed to add API keys!'
+
         else:
             apikey = APIKey(
                 user_id=request.user.id,
@@ -427,6 +432,30 @@ def account_apikey_edit(request):
 
         apikey.name = request.POST.get('name', '')
         apikey.save()
+
+    return redirect('%s#tab_apikeys' % (reverse(account)))
+
+# Purge an API key's data
+@login_required
+def account_apikey_purge(request):
+    apikey_id = request.POST.get('apikey_id', '')
+    if apikey_id.isdigit():
+        try:
+            apikey = APIKey.objects.get(user=request.user.id, id=apikey_id)
+        
+        except APIKey.DoesNotExist:
+            request.session['message_type'] = 'error'
+            request.session['message'] = 'You do not have an API key with that KeyID!'
+        
+        else:
+            request.session['message_type'] = 'success'
+            request.session['message'] = 'API key %s purge queued successfully!' % (apikey.id)
+
+            apikey.purge_data()
+
+    else:
+        request.session['message_type'] = 'error'
+        request.session['message'] = 'You seem to be doing silly things, stop that.'
 
     return redirect('%s#tab_apikeys' % (reverse(account)))
 
@@ -1313,7 +1342,7 @@ def character_skillplan_common(request, character, skillplan, public=True, anony
 # Contracts
 @login_required
 def contracts(request):
-    characters = list(Character.objects.filter(apikeys__user=request.user.id).values_list('id', flat=True))
+    characters = list(Character.objects.filter(apikeys__user=request.user.id).distinct().values_list('id', flat=True))
     corporations = list(APIKey.objects.filter(user=request.user).exclude(corp_character=None).values_list('corp_character__corporation__id', flat=True))
 
     # Whee~

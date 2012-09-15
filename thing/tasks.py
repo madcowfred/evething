@@ -20,6 +20,7 @@ except ImportError:
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.db import connection, transaction, IntegrityError
+from django.db.models import Count
 
 from thing import queries
 from thing.models import *
@@ -37,7 +38,7 @@ _session = requests.session(
         'max_retries': 1
     },
     headers={
-        'User-Agent': 'EVEthing-tasks (keep-alive test)',
+        'User-Agent': 'EVEthing-tasks (keep-alive)',
     },
 )
 
@@ -48,10 +49,6 @@ HEADERS = {
 }
 # number of rows to request per WalletTransactions call, max is 2560
 TRANSACTION_ROWS = 2560
-
-CHAR_NAME_URL = '/eve/CharacterName.xml.aspx'
-CORP_SHEET_URL = '/corp/CorporationSheet.xml.aspx'
-
 
 API_KEY_INFO_URL = ('api_key_info', '/account/APIKeyInfo.xml.aspx', 'et_low')
 
@@ -81,11 +78,15 @@ CORP_URLS = {
 # Class to wrap things
 class APIJob:
     def __init__(self, apikey_id, taskstate_id):
+        connection.queries = []
+        self.start = time.time()
+        self.api_total_time = 0.0
+
         self.ready = True
 
         # Fetch APIKey
         try:
-            self.apikey = APIKey.objects.get(pk=apikey_id)
+            self.apikey = APIKey.objects.select_related('corp_character__corporation', 'user').get(pk=apikey_id)
         except APIKey.DoesNotExist:
             self.ready = False
         else:
@@ -105,6 +106,19 @@ class APIJob:
     def completed(self):
         self.apicache.completed()
         self._taskstate_ready()
+
+        if settings.DEBUG and False:
+            print '%.3fs  %d queries (%.3fs)  API: %.2fs' % (time.time() - self.start,
+                len(connection.queries), sum(float(q['time']) for q in connection.queries),
+                self.api_total_time
+            )
+            for query in connection.queries:
+                if query['sql'].startswith('INSERT INTO "thing_apicache"'):
+                    print '%02.3fs  INSERT INTO "thing_apicache" ...' % (float(query['time']),)
+                elif query['sql'].startswith('UPDATE "thing_apicache"'):
+                    print '%02.3fs  UPDATE "thing_apicache" ...' % (float(query['time']),)
+                else:
+                    print '%02.3fs  %s' % (float(query['time']), query['sql'])
 
     def failed(self):
         self._taskstate_ready()
@@ -143,11 +157,11 @@ class APIJob:
             params['vCode'] = self.apikey.vcode
 
         # Check the API cache for this URL/params combo
-        now = datetime.datetime.utcnow()
+        utcnow = datetime.datetime.utcnow()
         params_repr = repr(sorted(params.items()))
         
         # Retrieve the latest APICache object
-        apicaches = list(APICache.objects.filter(url=url, parameters=params_repr, cached_until__gt=now).order_by('-cached_until')[:1])
+        apicaches = list(APICache.objects.filter(url=url, parameters=params_repr, cached_until__gt=utcnow).order_by('-cached_until')[:1])
         
         # Data is not cached, fetch new data
         if len(apicaches) == 0:
@@ -155,6 +169,7 @@ class APIJob:
             
             # Fetch the URL
             full_url = urljoin(settings.API_HOST, url)
+            start = time.time()
             try:
                 r = _session.post(full_url, params, prefetch=True)
                 data = r.text
@@ -162,6 +177,8 @@ class APIJob:
                 return False
             except SoftTimeLimitExceeded:
                 return False
+
+            self.api_total_time += (time.time() - start)
 
             # If the status code is bad return False
             if not r.status_code == requests.codes.ok:
@@ -201,8 +218,14 @@ class APIJob:
                 if log_error:
                     logger.error('%s: %s | %s -> %s', error.attrib['code'], error.text, current, until)
 
-                # Mark key as invalid if it's an auth error
+                # Permanent key errors
                 if error.attrib['code'] in ('202', '203', '204', '205', '210', '212', '207', '220', '222', '223'):
+                    now = datetime.datetime.now()
+
+                    # Mark the key as invalid
+                    self.apikey.invalidate()
+
+                    # Log an error event for the user
                     text = "Your API key #%d was marked invalid: %s %s" % (self.apikey.id, error.attrib['code'],
                         error.text)
                     Event.objects.create(
@@ -211,9 +234,35 @@ class APIJob:
                         text=text,
                     )
 
-                    self.apikey.valid = False
-                    self.apikey.save()
-                
+                    # Log a key failure
+                    fail_reason = '%s: %s' % (error.attrib['code'], error.text)
+                    APIKeyFailure.objects.create(
+                        user_id=self.apikey.user.id,
+                        keyid=self.apikey.keyid,
+                        fail_time=now,
+                        fail_reason=fail_reason,
+                    )
+
+                    # Check if we need to punish this user for their sins
+                    one_week_ago = now - datetime.timedelta(7)
+                    count = APIKeyFailure.objects.filter(user=self.apikey.user, fail_time__gt=one_week_ago).count()
+                    limit = getattr(settings, 'API_FAILURE_LIMIT', 3)
+                    if limit > 0 and count >= limit:
+                        # Disable their ability to add keys
+                        profile = self.apikey.user.get_profile()
+                        profile.can_add_keys = False
+                        profile.save()
+
+                        # Log that we did so
+                        text = "Limit of %d API key failures per 7 days exceeded, you may no longer add keys." % (
+                            limit)
+                        Event.objects.create(
+                            user_id=self.apikey.user.id,
+                            issued=now,
+                            text=text,
+                        )
+
+
                 apicache.error_displayed = True
                 apicache.save()
                 
@@ -856,6 +905,7 @@ def contracts(url, apikey_id, taskstate_id, character_id):
             id=new_id,
             name="*UNKNOWN*",
         ))
+        char_map[new_id] = new[-1]
 
     if new:
         SimpleCharacter.objects.bulk_create(new)
@@ -867,13 +917,14 @@ def contracts(url, apikey_id, taskstate_id, character_id):
             id=new_id,
             name="*UNKNOWN*",
         ))
+        corp_map[new_id] = new[-1]
 
     if new:
         Corporation.objects.bulk_create(new)
 
     # Re-fetch data
-    char_map = SimpleCharacter.objects.in_bulk(lookup_ids)
-    corp_map = Corporation.objects.in_bulk(lookup_ids | lookup_corp_ids)
+    #char_map = SimpleCharacter.objects.in_bulk(lookup_ids)
+    #corp_map = Corporation.objects.in_bulk(lookup_ids | lookup_corp_ids)
     station_map = Station.objects.in_bulk(station_ids)
 
     # Fetch all existing contracts
@@ -1130,6 +1181,7 @@ def market_orders(url, apikey_id, taskstate_id, character_id):
     else:
         o_filter = MarketOrder.objects.filter(corp_wallet=None, character=character)
 
+    o_filter = o_filter.select_related('item')
 
     # Generate a character id map
     char_id_map = {}
@@ -1144,7 +1196,7 @@ def market_orders(url, apikey_id, taskstate_id, character_id):
     
     # Generate an order_id map
     order_map = {}
-    for mo in o_filter.select_related('item'):
+    for mo in o_filter:
         order_map[mo.order_id] = mo
     
     # Iterate over the returned result set
@@ -1708,6 +1760,38 @@ def _wallet_transactions_work(url, job, character, corp_wallet=None):
             break
 
 # ---------------------------------------------------------------------------
+# Purge all data related to an APIKey, woo
+# ---------------------------------------------------------------------------
+@task
+def purge_data(apikey_id):
+    try:
+        apikey = APIKey.objects.get(pk=apikey_id)
+    except APIKey.DoesNotExist:
+        logger.warn('purge_data called with an invalid apikey_id')
+        return
+
+    # Account/Character keys
+    now = datetime.datetime.now()
+    if apikey.key_type in (APIKey.ACCOUNT_TYPE, APIKey.CHARACTER_TYPE):
+        # Get the characters for this key along with a count of related APIKeys
+        for char in apikey.characters.annotate(key_count=Count('apikeys')):
+            if char.key_count == 1:
+                char.delete()
+                text = "All data for character '%s' has been purged" % (char.name)
+            else:
+                text = "All data for character '%s' was not purged due to other API keys referencing it" % (char.name)
+
+            Event.objects.create(
+                user_id=apikey.user_id,
+                issued=now,
+                text=text,
+            )
+
+        # Delete the API key if there are no characters remaining
+        if apikey.characters.count() == 0:
+            apikey.delete()
+
+# ---------------------------------------------------------------------------
 # Other periodic tasks
 # ---------------------------------------------------------------------------
 # Periodic task to update the alliance list and Corporation.alliance fields
@@ -1876,7 +1960,7 @@ def price_updater():
             item.save()
 
     # Calculate capital ship costs now
-    for bp in Blueprint.objects.select_related('item').filter(item__item_group__name__in=('Carrier', 'Dreadnought', 'Supercarrier', 'Titan')):
+    for bp in Blueprint.objects.select_related('item').filter(item__item_group__name__in=('Capital Industrial Ship', 'Carrier', 'Dreadnought', 'Supercarrier', 'Titan')):
         bpi = BlueprintInstance(
             user=None,
             blueprint=bp,

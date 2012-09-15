@@ -1,7 +1,5 @@
 //
 // Variables
-// Swatch: Slate
-// Version: 2.1.1
 // --------------------------------------------------
 
 
@@ -12,21 +10,21 @@
 // Grays
 // -------------------------
 @black:                 #000;
-@grayDarker:            #272B30;
-@grayDark:              #3A3F44;
-@gray:                  #52575C;
-@grayLight:             #959CA2;
-@grayLighter:           #BBBFC2;
+@grayDarker:            #222;
+@grayDark:              #333;
+@gray:                  #555;
+@grayLight:             #999;
+@grayLighter:           #eee;
 @white:                 #fff;
 
 
 // Accent colors
 // -------------------------
-@blue:                  #02A1DD;
-@blueDark:              #108CBB;
-@green:                 #87CA4D;
+@blue:                  #049cdb;
+@blueDark:              #0064cd;
+@green:                 #46a546;
 @red:                   #9d261d;
-@yellow:                #F6D30D;
+@yellow:                #ffc40d;
 @orange:                #f89406;
 @pink:                  #c3325f;
 @purple:                #7a43b6;
@@ -34,48 +32,46 @@
 
 // Scaffolding
 // -------------------------
-@bodyBackground:        @grayDarker;
-@textColor:             @grayLight;
+@bodyBackground:        @white;
+@textColor:             @grayDark;
 
 
 // Links
 // -------------------------
-@linkColor:             @white;
-@linkColorHover:        @white;
+@linkColor:             #08c;
+@linkColorHover:        darken(@linkColor, 15%);
 
 
 // Typography
 // -------------------------
 @sansFontFamily:        "Helvetica Neue", Helvetica, Arial, sans-serif;
 @serifFontFamily:       Georgia, "Times New Roman", Times, serif;
-@monoFontFamily:        Menlo, Monaco, Consolas, "Courier New", monospace;
+@monoFontFamily:        Monaco, Menlo, Consolas, "Courier New", monospace;
 
-@baseFontSize:          13px;
+@baseFontSize:          14px;
 @baseFontFamily:        @sansFontFamily;
-@baseLineHeight:        18px;
+@baseLineHeight:        20px;
 @altFontFamily:         @serifFontFamily;
 
 @headingsFontFamily:    inherit; // empty to use BS default, @baseFontFamily
 @headingsFontWeight:    bold;    // instead of browser default, bold
 @headingsColor:         inherit; // empty to use BS default, @textColor
 
-
 // Tables
 // -------------------------
 @tableBackground:                   transparent; // overall background-color
-@tableBackgroundAccent:             darken(@grayDark, 5%); // for striping
-@tableBackgroundHover:              @grayDark; // for hover
-@tableBorder:                       darken(@grayDarker, 5%); // table and cell border
-
+@tableBackgroundAccent:             #f9f9f9; // for striping
+@tableBackgroundHover:              #f5f5f5; // for hover
+@tableBorder:                       #ddd; // table and cell border
 
 // Buttons
 // -------------------------
 @btnBackground:                     @white;
 @btnBackgroundHighlight:            darken(@white, 10%);
-@btnBorder:                         darken(@white, 20%);
+@btnBorder:                         #bbb;
 
-@btnPrimaryBackground:              @grayLight;
-@btnPrimaryBackgroundHighlight:     spin(@btnPrimaryBackground, 15%);
+@btnPrimaryBackground:              @linkColor;
+@btnPrimaryBackgroundHighlight:     spin(@btnPrimaryBackground, 20%);
 
 @btnInfoBackground:                 #5bc0de;
 @btnInfoBackgroundHighlight:        #2f96b4;
@@ -89,7 +85,7 @@
 @btnDangerBackground:               #ee5f5b;
 @btnDangerBackgroundHighlight:      #bd362f;
 
-@btnInverseBackground:              @gray;
+@btnInverseBackground:              #444;
 @btnInverseBackgroundHighlight:     @grayDarker;
 
 
@@ -99,22 +95,21 @@
 @inputBorder:                   #ccc;
 @inputBorderRadius:             3px;
 @inputDisabledBackground:       @grayLighter;
-@formActionsBackground:         darken(@grayDarker, 3%);
+@formActionsBackground:         #f5f5f5;
 
 // Dropdowns
 // -------------------------
-@dropdownBackground:            @grayDark;
+@dropdownBackground:            @white;
 @dropdownBorder:                rgba(0,0,0,.2);
 @dropdownDividerTop:            #e5e5e5;
-@dropdownDividerBottom:         darken(@grayDarker, 5%);
+@dropdownDividerBottom:         @white;
 
-@dropdownLinkColor:             @grayLight;
-
-@dropdownLinkColorHover:        @grayLighter;
-@dropdownLinkBackgroundHover:   @grayDarker;
-
+@dropdownLinkColor:             @grayDark;
+@dropdownLinkColorHover:        @white;
 @dropdownLinkColorActive:       @dropdownLinkColor;
-@dropdownLinkBackgroundActive:  @grayDarker;
+
+@dropdownLinkBackgroundActive:  @linkColor;
+@dropdownLinkBackgroundHover:   @dropdownLinkBackgroundActive;
 
 
 
@@ -156,7 +151,7 @@
 
 // Wells
 // -------------------------
-@wellBackground:                  darken(@grayDarker, 3%);
+@wellBackground:                  #f5f5f5;
 
 
 // Navbar
@@ -164,22 +159,22 @@
 @navbarCollapseWidth:             979px;
 
 @navbarHeight:                    40px;
-@navbarBackground:                @grayDarker;
-@navbarBackgroundHighlight:       @grayDark;
+@navbarBackgroundHighlight:       #ffffff;
+@navbarBackground:                darken(@navbarBackgroundHighlight, 5%);
 @navbarBorder:                    darken(@navbarBackground, 12%);
 
-@navbarText:                      @grayLight;
-@navbarLinkColor:                 @grayLighter;
-@navbarLinkColorHover:            @grayLighter;
-@navbarLinkColorActive:           @navbarLinkColorHover;
-@navbarLinkBackgroundHover:       @grayDark;
-@navbarLinkBackgroundActive:      @navbarBackground;
+@navbarText:                      #777;
+@navbarLinkColor:                 #777;
+@navbarLinkColorHover:            @grayDark;
+@navbarLinkColorActive:           @gray;
+@navbarLinkBackgroundHover:       transparent;
+@navbarLinkBackgroundActive:      darken(@navbarBackground, 5%);
 
-@navbarBrandColor:                @grayLighter;
+@navbarBrandColor:                @navbarLinkColor;
 
 // Inverted navbar
-@navbarInverseBackground:                darken(@grayDarker, 10%);
-@navbarInverseBackgroundHighlight:       @grayDarker;
+@navbarInverseBackground:                #111111;
+@navbarInverseBackgroundHighlight:       #222222;
 @navbarInverseBorder:                    #252525;
 
 @navbarInverseText:                      @grayLight;
@@ -206,7 +201,7 @@
 
 // Hero unit
 // -------------------------
-@heroUnitBackground:              darken(@grayDarker, 3%);
+@heroUnitBackground:              @grayLighter;
 @heroUnitHeadingColor:            inherit;
 @heroUnitLeadColor:               inherit;
 

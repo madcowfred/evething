@@ -22,6 +22,9 @@ class UserProfile(models.Model):
 
     user = models.OneToOneField(User)
 
+    # User can add APIKeys
+    can_add_keys = models.BooleanField(default=True)
+
     # Global options
     theme = models.CharField(max_length=32, default='default')
     icon_theme = models.CharField(max_length=32, default='default')
@@ -146,8 +149,31 @@ class APIKey(models.Model):
         else:
             return []
 
-# ---------------------------------------------------------------------------
+    # Mark this key as invalid and clear associated characters
+    def invalidate(self):
+        self.valid = False
+        # Maybe clear characters later?
+        #self.characters.clear()
+        self.save()
 
+    # Delete ALL related data for this key
+    def purge_data(self):
+        self.invalidate()
+
+        from celery.execute import send_task
+        send_task('thing.tasks.purge_data', args=[self.id], kwargs={}, queue='et_high')
+
+# ---------------------------------------------------------------------------
+# APIKey permanent failure log
+class APIKeyFailure(models.Model):
+    user = models.ForeignKey(User)
+    keyid = models.IntegerField()
+
+    fail_time = models.DateTimeField(db_index=True)
+    fail_reason = models.CharField(max_length=255)
+
+# ---------------------------------------------------------------------------
+# Task state
 class TaskState(models.Model):
     READY_STATE = 0
     QUEUED_STATE = 1

@@ -14,7 +14,6 @@
     = Implement database model
     = Events for job installation/completion/etc
   - Wallet journal:
-    = Implement database model
     = ISK per hour graph for mission rewards/rat bounties/etc
     = Corporation graph too?
 
@@ -34,13 +33,18 @@
     = Will require modifying all view code to use .extra() and a binary AND on the access_mask field, ugh
       # apikey.get_masks() and comparing the list to apikey.foo_MASK maybe? Possibly slow.
 
+* tasks:
+  - Make SystemEvent objects for admin-related events
+  - Make sure all tasks use in_bulk/bulk_create to reduce database thrashing
+    = Any task using get_(station|item) is obviously not using bulk calls.
+
 * tasks.api_key_info:
-  = When a key is successfully updated, check the APICache for any 221 "derp check access" errors. If any are found, purge
+  - When a key is successfully updated, check the APICache for any 221 "derp check access" errors. If any are found, purge
     them from the cache and also the related TaskState object.
 
 * tasks.asset_list:
-  = Only call Locations API straight after assets are updated, this SHOULD ensure we never get that stupid "user may not own
-  all of those IDs" error ever again.
+  - Only call Locations API straight after assets are updated, this SHOULD ensure we never get that stupid "user may not own
+    all of those IDs" error ever again.
 
 * tasks.price_updater:
   - Add support for other sources of market data (EVE-Central, EVEMarketData?)
@@ -117,10 +121,3 @@
     = wallets?
     = client
   - Clickable Client column to filter further
-
-
-* api_updater:
-  - Make SystemEvent objects for admin-related events
-  - Convert everything over to using Django 1.4 bulk saves
-    = Standings, WalletTransactions done
-  - DEPRECATED

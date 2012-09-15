@@ -3,39 +3,28 @@ EVEthing
 ========
 
 EVEthing is a terribly named web application intended to ease the pain of managing your
-EVE space empire.
-
-- Written entirely in Python
-- Uses the Django web development framework with django-mptt to store and handle hierarchical
-  data.
-- Uses the excellent `Twitter Bootstrap <http://twitter.github.com/bootstrap/>`_ CSS framework.
+`EVE Online <http://www.eveonline.com/>`_ space empire.
 
 Features
 ========
 
 - Handles all types of API key: account, character and corporation.
-
 - Only crashes occasionally, honest.
-
 - More than likely won't set your hard drive on fire.
-
-- Home page: displays relevant information about all API keys related to your account.
+- Home page: displays relevant information about all API keys attached to your account.
   `Screenshot <https://github.com/madcowfred/evething/raw/develop/doc-images/home.png>`_.
-  
    * Character name, wallet balance, API key 'name' (in brackets) and total SP easily
      visible.
    * If the account is training, shows training skill, time remaining and training
      speed. Red completion bars have free room in the skill queue.
-   * Notification icons appear at the bottom of each character box and have basic
-     tooltips, you can see the current types in the example screenshot.
    * Red boxes highlight accounts with no characters in training.
+   * Notification icons appear at the bottom of each character box and have basic
+     tooltips, you can see the current types in the screenshot.
    * Wallet balances for any corporation keys are displayed underneath.
-
 - Character page: displays character information similar to the in-game character sheet.
   If you've ever used `eveboard <http://eveboard.com>`_ you should know what to expect.
   `Screenshot <https://github.com/madcowfred/evething/raw/develop/doc-images/character.png>`_
   (yes, that's me).
-
    * Basic info: portrait, corporation, wallet balance, total SP, clone limit, attributes and
      implants.
    * Skill queue.
@@ -46,26 +35,20 @@ Features
      you can see, or a 404 error if they choose to not be public.
    * Anonymous character support, accessed via a /character_anon/blah URL. Character name,
      corporation, wallet balance and implants are not shown and your portrait is replaced
-     with a placeholder.
-
+     with a terrible placeholder image.
 - API key management page: list keys, add keys, simple interface to generate a new key with
   a feature set. `Screenshot <https://github.com/madcowfred/evething/raw/develop/doc-images/apikeys.png>`_
-
 - Assets page: lists assets for all characters with the relevant API mask. Includes ship
   and container names with the Locations mask. Filtering is somewhat limited and search is
   non-existent but the basic functionality is in and working.
   `Screenshot <https://github.com/madcowfred/evething/raw/develop/doc-images/assets.png>`_
-
 - Blueprints page: lets you add/delete/edit/view blueprints you have added to the system.
   `Screenshot <https://github.com/madcowfred/evething/raw/develop/doc-images/blueprints.png>`_
-  
-   * See useful information at a glance for every blueprint you own (assume you could be
+   * See useful information at a glance for every blueprint you own (assuming you could be
      bothered entering them all).
    * Mark a selection of blueprints to use with BPCalc.
-
 - BPCalc page: displays detailed production information and allows you to filter based on
   things. `Screenshot <https://github.com/madcowfred/evething/raw/develop/doc-images/bpcalc.png>`_
-
    * Displays blueprints, total m3 of inputs/ouputs, expected profit values from both buys
      and sells, and estimated weekly volume.
    * Not particularly powerful filters on the data:
@@ -74,51 +57,50 @@ Features
       + Limit slots to a certain value
       + Remove selected blueprints
    * Components table with IGB-clickable links for easy purchasing of items.
-
-- Orders page: displays a summary of your market orders and a detailed table.
+- Orders page: displays a summary of your market orders and a detailed list of all orders.
   `Screenshot <https://github.com/madcowfred/evething/raw/develop/doc-images/orders.png>`_
-
    * Summary table showing active order slots and total values involved.
    * Detailed active orders table listing all relevant information for each order, with
      clickable item names that lead to Transactions pages.
-
 - Transactions page: displays a log of market transactions for all items or a specific
   item. `Screenshot <https://github.com/madcowfred/evething/raw/develop/doc-images/transactions.png>`_
-
    * All transactions page has clickable item links that lead to specific items.
-
 - Trade page: displays a summary of all transactions by month and over specific 'Campaigns'.
   `Screenshot <https://github.com/madcowfred/evething/raw/develop/doc-images/trade.png>`_
-   
 
 Future Plans
 ============
 
 - Take over the universe.
 - Skill plan creation.
-- Wallet Journal tracking.
 - Industry Job tracking.
-- CREST integration once CCP actually releases something.
+- CREST integration if CCP ever actually releases something.
 
 Installation
 ============
 
-There are some common requirements for any install method, you will need:
+There are some common requirements for any install method, most of these will be installed
+using pip in 'Common Install Steps' below:
 
-- `Python <http://www.python.org>`_ >=2.7 <3.0
+- `Python <http://www.python.org>`_ >=2.6 <3.0
 - `Django <http://www.djangoproject.com>`_ >=1.4
+- `Celery <http://docs.celeryproject.org/en/latest/>`_ >= 3.0
+- `django-celery <http://docs.celeryproject.org/en/latest/django/>`_ >= 3.0
 - `Django MPTT <https://github.com/django-mptt/django-mptt/>`_ >=0.5
 - `South <http://south.aeracode.org/>`_ >=0.7
 - `Coffin <https://github.com/coffin/coffin/>`_ >=0.3
 - `Jinja2 <http://jinja.pocoo.org/>`_ >=2.6
-- A database server and client library.
+- A database server and relevant client library.
    * `SQLite <http://www.sqlite.org>`_ is the simplest and is often included with Python.
    * `MySQL <http://www.mysql.com>`_ is another option and highly likely to be available on
      shared hosting. You will need the `MySQLdb <http://mysql-python.sourceforge.net/MySQLdb.html>`_
-     client library.
+     client library, ``pip install mysql-python``.
    * `PostgreSQL <http://www.postgresql.org>`_ is the last option and would be my choice.
-     You will need the `psycopg <http://initd.org/psycopg/>`_ client library.
-- The current EVE database dump from `here <http://zofu.no-ip.de/>`_, imported into a database.
+     You will need the `psycopg <http://initd.org/psycopg/>`_ client library, ``pip install psycopg2``.
+- The current EVE Static Data Export imported into a database. The recommended course is to get
+  the SQLite conversion from `fuzzwork <http://www.fuzzwork.co.uk/dump/>`_ and use that as your
+  'import' database. If you can't do that, `zofu <http://zofu.no-ip.de/>`_ has MySQL and Postgres
+  versions that take a long, long time to import.
 
 Common Install Steps
 --------------------
@@ -127,7 +109,7 @@ Common Install Steps
 #. Clone the EVEthing git repository: ``git clone -b develop git://github.com/madcowfred/evething.git``.
 #. Install the required libraries using pip: ``cd evething``, ``pip install -r requirements.txt``.
 #. Copy evething/local_settings.example to evething/local_settings.py then open
-   evething/local_settings.py in some sort of text editor and edit things.
+   local_settings.py in some sort of text editor and edit settings.
 #. ``python manage.py syncdb``, say NO when it asks if you would like to create an admin user.
 #. ``python manage.py migrate --all``, this will apply database migrations in order.
 #. ``python manage.py createsuperuser`` to create a new superuser.
@@ -138,18 +120,44 @@ to apply any database schema changes!
 
 Common Post-install Steps
 -------------------------
+#. LEAVE DEBUG ENABLED FOR NOW - it will spit out tracebacks that should help you track down
+   any problems.
 #. Log in as the superuser you created earlier.
 #. Click the username dropdown in the top right and head to Account Management.
 #. Add one or more API keys.
-#. ``python api_updater.py`` and wait while it pulls a huge pile of information.
+
+Celery Worker Setup
+-------------------
+This is my third take on the API update process. v1 was api_updater.py with a single thread, this
+worked relatively well for small numbers of keys but broke badly under load. v2 was api_updater.py
+with multiple threads. After a lot of messing about with exciting threading bugs, I gave up and
+learned about the wonders of `Celery <http://celery.readthedocs.org/en/latest/index.html>`_.
+
+EVEthing will presently place jobs in 3 queues:
+  * et_high: internal tasks such as spawning jobs, cleaning up the API cache, resetting 'broken' tasks.
+  * et_low: low priority tasks, only APIKeyInfo calls right now.
+  * et_medium: everything else.
+
+There are a few possible ways to run the workers:
+  * Single worker group (development, small installations):
+    + ``python manage.py celery worker -B -Q et_high,et_medium,et_low -c 2``
+  * Two worker groups (medium installations):
+    + ``python manage.py celery worker -B -Q et_high -c 1``
+    + ``python manage.py celery worker -Q et_medium,et_low -c 4``
+    + This has been fine with up to 300 keys so far.
+  * Three worker groups (large installations):
+    + ``python manage.py celery worker -B -Q et_high -c 1``
+    + ``python manage.py celery worker -B -Q et_low -c 1``
+    + ``python manage.py celery worker -B -Q et_medium -c 5``
+    + This keeps up with the 1070 key GoonFleet hosted version.
 
 Local Install
 -------------
 This is for messing about with EVEthing and seeing what the hell it does, never use this for a
 publicly accessible site (see: `Django docs <https://docs.djangoproject.com/en/dev/ref/django-admin/#runserver-port-or-address-port>`_).
 
-#. ``python manage.py runserver``.
-#. Open http://localhost:8000/ in a web browser.
+#. ``python manage.py runserver ip:port``.
+#. Open http://ip:port/ in a web browser.
 
 Apache Install
 --------------
