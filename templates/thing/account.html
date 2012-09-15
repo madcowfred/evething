@@ -11,6 +11,7 @@
       mask_map[4096] = 'MarketOrders';
       mask_map[262144] = 'SkillQueue';
       mask_map[524288] = 'Standings';
+      mask_map[2097152] = 'WalletJournal';
       mask_map[4194304] = 'WalletTransactions';
       mask_map[33554432] = 'AccountStatus';
       mask_map[67108864] = 'Contracts';
@@ -358,16 +359,41 @@
                   <div class="row-fluid margin-full-top">
                     <div class="span4">
                       <h4>EVEthing features:</h4>
-                      <ul class="unstyled">
-                        <li><input type="checkbox" class="apikey-build" data-masks="8;262144" checked> Skill queue monitoring</li>
-                        <li><input type="checkbox" class="apikey-build" data-masks="33554432" checked> Account expiry warning</li>
-                        <li><input type="checkbox" class="apikey-build" data-masks="524288"> Character standings</li>
-                        <li><input type="checkbox" class="apikey-build" data-masks="4194304"> Wallet transactions</li>
-                        <li><input type="checkbox" class="apikey-build" data-masks="4096"> Market orders</li>
-                        <li><input type="checkbox" class="apikey-build" data-masks="2;134217728"> Assets</li>
-                        <li><input type="checkbox" class="apikey-build" data-masks="67108864"> Contracts</li>
-                      </ul>
-                      <a class="btn btn-primary" id="apikey-link" href="https://support.eveonline.com/api/Key/CreatePredefined/33816584" target="_blank">Create new key</a>
+                      <form class="margin-half-bot">
+                        <label class="checkbox">
+                          <input type="checkbox" class="apikey-build" data-masks="8;262144" checked>
+                          Skill queue monitoring
+                        </label>
+                        <label class="checkbox">
+                          <input type="checkbox" class="apikey-build" data-masks="33554432" checked>
+                          Account expiry warning
+                        </label>
+                        <label class="checkbox">
+                          <input type="checkbox" class="apikey-build" data-masks="524288">
+                          Character standings
+                        </label>
+                        <label class="checkbox">
+                          <input type="checkbox" class="apikey-build" data-masks="2097152">
+                          Wallet journal
+                        </label>
+                        <label class="checkbox">
+                          <input type="checkbox" class="apikey-build" data-masks="4194304">
+                          Wallet transactions
+                        </label>
+                        <label class="checkbox">
+                          <input type="checkbox" class="apikey-build" data-masks="4096">
+                          Market orders
+                        </label>
+                        <label class="checkbox">
+                          <input type="checkbox" class="apikey-build" data-masks="2;134217728">
+                          Assets
+                        </label>
+                        <label class="checkbox">
+                          <input type="checkbox" class="apikey-build" data-masks="67108864">
+                          Contracts
+                        </label>
+                        <a class="btn btn-primary" id="apikey-link" href="https://support.eveonline.com/api/Key/CreatePredefined/33816584" target="_blank">Create new key</a>
+                      </form>
                     </div>
 
                     <div class="span4">
