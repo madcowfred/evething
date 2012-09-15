@@ -9,7 +9,8 @@ except:
 
 from thing.models import *
 
-
+# ---------------------------------------------------------------------------
+# Times things
 class TimerThing:
     def __init__(self, name):
         self.times = []
@@ -27,6 +28,17 @@ class TimerThing:
         print '-' * 23
         print '%-15s: %.3fs' % ('total', self.times[-1][0] - self.times[0][0])
 
+# ---------------------------------------------------------------------------
+# Fetch all rows from a cursor as a list of dictionaries
+def dictfetchall(cursor):
+    "Returns all rows from a cursor as a dict"
+    desc = cursor.description
+    return [
+        dict(zip([col[0] for col in desc], row))
+        for row in cursor.fetchall()
+    ]
+
+# ---------------------------------------------------------------------------
 
 def handle_skillplan_upload(request):
     name = request.POST['name'].strip()
