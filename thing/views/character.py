@@ -14,7 +14,7 @@ from django.template import RequestContext
 from coffin.shortcuts import *
 
 from thing.models import *
-from thing.stuff import TimerThing
+from thing.stuff import TimerThing, total_seconds
 
 # ---------------------------------------------------------------------------
 # Display a character page
@@ -57,7 +57,7 @@ def character_common(request, char, public=True, anonymous=False):
         training_id = queue[0].skill.item.id
         training_level = queue[0].to_level
         for sq in queue:
-            queue_duration = (sq.end_time - datetime.datetime.utcnow()).total_seconds()
+            queue_duration = total_seconds(sq.end_time - datetime.datetime.utcnow())
     else:
         training_id = None
         training_level = None
@@ -361,7 +361,7 @@ def character_skillplan_common(request, character, skillplan, public=True, anony
 
             # Calculate time remaining
             if training_skill is not None and training_skill.skill_id == entry.sp_skill.skill_id and training_skill.to_level == entry.sp_skill.level:
-                entry.z_remaining = (training_skill.end_time - utcnow).total_seconds()
+                entry.z_remaining = total_seconds(training_skill.end_time - utcnow)
                 entry.z_training = True
             else:
                 entry.z_remaining = (skill.get_sp_at_level(entry.sp_skill.level) - skill.get_sp_at_level(entry.sp_skill.level - 1)) / entry.z_sppm * 60

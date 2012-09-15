@@ -9,6 +9,8 @@ import math
 import time
 from decimal import *
 
+from thing.stuff import total_seconds
+
 # ---------------------------------------------------------------------------
 # Profile information for a user
 class UserProfile(models.Model):
@@ -135,7 +137,7 @@ class APIKey(models.Model):
 
     def get_remaining_time(self):
         if self.paid_until:
-            return max((self.paid_until - datetime.datetime.utcnow()).total_seconds(), 0)
+            return max(total_seconds(self.paid_until - datetime.datetime.utcnow()), 0)
         else:
             return 0
 
@@ -224,7 +226,7 @@ class Event(models.Model):
         ordering = ('-issued', '-id')
 
     def get_age(self):
-        return (datetime.datetime.now() - self.issued).total_seconds()
+        return total_seconds(datetime.datetime.now() - self.issued)
 
 # ---------------------------------------------------------------------------
 # Factions
@@ -405,7 +407,7 @@ class SkillQueue(models.Model):
     def get_complete_percentage(self, now=None):
         if now is None:
             now = datetime.datetime.utcnow()
-        remaining = (self.end_time - now).total_seconds()
+        remaining = total_seconds(self.end_time - now)
         remain_sp = remaining / 60.0 * self.skill.get_sp_per_minute(self.character)
         required_sp = self.skill.get_sp_at_level(self.to_level) - self.skill.get_sp_at_level(self.to_level - 1)
 
@@ -415,7 +417,7 @@ class SkillQueue(models.Model):
         return ['', 'I', 'II', 'III', 'IV', 'V'][self.to_level]
 
     def get_remaining(self):
-        remaining = (self.end_time - datetime.datetime.utcnow()).total_seconds()
+        remaining = total_seconds(self.end_time - datetime.datetime.utcnow())
         return int(remaining)
 
 # Faction standings

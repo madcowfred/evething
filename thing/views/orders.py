@@ -12,7 +12,7 @@ from django.template import RequestContext
 from coffin.shortcuts import *
 
 from thing.models import *
-from thing.stuff import dictfetchall
+from thing.stuff import dictfetchall, total_seconds
 from thing import queries
 
 # ---------------------------------------------------------------------------
@@ -71,7 +71,7 @@ def orders(request):
 
     now = datetime.datetime.utcnow()
     for order in orders:
-        order.z_remaining = (order.expires - now).total_seconds()
+        order.z_remaining = total_seconds(order.expires - now)
 
     # Render template
     return render_to_response(

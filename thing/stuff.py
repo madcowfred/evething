@@ -39,6 +39,11 @@ def dictfetchall(cursor):
     ]
 
 # ---------------------------------------------------------------------------
+# Convert a datetime.timedelta object into a number of seconds
+def total_seconds(delta):
+    return (delta.days * 24 * 60 * 60) + delta.seconds
+
+# ---------------------------------------------------------------------------
 
 def handle_skillplan_upload(request):
     name = request.POST['name'].strip()
@@ -132,3 +137,5 @@ def parse_emp_plan(skillplan, root):
         position += 1
 
     SPEntry.objects.bulk_create(entries)
+
+# ---------------------------------------------------------------------------

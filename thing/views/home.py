@@ -8,7 +8,7 @@ from django.template import RequestContext
 from coffin.shortcuts import *
 
 from thing.models import *
-from thing.stuff import TimerThing
+from thing.stuff import TimerThing, total_seconds
 from thing.templatetags.thing_extras import commas, duration, shortduration
 
 # ---------------------------------------------------------------------------
@@ -61,12 +61,12 @@ def home(request):
         char = chars[sq.character_id]
         if 'sq' not in char.z_training:
             char.z_training['sq'] = sq
-            char.z_training['skill_duration'] = (sq.end_time - utcnow).total_seconds()
+            char.z_training['skill_duration'] = total_seconds(sq.end_time - utcnow)
             char.z_training['sp_per_hour'] = int(sq.skill.get_sp_per_minute(char) * 60)
             char.z_training['complete_per'] = sq.get_complete_percentage(now)
             training.add(char.z_apikey)
         
-        char.z_training['queue_duration'] = (sq.end_time - utcnow).total_seconds()
+        char.z_training['queue_duration'] = total_seconds(sq.end_time - utcnow)
 
     tt.add_time('training')
 
@@ -87,7 +87,7 @@ def home(request):
 
         # Game time warnings
         if char.z_apikey.paid_until:
-            timediff = (char.z_apikey.paid_until - now).total_seconds()
+            timediff = total_seconds(char.z_apikey.paid_until - now)
 
             if timediff < 0:
                 char.z_notifications.append({
@@ -107,7 +107,7 @@ def home(request):
 
         # API key warnings
         if char.z_apikey.expires:
-            timediff = (char.z_apikey.expires - now).total_seconds()
+            timediff = total_seconds(char.z_apikey.expires - now)
             print char.z_apikey.expires, timediff
 
             if timediff < EXPIRE_WARNING:
