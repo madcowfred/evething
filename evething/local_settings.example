@@ -34,8 +34,9 @@ STATIC_ROOT = '/www/evething.home/static'
 
 # API host to use, change this if you have an API proxy handy
 API_HOST = 'https://api.eveonline.com'
-# number of api_updater threads to use (simultaneous requests)
-API_THREADS = 4
+# Number of _permanent_ API key failures per 7 days to trigger punishment,
+# 0 to disable
+API_FAILURE_LIMIT = 3
 
 # IP addresses that will see some extra DEBUG info
 INTERNAL_IPS = (
