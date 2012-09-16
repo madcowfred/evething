@@ -108,8 +108,6 @@ def home(request):
         # API key warnings
         if char.z_apikey.expires:
             timediff = total_seconds(char.z_apikey.expires - now)
-            print char.z_apikey.expires, timediff
-
             if timediff < EXPIRE_WARNING:
                 char.z_notifications.append({
                     'icon': 'api-warning',
