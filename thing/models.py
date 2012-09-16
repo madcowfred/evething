@@ -317,11 +317,16 @@ class Character(models.Model):
     clone_name = models.CharField(max_length=32, default='')
     clone_skill_points= models.IntegerField(default=0)
 
+    last_known_location = models.CharField(max_length=255, default='')
+    ship_item = models.ForeignKey('Item', blank=True, null=True)
+    ship_name = models.CharField(max_length=128, default='')
+
     # Skill stuff
     skills = models.ManyToManyField('Skill', related_name='learned_by', through='CharacterSkill')
     skill_queue = models.ManyToManyField('Skill', related_name='training_by', through='SkillQueue')
     
     # Standings stuff
+    security_status = models.DecimalField(max_digits=6, decimal_places=4, default=0)
     faction_standings = models.ManyToManyField('Faction', related_name='has_standings', through='FactionStanding')
     corporation_standings = models.ManyToManyField('Corporation', related_name='has_standings', through='CorporationStanding')
 
