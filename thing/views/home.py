@@ -41,6 +41,7 @@ def home(request):
     api_keys = set()
     training = set()
     chars = {}
+    ship_item_ids = set()
 
     for apikey in APIKey.objects.prefetch_related('characters').filter(user=request.user).exclude(key_type=APIKey.CORPORATION_TYPE):
         api_keys.add(apikey)
@@ -50,8 +51,14 @@ def home(request):
                 char.z_apikey = apikey
                 char.z_training = {}
                 total_balance += char.wallet_balance
+                if char.ship_item_id is not None:
+                    ship_item_ids.add(char.ship_item_id)
 
     tt.add_time('apikeys')
+
+    ship_map = Item.objects.in_bulk(ship_item_ids)
+
+    tt.add_time('ship_items')
 
     # Do skill training check - this can't be in the model because it
     # scales like crap doing individual queries
@@ -210,6 +217,7 @@ def home(request):
             'corporations': corporations,
             'characters': first + last,
             'events': Event.objects.filter(user=request.user)[:10],
+            'ship_map': ship_map,
             'task_count': task_count,
         },
         context_instance=RequestContext(request)
