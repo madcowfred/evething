@@ -720,7 +720,7 @@ def character_info(url, apikey_id, taskstate_id, character_id):
 
     ship_type_id = job.root.findtext('result/shipTypeID')
     ship_name = job.root.findtext('result/shipName')
-    if ship_type_id is not None and ship_type_id.isdigit():
+    if ship_type_id is not None and ship_type_id.isdigit() and int(ship_type_id) > 0:
         character.ship_item_id = ship_type_id
         character.ship_name = ship_name or ''
     else:
