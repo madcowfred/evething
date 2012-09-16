@@ -58,6 +58,7 @@ CHAR_URLS = {
     APIKey.CHAR_CHARACTER_SHEET_MASK: ('character_sheet', '/char/CharacterSheet.xml.aspx', 'et_medium'),
     APIKey.CHAR_CONTRACTS_MASK: ('contracts', '/char/Contracts.xml.aspx', 'et_medium'),
     # APIKey.CHAR_LOCATIONS_MASK: ('locations', '/char/Locations.xml.aspx', 'et_medium'),
+    APIKey.CHAR_LOCATIONS_MASK: ('character_info', '/eve/CharacterInfo.xml.aspx', 'et_medium'),
     APIKey.CHAR_MARKET_ORDERS_MASK: ('market_orders', '/char/MarketOrders.xml.aspx', 'et_medium'),
     APIKey.CHAR_SKILL_QUEUE_MASK: ('skill_queue', '/char/SkillQueue.xml.aspx', 'et_medium'),
     APIKey.CHAR_STANDINGS_MASK: ('standings', '/char/Standings.xml.aspx', 'et_medium'),
@@ -703,7 +704,36 @@ def _asset_list_recurse(rows, rowset, container_id):
             _asset_list_recurse(rows, rowset, asset_id)
 
 # ---------------------------------------------------------------------------
-# Update character sheet
+# Character info
+@task
+def character_info(url, apikey_id, taskstate_id, character_id):
+    job = APIJob(apikey_id, taskstate_id)
+    if job.ready is False:
+        return
+    character = Character.objects.get(pk=character_id)
+
+    # Fetch the API data
+    params = { 'characterID': character.id }
+    if job.fetch_api(url, params) is False or job.root is None:
+        job.failed()
+        return
+
+    ship_type_id = job.root.findtext('result/shipTypeID')
+    ship_name = job.root.findtext('result/shipName')
+    if ship_type_id is not None and ship_type_id.isdigit():
+        character.ship_item_id = ship_type_id
+        character.ship_name = ship_name or ''
+    else:
+        character.ship_item_id = None
+        character.ship_name = ''
+
+    character.last_known_location = job.root.findtext('result/lastKnownLocation')
+    character.security_status = job.root.findtext('result/securityStatus')
+
+    character.save()
+
+# ---------------------------------------------------------------------------
+# Character sheet
 @task
 def character_sheet(url, apikey_id, taskstate_id, character_id):
     job = APIJob(apikey_id, taskstate_id)
@@ -1974,7 +2004,7 @@ def price_updater():
 # ---------------------------------------------------------------------------
 # Periodic task to try to fix *UNKNOWN* SimpleCharacter objects
 CHAR_NAME_URL = urljoin(settings.API_HOST, '/eve/CharacterName.xml.aspx')
-CORP_SHEET_URL = urljoin(settings.API_HOST, CORP_URLS[APIKey.CORP_CORPORATION_SHEET_MASK][1])
+CORP_SHEET_URL = urljoin(settings.API_HOST, '/corp/CorporationSheet.xml.aspx')
 
 @task
 def fix_unknown_simplecharacters():
