@@ -46,6 +46,7 @@ class UserProfile(models.Model):
     home_sort_order = models.CharField(choices=HOME_SORT_ORDERS, max_length=12, default='apiname')
     home_sort_descending = models.BooleanField(default=False)
     home_hide_characters = models.TextField(default='')
+    home_show_locations = models.BooleanField(default=True)
 
 # Magical hook so this gets called when a new user is created
 def create_user_profile(sender, instance, created, **kwargs):

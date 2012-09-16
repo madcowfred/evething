@@ -242,6 +242,14 @@
                     </div>
                   </div>
                   <div class="control-group">
+                    <label class="control-label" for="home_sort_descending">Show character locations</label>
+                    <div class="controls">
+                      <label class="checkbox">
+                        <input type="checkbox" name="home_show_locations"{% if profile.home_show_locations %} checked{% endif %}>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="control-group">
                     <label class="control-label" for="home_hide_characters">Hide characters</label>
                     <div class="controls">
                       {% for character in characters -%}
