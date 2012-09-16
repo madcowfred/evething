@@ -111,7 +111,7 @@
             </span>
           </div>
 
-          {% if profile.home_show_locations -%}
+          {% if profile.home_show_locations and character.last_known_location -%}
           <div class="margin-half-top">
             {{ character.last_known_location }}
             {% if character.ship_item_id %}-- {{ ship_map[character.ship_item_id] }}{% endif %}
