@@ -57,7 +57,6 @@ CHAR_URLS = {
     APIKey.CHAR_ASSET_LIST_MASK: ('asset_list', '/char/AssetList.xml.aspx', 'et_medium'),
     APIKey.CHAR_CHARACTER_SHEET_MASK: ('character_sheet', '/char/CharacterSheet.xml.aspx', 'et_medium'),
     APIKey.CHAR_CONTRACTS_MASK: ('contracts', '/char/Contracts.xml.aspx', 'et_medium'),
-    # APIKey.CHAR_LOCATIONS_MASK: ('locations', '/char/Locations.xml.aspx', 'et_medium'),
     APIKey.CHAR_CHARACTER_INFO_MASK: ('character_info', '/eve/CharacterInfo.xml.aspx', 'et_medium'),
     APIKey.CHAR_MARKET_ORDERS_MASK: ('market_orders', '/char/MarketOrders.xml.aspx', 'et_medium'),
     APIKey.CHAR_SKILL_QUEUE_MASK: ('skill_queue', '/char/SkillQueue.xml.aspx', 'et_medium'),
@@ -582,6 +581,8 @@ def api_key_info(url, apikey_id, taskstate_id):
 
 # ---------------------------------------------------------------------------
 # Fetch assets
+LOCATIONS_URL = urljoin(settings.API_HOST, '/char/Locations.xml.aspx')
+
 @task
 def asset_list(url, apikey_id, taskstate_id, character_id):
     job = APIJob(apikey_id, taskstate_id)
@@ -658,6 +659,37 @@ def asset_list(url, apikey_id, taskstate_id, character_id):
 
             asset_ids.add(id)
             del rows[id]
+
+    # Fetch names (via Locations API) for assets
+    if job.apikey.corp_character is None and APIKey.CHAR_LOCATIONS_MASK in job.apikey.get_masks():
+        a_filter = a_filter.filter(singleton=True, item__item_group__category__name__in=('Celestial', 'Ship'))
+
+        # Get ID list
+        ids = map(str, a_filter.values_list('id', flat=True))
+        if len(ids) == 0:
+            return
+
+        # Fetch the API data
+        params['IDs'] = ','.join(map(str, ids))
+        if job.fetch_api(LOCATIONS_URL, params) is False or job.root is None:
+            job.failed()
+            return
+
+        # Build a map of assetID:assetName
+        bulk_data = {}
+        for row in job.root.findall('result/rowset/row'):
+            bulk_data[int(row.attrib['itemID'])] = row.attrib['itemName']
+
+        # Bulk query them
+        asset_map = a_filter.in_bulk(bulk_data.keys())
+
+        # Update any new or changed names
+        for assetID, assetName in bulk_data.items():
+            asset = asset_map.get(assetID, None)
+            if asset is not None:
+                if asset.name is None or asset.name != assetName:
+                    asset.name = assetName
+                    asset.save()
 
     # completed ok
     job.completed()
@@ -1142,53 +1174,6 @@ def corporation_sheet(url, apikey_id, taskstate_id, character_id):
         job.completed()
     else:
         job.failed()
-
-# ---------------------------------------------------------------------------
-# Locations (and more importantly names) for assets
-@task
-def locations(url, apikey_id, taskstate_id, character_id):
-    job = APIJob(apikey_id, taskstate_id)
-    if job.ready is False:
-        return
-    character = Character.objects.get(pk=character_id)
-    
-    # Initialise for character query
-    if not job.apikey.corp_character:
-        a_filter = Asset.objects.root_nodes().filter(character=character, corporation__isnull=True,
-            singleton=True, item__item_group__category__name__in=('Celestial', 'Ship'))
-
-    # Get ID list
-    ids = map(str, a_filter.values_list('id', flat=True))
-    if len(ids) == 0:
-        return
-
-    # Fetch the API data
-    params = {
-        'characterID': character.id,
-        'IDs': ','.join(map(str, ids)),
-    }
-    if job.fetch_api(url, params) is False or job.root is None:
-        job.failed()
-        return
-
-    # Build a map of assetID:assetName
-    bulk_data = {}
-    for row in job.root.findall('result/rowset/row'):
-        bulk_data[int(row.attrib['itemID'])] = row.attrib['itemName']
-
-    # Bulk query them
-    asset_map = Asset.objects.filter(character=character).in_bulk(bulk_data.keys())
-
-    # Update any new or changed names
-    for assetID, assetName in bulk_data.items():
-        asset = asset_map.get(assetID, None)
-        if asset is not None:
-            if asset.name is None or asset.name != assetName:
-                asset.name = assetName
-                asset.save()
-    
-    # completed ok
-    job.completed()
 
 # ---------------------------------------------------------------------------
 # Market orders
