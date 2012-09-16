@@ -26,13 +26,11 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </a>
-          <a class="brand" href="https://github.com/madcowfred/evething/tree/develop#readme">EVEthing</a>
+          <a class="brand" href="{% url home %}">EVEthing</a>
           <div class="nav-collapse">
             <ul class="nav" id="nav-list">
-              <li><a href="{% url home %}">Home</a></li>
               {% if user.is_authenticated() -%}
               {%- with user.get_profile() as profile -%}
-              <li class="divider-vertical"></li>
               {% if profile.show_assets %}<li><a href="{% url thing.views.assets %}">Assets</a></li>{% endif %}
               {% if profile.show_blueprints %}<li><a href="{% url thing.views.blueprints %}">Blueprints</a></li>{% endif %}
               {% if profile.show_contracts %}<li><a href="{% url thing.views.contracts %}">Contracts</a></li>{% endif %}
@@ -41,7 +39,7 @@
               {% if profile.show_transactions %}<li><a href="{% url thing.views.transactions %}">Transactions</a></li>{% endif %}
               {% if profile.show_wallet_journal %}<li><a href="{% url thing.views.wallet_journal %}">Wallet Journal</a></li>{% endif %}
               {% if profile.show_market_scan -%}
-              <li class="visible-desktop"></li>
+              <li class="divider-vertical visible-desktop"></li>
               <li class="visible-desktop"><a href="{% url thing.views.market_scan %}">Market Scan</a></li>
               {%- endif -%}
               {%- endwith -%}
@@ -54,7 +52,6 @@
               <li class="navbar-text visible-desktop"{% if not profile.show_clock %} style="display: none"{% endif %}>
                 <span id="utc-time"></span> EVE
               </li>
-              {% if profile.show_clock %}<li class="divider-vertical"></li>{% endif %}
               {%- endwith -%}
               {%- endif %}
               {% if user.is_authenticated() -%}
@@ -91,7 +88,7 @@
       <hr class="nomargin">
       <footer class="small">
         <p>
-          &copy; Freddie (EVE: Tazuki Falorn) 2012
+          <a href="https://github.com/madcowfred/evething/tree/develop#readme">EVEthing</a> &copy; Freddie (EVE: Tazuki Falorn) 2012
           <span class="pull-right">
             Fugue icons by <a href="http://p.yusukekamiyamane.com/">Yusuke Kamiyamane</a>
             <span class="divider">/</span>
