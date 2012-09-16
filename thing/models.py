@@ -46,6 +46,7 @@ class UserProfile(models.Model):
     home_sort_order = models.CharField(choices=HOME_SORT_ORDERS, max_length=12, default='apiname')
     home_sort_descending = models.BooleanField(default=False)
     home_hide_characters = models.TextField(default='')
+    home_show_locations = models.BooleanField(default=True)
 
 # Magical hook so this gets called when a new user is created
 def create_user_profile(sender, instance, created, **kwargs):
@@ -317,19 +318,24 @@ class Character(models.Model):
     clone_name = models.CharField(max_length=32, default='')
     clone_skill_points= models.IntegerField(default=0)
 
+    last_known_location = models.CharField(max_length=255, default='')
+    ship_item = models.ForeignKey('Item', blank=True, null=True)
+    ship_name = models.CharField(max_length=128, default='')
+
     # Skill stuff
     skills = models.ManyToManyField('Skill', related_name='learned_by', through='CharacterSkill')
     skill_queue = models.ManyToManyField('Skill', related_name='training_by', through='SkillQueue')
     
     # Standings stuff
+    security_status = models.DecimalField(max_digits=6, decimal_places=4, default=0)
     faction_standings = models.ManyToManyField('Faction', related_name='has_standings', through='FactionStanding')
     corporation_standings = models.ManyToManyField('Corporation', related_name='has_standings', through='CorporationStanding')
 
     # industry stuff
-    factory_cost = models.DecimalField(max_digits=8, decimal_places=2, default=0.0)
-    factory_per_hour = models.DecimalField(max_digits=8, decimal_places=2, default=0.0)
-    sales_tax = models.DecimalField(max_digits=3, decimal_places=2, default=1.5)
-    brokers_fee = models.DecimalField(max_digits=3, decimal_places=2, default=1.0)
+    #factory_cost = models.DecimalField(max_digits=8, decimal_places=2, default=0.0)
+    #factory_per_hour = models.DecimalField(max_digits=8, decimal_places=2, default=0.0)
+    #sales_tax = models.DecimalField(max_digits=3, decimal_places=2, default=1.5)
+    #brokers_fee = models.DecimalField(max_digits=3, decimal_places=2, default=1.0)
     
     class Meta:
        ordering = ('name',)
@@ -1083,13 +1089,13 @@ class BlueprintInstance(models.Model):
                 total_cost += (Decimal(str(amt)) * item.buy_price)
         
         # Factory costs
-        if character is not None:
-            total_cost += character.factory_cost
-            total_cost += (character.factory_per_hour * (self.calc_production_time(runs=runs) / 3600))
-            # Sales tax
-            total_cost *= (1 + (character.sales_tax / 100))
-            # Broker's fee
-            total_cost *= (1 + (character.brokers_fee / 100))
+        # if character is not None:
+        #     total_cost += character.factory_cost
+        #     total_cost += (character.factory_per_hour * (self.calc_production_time(runs=runs) / 3600))
+        #     # Sales tax
+        #     total_cost *= (1 + (character.sales_tax / 100))
+        #     # Broker's fee
+        #     total_cost *= (1 + (character.brokers_fee / 100))
         
         # Run count
         total_cost /= (self.blueprint.item.portion_size * runs)

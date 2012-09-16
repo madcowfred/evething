@@ -111,7 +111,14 @@
             </span>
           </div>
 
-          {% if character.z_training %}
+          {% if profile.home_show_locations -%}
+          <div class="margin-half-top">
+            {{ character.last_known_location }}
+            {% if character.ship_item_id %}-- {{ ship_map[character.ship_item_id] }}{% endif %}
+          </div>
+          {%- endif %}
+
+          {% if character.z_training -%}
           <div class="margin-half-top">
             <span>{{ character.z_training.sq.skill.item.name }} {{ character.z_training.sq.get_roman_level() }}</span>
             <span class="small">(Rank {{ character.z_training.sq.skill.rank }})</span>
@@ -124,7 +131,7 @@
               <div class="bar" style="width: {{ character.z_training.complete_per }}%">{{ character.z_training.complete_per }}%</div>
             </div>
           </div>
-          {% endif %}
+          {%- endif %}
 
           {% if character.z_notifications %}
           <div class="margin-half-top smaller">

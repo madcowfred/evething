@@ -12,12 +12,6 @@ class CharacterAdmin(admin.ModelAdmin):
         ('Character information', {
             'fields': ['name', 'corporation']
         }),
-        ('Factory costs', {
-            'fields': ['factory_cost', 'factory_per_hour']
-        }),
-        ('Taxes', {
-            'fields': ['sales_tax', 'brokers_fee']
-        }),
     ]
     
     list_display = ('id', 'name', 'corporation')
