@@ -667,6 +667,7 @@ def asset_list(url, apikey_id, taskstate_id, character_id):
         # Get ID list
         ids = map(str, a_filter.values_list('id', flat=True))
         if len(ids) == 0:
+            job.completed()
             return
 
         # Fetch the API data
