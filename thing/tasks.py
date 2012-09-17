@@ -765,6 +765,8 @@ def character_info(url, apikey_id, taskstate_id, character_id):
 
     character.save()
 
+    job.completed()
+
 # ---------------------------------------------------------------------------
 # Character sheet
 @task
