@@ -658,31 +658,28 @@ def asset_list(url, apikey_id, taskstate_id, character_id):
 
         # Get ID list
         ids = map(str, a_filter.values_list('id', flat=True))
-        if len(ids) == 0:
-            job.completed()
-            return
+        if ids:
+            # Fetch the API data
+            params['IDs'] = ','.join(map(str, ids))
+            if job.fetch_api(LOCATIONS_URL, params) is False or job.root is None:
+                job.completed()
+                return
 
-        # Fetch the API data
-        params['IDs'] = ','.join(map(str, ids))
-        if job.fetch_api(LOCATIONS_URL, params) is False or job.root is None:
-            job.failed()
-            return
+            # Build a map of assetID:assetName
+            bulk_data = {}
+            for row in job.root.findall('result/rowset/row'):
+                bulk_data[int(row.attrib['itemID'])] = row.attrib['itemName']
 
-        # Build a map of assetID:assetName
-        bulk_data = {}
-        for row in job.root.findall('result/rowset/row'):
-            bulk_data[int(row.attrib['itemID'])] = row.attrib['itemName']
+            # Bulk query them
+            asset_map = a_filter.in_bulk(bulk_data.keys())
 
-        # Bulk query them
-        asset_map = a_filter.in_bulk(bulk_data.keys())
-
-        # Update any new or changed names
-        for assetID, assetName in bulk_data.items():
-            asset = asset_map.get(assetID, None)
-            if asset is not None:
-                if asset.name is None or asset.name != assetName:
-                    asset.name = assetName
-                    asset.save()
+            # Update any new or changed names
+            for assetID, assetName in bulk_data.items():
+                asset = asset_map.get(assetID, None)
+                if asset is not None:
+                    if asset.name is None or asset.name != assetName:
+                        asset.name = assetName
+                        asset.save()
 
     # completed ok
     job.completed()
