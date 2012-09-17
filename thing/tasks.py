@@ -305,10 +305,13 @@ def apicache_cleanup():
 # Periodic task to spawn API jobs
 @task
 def spawn_jobs():
+    now = datetime.datetime.now()
+    one_month_ago = now - datetime.timedelta(30)
+
     # Build a magical QuerySet for APIKey objects
     apikeys = APIKey.objects.select_related('corp_character__corporation')
     apikeys = apikeys.prefetch_related('characters', 'corp_character__corporation__corpwallet_set')
-    apikeys = apikeys.filter(valid=True)
+    apikeys = apikeys.filter(valid=True, user__last_login__gt=one_month_ago)
 
     # Get a set of unique API keys
     keys = {}
