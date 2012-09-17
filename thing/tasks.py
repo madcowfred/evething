@@ -57,7 +57,7 @@ CHAR_URLS = {
     APIKey.CHAR_ASSET_LIST_MASK: ('asset_list', '/char/AssetList.xml.aspx', 'et_medium'),
     APIKey.CHAR_CHARACTER_SHEET_MASK: ('character_sheet', '/char/CharacterSheet.xml.aspx', 'et_medium'),
     APIKey.CHAR_CONTRACTS_MASK: ('contracts', '/char/Contracts.xml.aspx', 'et_medium'),
-    # APIKey.CHAR_LOCATIONS_MASK: ('locations', '/char/Locations.xml.aspx', 'et_medium'),
+    APIKey.CHAR_CHARACTER_INFO_MASK: ('character_info', '/eve/CharacterInfo.xml.aspx', 'et_medium'),
     APIKey.CHAR_MARKET_ORDERS_MASK: ('market_orders', '/char/MarketOrders.xml.aspx', 'et_medium'),
     APIKey.CHAR_SKILL_QUEUE_MASK: ('skill_queue', '/char/SkillQueue.xml.aspx', 'et_medium'),
     APIKey.CHAR_STANDINGS_MASK: ('standings', '/char/Standings.xml.aspx', 'et_medium'),
@@ -305,10 +305,13 @@ def apicache_cleanup():
 # Periodic task to spawn API jobs
 @task
 def spawn_jobs():
+    now = datetime.datetime.now()
+    one_month_ago = now - datetime.timedelta(30)
+
     # Build a magical QuerySet for APIKey objects
     apikeys = APIKey.objects.select_related('corp_character__corporation')
     apikeys = apikeys.prefetch_related('characters', 'corp_character__corporation__corpwallet_set')
-    apikeys = apikeys.filter(valid=True)
+    apikeys = apikeys.filter(valid=True, user__last_login__gt=one_month_ago)
 
     # Get a set of unique API keys
     keys = {}
@@ -322,8 +325,10 @@ def spawn_jobs():
     for taskstate in TaskState.objects.filter(key_info__in=keys.keys()).iterator():
         status[taskstate.key_info][(taskstate.url, taskstate.parameter)] = taskstate
 
-    # Blah blah
-    now = datetime.datetime.now()
+    # Task data
+    taskdata = { True: [], False: [] }
+    
+    # Iterate over each key, doing stuff
     for key_info, apikey in keys.items():
         masks = apikey.get_masks()
         
@@ -331,14 +336,7 @@ def spawn_jobs():
         func, url, queue = API_KEY_INFO_URL
         taskstate = status[key_info].get((url, 0), None)
 
-        # If we need to queue this task, do so
-        taskstate, start = _init_taskstate(taskstate, key_info, url, 0, now)
-        if start is True:
-            f = globals()[func]
-            f.apply_async(
-                args=(url, apikey.id, taskstate.id),
-                queue=queue,
-            )
+        _init_taskstate(taskdata, now, taskstate, apikey.id, key_info, func, url, queue, 0)
 
 
         # Account/character keys
@@ -358,15 +356,8 @@ def spawn_jobs():
                         parameter = character.id
 
                     taskstate = status[key_info].get((url, parameter), None)
-                    
-                    # If we need to queue this task, do so
-                    taskstate, start = _init_taskstate(taskstate, key_info, url, parameter, now)
-                    if start is True:
-                        f = globals()[func]
-                        f.apply_async(
-                            args=(url, apikey.id, taskstate.id, parameter),
-                            queue=queue,
-                        )
+
+                    _init_taskstate(taskdata, now, taskstate, apikey.id, key_info, func, url, queue, parameter)
 
                     # Only do account status once per key
                     if mask == APIKey.CHAR_ACCOUNT_STATUS_MASK:
@@ -386,18 +377,21 @@ def spawn_jobs():
 
                 taskstate = status[key_info].get((url, character.id), None)
 
-                # If we need to queue this task, do so
-                taskstate, start = _init_taskstate(taskstate, key_info, url, character.id, now)
-                if start is True:
-                    f = globals()[func]
-                    f.apply_async(
-                        args=(url, apikey.id, taskstate.id, character.id),
-                        queue=queue,
-                    )
+                _init_taskstate(taskdata, now, taskstate, apikey.id, key_info, func, url, queue, character.id)
 
-def _init_taskstate(taskstate, key_info, url, parameter, now):
-    # If task isn't found, make a new taskstate and queue the task
-    if taskstate is None:
+    # Bulk update the ready ones
+    ts_ids = []
+    for ts_id, apikey_id, func, url, queue, parameter in taskdata[False]:
+        ts_ids.append(ts_id)
+        globals()[func].apply_async(
+            args=(url, apikey_id, ts_id, parameter),
+            queue=queue,
+        )
+    
+    TaskState.objects.filter(pk__in=ts_ids).update(state=TaskState.QUEUED_STATE, mod_time=now)
+
+    # Create the new ones, no bulk_create as we need the TaskState.id
+    for key_info, apikey_id, func, url, queue, parameter in taskdata[True]:
         taskstate = TaskState.objects.create(
             key_info=key_info,
             url=url,
@@ -406,19 +400,17 @@ def _init_taskstate(taskstate, key_info, url, parameter, now):
             mod_time=now,
             next_time=now,
         )
+        
+        globals()[func].apply_async(
+            args=(url, apikey_id, taskstate.id, parameter),
+            queue=queue,
+        )
 
-        start = True
-    
-    # Task was found, find out if it needs starting
-    else:
-        start = taskstate.queue_now(now)
-        # Make sure we update the state to queued!
-        if start:
-            taskstate.state = TaskState.QUEUED_STATE
-            taskstate.mod_time = now
-            taskstate.save()
-
-    return taskstate, start
+def _init_taskstate(taskdata, now, taskstate, apikey_id, key_info, func, url, queue, parameter):
+    if taskstate is None:
+        taskdata[True].append((key_info, apikey_id, func, url, queue, parameter))
+    elif taskstate.queue_now(now):
+        taskdata[False].append((taskstate.id, apikey_id, func, url, queue, parameter))
 
 # ---------------------------------------------------------------------------
 # Account balances
@@ -490,7 +482,7 @@ def account_status(url, apikey_id, taskstate_id, zero):
 # ---------------------------------------------------------------------------
 # Various API things
 @task
-def api_key_info(url, apikey_id, taskstate_id):
+def api_key_info(url, apikey_id, taskstate_id, zero):
     job = APIJob(apikey_id, taskstate_id)
     if job.ready is False:
         return
@@ -581,6 +573,8 @@ def api_key_info(url, apikey_id, taskstate_id):
 
 # ---------------------------------------------------------------------------
 # Fetch assets
+LOCATIONS_URL = urljoin(settings.API_HOST, '/char/Locations.xml.aspx')
+
 @task
 def asset_list(url, apikey_id, taskstate_id, character_id):
     job = APIJob(apikey_id, taskstate_id)
@@ -658,6 +652,35 @@ def asset_list(url, apikey_id, taskstate_id, character_id):
             asset_ids.add(id)
             del rows[id]
 
+    # Fetch names (via Locations API) for assets
+    if job.apikey.corp_character is None and APIKey.CHAR_LOCATIONS_MASK in job.apikey.get_masks():
+        a_filter = a_filter.filter(singleton=True, item__item_group__category__name__in=('Celestial', 'Ship'))
+
+        # Get ID list
+        ids = map(str, a_filter.values_list('id', flat=True))
+        if ids:
+            # Fetch the API data
+            params['IDs'] = ','.join(map(str, ids))
+            if job.fetch_api(LOCATIONS_URL, params) is False or job.root is None:
+                job.completed()
+                return
+
+            # Build a map of assetID:assetName
+            bulk_data = {}
+            for row in job.root.findall('result/rowset/row'):
+                bulk_data[int(row.attrib['itemID'])] = row.attrib['itemName']
+
+            # Bulk query them
+            asset_map = a_filter.in_bulk(bulk_data.keys())
+
+            # Update any new or changed names
+            for assetID, assetName in bulk_data.items():
+                asset = asset_map.get(assetID, None)
+                if asset is not None:
+                    if asset.name is None or asset.name != assetName:
+                        asset.name = assetName
+                        asset.save()
+
     # completed ok
     job.completed()
 
@@ -703,7 +726,38 @@ def _asset_list_recurse(rows, rowset, container_id):
             _asset_list_recurse(rows, rowset, asset_id)
 
 # ---------------------------------------------------------------------------
-# Update character sheet
+# Character info
+@task
+def character_info(url, apikey_id, taskstate_id, character_id):
+    job = APIJob(apikey_id, taskstate_id)
+    if job.ready is False:
+        return
+    character = Character.objects.get(pk=character_id)
+
+    # Fetch the API data
+    params = { 'characterID': character.id }
+    if job.fetch_api(url, params) is False or job.root is None:
+        job.failed()
+        return
+
+    ship_type_id = job.root.findtext('result/shipTypeID')
+    ship_name = job.root.findtext('result/shipName')
+    if ship_type_id is not None and ship_type_id.isdigit() and int(ship_type_id) > 0:
+        character.ship_item_id = ship_type_id
+        character.ship_name = ship_name or ''
+    else:
+        character.ship_item_id = None
+        character.ship_name = ''
+
+    character.last_known_location = job.root.findtext('result/lastKnownLocation')
+    character.security_status = job.root.findtext('result/securityStatus')
+
+    character.save()
+
+    job.completed()
+
+# ---------------------------------------------------------------------------
+# Character sheet
 @task
 def character_sheet(url, apikey_id, taskstate_id, character_id):
     job = APIJob(apikey_id, taskstate_id)
@@ -1112,53 +1166,6 @@ def corporation_sheet(url, apikey_id, taskstate_id, character_id):
         job.completed()
     else:
         job.failed()
-
-# ---------------------------------------------------------------------------
-# Locations (and more importantly names) for assets
-@task
-def locations(url, apikey_id, taskstate_id, character_id):
-    job = APIJob(apikey_id, taskstate_id)
-    if job.ready is False:
-        return
-    character = Character.objects.get(pk=character_id)
-    
-    # Initialise for character query
-    if not job.apikey.corp_character:
-        a_filter = Asset.objects.root_nodes().filter(character=character, corporation__isnull=True,
-            singleton=True, item__item_group__category__name__in=('Celestial', 'Ship'))
-
-    # Get ID list
-    ids = map(str, a_filter.values_list('id', flat=True))
-    if len(ids) == 0:
-        return
-
-    # Fetch the API data
-    params = {
-        'characterID': character.id,
-        'IDs': ','.join(map(str, ids)),
-    }
-    if job.fetch_api(url, params) is False or job.root is None:
-        job.failed()
-        return
-
-    # Build a map of assetID:assetName
-    bulk_data = {}
-    for row in job.root.findall('result/rowset/row'):
-        bulk_data[int(row.attrib['itemID'])] = row.attrib['itemName']
-
-    # Bulk query them
-    asset_map = Asset.objects.filter(character=character).in_bulk(bulk_data.keys())
-
-    # Update any new or changed names
-    for assetID, assetName in bulk_data.items():
-        asset = asset_map.get(assetID, None)
-        if asset is not None:
-            if asset.name is None or asset.name != assetName:
-                asset.name = assetName
-                asset.save()
-    
-    # completed ok
-    job.completed()
 
 # ---------------------------------------------------------------------------
 # Market orders
@@ -1974,7 +1981,7 @@ def price_updater():
 # ---------------------------------------------------------------------------
 # Periodic task to try to fix *UNKNOWN* SimpleCharacter objects
 CHAR_NAME_URL = urljoin(settings.API_HOST, '/eve/CharacterName.xml.aspx')
-CORP_SHEET_URL = urljoin(settings.API_HOST, CORP_URLS[APIKey.CORP_CORPORATION_SHEET_MASK][1])
+CORP_SHEET_URL = urljoin(settings.API_HOST, '/corp/CorporationSheet.xml.aspx')
 
 @task
 def fix_unknown_simplecharacters():

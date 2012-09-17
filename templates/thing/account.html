@@ -11,6 +11,7 @@
       mask_map[4096] = 'MarketOrders';
       mask_map[262144] = 'SkillQueue';
       mask_map[524288] = 'Standings';
+      mask_map[2097152] = 'WalletJournal';
       mask_map[4194304] = 'WalletTransactions';
       mask_map[33554432] = 'AccountStatus';
       mask_map[67108864] = 'Contracts';
@@ -241,6 +242,14 @@
                     </div>
                   </div>
                   <div class="control-group">
+                    <label class="control-label" for="home_sort_descending">Show character locations</label>
+                    <div class="controls">
+                      <label class="checkbox">
+                        <input type="checkbox" name="home_show_locations"{% if profile.home_show_locations %} checked{% endif %}>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="control-group">
                     <label class="control-label" for="home_hide_characters">Hide characters</label>
                     <div class="controls">
                       {% for character in characters -%}
@@ -358,16 +367,41 @@
                   <div class="row-fluid margin-full-top">
                     <div class="span4">
                       <h4>EVEthing features:</h4>
-                      <ul class="unstyled">
-                        <li><input type="checkbox" class="apikey-build" data-masks="8;262144" checked> Skill queue monitoring</li>
-                        <li><input type="checkbox" class="apikey-build" data-masks="33554432" checked> Account expiry warning</li>
-                        <li><input type="checkbox" class="apikey-build" data-masks="524288"> Character standings</li>
-                        <li><input type="checkbox" class="apikey-build" data-masks="4194304"> Wallet transactions</li>
-                        <li><input type="checkbox" class="apikey-build" data-masks="4096"> Market orders</li>
-                        <li><input type="checkbox" class="apikey-build" data-masks="2;134217728"> Assets</li>
-                        <li><input type="checkbox" class="apikey-build" data-masks="67108864"> Contracts</li>
-                      </ul>
-                      <a class="btn btn-primary" id="apikey-link" href="https://support.eveonline.com/api/Key/CreatePredefined/33816584" target="_blank">Create new key</a>
+                      <form class="margin-half-bot">
+                        <label class="checkbox">
+                          <input type="checkbox" class="apikey-build" data-masks="8;262144" checked>
+                          Skill queue monitoring
+                        </label>
+                        <label class="checkbox">
+                          <input type="checkbox" class="apikey-build" data-masks="33554432" checked>
+                          Account expiry warning
+                        </label>
+                        <label class="checkbox">
+                          <input type="checkbox" class="apikey-build" data-masks="524288">
+                          Character standings
+                        </label>
+                        <label class="checkbox">
+                          <input type="checkbox" class="apikey-build" data-masks="2097152">
+                          Wallet journal
+                        </label>
+                        <label class="checkbox">
+                          <input type="checkbox" class="apikey-build" data-masks="4194304">
+                          Wallet transactions
+                        </label>
+                        <label class="checkbox">
+                          <input type="checkbox" class="apikey-build" data-masks="4096">
+                          Market orders
+                        </label>
+                        <label class="checkbox">
+                          <input type="checkbox" class="apikey-build" data-masks="2;134217728">
+                          Assets
+                        </label>
+                        <label class="checkbox">
+                          <input type="checkbox" class="apikey-build" data-masks="67108864">
+                          Contracts
+                        </label>
+                        <a class="btn btn-primary" id="apikey-link" href="https://support.eveonline.com/api/Key/CreatePredefined/33816584" target="_blank">Create new key</a>
+                      </form>
                     </div>
 
                     <div class="span4">
@@ -526,10 +560,6 @@
                   <p>
                     Note: you can regain access to the data later by re-adding this API key.
                   </p>
-                  <div class="alert alert-error">
-                      <strong>WARNING</strong>: if you hit the big red 'Purge' button <u>all data related to this key will be deleted</u>.
-                      There is no way to restore it short of restoring from a backup!
-                  </div>
                 </div>
                 <div class="modal-footer">
                   <button class="btn btn-danger" data-dismiss="modal">No</button>
