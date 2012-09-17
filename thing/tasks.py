@@ -482,7 +482,7 @@ def account_status(url, apikey_id, taskstate_id, zero):
 # ---------------------------------------------------------------------------
 # Various API things
 @task
-def api_key_info(url, apikey_id, taskstate_id):
+def api_key_info(url, apikey_id, taskstate_id, zero):
     job = APIJob(apikey_id, taskstate_id)
     if job.ready is False:
         return
