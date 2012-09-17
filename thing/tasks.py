@@ -325,8 +325,10 @@ def spawn_jobs():
     for taskstate in TaskState.objects.filter(key_info__in=keys.keys()).iterator():
         status[taskstate.key_info][(taskstate.url, taskstate.parameter)] = taskstate
 
-    # Blah blah
-    now = datetime.datetime.now()
+    # Task data
+    taskdata = { True: [], False: [] }
+    
+    # Iterate over each key, doing stuff
     for key_info, apikey in keys.items():
         masks = apikey.get_masks()
         
@@ -334,14 +336,7 @@ def spawn_jobs():
         func, url, queue = API_KEY_INFO_URL
         taskstate = status[key_info].get((url, 0), None)
 
-        # If we need to queue this task, do so
-        taskstate, start = _init_taskstate(taskstate, key_info, url, 0, now)
-        if start is True:
-            f = globals()[func]
-            f.apply_async(
-                args=(url, apikey.id, taskstate.id),
-                queue=queue,
-            )
+        _init_taskstate(taskdata, now, taskstate, apikey.id, key_info, func, url, queue, 0)
 
 
         # Account/character keys
@@ -361,15 +356,8 @@ def spawn_jobs():
                         parameter = character.id
 
                     taskstate = status[key_info].get((url, parameter), None)
-                    
-                    # If we need to queue this task, do so
-                    taskstate, start = _init_taskstate(taskstate, key_info, url, parameter, now)
-                    if start is True:
-                        f = globals()[func]
-                        f.apply_async(
-                            args=(url, apikey.id, taskstate.id, parameter),
-                            queue=queue,
-                        )
+
+                    _init_taskstate(taskdata, now, taskstate, apikey.id, key_info, func, url, queue, parameter)
 
                     # Only do account status once per key
                     if mask == APIKey.CHAR_ACCOUNT_STATUS_MASK:
@@ -389,18 +377,21 @@ def spawn_jobs():
 
                 taskstate = status[key_info].get((url, character.id), None)
 
-                # If we need to queue this task, do so
-                taskstate, start = _init_taskstate(taskstate, key_info, url, character.id, now)
-                if start is True:
-                    f = globals()[func]
-                    f.apply_async(
-                        args=(url, apikey.id, taskstate.id, character.id),
-                        queue=queue,
-                    )
+                _init_taskstate(taskdata, now, taskstate, apikey.id, key_info, func, url, queue, character.id)
 
-def _init_taskstate(taskstate, key_info, url, parameter, now):
-    # If task isn't found, make a new taskstate and queue the task
-    if taskstate is None:
+    # Bulk update the ready ones
+    ts_ids = []
+    for ts_id, apikey_id, func, url, queue, parameter in taskdata[False]:
+        ts_ids.append(ts_id)
+        globals()[func].apply_async(
+            args=(url, apikey_id, ts_id, parameter),
+            queue=queue,
+        )
+    
+    TaskState.objects.filter(pk__in=ts_ids).update(state=TaskState.QUEUED_STATE, mod_time=now)
+
+    # Create the new ones, no bulk_create as we need the TaskState.id
+    for key_info, apikey_id, func, url, queue, parameter in taskdata[True]:
         taskstate = TaskState.objects.create(
             key_info=key_info,
             url=url,
@@ -409,19 +400,17 @@ def _init_taskstate(taskstate, key_info, url, parameter, now):
             mod_time=now,
             next_time=now,
         )
+        
+        globals()[func].apply_async(
+            args=(url, apikey_id, taskstate.id, parameter),
+            queue=queue,
+        )
 
-        start = True
-    
-    # Task was found, find out if it needs starting
-    else:
-        start = taskstate.queue_now(now)
-        # Make sure we update the state to queued!
-        if start:
-            taskstate.state = TaskState.QUEUED_STATE
-            taskstate.mod_time = now
-            taskstate.save()
-
-    return taskstate, start
+def _init_taskstate(taskdata, now, taskstate, apikey_id, key_info, func, url, queue, parameter):
+    if taskstate is None:
+        taskdata[True].append((key_info, apikey_id, func, url, queue, parameter))
+    elif taskstate.queue_now(now):
+        taskdata[False].append((taskstate.id, apikey_id, func, url, queue, parameter))
 
 # ---------------------------------------------------------------------------
 # Account balances
