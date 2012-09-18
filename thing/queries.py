@@ -87,26 +87,3 @@ WHERE   a.item_id = i.id
         AND i.item_group_id = ig.id
         AND ig.category_id != 9
 """
-
-
-# -- api_updater queries --
-transaction_insert = """
-INSERT INTO thing_transaction (
-  station_id,
-  item_id,
-  character_id,
-  transaction_id,
-  date,
-  buy_transaction,
-  quantity,
-  price,
-  total_price,
-  corp_wallet_id,
-  other_char_id,
-  other_corp_id
-)
-VALUES
-%s
-"""
-
-transaction_insert_part = '(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'
