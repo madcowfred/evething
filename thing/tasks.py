@@ -289,6 +289,10 @@ def taskstate_cleanup():
         Q(state=TaskState.ACTIVE_STATE, mod_time__lt=fifteen_mins_ago)
     )
 
+    # FIXME: temp log
+    for d in taskstates.values('url').annotate(n=Count('id')):
+        logger.warn('taskstate_cleanup: %d %s', d['n'], d['url'])
+
     # Set them to restart
     count = taskstates.update(mod_time=now, next_time=now, state=TaskState.READY_STATE)
     if count > 0:
