@@ -302,9 +302,9 @@ def apicache_cleanup():
     count = APICache.objects.filter(cached_until__lt=now).delete()
 
 # ---------------------------------------------------------------------------
-# Periodic task to spawn API jobs
+# Periodic task to spawn API tasks
 @task
-def spawn_jobs():
+def spawn_tasks():
     now = datetime.datetime.now()
     one_month_ago = now - datetime.timedelta(30)
 
@@ -316,7 +316,7 @@ def spawn_jobs():
     # Get a set of unique API keys
     keys = {}
     status = {}
-    for apikey in apikeys:
+    for apikey in apikeys:#.iterator():
         key_info = apikey.get_key_info()
         keys[key_info] = apikey
         status[key_info] = {}
@@ -390,21 +390,19 @@ def spawn_jobs():
     
     TaskState.objects.filter(pk__in=ts_ids).update(state=TaskState.QUEUED_STATE, mod_time=now)
 
-    # Create the new ones, no bulk_create as we need the TaskState.id
+    # Create the new ones, they can be started next time around
+    new = []
     for key_info, apikey_id, func, url, queue, parameter in taskdata[True]:
-        taskstate = TaskState.objects.create(
+        new.append(TaskState(
             key_info=key_info,
             url=url,
             parameter=parameter,
-            state=TaskState.QUEUED_STATE,
+            state=TaskState.READY_STATE,
             mod_time=now,
             next_time=now,
-        )
-        
-        globals()[func].apply_async(
-            args=(url, apikey_id, taskstate.id, parameter),
-            queue=queue,
-        )
+        ))
+    
+    TaskState.objects.bulk_create(new)
 
 def _init_taskstate(taskdata, now, taskstate, apikey_id, key_info, func, url, queue, parameter):
     if taskstate is None:
