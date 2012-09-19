@@ -57,6 +57,13 @@ def wallet_journal(request):
         Q(corp_wallet__corporation__in=corporation_ids)
     )
 
+    # Days
+    days = request.GET.get('days', '')
+    if days.isdigit() and int(days) >= 0:
+        days = int(days)
+    else:
+        days = 0
+
     # Parse and apply filters
     filters = parse_filters(request, JOURNAL_EXPECTED)
     if 'char' in filters:
@@ -102,6 +109,14 @@ def wallet_journal(request):
             elif fc == 'lte':
                 qs.append(Q(amount__lte=fv))
         journal_ids = journal_ids.filter(reduce(q_reduce_or, qs))
+
+    # Apply days limit
+    if days > 0:
+        limit = datetime.datetime.utcnow() - datetime.timedelta(days)
+        journal_ids = journal_ids.filter(date__gte=limit)
+
+    # Calculate a total value
+    total_amount = journal_ids.aggregate(t=Sum('amount'))['t']
 
     # Get only the ids, at this point joining the rest is unnecessary
     journal_ids = journal_ids.values_list('pk', flat=True)
@@ -218,6 +233,8 @@ def wallet_journal(request):
             'json_expected': json_expected,
             'values': values,
             'filters': filters,
+            'total_amount': total_amount,
+            'days': days,
             'entries': entries,
             'paginated': paginated,
             'next': next,

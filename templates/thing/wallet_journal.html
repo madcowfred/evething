@@ -48,7 +48,6 @@
           }
         }
       });
-      //$('#filter-form').attr('href', $('#clear-button').attr('href') + document.location.search);
 
       // click event for add icon
       $('.icons-add').on('click', function() {
@@ -183,9 +182,17 @@
             </div>
             <fieldset id="filters">
             </fieldset>
+            <fieldset>
+              <div class="control-group">
+                # of days
+                <input type="text" name="days" class="input-small" value="{{ days }}">
+              </div>
+            </fieldset>
             <button type="submit" class="btn btn-success">Apply filters</button>
             <a id="clear-button" href="{% url thing.views.wallet_journal %}" class="btn btn-danger">Clear filters</a>
           </form>
+
+          <strong>Balance for this filter set</strong>: {{ total_amount|commas }} ISK
         </div>
       </div>
 
