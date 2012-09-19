@@ -6,6 +6,7 @@
 .icons-success { background:url(silk/tick.png); }
 .icons-failure { background:url(silk/cross.png); }
 /* edit and delete icons */
+.icons-add { background:url(silk/add.png); }
 .icons-edit { background:url(silk/pencil.png); }
 .icons-delete { background:url(silk/bin.png); }
 /* information, obviously */

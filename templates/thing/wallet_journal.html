@@ -3,10 +3,178 @@
 
 {% block title %}Wallet Journal{% endblock %}
 
+{% block extra_js %}
+    <script type="text/javascript">
+      var types = { 'char': 'Character', 'corp': 'Corporation', 'reftype': 'RefType', 'owners': 'Owners', 'amount': 'Amount' }
+      var comps = { 'eq': '==', 'ne': '!=', 'gt': '>', 'gte': '>=', 'lt': '<', 'lte': '<=', 'in': 'contains' }
+
+      // template provided variables
+      var expected = $.parseJSON('{{ json_expected|safe }}');
+      var exp_sorted = [];
+      for (var k in expected)
+        exp_sorted.push(k);
+      exp_sorted.sort();
+
+      var chars = {};
+      {% for char in values.chars %}chars[{{ char.id }}] = '{{ char.name }}';{% endfor %}
+
+      var corps = {};
+      {% for corp in values.corps %}corps[{{ corp.id }}] = '{{ corp.name }}';{% endfor %}
+
+      var reftypes = {};
+      {% for reftype in values.reftypes %}reftypes[{{ reftype.id }}] = '{{ reftype.name }}';{% endfor %}
+
+      // add provided filters
+      $('#filters').empty();
+      {% for ft, fcfvs in filters.items() %}
+      {% for fc, fv in fcfvs %}
+      $('#filters').append(build_filter('{{ ft }}', '{{ fc }}', '{{ fv }}'));
+      {% endfor %}
+      {% else %}
+      $('#filters').append(build_filter());
+      {% endfor %}
+
+      // click event for add icon
+      $('.icons-add').on('click', function() {
+        $('#filters').append(build_filter());
+      });
+
+      // click event for delete icon
+      $('#filters').on('click', '.icons-delete', function() {
+        $(this).parent().remove();
+      });
+
+      // change even for filter-type selects
+      $('#filters').on('change', '.filter-type', function () {
+        var $ft = $(this);
+        // clear any other select/input in this line
+        $ft.siblings('select, input').remove();
+        // add the comparison box
+        $ft.parent().append(build_filter_comp($ft.val(), undefined));
+        // add the value box
+        var $fc = $ft.next();
+        $ft.parent().append(build_filter_value($ft.val(), $fc.val(), ''));
+      });
+
+      function build_filter(ft, fc, fv) {
+        var html = '<div class="control-group" style="margin: 0;">';
+        html += '<i class="icons-delete"></i> ';
+        html += '<select name="ft" class="filter-type input-medium">';
+        html += '<option value=""></option>';
+        
+        $.each(exp_sorted, function(i, k) {
+          if (k === ft)
+            html += '<option value="' + k + '" selected>' + types[k] + '</option>';
+          else
+            html += '<option value="' + k + '">' + types[k] + '</option>';
+        });
+        
+        html += '</select>';
+
+        if (ft) {
+          html += build_filter_comp(ft, fc);
+          html += build_filter_value(ft, fc, fv);
+        }
+
+        html += '</div>';
+
+        return html;
+      }
+
+      function build_filter_comp(ft, fc) {
+        html = ' <select name="fc" class="input-small">';
+
+        for (var k in expected[ft].comps) {
+          var v = expected[ft].comps[k];
+          if (v == fc)
+            html += '<option value="' + v + '" selected>' + comps[v] + '</option>';
+          else
+            html += '<option value="' + v + '">' + comps[v] + '</option>';
+        }
+        
+        html += '</select>';
+        return html;
+      }
+
+      function build_filter_value(ft, fc, fv) {
+        html = ' ';
+
+        if (ft == 'char') {
+          html += '<select name="fv" class="filter-value input-xlarge">';
+          
+          $.each(sorted_keys(chars), function(i, c_id) {
+            var c_name = chars[c_id];
+            if (c_id == fv)
+              html += '<option value="' + c_id + '" selected>' + c_name + '</option>';
+            else
+              html += '<option value="' + c_id + '">' + c_name + '</option>';
+          });
+          html += '</select>';
+        }
+        else if (ft == 'corp') {
+          html += '<select name="fv" class="filter-value input-xlarge">';
+
+          $.each(sorted_keys(corps), function(i, c_id) {
+            var c_name = corps[c_id];
+            if (c_id == fv)
+              html += '<option value="' + c_id + '" selected>' + c_name + '</option>';
+            else
+              html += '<option value="' + c_id + '">' + c_name + '</option>';
+          });
+          html += '</select>';
+        }
+        else if (ft == 'reftype') {
+          html += '<select name="fv" class="filter-value input-xlarge">';
+
+          $.each(sorted_keys(reftypes), function(i, rt_id) {
+            var rt_name = reftypes[rt_id];
+            if (rt_id == fv)
+              html += '<option value="' + rt_id + '" selected>' + rt_name + '</option>';
+            else
+              html += '<option value="' + rt_id + '">' + rt_name + '</option>';
+          });
+          html += '</select>';
+        }
+        else {
+          html += '<input name="fv" class="filter-value input-xlarge" type="text" value="' + fv + '">';
+        }
+
+        return html;
+      }
+
+      function sorted_keys(obj) {
+        var keys = [];
+        for (var key in obj)
+          keys.push(key);
+        return keys.sort(function (a,b) {
+          if (obj[a] < obj[b]) return -1;
+          if (obj[a] > obj[b]) return 1;
+          return 0;
+        });
+      }
+    </script>
+{% endblock %}
+
 {% block content %}
       <div class="row-fluid">
-        <div class="span12">
+        <div class="span5">
           <h2>Wallet Journal</h2>
+
+          <form class="well well-small" action="{% url thing.views.wallet_journal %}" method="GET">
+            <div class="margin-half-bot">
+              <strong class="large">Filters</strong>
+              <i class="icons-add"></i>
+            </div>
+            <fieldset id="filters">
+            </fieldset>
+            <button type="submit" class="btn btn-success">Apply filters</button>
+            <a href="{% url thing.views.assets %}" class="btn btn-danger">Clear filters</a>
+          </form>
+        </div>
+      </div>
+
+      <div class="row-fluid">
+        <div class="span12">
           <div class="pagination pagination-centered">
             <ul>
               {% if prev %}
