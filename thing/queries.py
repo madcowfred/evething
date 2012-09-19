@@ -87,3 +87,31 @@ WHERE   a.item_id = i.id
         AND i.item_group_id = ig.id
         AND ig.category_id != 9
 """
+
+
+# 
+journal_aggregate_char = """
+SELECT  EXTRACT(YEAR FROM date) AS year,
+        EXTRACT(MONTH FROM date) AS month,
+        EXTRACT(DAY FROM date) AS day,
+        ref_type_id,
+        SUM(CASE WHEN (amount > 0) THEN amount ELSE 0 END) AS income,
+        SUM(CASE WHEN (amount < 0) THEN amount ELSE 0 END) as expense
+FROM    thing_journalentry
+WHERE   character_id = %s
+        AND corp_wallet_id IS NULL
+GROUP BY year, month, day, ref_type_id
+"""
+
+journal_aggregate_corp = """
+SELECT  EXTRACT(YEAR FROM date) AS year,
+        EXTRACT(MONTH FROM date) AS month,
+        EXTRACT(DAY FROM date) AS day,
+        ref_type_id,
+        SUM(CASE WHEN (amount > 0) THEN amount ELSE 0 END) AS income,
+        SUM(CASE WHEN (amount < 0) THEN amount ELSE 0 END) as expense
+FROM    thing_journalentry
+WHERE   character_id = %s
+        AND corp_wallet_id = %s
+GROUP BY year, month, day, ref_type_id
+"""

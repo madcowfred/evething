@@ -66,6 +66,8 @@ urlpatterns += patterns('thing.views',
     (r'^transactions/(?P<item_id>all|\d+)/(?P<slug>[-\w]+)/$', 'transactions_item'),
 
     (r'^wallet_journal/', 'wallet_journal'),
+
+    (r'^wjthing/', 'wjthing'),
 )
 
 # Redirects
