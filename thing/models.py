@@ -717,6 +717,7 @@ class JournalEntry(models.Model):
     corp_wallet = models.ForeignKey(CorpWallet, null=True, blank=True)
 
     date = models.DateTimeField(db_index=True)
+
     ref_id = models.BigIntegerField()
     ref_type = models.ForeignKey('RefType')
     
@@ -735,6 +736,22 @@ class JournalEntry(models.Model):
 
     class Meta:
         ordering = ('-date',)
+
+# ---------------------------------------------------------------------------
+# Aggregated journal data
+class JournalSummary(models.Model):
+    character = models.ForeignKey(Character)
+    corp_wallet = models.ForeignKey(CorpWallet, null=True, blank=True)
+
+    year = models.IntegerField(default=0, db_index=True)
+    month = models.IntegerField(default=0, db_index=True)
+    day = models.IntegerField(default=0, db_index=True)
+
+    ref_type = models.ForeignKey('RefType')
+
+    total_in = models.DecimalField(max_digits=17, decimal_places=2)
+    total_out = models.DecimalField(max_digits=17, decimal_places=2)
+    balance = models.DecimalField(max_digits=17, decimal_places=2)
 
 # ---------------------------------------------------------------------------
 # Wallet transactions

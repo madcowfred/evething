@@ -53,25 +53,25 @@ TRANSACTION_ROWS = 2560
 API_KEY_INFO_URL = ('api_key_info', '/account/APIKeyInfo.xml.aspx', 'et_low')
 
 CHAR_URLS = {
-    APIKey.CHAR_ACCOUNT_STATUS_MASK: ('account_status', '/account/AccountStatus.xml.aspx', 'et_medium'),
-    APIKey.CHAR_ASSET_LIST_MASK: ('asset_list', '/char/AssetList.xml.aspx', 'et_medium'),
-    APIKey.CHAR_CHARACTER_SHEET_MASK: ('character_sheet', '/char/CharacterSheet.xml.aspx', 'et_medium'),
-    APIKey.CHAR_CONTRACTS_MASK: ('contracts', '/char/Contracts.xml.aspx', 'et_medium'),
-    APIKey.CHAR_CHARACTER_INFO_MASK: ('character_info', '/eve/CharacterInfo.xml.aspx', 'et_medium'),
-    APIKey.CHAR_MARKET_ORDERS_MASK: ('market_orders', '/char/MarketOrders.xml.aspx', 'et_medium'),
-    APIKey.CHAR_SKILL_QUEUE_MASK: ('skill_queue', '/char/SkillQueue.xml.aspx', 'et_medium'),
-    APIKey.CHAR_STANDINGS_MASK: ('standings', '/char/Standings.xml.aspx', 'et_medium'),
+    # APIKey.CHAR_ACCOUNT_STATUS_MASK: ('account_status', '/account/AccountStatus.xml.aspx', 'et_medium'),
+    # APIKey.CHAR_ASSET_LIST_MASK: ('asset_list', '/char/AssetList.xml.aspx', 'et_medium'),
+    # APIKey.CHAR_CHARACTER_SHEET_MASK: ('character_sheet', '/char/CharacterSheet.xml.aspx', 'et_medium'),
+    # APIKey.CHAR_CONTRACTS_MASK: ('contracts', '/char/Contracts.xml.aspx', 'et_medium'),
+    # APIKey.CHAR_CHARACTER_INFO_MASK: ('character_info', '/eve/CharacterInfo.xml.aspx', 'et_medium'),
+    # APIKey.CHAR_MARKET_ORDERS_MASK: ('market_orders', '/char/MarketOrders.xml.aspx', 'et_medium'),
+    # APIKey.CHAR_SKILL_QUEUE_MASK: ('skill_queue', '/char/SkillQueue.xml.aspx', 'et_medium'),
+    # APIKey.CHAR_STANDINGS_MASK: ('standings', '/char/Standings.xml.aspx', 'et_medium'),
     APIKey.CHAR_WALLET_JOURNAL_MASK: ('wallet_journal', '/char/WalletJournal.xml.aspx', 'et_medium'),
-    APIKey.CHAR_WALLET_TRANSACTIONS_MASK: ('wallet_transactions', '/char/WalletTransactions.xml.aspx', 'et_medium'),
+    # APIKey.CHAR_WALLET_TRANSACTIONS_MASK: ('wallet_transactions', '/char/WalletTransactions.xml.aspx', 'et_medium'),
 }
 CORP_URLS = {
-    APIKey.CORP_ACCOUNT_BALANCE_MASK: ('account_balance', '/corp/AccountBalance.xml.aspx', 'et_medium'),
-    APIKey.CORP_ASSET_LIST_MASK: ('asset_list', '/corp/AssetList.xml.aspx', 'et_medium'),
-    APIKey.CORP_CONTRACTS_MASK: ('contracts', '/corp/Contracts.xml.aspx', 'et_medium'),
-    APIKey.CORP_CORPORATION_SHEET_MASK: ('corporation_sheet', '/corp/CorporationSheet.xml.aspx', 'et_medium'),
-    APIKey.CORP_MARKET_ORDERS_MASK: ('market_orders', '/corp/MarketOrders.xml.aspx', 'et_medium'),
+    # APIKey.CORP_ACCOUNT_BALANCE_MASK: ('account_balance', '/corp/AccountBalance.xml.aspx', 'et_medium'),
+    # APIKey.CORP_ASSET_LIST_MASK: ('asset_list', '/corp/AssetList.xml.aspx', 'et_medium'),
+    # APIKey.CORP_CONTRACTS_MASK: ('contracts', '/corp/Contracts.xml.aspx', 'et_medium'),
+    # APIKey.CORP_CORPORATION_SHEET_MASK: ('corporation_sheet', '/corp/CorporationSheet.xml.aspx', 'et_medium'),
+    # APIKey.CORP_MARKET_ORDERS_MASK: ('market_orders', '/corp/MarketOrders.xml.aspx', 'et_medium'),
     APIKey.CORP_WALLET_JOURNAL_MASK: ('wallet_journal', '/corp/WalletJournal.xml.aspx', 'et_medium'),
-    APIKey.CORP_WALLET_TRANSACTIONS_MASK: ('wallet_transactions', '/corp/WalletTransactions.xml.aspx', 'et_medium'),
+    # APIKey.CORP_WALLET_TRANSACTIONS_MASK: ('wallet_transactions', '/corp/WalletTransactions.xml.aspx', 'et_medium'),
 }
 
 # ---------------------------------------------------------------------------
@@ -1459,12 +1459,16 @@ def wallet_journal(url, apikey_id, taskstate_id, character_id):
                 job.failed()
                 return
 
+            _wjs_work(character, corpwallet)
+
     # Account/character key
     else:
         result = _wallet_journal_work(url, job, character)
         if result is False:
             job.failed()
             return
+            
+        _wjs_work(character)
 
     job.completed()
 
@@ -1582,6 +1586,49 @@ def _wallet_journal_work(url, job, character, corp_wallet=None):
             JournalEntry.objects.bulk_create(new)
 
     return True
+
+# ---------------------------------------------------------------------------
+
+def _wjs_work(character, corp_wallet=None):
+    cursor = connection.cursor()
+
+    if corp_wallet is not None:
+        cursor.execute(queries.journal_aggregate_corp, (character.id, corp_wallet.account_id))
+    else:
+        cursor.execute(queries.journal_aggregate_char, (character.id,))
+
+    # Retrieve all current aggregate data
+    agg_data = {}
+    for js in JournalSummary.objects.filter(character=character, corp_wallet=corp_wallet):
+        agg_data[(js.year, js.month, js.day)] = js
+
+    # Check new data
+    new = []
+    for year, month, day, ref_type_id, total_in, total_out in cursor:
+        js = agg_data.get((year, month, day))
+        # Doesn't exist, add it later
+        if js is None:
+            new.append(JournalSummary(
+                character=character,
+                corp_wallet=corp_wallet,
+                year=year,
+                month=month,
+                day=day,
+                ref_type_id=ref_type_id,
+                total_in=total_in,
+                total_out=total_out,
+                balance=total_in + total_out,
+            ))
+        # Does exist, check for update
+        else:
+            if js.total_in != total_in or js.total_out != total_out:
+                js.total_in = total_in
+                js.total_out = total_out
+                js.balance = total_in + total_out
+                js.save()
+
+    # Create any new summary objects
+    JournalSummary.objects.bulk_create(new)
 
 # ---------------------------------------------------------------------------
 # Fetch wallet transactions
