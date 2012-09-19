@@ -41,7 +41,6 @@
         if (href !== undefined && href.substr(0, 5) === '?page') {
           var m = search.match(/page=\d+/);
           if (m !== null) {
-            console.log(m);
             $(this).attr('href', search.replace(m, 'page=' + href.split(/=/)[1]));
           }
           else {
