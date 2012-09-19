@@ -6,6 +6,7 @@
 .icons-success { background:url(fugue/tick.png); }
 .icons-failure { background:url(fugue/cross.png); }
 /* edit and delete icons */
+.icons-add { background:url(fugue/plus-circle.png); }
 .icons-edit { background:url(fugue/pencil.png); }
 .icons-delete { background:url(fugue/bin.png); }
 /* information, obviously */

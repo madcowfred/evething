@@ -34,6 +34,23 @@
       $('#filters').append(build_filter());
       {% endfor %}
 
+      // add query string to pagination links
+      var search = document.location.search;
+      $('a').each(function() {
+        var href = $(this).attr('href');
+        if (href !== undefined && href.substr(0, 5) === '?page') {
+          var m = search.match(/page=\d+/);
+          if (m !== null) {
+            console.log(m);
+            $(this).attr('href', search.replace(m, 'page=' + href.split(/=/)[1]));
+          }
+          else {
+            $(this).attr('href', search + href.replace('?', '&'));
+          }
+        }
+      });
+      //$('#filter-form').attr('href', $('#clear-button').attr('href') + document.location.search);
+
       // click event for add icon
       $('.icons-add').on('click', function() {
         $('#filters').append(build_filter());
@@ -44,7 +61,7 @@
         $(this).parent().remove();
       });
 
-      // change even for filter-type selects
+      // change event for filter-type selects
       $('#filters').on('change', '.filter-type', function () {
         var $ft = $(this);
         // clear any other select/input in this line
@@ -160,7 +177,7 @@
         <div class="span5">
           <h2>Wallet Journal</h2>
 
-          <form class="well well-small" action="{% url thing.views.wallet_journal %}" method="GET">
+          <form id="filter-form" class="well well-small" action="{% url thing.views.wallet_journal %}" method="GET">
             <div class="margin-half-bot">
               <strong class="large">Filters</strong>
               <i class="icons-add"></i>
@@ -168,7 +185,7 @@
             <fieldset id="filters">
             </fieldset>
             <button type="submit" class="btn btn-success">Apply filters</button>
-            <a href="{% url thing.views.wallet_journal %}" class="btn btn-danger">Clear filters</a>
+            <a id="clear-button" href="{% url thing.views.wallet_journal %}" class="btn btn-danger">Clear filters</a>
           </form>
         </div>
       </div>
