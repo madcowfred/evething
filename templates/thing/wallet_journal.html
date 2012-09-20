@@ -49,6 +49,9 @@
         }
       });
 
+      // hover thing for hover things
+      $('.skill-hover').popover({ animation: false, trigger: 'hover' });
+
       // click event for add icon
       $('.icons-add').on('click', function() {
         $('#filters').append(build_filter());
@@ -269,7 +272,15 @@
                   {%- endif %}
                 </td>
                 <td class="journal-balance">{{ entry.balance|commas }}</td>
-                <td>{{ entry.z_description }}</td>
+                <td>
+                  {% if entry.z_hover -%}
+                  <span class="skill-hover" rel="popover" title="Pirates Killed" data-content="{{ entry.z_hover|replace('||', '<br>') }}" data-placement="left">
+                    {{ entry.z_description }}
+                  </span>
+                  {%- else -%}
+                  {{ entry.z_description }}
+                  {%- endif %}
+                </td>
               </tr>
               {%- else -%}
               <tr>

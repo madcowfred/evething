@@ -184,6 +184,12 @@ def wallet_journal(request):
         # Clone Transfer
         elif entry.ref_type_id == 52:
             station_ids.add(int(entry.arg_id))
+        # Bounty Prizes
+        elif entry.ref_type_id == 85:
+            for thing in entry.reason.split(','):
+                thing = thing.strip()
+                if thing:
+                    item_ids.add(int(thing.split(':')[0]))
 
     char_map = SimpleCharacter.objects.in_bulk(owner_ids)
     corp_map = Corporation.objects.in_bulk(owner_ids)
@@ -213,11 +219,9 @@ def wallet_journal(request):
         # Inheritance
         if entry.ref_type_id == 9:
             entry.z_description = entry.reason
-
         # Player Donation/Corporation Account Withdrawal
         elif entry.ref_type_id in (10, 37) and entry.reason != '':
             entry.z_description = '"%s"' % (entry.reason[5:].strip())
-
         # Insurance, arg_name is the item_id of the ship that exploded
         elif entry.ref_type_id == 19:
             if amount > 0:
@@ -226,12 +230,28 @@ def wallet_journal(request):
                     entry.z_description = 'Insurance payment for loss of a %s' % (item.name)
             elif amount < 0:
                 entry.z_description = 'Insurance purchased (RefID: %s)' % (entry.arg_name[1:])
-
         # Clone Transfer, arg_name is the name of the station you're going to
         elif entry.ref_type_id == 52:
             station = station_map.get(entry.arg_id)
             if station:
                 entry.z_description = 'Clone transfer to %s' % (station.short_name)
+        # Bounty Prizes
+        elif entry.ref_type_id == 85:
+            killed = []
+
+            for thing in entry.reason.split(','):
+                thing = thing.strip()
+                if thing:
+                    item_id, count = thing.split(':')
+                    item = item_map.get(int(item_id))
+                    if item:
+                        killed.append((item.name, '%sx %s' % (count, item.name)))
+
+            # Sort killed
+            killed = [k[1] for k in sorted(killed)]
+
+            entry.z_description = 'Bounty prizes for killing pirates in %s' % (entry.arg_name.strip())
+            entry.z_hover = '||'.join(killed)
 
     # Ready template things
     json_expected = json.dumps(JOURNAL_EXPECTED)
