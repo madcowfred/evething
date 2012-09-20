@@ -16,6 +16,9 @@ MONTHS = (None, 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', '
 # Transaction list
 @login_required
 def transactions(request):
+    # Get profile
+    profile = request.user.get_profile()
+
     # Get a QuerySet of transactions IDs by this user
     characters = list(Character.objects.filter(apikeys__user=request.user.id).values_list('id', flat=True))
     transaction_ids = Transaction.objects.filter(character_id__in=characters)
@@ -25,7 +28,7 @@ def transactions(request):
     transaction_ids = transaction_ids.values_list('pk', flat=True)
 
     # Create a new paginator
-    paginator = Paginator(transaction_ids, 100)
+    paginator = Paginator(transaction_ids, profile.entries_per_page)
 
     # Make sure page request is an int, default to 1st page
     try:

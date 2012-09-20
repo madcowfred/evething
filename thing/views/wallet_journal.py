@@ -41,6 +41,9 @@ JOURNAL_EXPECTED = {
 # Wallet journal
 @login_required
 def wallet_journal(request):
+    # Get profile
+    profile = request.user.get_profile()
+
     characters = Character.objects.filter(apikeys__user=request.user.id)
     character_ids = [c.id for c in characters]
 
@@ -122,7 +125,7 @@ def wallet_journal(request):
     journal_ids = journal_ids.values_list('pk', flat=True)
 
     # Create a new paginator
-    paginator = Paginator(journal_ids, 100)
+    paginator = Paginator(journal_ids, profile.entries_per_page)
 
     # Make sure page request is an int, default to 1st page
     try:

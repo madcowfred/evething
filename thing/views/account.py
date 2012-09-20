@@ -103,7 +103,6 @@ def account_settings(request):
         profile.icon_theme = icon_theme
 
     profile.show_clock = (request.POST.get('show_clock', '') == 'on')
-    profile.show_item_icons = (request.POST.get('show_item_icons', '') == 'on')
     profile.show_assets = (request.POST.get('show_assets', '') == 'on')
     profile.show_blueprints = (request.POST.get('show_blueprints', '') == 'on')
     profile.show_contracts = (request.POST.get('show_contracts', '') == 'on')
@@ -112,6 +111,13 @@ def account_settings(request):
     profile.show_transactions = (request.POST.get('show_transactions', '') == 'on')
     profile.show_wallet_journal = (request.POST.get('show_wallet_journal', '') == 'on')
     profile.show_market_scan = (request.POST.get('show_market_scan', '') == 'on')
+
+    profile.show_item_icons = (request.POST.get('show_item_icons', '') == 'on')
+
+    entries_per_page = request.POST.get('entries_per_page', '100')
+    if entries_per_page not in ('100', '200', '300', '400', '500'):
+        entries_per_page = '100'
+    profile.entries_per_page = entries_per_page
 
     home_chars_per_row = int(request.POST.get('home_chars_per_row'), 0)
     if home_chars_per_row in (2, 3, 4, 6):

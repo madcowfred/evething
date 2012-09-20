@@ -12,11 +12,14 @@ from thing.models import *
 # Events
 @login_required
 def events(request):
+    # Get profile
+    profile = request.user.get_profile()
+
     # Get a QuerySet of events for this user
     events = Event.objects.filter(user=request.user)
 
     # Create a new paginator
-    paginator = Paginator(events, 100)
+    paginator = Paginator(events, profile.entries_per_page)
     
     # Make sure page request is an int, default to 1st page
     try:

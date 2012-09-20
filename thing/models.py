@@ -31,7 +31,6 @@ class UserProfile(models.Model):
     theme = models.CharField(max_length=32, default='default')
     icon_theme = models.CharField(max_length=32, default='default')
     show_clock = models.BooleanField(default=True)
-    show_item_icons = models.BooleanField(default=False)
     show_assets = models.BooleanField(default=True)
     show_blueprints = models.BooleanField(default=True)
     show_contracts = models.BooleanField(default=True)
@@ -40,6 +39,9 @@ class UserProfile(models.Model):
     show_transactions = models.BooleanField(default=True)
     show_wallet_journal = models.BooleanField(default=True)
     show_market_scan = models.BooleanField(default=True)
+
+    show_item_icons = models.BooleanField(default=False)
+    entries_per_page = models.IntegerField(default=100)
 
     # Home view options
     home_chars_per_row = models.IntegerField(default=4)
