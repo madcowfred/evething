@@ -238,7 +238,7 @@ def wallet_journal(request):
     values = {
         'chars': characters,
         'corps': corporations,
-        'reftypes': RefType.objects.exclude(name=''),
+        'reftypes': RefType.objects.exclude(name='').exclude(id__gte=1000),
     }
 
     # Render template
