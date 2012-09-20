@@ -28,9 +28,9 @@ JOURNAL_EXPECTED = {
         'comps': ['eq', 'ne'],
         'number': True,
     },
-    #'owners': {
-    #    'comps': ['eq', 'ne', 'in'],
-    #},
+    'owners': {
+        'comps': ['eq', 'ne', 'in'],
+    },
     'amount': {
         'comps': ['eq', 'ne', 'gt', 'gte', 'lt', 'lte'],
         'number': True,
@@ -69,6 +69,24 @@ def wallet_journal(request):
 
     # Parse and apply filters
     filters = parse_filters(request, JOURNAL_EXPECTED)
+
+    if 'amount' in filters:
+        qs = []
+        for fc, fv in filters['amount']:
+            if fc == 'eq':
+                qs.append(Q(amount=fv))
+            elif fc == 'ne':
+                qs.append(~Q(amount=fv))
+            elif fc == 'gt':
+                qs.append(Q(amount__gt=fv))
+            elif fc == 'gte':
+                qs.append(Q(amount__gte=fv))
+            elif fc == 'lt':
+                qs.append(Q(amount__lt=fv))
+            elif fc == 'lte':
+                qs.append(Q(amount__lte=fv))
+        journal_ids = journal_ids.filter(reduce(q_reduce_or, qs))
+
     if 'char' in filters:
         qs = []
         for fc, fv in filters['char']:
@@ -96,22 +114,36 @@ def wallet_journal(request):
                 qs.append(~Q(ref_type=fv))
         journal_ids = journal_ids.filter(reduce(q_reduce_or, qs))
 
-    if 'amount' in filters:
+    # Owners is a special case that requires some extra queries
+    if 'owners' in filters:
         qs = []
-        for fc, fv in filters['amount']:
+        for fc, fv in filters['owners']:
             if fc == 'eq':
-                qs.append(Q(amount=fv))
+                qs.append(Q(name=fv))
             elif fc == 'ne':
-                qs.append(~Q(amount=fv))
-            elif fc == 'gt':
-                qs.append(Q(amount__gt=fv))
-            elif fc == 'gte':
-                qs.append(Q(amount__gte=fv))
-            elif fc == 'lt':
-                qs.append(Q(amount__lt=fv))
-            elif fc == 'lte':
-                qs.append(Q(amount__lte=fv))
-        journal_ids = journal_ids.filter(reduce(q_reduce_or, qs))
+                qs.append(~Q(name=fv))
+            elif fc == 'in':
+                qs.append(Q(name__icontains=fv))
+
+        qs_reduced = reduce(q_reduce_or, qs)
+
+        o_chars = SimpleCharacter.objects.filter(qs_reduced)
+        o_corps = Corporation.objects.filter(qs_reduced)
+        o_alliances = Alliance.objects.filter(qs_reduced)
+
+        owner_ids = set()
+        for char in o_chars:
+            owner_ids.add(char.id)
+        for corp in o_corps:
+            owner_ids.add(corp.id)
+        for alliance in o_alliances:
+            owner_ids.add(alliance.id)
+
+        journal_ids = journal_ids.filter(
+            Q(owner1_id__in=owner_ids)
+            |
+            Q(owner2_id__in=owner_ids)
+        )
 
     # Apply days limit
     if days > 0:
