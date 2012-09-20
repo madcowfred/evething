@@ -224,11 +224,11 @@ def wallet_journal(request):
             entry.z_description = '"%s"' % (entry.reason[5:].strip())
         # Insurance, arg_name is the item_id of the ship that exploded
         elif entry.ref_type_id == 19:
-            if amount > 0:
+            if entry.amount >= 0:
                 item = item_map.get(int(entry.arg_name))
                 if item:
                     entry.z_description = 'Insurance payment for loss of a %s' % (item.name)
-            elif amount < 0:
+            else:
                 entry.z_description = 'Insurance purchased (RefID: %s)' % (entry.arg_name[1:])
         # Clone Transfer, arg_name is the name of the station you're going to
         elif entry.ref_type_id == 52:
