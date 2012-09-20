@@ -188,7 +188,7 @@ def wallet_journal(request):
         elif entry.ref_type_id == 85:
             for thing in entry.reason.split(','):
                 thing = thing.strip()
-                if thing:
+                if ':' in thing:
                     item_ids.add(int(thing.split(':')[0]))
 
     char_map = SimpleCharacter.objects.in_bulk(owner_ids)
@@ -241,11 +241,13 @@ def wallet_journal(request):
 
             for thing in entry.reason.split(','):
                 thing = thing.strip()
-                if thing:
+                if ':' in thing:
                     item_id, count = thing.split(':')
                     item = item_map.get(int(item_id))
                     if item:
                         killed.append((item.name, '%sx %s' % (count, item.name)))
+                elif thing == '...':
+                    killed.append(('ZZZ', '... (list truncated)'))
 
             # Sort killed
             killed = [k[1] for k in sorted(killed)]
