@@ -89,24 +89,29 @@ WHERE   a.item_id = i.id
 """
 
 
-# -- api_updater queries --
-transaction_insert = """
-INSERT INTO thing_transaction (
-  station_id,
-  item_id,
-  character_id,
-  transaction_id,
-  date,
-  buy_transaction,
-  quantity,
-  price,
-  total_price,
-  corp_wallet_id,
-  other_char_id,
-  other_corp_id
-)
-VALUES
-%s
+# 
+journal_aggregate_char = """
+SELECT  EXTRACT(YEAR FROM date) AS year,
+        EXTRACT(MONTH FROM date) AS month,
+        EXTRACT(DAY FROM date) AS day,
+        ref_type_id,
+        SUM(CASE WHEN (amount > 0) THEN amount ELSE 0 END) AS income,
+        SUM(CASE WHEN (amount < 0) THEN amount ELSE 0 END) as expense
+FROM    thing_journalentry
+WHERE   character_id = %s
+        AND corp_wallet_id IS NULL
+GROUP BY year, month, day, ref_type_id
 """
 
-transaction_insert_part = '(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'
+journal_aggregate_corp = """
+SELECT  EXTRACT(YEAR FROM date) AS year,
+        EXTRACT(MONTH FROM date) AS month,
+        EXTRACT(DAY FROM date) AS day,
+        ref_type_id,
+        SUM(CASE WHEN (amount > 0) THEN amount ELSE 0 END) AS income,
+        SUM(CASE WHEN (amount < 0) THEN amount ELSE 0 END) as expense
+FROM    thing_journalentry
+WHERE   character_id = %s
+        AND corp_wallet_id = %s
+GROUP BY year, month, day, ref_type_id
+"""

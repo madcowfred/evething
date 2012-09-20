@@ -289,6 +289,10 @@ def taskstate_cleanup():
         Q(state=TaskState.ACTIVE_STATE, mod_time__lt=fifteen_mins_ago)
     )
 
+    # FIXME: temp log
+    for d in taskstates.values('state', 'url').annotate(n=Count('id')):
+        logger.warn('taskstate_cleanup: %d %d %s', d['state'], d['n'], d['url'])
+
     # Set them to restart
     count = taskstates.update(mod_time=now, next_time=now, state=TaskState.READY_STATE)
     if count > 0:
@@ -302,9 +306,9 @@ def apicache_cleanup():
     count = APICache.objects.filter(cached_until__lt=now).delete()
 
 # ---------------------------------------------------------------------------
-# Periodic task to spawn API jobs
+# Periodic task to spawn API tasks
 @task
-def spawn_jobs():
+def spawn_tasks():
     now = datetime.datetime.now()
     one_month_ago = now - datetime.timedelta(30)
 
@@ -316,7 +320,7 @@ def spawn_jobs():
     # Get a set of unique API keys
     keys = {}
     status = {}
-    for apikey in apikeys:
+    for apikey in apikeys:#.iterator():
         key_info = apikey.get_key_info()
         keys[key_info] = apikey
         status[key_info] = {}
@@ -390,21 +394,19 @@ def spawn_jobs():
     
     TaskState.objects.filter(pk__in=ts_ids).update(state=TaskState.QUEUED_STATE, mod_time=now)
 
-    # Create the new ones, no bulk_create as we need the TaskState.id
+    # Create the new ones, they can be started next time around
+    new = []
     for key_info, apikey_id, func, url, queue, parameter in taskdata[True]:
-        taskstate = TaskState.objects.create(
+        new.append(TaskState(
             key_info=key_info,
             url=url,
             parameter=parameter,
-            state=TaskState.QUEUED_STATE,
+            state=TaskState.READY_STATE,
             mod_time=now,
             next_time=now,
-        )
-        
-        globals()[func].apply_async(
-            args=(url, apikey_id, taskstate.id, parameter),
-            queue=queue,
-        )
+        ))
+    
+    TaskState.objects.bulk_create(new)
 
 def _init_taskstate(taskdata, now, taskstate, apikey_id, key_info, func, url, queue, parameter):
     if taskstate is None:
@@ -1457,12 +1459,16 @@ def wallet_journal(url, apikey_id, taskstate_id, character_id):
                 job.failed()
                 return
 
+            _wjs_work(character, corpwallet)
+
     # Account/character key
     else:
         result = _wallet_journal_work(url, job, character)
         if result is False:
             job.failed()
             return
+            
+        _wjs_work(character)
 
     job.completed()
 
@@ -1580,6 +1586,49 @@ def _wallet_journal_work(url, job, character, corp_wallet=None):
             JournalEntry.objects.bulk_create(new)
 
     return True
+
+# ---------------------------------------------------------------------------
+
+def _wjs_work(character, corp_wallet=None):
+    cursor = connection.cursor()
+
+    if corp_wallet is not None:
+        cursor.execute(queries.journal_aggregate_corp, (character.id, corp_wallet.account_id))
+    else:
+        cursor.execute(queries.journal_aggregate_char, (character.id,))
+
+    # Retrieve all current aggregate data
+    agg_data = {}
+    for js in JournalSummary.objects.filter(character=character, corp_wallet=corp_wallet):
+        agg_data[(js.year, js.month, js.day)] = js
+
+    # Check new data
+    new = []
+    for year, month, day, ref_type_id, total_in, total_out in cursor:
+        js = agg_data.get((year, month, day))
+        # Doesn't exist, add it later
+        if js is None:
+            new.append(JournalSummary(
+                character=character,
+                corp_wallet=corp_wallet,
+                year=year,
+                month=month,
+                day=day,
+                ref_type_id=ref_type_id,
+                total_in=total_in,
+                total_out=total_out,
+                balance=total_in + total_out,
+            ))
+        # Does exist, check for update
+        else:
+            if js.total_in != total_in or js.total_out != total_out:
+                js.total_in = total_in
+                js.total_out = total_out
+                js.balance = total_in + total_out
+                js.save()
+
+    # Create any new summary objects
+    JournalSummary.objects.bulk_create(new)
 
 # ---------------------------------------------------------------------------
 # Fetch wallet transactions

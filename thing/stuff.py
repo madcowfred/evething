@@ -44,3 +44,42 @@ def total_seconds(delta):
     return (delta.days * 24 * 60 * 60) + delta.seconds
 
 # ---------------------------------------------------------------------------
+# Parse filter GET variables
+def parse_filters(request, expected):
+    # retrieve any supplied filter values
+    f_types = request.GET.getlist('ft')
+    f_comps = request.GET.getlist('fc')
+    f_values = request.GET.getlist('fv')
+
+    # run.
+    filters = {}
+
+    min_len = min(len(f_types), len(f_comps), len(f_values))
+    for ft, fc, fv in zip(f_types[:min_len], f_comps[:min_len], f_values[:min_len]):
+        ex = expected.get(ft)
+        if ex is None:
+            continue
+
+        # If the entry must be a number, verify that
+        if ex.get('number', False):
+            try:
+                fv = int(fv)
+            except ValueError:
+                continue
+
+        # Make sure the comparison is valid
+        if fc not in ex.get('comps', []):
+            continue
+
+        # Keep it
+        filters.setdefault(ft, []).append([fc, fv])
+
+    return filters
+
+# ---------------------------------------------------------------------------
+
+def q_reduce_or(a, b):
+    return a | b
+
+def q_reduce_and(a, b):
+    return a & b

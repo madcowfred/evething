@@ -197,12 +197,12 @@ CELERY_QUEUES = (
 # Periodic tasks
 from datetime import timedelta
 CELERYBEAT_SCHEDULE = {
-    # spawn jobs every 30 seconds
-    'spawn-jobs': {
-        'task': 'thing.tasks.spawn_jobs',
-        'schedule': timedelta(seconds=30),
+    # spawn tasks every 10 seconds
+    'spawn-tasks': {
+        'task': 'thing.tasks.spawn_tasks',
+        'schedule': timedelta(seconds=10),
         'options': {
-            'expires': 28,
+            'expires': 9,
             'queue': 'et_high',
         },
         'args': (),
