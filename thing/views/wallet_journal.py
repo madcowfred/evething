@@ -210,16 +210,28 @@ def wallet_journal(request):
         # RefType
         entry.z_reftype = rt_map.get(entry.ref_type_id)
 
-        # Insurance, arg_name is the Item id fo the ship that exploded
-        if entry.ref_type_id == 19:
-            item = item_map.get(int(entry.arg_name))
-            if item:
-                entry.z_arg = item.name
+        # Inheritance
+        if entry.ref_type_id == 9:
+            entry.z_description = entry.reason
+
+        # Player Donation/Corporation Account Withdrawal
+        elif entry.ref_type_id in (10, 37) and entry.reason != '':
+            entry.z_description = '"%s"' % (entry.reason[5:].strip())
+
+        # Insurance, arg_name is the item_id of the ship that exploded
+        elif entry.ref_type_id == 19:
+            if amount > 0:
+                item = item_map.get(int(entry.arg_name))
+                if item:
+                    entry.z_description = 'Insurance payment for loss of a %s' % (item.name)
+            elif amount < 0:
+                entry.z_description = 'Insurance purchased (RefID: %s)' % (entry.arg_name[1:])
+
         # Clone Transfer, arg_name is the name of the station you're going to
         elif entry.ref_type_id == 52:
             station = station_map.get(entry.arg_id)
             if station:
-                entry.z_arg = station.short_name
+                entry.z_description = 'Clone transfer to %s' % (station.short_name)
 
     # Ready template things
     json_expected = json.dumps(JOURNAL_EXPECTED)
