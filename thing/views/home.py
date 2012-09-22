@@ -8,7 +8,7 @@ from django.template import RequestContext
 from coffin.shortcuts import *
 
 from thing.models import *
-from thing.stuff import TimerThing, total_seconds
+from thing.stuff import TimerThing, total_seconds, q_reduce_or
 from thing.templatetags.thing_extras import commas, duration, shortduration
 
 # ---------------------------------------------------------------------------
@@ -31,13 +31,13 @@ def home(request):
 
     tt.add_time('profile')
 
-    now = datetime.datetime.utcnow()
-    total_balance = 0
-
     # Make a set of characters to hide
     hide_characters = set(int(c) for c in profile.home_hide_characters.split(',') if c)
 
     # Initialise various data structures
+    now = datetime.datetime.utcnow()
+    total_balance = 0
+
     api_keys = set()
     training = set()
     chars = {}
@@ -62,26 +62,44 @@ def home(request):
 
     # Do skill training check - this can't be in the model because it
     # scales like crap doing individual queries
-    utcnow = datetime.datetime.utcnow()
-    queues = SkillQueue.objects.select_related('character', 'skill__item').filter(character__in=chars, end_time__gte=utcnow)
+    skill_qs = []
+
+    queues = SkillQueue.objects.select_related('character', 'skill__item').filter(character__in=chars, end_time__gte=now)
     for sq in queues:
         char = chars[sq.character_id]
         if 'sq' not in char.z_training:
             char.z_training['sq'] = sq
-            char.z_training['skill_duration'] = total_seconds(sq.end_time - utcnow)
+            char.z_training['skill_duration'] = total_seconds(sq.end_time - now)
             char.z_training['sp_per_hour'] = int(sq.skill.get_sp_per_minute(char) * 60)
             char.z_training['complete_per'] = sq.get_complete_percentage(now)
             training.add(char.z_apikey)
+
+            skill_qs.append(Q(character=char, skill=sq.skill))
         
-        char.z_training['queue_duration'] = total_seconds(sq.end_time - utcnow)
+        char.z_training['queue_duration'] = total_seconds(sq.end_time - now)
 
     tt.add_time('training')
+
+    # Retrieve training skill information
+    for cs in CharacterSkill.objects.filter(reduce(q_reduce_or, skill_qs)):
+        chars[cs.character_id].z_tskill = cs
 
     # Do total skill point aggregation
     total_sp = 0
     for cs in CharacterSkill.objects.select_related().filter(character__in=chars).values('character').annotate(total_sp=Sum('points')):
-        chars[cs['character']].z_total_sp = cs['total_sp']
-        total_sp += cs['total_sp']
+        char = chars[cs['character']]
+        char.z_total_sp = cs['total_sp']
+
+        # Current skill training
+        if 'sq' in char.z_training:
+            base_sp = char.z_training['sq'].skill.get_sp_at_level(char.z_tskill.level)
+            current_sp = char.z_tskill.points
+            trained_sp = char.z_training['sq'].get_completed_sp(now)
+            extra_sp = trained_sp - (current_sp - base_sp)
+
+            char.z_total_sp += int(extra_sp)
+
+        total_sp += char.z_total_sp
 
     tt.add_time('total_sp')
 
