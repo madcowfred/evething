@@ -81,8 +81,9 @@ def home(request):
     tt.add_time('training')
 
     # Retrieve training skill information
-    for cs in CharacterSkill.objects.filter(reduce(q_reduce_or, skill_qs)):
-        chars[cs.character_id].z_tskill = cs
+    if skill_qs:
+        for cs in CharacterSkill.objects.filter(reduce(q_reduce_or, skill_qs)):
+            chars[cs.character_id].z_tskill = cs
 
     # Do total skill point aggregation
     total_sp = 0
