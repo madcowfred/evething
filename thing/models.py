@@ -392,13 +392,6 @@ class CharacterSkill(models.Model):
 
     def __unicode__(self):
         return '%s: %s (%s; %s SP)' % (self.character, self.skill.item.name, self.level, self.points)
-    
-    def __html__(self):
-        return "<strong>Primary:</strong> %s / <strong>Secondary</strong>: %s<br><br>%s" % (
-            self.skill.get_primary_attribute_display(),
-            self.skill.get_secondary_attribute_display(),
-            self.skill.description.replace('\n', '<br>'),
-        )
 
     def get_roman_level(self):
         return ['', 'I', 'II', 'III', 'IV', 'V'][self.level]
@@ -654,6 +647,13 @@ class Skill(models.Model):
     def __unicode__(self):
         return '%s (Rank %d; %s/%s)' % (self.item.name, self.rank, self.get_primary_attribute_display(),
             self.get_secondary_attribute_display())
+    
+    def __html__(self):
+        return "<strong>Primary:</strong> %s / <strong>Secondary</strong>: %s<br><br>%s" % (
+            self.get_primary_attribute_display(),
+            self.get_secondary_attribute_display(),
+            self.description.replace('\n', '<br>'),
+        )
 
     def get_sp_at_level(self, level=5):
         if level == 0:

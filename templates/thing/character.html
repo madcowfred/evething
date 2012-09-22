@@ -273,7 +273,7 @@
                 <tr>
                   <td>
                     {%- if cs.z_training %}<i class="icons-skill-training"></i>{% endif %}
-                    <span href="#" class="skill-hover{% if cs.z_class %} {{ cs.z_class }}{% endif %}" rel="popover" title="{{ cs.skill.item.name }}" data-content="{{ cs }}">
+                    <span class="skill-hover{% if cs.z_class %} {{ cs.z_class }}{% endif %}" rel="popover" title="{{ cs.skill.item.name }}" data-content="{{ cs.skill }}">
                       {{ cs.skill.item.name }} {{ cs.get_roman_level() }}
                     </span>
                   </td>
