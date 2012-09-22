@@ -74,7 +74,9 @@
                   {%- endif %}
                 </td>
                 <td class="l{% if entry.z_training %} training-highlight{% endif %}">
-                  {{ entry.sp_skill.skill.item.name }} {{ entry.sp_skill.level|roman }}
+                  <span class="skill-hover" rel="popover" title="{{ entry.sp_skill.skill.item.name }}" data-content="{{ entry.sp_skill.skill }}">
+                    {{ entry.sp_skill.skill.item.name }} {{ entry.sp_skill.level|roman }}
+                  </span>
                   {% if entry.z_injected -%}
                   <i class="icons-skillplan-injected pull-right" rel="tooltip" title="Skillbook is injected"</i>
                   {%- elif entry.z_buy %}
