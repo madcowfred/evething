@@ -423,14 +423,18 @@ class SkillQueue(models.Model):
 
         return round(100 - (remain_sp / required_sp * 100), 1)
 
-    def get_completed_sp(self, now=None):
+    def get_completed_sp(self, charskill, now=None):
         if now is None:
             now = datetime.datetime.utcnow()
+        
         remaining = total_seconds(self.end_time - now)
         remain_sp = remaining / 60.0 * self.skill.get_sp_per_minute(self.character)
         required_sp = self.skill.get_sp_at_level(self.to_level) - self.skill.get_sp_at_level(self.to_level - 1)
 
-        return required_sp - remain_sp
+        base_sp = self.skill.get_sp_at_level(charskill.level)
+        current_sp = charskill.points
+
+        return (required_sp - remain_sp) - (current_sp - base_sp)
     
     def get_roman_level(self):
         return ['', 'I', 'II', 'III', 'IV', 'V'][self.to_level]

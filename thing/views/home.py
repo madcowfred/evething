@@ -92,12 +92,7 @@ def home(request):
 
         # Current skill training
         if 'sq' in char.z_training:
-            base_sp = char.z_training['sq'].skill.get_sp_at_level(char.z_tskill.level)
-            current_sp = char.z_tskill.points
-            trained_sp = char.z_training['sq'].get_completed_sp(now)
-            extra_sp = trained_sp - (current_sp - base_sp)
-
-            char.z_total_sp += int(extra_sp)
+            char.z_total_sp += int(char.z_training['sq'].get_completed_sp(char.z_tskill, now))
 
         total_sp += char.z_total_sp
 
