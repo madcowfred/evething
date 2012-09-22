@@ -393,8 +393,16 @@ class CharacterSkill(models.Model):
     def __unicode__(self):
         return '%s: %s (%s; %s SP)' % (self.character, self.skill.item.name, self.level, self.points)
     
+    def __html__(self):
+        return "%s / %s<br><br>%s" % (
+            self.skill.get_primary_attribute_display(),
+            self.skill.get_secondary_attribute_display(),
+            self.skill.description.replace('\n', '<br>'),
+        )
+
     def get_roman_level(self):
         return ['', 'I', 'II', 'III', 'IV', 'V'][self.level]
+
 
 # Skill queue
 class SkillQueue(models.Model):
