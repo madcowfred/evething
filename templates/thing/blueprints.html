@@ -8,10 +8,10 @@
       $(document).ready(function() {
         $('#checkall').toggle(
           function() {
-            $('#blueprints-table input:checkbox').attr('checked', 'checked');
+            $('#blueprints-table [type="checkbox"]').attr('checked', 'checked');
           },
           function() {
-            $('#blueprints-table input:checkbox').removeAttr("checked");
+            $('#blueprints-table [type="checkbox"]').removeAttr("checked");
           }
         );
 
@@ -38,7 +38,7 @@
         });
 
         // call the tablesorter plugin
-        $("#blueprints-table").tablesorter({
+        /*$("#blueprints-table").tablesorter({
           'headers': {
             2: { sorter: false },
             3: { sorter: false },
@@ -53,7 +53,7 @@
             12: { sorter: false },
           },
           'sortList': [[0, 1]],
-        });
+        });*/
       });
     </script>
 {% endblock %}
@@ -115,7 +115,7 @@
                 <td>{{ bpi.z_unit_profit_buy|humanize|balance }}</td>
                 <td>{{ bpi.z_unit_cost_sell|humanize }}</td>
                 <td>{{ bpi.z_unit_profit_sell|humanize|balance }}</td>
-                <td class="l"><input type="checkbox" name="bpi" value="{{ bpi.pk }}"></td>
+                <td class="c"><input type="checkbox" name="bpi" value="{{ bpi.pk }}"></td>
                 <td>
                   <i class="icons-edit bp-edit"></i>
                   <i class="icons-delete bp-delete"></i>
