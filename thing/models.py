@@ -394,7 +394,7 @@ class CharacterSkill(models.Model):
         return '%s: %s (%s; %s SP)' % (self.character, self.skill.item.name, self.level, self.points)
     
     def __html__(self):
-        return "%s / %s<br><br>%s" % (
+        return "<strong>Primary:</strong> %s / <strong>Secondary</strong>: %s<br><br>%s" % (
             self.skill.get_primary_attribute_display(),
             self.skill.get_secondary_attribute_display(),
             self.skill.description.replace('\n', '<br>'),
