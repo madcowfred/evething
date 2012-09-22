@@ -140,9 +140,7 @@
           </div>
           {%- endif %}
           
-          {% if user_plans or public_plans -%}
-          {% with user.is_authenticated() as authed -%}
-          {% if not anonymous and user_plans -%}
+          {% if user_plans -%}
           <div class="well well-small">
             <h4 class="nomargin">My Skill Plans</h4>
             <ul class="unstyled">
@@ -157,6 +155,7 @@
           {%- endif %}
 
           {% if public_plans -%}
+          {% with user.is_authenticated() as authed -%}
           <div class="well well-small">
             <h4 class="nomargin">Global Skill Plans</h4>
             <ul class="unstyled">
@@ -168,13 +167,12 @@
                 {%- else -%}
                 <a href="{{ 'thing.views.character_skillplan'|url(char.name, sp.id) }}">
                 {%- endif %}
-                  {% if authed %}[{{ sp.user.username }}]{% endif %} {{ sp.name }}
+                  {{ sp.name }}{% if authed %} [{{ sp.user.username }}]{% endif %}
                 </a>
               </li>
               {%- endfor %}
             </ul>
           </div>
-          {%- endif %}
           {%- endwith %}
           {%- endif %}
         </div>
@@ -194,7 +192,7 @@
               {% if show.wallet %}<p><strong>Wallet:</strong> {{ char.wallet_balance|commas }} ISK</p>{% endif %}
               <ul class="unstyled">
                 <li><strong>Total SP:</strong> {{ total_sp|commas }}</li>
-                {% if not anonymous and (not public or char.config.show_clone) -%}
+                {% if show.clone -%}
                 <li><strong>Clone limit:</strong> {{ char.clone_skill_points|commas }} ({{ char.get_short_clone_name() }})</li>
                 {%- endif %}
               </ul>
@@ -231,7 +229,7 @@
             </div>
           </div>
 
-          {% if show.queue -%}
+          {% if show.queue and queue -%}
           <div class="row-fluid">
             <div class="span12 alert {% if queue_duration < 86400 %}alert-error{% else %}alert-success{% endif %}">
               <h3>Skill Queue</h3>
