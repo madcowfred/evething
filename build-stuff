@@ -17,10 +17,10 @@ recess --compress less/theme-cyborg/bootstrap.less > static/css/theme-cyborg.min
 echo Building theme-cerulean...
 recess --compress less/theme-cerulean/bootstrap.less > static/css/theme-cerulean.min.css
 
-for f in icons-default.css icons-fugue-stars.css
-do
-	spritemapper icons/$f
-	sed 's#/static##g' static/css/sprite-$f > /tmp/$f
-	recess --compress /tmp/$f > static/css/sprite-$f
-	rm /tmp/$f
-done
+#for f in icons-default.css icons-fugue-stars.css
+#do
+#	spritemapper icons/$f
+#	sed 's#/static##g' static/css/sprite-$f > /tmp/$f
+#	recess --compress /tmp/$f > static/css/sprite-$f
+#	rm /tmp/$f
+#done
