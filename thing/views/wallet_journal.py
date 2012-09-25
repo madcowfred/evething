@@ -28,9 +28,9 @@ JOURNAL_EXPECTED = {
         'comps': ['eq', 'ne'],
         'number': True,
     },
-    #'owners': {
-    #    'comps': ['eq', 'ne', 'in'],
-    #},
+    'owners': {
+        'comps': ['eq', 'ne', 'in'],
+    },
     'amount': {
         'comps': ['eq', 'ne', 'gt', 'gte', 'lt', 'lte'],
         'number': True,
@@ -41,6 +41,9 @@ JOURNAL_EXPECTED = {
 # Wallet journal
 @login_required
 def wallet_journal(request):
+    # Get profile
+    profile = request.user.get_profile()
+
     characters = Character.objects.filter(apikeys__user=request.user.id)
     character_ids = [c.id for c in characters]
 
@@ -66,6 +69,24 @@ def wallet_journal(request):
 
     # Parse and apply filters
     filters = parse_filters(request, JOURNAL_EXPECTED)
+
+    if 'amount' in filters:
+        qs = []
+        for fc, fv in filters['amount']:
+            if fc == 'eq':
+                qs.append(Q(amount=fv))
+            elif fc == 'ne':
+                qs.append(~Q(amount=fv))
+            elif fc == 'gt':
+                qs.append(Q(amount__gt=fv))
+            elif fc == 'gte':
+                qs.append(Q(amount__gte=fv))
+            elif fc == 'lt':
+                qs.append(Q(amount__lt=fv))
+            elif fc == 'lte':
+                qs.append(Q(amount__lte=fv))
+        journal_ids = journal_ids.filter(reduce(q_reduce_or, qs))
+
     if 'char' in filters:
         qs = []
         for fc, fv in filters['char']:
@@ -93,22 +114,36 @@ def wallet_journal(request):
                 qs.append(~Q(ref_type=fv))
         journal_ids = journal_ids.filter(reduce(q_reduce_or, qs))
 
-    if 'amount' in filters:
+    # Owners is a special case that requires some extra queries
+    if 'owners' in filters:
         qs = []
-        for fc, fv in filters['amount']:
+        for fc, fv in filters['owners']:
             if fc == 'eq':
-                qs.append(Q(amount=fv))
+                qs.append(Q(name=fv))
             elif fc == 'ne':
-                qs.append(~Q(amount=fv))
-            elif fc == 'gt':
-                qs.append(Q(amount__gt=fv))
-            elif fc == 'gte':
-                qs.append(Q(amount__gte=fv))
-            elif fc == 'lt':
-                qs.append(Q(amount__lt=fv))
-            elif fc == 'lte':
-                qs.append(Q(amount__lte=fv))
-        journal_ids = journal_ids.filter(reduce(q_reduce_or, qs))
+                qs.append(~Q(name=fv))
+            elif fc == 'in':
+                qs.append(Q(name__icontains=fv))
+
+        qs_reduced = reduce(q_reduce_or, qs)
+
+        o_chars = SimpleCharacter.objects.filter(qs_reduced)
+        o_corps = Corporation.objects.filter(qs_reduced)
+        o_alliances = Alliance.objects.filter(qs_reduced)
+
+        owner_ids = set()
+        for char in o_chars:
+            owner_ids.add(char.id)
+        for corp in o_corps:
+            owner_ids.add(corp.id)
+        for alliance in o_alliances:
+            owner_ids.add(alliance.id)
+
+        journal_ids = journal_ids.filter(
+            Q(owner1_id__in=owner_ids)
+            |
+            Q(owner2_id__in=owner_ids)
+        )
 
     # Apply days limit
     if days > 0:
@@ -122,7 +157,7 @@ def wallet_journal(request):
     journal_ids = journal_ids.values_list('pk', flat=True)
 
     # Create a new paginator
-    paginator = Paginator(journal_ids, 100)
+    paginator = Paginator(journal_ids, profile.entries_per_page)
 
     # Make sure page request is an int, default to 1st page
     try:
@@ -181,6 +216,12 @@ def wallet_journal(request):
         # Clone Transfer
         elif entry.ref_type_id == 52:
             station_ids.add(int(entry.arg_id))
+        # Bounty Prizes
+        elif entry.ref_type_id == 85:
+            for thing in entry.reason.split(','):
+                thing = thing.strip()
+                if ':' in thing:
+                    item_ids.add(int(thing.split(':')[0]))
 
     char_map = SimpleCharacter.objects.in_bulk(owner_ids)
     corp_map = Corporation.objects.in_bulk(owner_ids)
@@ -207,23 +248,51 @@ def wallet_journal(request):
         # RefType
         entry.z_reftype = rt_map.get(entry.ref_type_id)
 
-        # Insurance, arg_name is the Item id fo the ship that exploded
-        if entry.ref_type_id == 19:
-            item = item_map.get(int(entry.arg_name))
-            if item:
-                entry.z_arg = item.name
+        # Inheritance
+        if entry.ref_type_id == 9:
+            entry.z_description = entry.reason
+        # Player Donation/Corporation Account Withdrawal
+        elif entry.ref_type_id in (10, 37) and entry.reason != '':
+            entry.z_description = '"%s"' % (entry.reason[5:].strip())
+        # Insurance, arg_name is the item_id of the ship that exploded
+        elif entry.ref_type_id == 19:
+            if entry.amount >= 0:
+                item = item_map.get(int(entry.arg_name))
+                if item:
+                    entry.z_description = 'Insurance payment for loss of a %s' % (item.name)
+            else:
+                entry.z_description = 'Insurance purchased (RefID: %s)' % (entry.arg_name[1:])
         # Clone Transfer, arg_name is the name of the station you're going to
         elif entry.ref_type_id == 52:
             station = station_map.get(entry.arg_id)
             if station:
-                entry.z_arg = station.short_name
+                entry.z_description = 'Clone transfer to %s' % (station.short_name)
+        # Bounty Prizes
+        elif entry.ref_type_id == 85:
+            killed = []
+
+            for thing in entry.reason.split(','):
+                thing = thing.strip()
+                if ':' in thing:
+                    item_id, count = thing.split(':')
+                    item = item_map.get(int(item_id))
+                    if item:
+                        killed.append((item.name, '%sx %s' % (count, item.name)))
+                elif thing == '...':
+                    killed.append(('ZZZ', '... (list truncated)'))
+
+            # Sort killed
+            killed = [k[1] for k in sorted(killed)]
+
+            entry.z_description = 'Bounty prizes for killing pirates in %s' % (entry.arg_name.strip())
+            entry.z_hover = '||'.join(killed)
 
     # Ready template things
     json_expected = json.dumps(JOURNAL_EXPECTED)
     values = {
         'chars': characters,
         'corps': corporations,
-        'reftypes': RefType.objects.exclude(name=''),
+        'reftypes': RefType.objects.exclude(name='').exclude(id__gte=1000),
     }
 
     # Render template

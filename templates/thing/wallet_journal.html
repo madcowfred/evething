@@ -49,6 +49,9 @@
         }
       });
 
+      // hover thing for hover things
+      $('.skill-hover').popover({ animation: false, trigger: 'hover' });
+
       // click event for add icon
       $('.icons-add').on('click', function() {
         $('#filters').append(build_filter());
@@ -224,8 +227,7 @@
                 <th>Owner 2</th>
                 <th>Amount</th>
                 <th>Balance</th>
-                <th>Reason</th>
-                <th>Arg</th>
+                <th>Description</th>
               </tr>
             </thead>
             <tbody>
@@ -270,12 +272,19 @@
                   {%- endif %}
                 </td>
                 <td class="journal-balance">{{ entry.balance|commas }}</td>
-                <td>{{ entry.reason }}</td>
-                <td>{{ entry.z_arg }}</td>
+                <td>
+                  {% if entry.z_hover -%}
+                  <span class="skill-hover" rel="popover" title="Pirates Killed" data-content="{{ entry.z_hover|replace('||', '<br>') }}" data-placement="left">
+                    {{ entry.z_description }}
+                  </span>
+                  {%- else -%}
+                  {{ entry.z_description }}
+                  {%- endif %}
+                </td>
               </tr>
               {%- else -%}
               <tr>
-                <td colspan="3">No matching transactions.</td>
+                <td colspan="7">No matching journal entries.</td>
               </tr>
               {%- endfor %}
               {%- endwith %}

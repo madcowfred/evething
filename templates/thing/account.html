@@ -201,6 +201,7 @@
                       </label>
                     </div>
                   </div>
+                  <hr>
                   <div class="control-group">
                     <label class="control-label" for="show_item_icons">Show item icons</label>
                     <div class="controls">
@@ -208,6 +209,17 @@
                         <input type="checkbox" name="show_item_icons"{% if profile.show_item_icons %} checked{% endif %}>
                       </label>
                       <p class="help-block">Displays 20x20 item icons in various relevant places</p>
+                    </div>
+                  </div>
+                  <div class="control-group">
+                    <label class="control-label" for="entries_per_page">Entries per page</label>
+                    <div class="controls">
+                      <select name="entries_per_page">
+                        {% for n in (100, 200, 300, 400, 500) -%}
+                        <option value="{{ n }}"{% if n == profile.entries_per_page %} selected{% endif %}>{{ n }}</option>
+                        {%- endfor %}
+                      </select>
+                      <p class="help-block">Transactions, Wallet Journal, etc.</p>
                     </div>
                   </div>
                 </fieldset>

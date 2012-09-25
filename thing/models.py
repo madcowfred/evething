@@ -31,7 +31,6 @@ class UserProfile(models.Model):
     theme = models.CharField(max_length=32, default='default')
     icon_theme = models.CharField(max_length=32, default='default')
     show_clock = models.BooleanField(default=True)
-    show_item_icons = models.BooleanField(default=False)
     show_assets = models.BooleanField(default=True)
     show_blueprints = models.BooleanField(default=True)
     show_contracts = models.BooleanField(default=True)
@@ -40,6 +39,9 @@ class UserProfile(models.Model):
     show_transactions = models.BooleanField(default=True)
     show_wallet_journal = models.BooleanField(default=True)
     show_market_scan = models.BooleanField(default=True)
+
+    show_item_icons = models.BooleanField(default=False)
+    entries_per_page = models.IntegerField(default=100)
 
     # Home view options
     home_chars_per_row = models.IntegerField(default=4)
@@ -390,9 +392,10 @@ class CharacterSkill(models.Model):
 
     def __unicode__(self):
         return '%s: %s (%s; %s SP)' % (self.character, self.skill.item.name, self.level, self.points)
-    
+
     def get_roman_level(self):
         return ['', 'I', 'II', 'III', 'IV', 'V'][self.level]
+
 
 # Skill queue
 class SkillQueue(models.Model):
@@ -420,6 +423,19 @@ class SkillQueue(models.Model):
         required_sp = self.skill.get_sp_at_level(self.to_level) - self.skill.get_sp_at_level(self.to_level - 1)
 
         return round(100 - (remain_sp / required_sp * 100), 1)
+
+    def get_completed_sp(self, charskill, now=None):
+        if now is None:
+            now = datetime.datetime.utcnow()
+        
+        remaining = total_seconds(self.end_time - now)
+        remain_sp = remaining / 60.0 * self.skill.get_sp_per_minute(self.character)
+        required_sp = self.skill.get_sp_at_level(self.to_level) - self.skill.get_sp_at_level(self.to_level - 1)
+
+        base_sp = self.skill.get_sp_at_level(charskill.level)
+        current_sp = charskill.points
+
+        return (required_sp - remain_sp) - (current_sp - base_sp)
     
     def get_roman_level(self):
         return ['', 'I', 'II', 'III', 'IV', 'V'][self.to_level]
@@ -631,6 +647,13 @@ class Skill(models.Model):
     def __unicode__(self):
         return '%s (Rank %d; %s/%s)' % (self.item.name, self.rank, self.get_primary_attribute_display(),
             self.get_secondary_attribute_display())
+    
+    def __html__(self):
+        return "<strong>Primary:</strong> %s / <strong>Secondary</strong>: %s<br><br>%s" % (
+            self.get_primary_attribute_display(),
+            self.get_secondary_attribute_display(),
+            self.description.replace('\n', '<br>'),
+        )
 
     def get_sp_at_level(self, level=5):
         if level == 0:

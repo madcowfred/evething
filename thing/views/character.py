@@ -8,6 +8,7 @@ except ImportError:
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 #from django.db.models import Q, Avg, Count, Max, Min, Sum
+from django.http import Http404
 from django.shortcuts import redirect, get_object_or_404
 from django.template import RequestContext
 
@@ -50,18 +51,30 @@ def character_anonymous(request, anon_key):
 # Common code for character views
 def character_common(request, char, public=True, anonymous=False):
     tt = TimerThing('character_common')
+    
+    utcnow = datetime.datetime.utcnow()
+
+    # Do various visibility things here instead of in awful template code
+    show = {
+        'clone': not anonymous and (not public or char.config.show_clone),
+        'implants': not anonymous and (not public or char.config.show_implants),
+        'queue': anonymous or not public or char.config.show_skill_queue,
+        'standings': not anonymous and (not public or char.config.show_standings),
+        'wallet': not anonymous and (not public or char.config.show_wallet),
+    }
 
     # Retrieve skill queue
-    queue = SkillQueue.objects.select_related('skill__item', 'character__corporation').filter(character=char, end_time__gte=datetime.datetime.utcnow()).order_by('end_time')
-    if (public is False or anonymous is True or char.config.show_skill_queue) and queue:
-        training_id = queue[0].skill.item.id
-        training_level = queue[0].to_level
-        for sq in queue:
-            queue_duration = total_seconds(sq.end_time - datetime.datetime.utcnow())
-    else:
-        training_id = None
-        training_level = None
-        queue_duration = None
+    queue = []
+    training_id = None
+    training_level = None
+    queue_duration = None
+
+    if show['queue']:
+        queue = list(SkillQueue.objects.select_related('skill__item', 'character__corporation').filter(character=char, end_time__gte=utcnow).order_by('end_time'))
+        if queue:
+            training_id = queue[0].skill.item.id
+            training_level = queue[0].to_level
+            queue_duration = total_seconds(queue[-1].end_time - utcnow)
 
     tt.add_time('skill queue')
 
@@ -94,10 +107,13 @@ def character_common(request, char, public=True, anonymous=False):
             cs.z_icons.extend(['trained'] * cs.level)
 
         # training skill can have a training icon
-        if anonymous is False and cs.skill.item.id == training_id:
+        if show['queue'] and cs.skill.item.id == training_id:
             cs.z_icons.append('partial')
             cs.z_training = True
             cs.z_class = "training-highlight"
+
+            # add partially trained SP to the total
+            total_sp += int(queue[0].get_completed_sp(cs, utcnow))
 
         # partially trained skills get a partial icon
         elif cs.points > cs.skill.get_sp_at_level(cs.level):
@@ -152,14 +168,6 @@ def character_common(request, char, public=True, anonymous=False):
             public_plans.append(sp)
 
     tt.add_time('skill plans')
-
-    # Do various visibility things here instead of in awful template code
-    show = {
-        'implants': not anonymous and (not public or char.config.show_implants),
-        'queue': queue and (anonymous or not public or char.config.show_skill_queue),
-        'standings': not anonymous and (not public or char.config.show_standings),
-        'wallet': not anonymous and (not public or char.config.show_wallet),
-    }
 
     if show['standings']:
         faction_standings = list(char.factionstanding_set.select_related().all())
