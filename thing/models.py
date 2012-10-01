@@ -306,7 +306,7 @@ class Character(models.Model):
     name = models.CharField(max_length=64)
     corporation = models.ForeignKey(Corporation)
     
-    wallet_balance = models.DecimalField(max_digits=18, decimal_places=2, default=0.0)
+    wallet_balance = models.DecimalField(max_digits=18, decimal_places=2, default=0)
     
     cha_attribute = models.SmallIntegerField(default=0)
     int_attribute = models.SmallIntegerField(default=0)
