@@ -3,6 +3,8 @@ import datetime
 import gzip
 import operator
 import re
+from string import split
+from django.db.models.query import QuerySet
 
 try:
     from collections import OrderedDict
@@ -564,38 +566,26 @@ def assets(request):
     #assets = assets.distinct()
 
     tt.add_time('init')
-
-    # retrieve any supplied filter values
-    f_types = request.GET.getlist('type')
-    f_comps = request.GET.getlist('comp')
-    f_values = request.GET.getlist('value')
-
-    # run.
-    filters = []
-    if len(f_types) == len(f_comps) == len(f_values):
-        # type, comparison, value
-        for ft, fc, fv in zip(f_types, f_comps, f_values):
-            # character
-            if ft == 'char' and fv.isdigit():
-                if fc == 'eq':
-                    assets = assets.filter(character_id=fv, corporation_id__isnull=True)
-                elif fc == 'ne':
-                    assets = assets.exclude(character_id=fv, corporation_id__isnull=True)
-
-                filters.append((ft, fc, int(fv)))
-
-            # corporation
-            elif ft == 'corp' and fv.isdigit():
-                if fc == 'eq':
-                    assets = assets.filter(corporation_id=fv)
-                elif fc == 'ne':
-                    assets = assets.exclude(corporation_id=fv)
-
-                filters.append((ft, fc, int(fv)))
-
-    # if no valid filters were found, add a dummy one
-    if not filters:
-        filters.append(('', '', ''))
+    # retrieve any supplied search values
+    f_search = request.GET.getlist('search')
+    
+    if len(f_search) == 1:
+        search = f_search[0]
+        query=Q()
+        for word in split(search, ' '):
+            query = query &( Q(character__name__icontains = word) |
+            Q(character__corporation__name__icontains  = word) |
+            Q(system__name__icontains = word) |
+            Q(system__constellation__region__name = word) |
+            Q(station__system__constellation__region__name__icontains = word) |
+            Q(station__system__name__icontains = word) |
+            Q(station__name__icontains = word) |
+            Q(item__name__icontains = word) |
+            Q(name__icontains = word) |
+            Q(parent__isnull = False)) #keeps the childs
+            assets = assets.filter(query)
+    else:
+        search=""
 
     tt.add_time('filters')
 
@@ -738,7 +728,7 @@ def assets(request):
         {
             'characters': characters,
             'corporations': corporations,
-            'filters': filters,
+            'search'   : search,
             'total_value': total_value,
             'systems': sorted_systems,
             'loc_totals': loc_totals,
@@ -1034,6 +1024,9 @@ def character_common(request, char, public=True, anonymous=False):
             skills[cur] = []
 
         cs.z_icons = []
+        cs.z_time_to_complete = []
+        cs.z_time_to_complete.extend(['trained'] * cs.level)
+
         # level 5 skill = 5 special icons
         if cs.level == 5:
             cs.z_icons.extend(['fives'] * 5)
@@ -1041,7 +1034,6 @@ def character_common(request, char, public=True, anonymous=False):
         # 0-4 = n icons
         else:
             cs.z_icons.extend(['trained'] * cs.level)
-
         # training skill can have a training icon
         if anonymous is False and cs.skill.item.id == training_id:
             cs.z_icons.append('partial')
@@ -1051,9 +1043,23 @@ def character_common(request, char, public=True, anonymous=False):
         # partially trained skills get a partial icon
         elif cs.points > cs.skill.get_sp_at_level(cs.level):
             cs.z_icons.append('partial')
-
-        # then fill out the rest with empty icons
+        
+        #Calculation of time needed to train skill for the remaining skills
+        buf = cs.points
+        for level in range(cs.level+1,6):
+            points_to_level = cs.skill.get_sp_at_level(level) - buf
+            minutes_to_level = points_to_level/cs.skill.get_sp_per_minute(char)
+            hours_to_level = int(minutes_to_level/60)
+            days_to_level = int(hours_to_level/24)
+            time_to_complete = "complete in "
+            if days_to_level>0 : time_to_complete += "%sd " %days_to_level
+            if hours_to_level>0 : time_to_complete += "%sh " %(hours_to_level%24)
+            if minutes_to_level>0 : time_to_complete += "%dm" %(minutes_to_level%60)
+            cs.z_time_to_complete.append(time_to_complete)
+            buf = cs.skill.get_sp_at_level(level)
+        # then fill out the rest with empty icons  
         cs.z_icons.extend(['untrained'] * (5 - len(cs.z_icons)))
+        cs.z_skill_level_info = zip(cs.z_icons,cs.z_time_to_complete)
 
         skills[cur].append(cs)
         cur.z_total_sp += cs.points
