@@ -23,9 +23,13 @@ def assets(request):
     # apply our initial set of filters
     #assets = Asset.objects.select_related('system', 'station', 'inv_flag')
     assets = Asset.objects.filter(
-        Q(character__in=character_ids, corporation_id__isnull=True)
-        |
-        Q(corporation_id__in=corporation_ids)
+        Q(character__in=character_ids)
+        &
+        (
+            Q(corporation_id__isnull=True)
+            |
+            Q(corporation_id__in=corporation_ids)
+        )
     )
     #assets = assets.distinct()
 
@@ -95,8 +99,11 @@ def assets(request):
     loc_totals = {}
     systems = {}
 
-    #print len(asset_list)
     for ca in assets:
+        # skip missing character ids
+        if ca.character_id not in characters:
+            continue
+
         ca.z_inv_flag = inv_flag_map[ca.inv_flag_id]
         ca.z_item = item_map[ca.item_id]
 
