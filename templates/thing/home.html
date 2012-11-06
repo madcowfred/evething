@@ -12,17 +12,6 @@
         });
       });
 
-      var tooltips_on = false;
-      function toggle_tooltips() {
-        $("[rel=tooltip]").each(function () {
-          if (tooltips_on)
-            $(this).tooltip('hide');
-          else
-            $(this).tooltip('show');
-        });
-        tooltips_on = !tooltips_on;
-      }
-
       function screenshot_mode() {
         // replace sensitive data with placeholders
         $('.sensitive').each(function () {
@@ -37,6 +26,8 @@
               $this.text('apikey.name');
             else if ($this.hasClass('corporation-name'))
               $this.text('corporation.name [ticker]');
+            else if ($this.hasClass('character-location'))
+              $this.text('Hoth -- X-Wing');
           }
           else {
             $this.text($oldname);
@@ -45,25 +36,29 @@
         });
 
         var seen_tooltips = Array();
-        $('.well').each(function () {
-          var $well = $(this);
-          var seen = false;
+        $('.row-fluid').each(function() {
+          var $row = $(this);
           
-          $('[rel=tooltip]', $well.children('div')).each(function () {
-            var $img = $(this);
-            if (seen == false && seen_tooltips[$img.attr('src')] == null) {
-              seen = true;
-              seen_tooltips[$img.attr('src')] = true;
+          $('.well', $row).each(function() {
+            var $well = $(this);
+            var seen = false;
+            
+            $('[rel=tooltip]', $well).each(function () {
+              var $i = $(this);
+              if (seen == false && seen_tooltips[$i.attr('class')] === undefined) {
+                seen = true;
+                seen_tooltips[$i.attr('class')] = true;
 
-              if ($img.attr('shown') === undefined) {
-                $img.tooltip('show');
-                $img.attr('shown', 'yup');
+                if ($i.attr('shown') === undefined) {
+                  $i.tooltip('show');
+                  $i.attr('shown', 'yup');
+                }
+                else {
+                  $i.tooltip('hide');
+                  $i.removeAttr('shown');
+                }
               }
-              else {
-                $img.tooltip('hide');
-                $img.removeAttr('shown');
-              }
-            }
+            });
           });
         });
       }
@@ -112,7 +107,7 @@
           </div>
 
           {% if profile.home_show_locations and character.last_known_location -%}
-          <div class="margin-half-top">
+          <div class="margin-half-top sensitive character-location">
             {{ character.last_known_location }}
             {% if character.ship_item_id %}-- {{ ship_map[character.ship_item_id] }}{% endif %}
           </div>
