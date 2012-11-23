@@ -830,6 +830,13 @@ def character_sheet(url, apikey_id, taskstate_id, character_id):
     
     # Grab any already existing skills
     for char_skill in CharacterSkill.objects.select_related('item', 'skill').filter(character=character, skill__in=skills.keys()):
+        # Warn about missing skill IDs
+        if char_skill.skill.item_id not in skills:
+            logger.warn("Skill #%s apparently went missing", skill_id)
+            char_skill.delete()
+            del skills[char_skill.skill.item_id]
+            continue
+
         points, level = skills[char_skill.skill.item_id]
         if char_skill.points != points or char_skill.level != level:
             char_skill.points = points
