@@ -618,18 +618,22 @@ def asset_list(url, apikey_id, taskstate_id, character_id):
             logger.warn('Invalid item_id in asset_list: %s', item_id)
             continue
 
-        assets.append(Asset(
-            id=asset_id,
+        asset = Asset(
+            asset_id=asset_id,
+            parent=container_id,
             character=character,
             system=system_map.get(location_id),
             station=station_map.get(location_id),
-            parent=container_id,
             item=item,
             inv_flag_id=inv_flag,
             quantity=quantity,
             raw_quantity=rawQuantity,
             singleton=singleton,
-        ))
+        )
+        if job.apikey.corp_character:
+            asset.corporation_id = job.apikey.corp_character.corporation.id
+
+        assets.append(asset)
 
     # Delete existing assets, it's way too painful trying to deal with changes
     a_filter.delete()
@@ -643,7 +647,7 @@ def asset_list(url, apikey_id, taskstate_id, character_id):
         a_filter = a_filter.filter(singleton=True, item__item_group__category__name__in=('Celestial', 'Ship'))
 
         # Get ID list
-        ids = map(str, a_filter.values_list('id', flat=True))
+        ids = map(str, a_filter.values_list('asset_id', flat=True))
         if ids:
             # Fetch the API data
             params['IDs'] = ','.join(map(str, ids))

@@ -137,7 +137,7 @@ def assets(request):
 
         # system/station asset
         if k is not None:
-            ca_lookup[ca.id] = ca
+            ca_lookup[ca.asset_id] = ca
 
             ca.z_k = k
             ca.z_contents = []

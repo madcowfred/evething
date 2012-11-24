@@ -10,7 +10,8 @@ class Migration(SchemaMigration):
     def forwards(self, orm):
         # Adding model 'Asset'
         db.create_table('thing_asset', (
-            ('id', self.gf('django.db.models.fields.BigIntegerField')(primary_key=True)),
+            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('asset_id', self.gf('django.db.models.fields.BigIntegerField')()),
             ('parent', self.gf('django.db.models.fields.BigIntegerField')(null=True, blank=True)),
             ('character', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['thing.Character'], null=True, blank=True)),
             ('corporation_id', self.gf('django.db.models.fields.IntegerField')(null=True, blank=True)),
@@ -23,6 +24,12 @@ class Migration(SchemaMigration):
             ('raw_quantity', self.gf('django.db.models.fields.IntegerField')()),
             ('singleton', self.gf('django.db.models.fields.BooleanField')(default=False)),
         ))
+        # force the id field to be a bigger integer
+        if db.backend_name == 'postgres':
+            db.execute("ALTER TABLE thing_asset ALTER COLUMN id TYPE bigint")
+        elif db.backend_name == 'mysql':
+            db.execute("ALTER TABLE thing_asset CHANGE COLUMN id id bigint AUTO_INCREMENT")
+
         db.send_create_signal('thing', ['Asset'])
 
 
@@ -109,9 +116,10 @@ class Migration(SchemaMigration):
         },
         'thing.asset': {
             'Meta': {'object_name': 'Asset'},
+            'asset_id': ('django.db.models.fields.BigIntegerField', [], {}),
             'character': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['thing.Character']", 'null': 'True', 'blank': 'True'}),
             'corporation_id': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
-            'id': ('django.db.models.fields.BigIntegerField', [], {'primary_key': 'True'}),
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'inv_flag': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['thing.InventoryFlag']"}),
             'item': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['thing.Item']"}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '128', 'null': 'True', 'blank': 'True'}),
