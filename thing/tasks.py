@@ -1549,7 +1549,7 @@ def _wallet_journal_work(url, job, character, corp_wallet=None):
                 if tax_corp is None:
                     if taxReceiverID not in new_simple:
                         logger.warn('wallet_journal: invalid taxReceiverID #%s', taxReceiverID)
-                        new_simple[taxReceiverID] = SimpleCharacter(
+                        new_simple[int(taxReceiverID)] = SimpleCharacter(
                             id=taxReceiverID,
                             name='*UNKNOWN',
                         )
