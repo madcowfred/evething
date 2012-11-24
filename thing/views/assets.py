@@ -151,7 +151,7 @@ def assets(request):
 
         # asset is inside something, assign it to parent
         else:
-            parent = ca_lookup.get(ca.parent_id, None)
+            parent = ca_lookup.get(ca.parent, None)
             if parent is None:
                 continue
 
@@ -198,7 +198,7 @@ def assets(request):
 
     # decorate/sort/undecorate for our strange sort requirements :(
     for system_name in systems:
-        temp = [(ca.z_character.name.lower(), ca.is_leaf_node(), ca.z_item.name, ca.name, ca) for ca in systems[system_name]]
+        temp = [(ca.z_character.name.lower(), len(getattr(ca, 'z_contents', [])) * -1, ca.z_item.name, ca.name, ca) for ca in systems[system_name]]
         temp.sort()
         systems[system_name] = [s[-1] for s in temp]
 
