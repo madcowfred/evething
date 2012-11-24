@@ -866,7 +866,7 @@ class InventoryFlag(models.Model):
 # Assets
 class Asset(models.Model):
     id = models.BigIntegerField(primary_key=True)
-    parent = models.BigIntegerField()
+    parent = models.BigIntegerField(blank=True, null=True)
 
     character = models.ForeignKey(Character, blank=True, null=True)
     corporation_id = models.IntegerField(blank=True, null=True)

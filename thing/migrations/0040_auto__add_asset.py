@@ -11,7 +11,7 @@ class Migration(SchemaMigration):
         # Adding model 'Asset'
         db.create_table('thing_asset', (
             ('id', self.gf('django.db.models.fields.BigIntegerField')(primary_key=True)),
-            ('parent', self.gf('django.db.models.fields.BigIntegerField')()),
+            ('parent', self.gf('django.db.models.fields.BigIntegerField')(null=True, blank=True)),
             ('character', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['thing.Character'], null=True, blank=True)),
             ('corporation_id', self.gf('django.db.models.fields.IntegerField')(null=True, blank=True)),
             ('system', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['thing.System'], null=True, blank=True)),
@@ -115,7 +115,7 @@ class Migration(SchemaMigration):
             'inv_flag': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['thing.InventoryFlag']"}),
             'item': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['thing.Item']"}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '128', 'null': 'True', 'blank': 'True'}),
-            'parent': ('django.db.models.fields.BigIntegerField', [], {}),
+            'parent': ('django.db.models.fields.BigIntegerField', [], {'null': 'True', 'blank': 'True'}),
             'quantity': ('django.db.models.fields.IntegerField', [], {}),
             'raw_quantity': ('django.db.models.fields.IntegerField', [], {}),
             'singleton': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
