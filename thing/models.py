@@ -864,13 +864,11 @@ class InventoryFlag(models.Model):
 
 # ---------------------------------------------------------------------------
 # Assets
-class Asset(MPTTModel):
+class Asset(models.Model):
     id = models.BigIntegerField(primary_key=True)
-
-    parent = TreeForeignKey('self', blank=True, null=True, related_name='children')
+    parent = models.BigIntegerField(blank=True, null=True)
 
     character = models.ForeignKey(Character, blank=True, null=True)
-    #corporation = models.ForeignKey(Corporation, blank=True, null=True)
     corporation_id = models.IntegerField(blank=True, null=True)
     system = models.ForeignKey(System, blank=True, null=True)
     station = models.ForeignKey(Station, blank=True, null=True)
