@@ -1510,12 +1510,16 @@ def _wallet_journal_work(url, job, character, corp_wallet=None):
 
     # If we found some data, deal with it
     if bulk_data:
+        new_simple = {}
+
         # Fetch all existing journal entries
         j_map = {}
         for je in j_filter.filter(ref_id__in=bulk_data.keys()):
             j_map[je.ref_id] = je
+
         # Fetch ref types
         rt_map = RefType.objects.in_bulk(ref_type_ids)
+
         # Fetch tax corporations
         corp_map = Corporation.objects.in_bulk(tax_corp_ids)
 
@@ -1537,7 +1541,13 @@ def _wallet_journal_work(url, job, character, corp_wallet=None):
             if taxReceiverID.isdigit():
                 tax_corp = corp_map.get(int(taxReceiverID))
                 if tax_corp is None:
-                    logger.warn('wallet_journal: invalid taxReceiverID #%s', taxReceiverID)
+                    if taxReceiverID not in new_simple:
+                        logger.warn('wallet_journal: invalid taxReceiverID #%s', taxReceiverID)
+                        new_simple[taxReceiverID] = SimpleCharacter(
+                            id=taxReceiverID,
+                            name='*UNKNOWN',
+                        )
+
                     continue
             else:
                 tax_corp = None
@@ -1573,6 +1583,12 @@ def _wallet_journal_work(url, job, character, corp_wallet=None):
         # Now we can add the entries if there are any
         if new:
             JournalEntry.objects.bulk_create(new)
+
+        # Check to see if we need to add any new SimpleCharacter objects
+        if new_simple:
+            simple_map = SimpleCharacter.objects.in_bulk(new_simple.keys())
+            insert_me = [v for k, v in new_simple.items() if k not in simple_map]
+            SimpleCharacter.objects.bulk_create(insert_me)
 
     return True
 
