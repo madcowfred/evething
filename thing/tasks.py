@@ -822,7 +822,6 @@ def character_sheet(url, apikey_id, taskstate_id, character_id):
         if skill_id not in skills:
             logger.warn("Skill #%s apparently went missing", skill_id)
             char_skill.delete()
-            del skills[skill_id]
             continue
 
         points, level = skills[skill_id]
@@ -1545,12 +1544,13 @@ def _wallet_journal_work(url, job, character, corp_wallet=None):
             # Tax receiver corporation ID - doesn't exist for /corp/ calls?
             taxReceiverID = row.attrib.get('taxReceiverID', '')
             if taxReceiverID.isdigit():
-                tax_corp = corp_map.get(int(taxReceiverID))
+                trid = int(taxReceiverID)
+                tax_corp = corp_map.get(trid)
                 if tax_corp is None:
-                    if taxReceiverID not in new_simple:
-                        logger.warn('wallet_journal: invalid taxReceiverID #%s', taxReceiverID)
-                        new_simple[int(taxReceiverID)] = SimpleCharacter(
-                            id=taxReceiverID,
+                    if trid not in new_simple:
+                        logger.warn('wallet_journal: invalid taxReceiverID #%d', trid)
+                        new_simple[trid] = SimpleCharacter(
+                            id=trid,
                             name='*UNKNOWN',
                         )
 
