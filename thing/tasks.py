@@ -598,61 +598,45 @@ def asset_list(url, apikey_id, taskstate_id, character_id):
         return
 
     # ACTIVATE RECURSION :siren:
-    rows = OrderedDict()
-    _asset_list_recurse(rows, job.root.find('result/rowset'), None)
+    data = {
+        'assets': [],
+        'locations': set(),
+        'items': set(),
+    }
+    _asset_list_recurse(data, job.root.find('result/rowset'), None)
 
-    # Delete existing assets, it's way too much of a bastard to deal with changes
+    # Bulk query data
+    item_map = Item.objects.in_bulk(data['items'])
+    station_map = Station.objects.in_bulk(data['locations'])
+    system_map = System.objects.in_bulk(data['locations'])
+
+    # Build new Asset objects for each row
+    assets = []
+    for asset_id, location_id, container_id, item_id, inv_flag, quantity, rawQuantity, singleton in data['assets']:
+        item = item_map.get(item_id)
+        if item is None:
+            logger.warn('Invalid item_id in asset_list: %s', item_id)
+            continue
+
+        assets.append(Asset(
+            id=asset_id,
+            character=character,
+            system=system_map.get(location_id),
+            station=station_map.get(location_id),
+            parent=container_id,
+            item=item,
+            inv_flag_id=inv_flag,
+            quantity=quantity,
+            raw_quantity=rawQuantity,
+            singleton=singleton,
+        ))
+
+    # Delete existing assets, it's way too painful trying to deal with changes
     a_filter.delete()
 
-    # assetID - [0]system, [1]station, [2]container_id, [3]item, [4]flag, [5]quantiy, [6]rawQuantity, [7]singleton
-    asset_ids = set()
-    asset_map = {}
+    # Bulk insert new assets
+    Asset.objects.bulk_create(assets)
 
-    errors = 0
-    last_count = 9999999999999999
-    while rows:
-        assets = list(rows.items())
-        # check for infinite loops
-        count = len(assets)
-        if count == last_count:
-            logger.warn('Infinite loop in assets, oops')
-            return
-
-        last_count = count
-        
-        # data = [system, station, container_id, item, flag, quantity, rawQuantity, singleton]
-        for id, data in assets:
-            # asset has a container_id...
-            if data[2] is not None:
-                # and the container_id doesn't exist, yet we have to do this later
-                try:
-                    parent = Asset.objects.get(pk=data[2])
-                except Asset.DoesNotExist:
-                    continue
-            # asset has no container_id
-            else:
-                parent = None
-
-            asset = Asset(
-                id=id,
-                character=character,
-                system=data[0],
-                station=data[1],
-                parent=parent,
-                item=data[3],
-                inv_flag_id=data[4],
-                quantity=data[5],
-                raw_quantity=data[6],
-                singleton=data[7],
-            )
-            if job.apikey.corp_character:
-                asset.corporation_id = job.apikey.corp_character.corporation.id
-            asset.save()
-
-            asset_map[id] = asset
-
-            asset_ids.add(id)
-            del rows[id]
 
     # Fetch names (via Locations API) for assets
     if job.apikey.corp_character is None and APIKey.CHAR_LOCATIONS_MASK in job.apikey.get_masks():
@@ -687,7 +671,7 @@ def asset_list(url, apikey_id, taskstate_id, character_id):
     job.completed()
 
 # Recursively visit the assets tree and gather data
-def _asset_list_recurse(rows, rowset, container_id):
+def _asset_list_recurse(data, rowset, container_id):
     for row in rowset.findall('row'):
         # No container_id (parent)
         if 'locationID' in row.attrib:
@@ -700,32 +684,30 @@ def _asset_list_recurse(rows, rowset, container_id):
             elif 66014934 <= location_id <= 67999999:
                 location_id -= 6000000
 
-            system = get_system(location_id)
-            station = get_station(location_id)
-        else:
-            system = None
-            station = None
+            data['locations'].add(location_id)
 
-        # check for valid item
-        item = get_item(row.attrib['typeID'])
-        if item is None:
-            continue
+        else:
+            location_id = None
 
         asset_id = int(row.attrib['itemID'])
-        rows[asset_id] = [
-            system,
-            station,
+
+        item_id = int(row.attrib['typeID'])
+        data['items'].add(item_id)
+
+        data['assets'].append([
+            asset_id,
+            location_id,
             container_id,
-            item,
+            item_id,
             int(row.attrib['flag']),
             int(row.attrib.get('quantity', '0')),
             int(row.attrib.get('rawQuantity', '0')),
             int(row.attrib.get('singleton', '0')),
-        ]
+        ])
 
-        # Now we need to visit children rowsets
+        # Now we need to recurse into children rowsets
         for rowset in row.findall('rowset'):
-            _asset_list_recurse(rows, rowset, asset_id)
+            _asset_list_recurse(data, rowset, asset_id)
 
 # ---------------------------------------------------------------------------
 # Character info
