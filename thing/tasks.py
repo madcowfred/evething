@@ -590,7 +590,7 @@ def asset_list(url, apikey_id, taskstate_id, character_id):
     try:
         character = Character.objects.get(pk=character_id)
     except Character.DoesNotExist:
-        logger.warn("Character %s does not exist!", character_id)
+        logger.warn("asset_list: Character %s does not exist!", character_id)
         return
 
     # Initialise for corporate query
@@ -624,7 +624,7 @@ def asset_list(url, apikey_id, taskstate_id, character_id):
     for asset_id, location_id, container_id, item_id, inv_flag, quantity, rawQuantity, singleton in data['assets']:
         item = item_map.get(item_id)
         if item is None:
-            logger.warn('Invalid item_id in asset_list: %s', item_id)
+            logger.warn('asset_list: Invalid item_id %s', item_id)
             continue
 
         asset = Asset(
@@ -733,7 +733,7 @@ def character_info(url, apikey_id, taskstate_id, character_id):
     try:
         character = Character.objects.get(pk=character_id)
     except Character.DoesNotExist:
-        logger.warn("Character %s does not exist!", character_id)
+        logger.warn("character_info: Character %s does not exist!", character_id)
         return
 
     # Fetch the API data
@@ -769,7 +769,7 @@ def character_sheet(url, apikey_id, taskstate_id, character_id):
     try:
         character = Character.objects.get(pk=character_id)
     except Character.DoesNotExist:
-        logger.warn("Character %s does not exist!", character_id)
+        logger.warn("character_sheet: Character %s does not exist!", character_id)
         return
 
     # Fetch the API data
@@ -839,7 +839,7 @@ def character_sheet(url, apikey_id, taskstate_id, character_id):
 
         # Warn about missing skill IDs
         if skill_id not in skills:
-            logger.warn("Skill #%s apparently went missing", skill_id)
+            logger.warn("character_sheet: Character %s had Skill %s go missing", character_id, skill_id)
             char_skill.delete()
             continue
 
@@ -859,7 +859,7 @@ def character_sheet(url, apikey_id, taskstate_id, character_id):
     for skill_id, (points, level) in skills.items():
         skill = skill_map.get(skill_id, None)
         if skill is None:
-            logger.warn("Skill #%s apparently doesn't exist", skill_id)
+            logger.warn("character_sheet: Skill %s does not exist", skill_id)
             continue
 
         new.append(CharacterSkill(
@@ -890,7 +890,7 @@ def contracts(url, apikey_id, taskstate_id, character_id):
     try:
         character = Character.objects.get(pk=character_id)
     except Character.DoesNotExist:
-        logger.warn("Character %s does not exist!", character_id)
+        logger.warn("contracts: Character %s does not exist!", character_id)
         return
     
     now = datetime.datetime.now()
@@ -1022,12 +1022,12 @@ def contracts(url, apikey_id, taskstate_id, character_id):
         
         issuer_char = char_map.get(int(row.attrib['issuerID']), None)
         if issuer_char is None:
-            logger.warn('contracts: invalid issuerID %r', row.attrib['issuerID'])
+            logger.warn('contracts: Invalid issuerID %s', row.attrib['issuerID'])
             continue
 
         issuer_corp = corp_map.get(int(row.attrib['issuerCorpID']), None)
         if issuer_corp is None:
-            logger.warn('contracts: invalid issuerCorpID %r', row.attrib['issuerCorpID'])
+            logger.warn('contracts: Invalid issuerCorpID %s', row.attrib['issuerCorpID'])
             continue
         
         assigneeID = int(row.attrib['assigneeID'])
@@ -1176,7 +1176,7 @@ def corporation_sheet(url, apikey_id, taskstate_id, character_id):
                 # If it doesn't exist just log an error - we can't create the
                 # CorpWallet object without an accountID
                 else:
-                    logger.warn("No matching CorpWallet object for corpID=%s accountkey=%s", corporation.id, row.attrib['accountKey'])
+                    logger.warn("corporation_sheet: No matching CorpWallet object for Corp %s Account %s", corporation.id, row.attrib['accountKey'])
                     errors += 1
 
     corporation.save()
@@ -1198,7 +1198,7 @@ def market_orders(url, apikey_id, taskstate_id, character_id):
     try:
         character = Character.objects.get(pk=character_id)
     except Character.DoesNotExist:
-        logger.warn("Character %s does not exist!", character_id)
+        logger.warn("market_orders: Character %s does not exist!", character_id)
         return
     
     # Initialise for corporate key
@@ -1268,7 +1268,7 @@ def market_orders(url, apikey_id, taskstate_id, character_id):
             # Make sure the character charID is valid
             char = char_id_map.get(int(row.attrib['charID']))
             if char is None:
-                logger.warn("No matching Character object for charID=%s", row.attrib['charID'])
+                logger.warn("market_orders: No matching Character %s", row.attrib['charID'])
                 continue
             
             # Make sure the item typeID is valid
@@ -1352,7 +1352,7 @@ def skill_queue(url, apikey_id, taskstate_id, character_id):
     try:
         character = Character.objects.get(pk=character_id)
     except Character.DoesNotExist:
-        logger.warn("Character %s does not exist!", character_id)
+        logger.warn("skill_queue: Character %s does not exist!", character_id)
         return
 
     # Fetch the API data
@@ -1396,7 +1396,7 @@ def standings(url, apikey_id, taskstate_id, character_id):
     try:
         character = Character.objects.get(pk=character_id)
     except Character.DoesNotExist:
-        logger.warn("Character %s does not exist!", character_id)
+        logger.warn("standings: Character %s does not exist!", character_id)
         return
 
     # Fetch the API data
@@ -1486,7 +1486,7 @@ def wallet_journal(url, apikey_id, taskstate_id, character_id):
     try:
         character = Character.objects.get(pk=character_id)
     except Character.DoesNotExist:
-        logger.warn("Character %s does not exist!", character_id)
+        logger.warn("wallet_journal: Character %s does not exist!", character_id)
         return
 
     # Corporation key, visit each related CorpWallet
@@ -1696,7 +1696,7 @@ def wallet_transactions(url, apikey_id, taskstate_id, character_id):
     try:
         character = Character.objects.get(pk=character_id)
     except Character.DoesNotExist:
-        logger.warn("Character %s does not exist!", character_id)
+        logger.warn("wallet_transactions: Character %s does not exist!", character_id)
         return
 
     # Corporation key, visit each related CorpWallet
@@ -1862,8 +1862,6 @@ def _wallet_transactions_work(url, job, character, corp_wallet=None):
                         cursor.execute('UPDATE thing_transaction SET other_char_id = %s WHERE id = %s', (client.id, t['id']))
                     else:
                         cursor.execute('UPDATE thing_transaction SET other_corp_id = %s WHERE id = %s', (client.id, t['id']))
-                    
-                    logger.info('Updated other_ field of transaction %s', t['id'])
         
         # Create any new transaction objects
         if new:
@@ -1883,7 +1881,7 @@ def purge_data(apikey_id):
     try:
         apikey = APIKey.objects.get(pk=apikey_id)
     except APIKey.DoesNotExist:
-        logger.warn('purge_data called with an invalid apikey_id')
+        logger.warn('purge_data: invalid apikey_id %s', apikey_id)
         return
 
     # Account/Character keys
