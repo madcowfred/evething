@@ -670,15 +670,11 @@ def asset_list(url, apikey_id, taskstate_id, character_id):
                 bulk_data[int(row.attrib['itemID'])] = row.attrib['itemName']
 
             # Bulk query them
-            asset_map = a_filter.in_bulk(bulk_data.keys())
-
-            # Update any new or changed names
-            for assetID, assetName in bulk_data.items():
-                asset = asset_map.get(assetID, None)
-                if asset is not None:
-                    if asset.name is None or asset.name != assetName:
-                        asset.name = assetName
-                        asset.save()
+            for asset in a_filter.filter(asset_id__in=bulk_data.keys()):
+                asset_name = bulk_data.get(asset.asset_id)
+                if asset.name is None or asset.name != asset_name:
+                    asset.name = asset_name
+                    asset.save()
 
     # completed ok
     job.completed()
