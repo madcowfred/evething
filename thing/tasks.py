@@ -1232,7 +1232,11 @@ def market_orders(url, apikey_id, taskstate_id, character_id):
         order_map[mo.order_id] = mo
     
     # Iterate over the returned result set
-    new = []
+    char_ids = set()
+    item_ids = set()
+    station_ids = set()
+
+    rows = []
     seen = []
     for row in job.root.findall('result/rowset/row'):
         order_id = int(row.attrib['orderID'])
@@ -1247,10 +1251,8 @@ def market_orders(url, apikey_id, taskstate_id, character_id):
                 escrow = Decimal(row.attrib['escrow'])
                 price = Decimal(row.attrib['price'])
 
-                if issued > order.issued or \
-                   volRemaining != order.volume_remaining or \
-                   escrow != order.escrow or \
-                   price != order.price:
+                if issued > order.issued or volRemaining != order.volume_remaining or \
+                   escrow != order.escrow or price != order.price:
                     order.issued = issued
                     order.expires = issued + datetime.timedelta(int(row.attrib['duration']))
                     order.volume_remaining = volRemaining
@@ -1261,50 +1263,62 @@ def market_orders(url, apikey_id, taskstate_id, character_id):
                 
                 seen.append(order_id)
         
-        # Doesn't exist and is active, make a new order
+        # Doesn't exist and is active, save data for later
         elif row.attrib['orderState'] == '0':
-            buy_order = (row.attrib['bid'] == '1')
-            
-            # Make sure the character charID is valid
-            char = char_id_map.get(int(row.attrib['charID']))
-            if char is None:
-                logger.warn("market_orders: No matching Character %s", row.attrib['charID'])
-                continue
-            
-            # Make sure the item typeID is valid
-            item = get_item(row.attrib['typeID'])
-            if item is None:
-                continue
-            
-            # Create a new order and save it
-            remaining = int(row.attrib['volRemaining'])
-            price = Decimal(row.attrib['price'])
-            issued = parse_api_date(row.attrib['issued'])
-            order = MarketOrder(
-                order_id=order_id,
-                station=get_station(int(row.attrib['stationID'])),
-                item=item,
-                character=char,
-                escrow=Decimal(row.attrib['escrow']),
-                price=price,
-                total_price=remaining * price,
-                buy_order=buy_order,
-                volume_entered=int(row.attrib['volEntered']),
-                volume_remaining=remaining,
-                minimum_volume=int(row.attrib['minVolume']),
-                issued=issued,
-                expires=issued + datetime.timedelta(int(row.attrib['duration'])),
-            )
-            # Set the corp_wallet for corporation API requests
-            if job.apikey.corp_character:
-                #order.corp_wallet = CorpWallet.objects.get(corporation=character.corporation, account_key=row.attrib['accountKey'])
-                order.corp_wallet = wallet_map.get(int(row.attrib['accountKey']))
+            char_ids.add(int(row.attrib['charID']))
+            item_ids.add(int(row.attrib['typeID']))
+            station_ids.add(int(row.attrib['stationID']))
 
-            new.append(order)
-            #order.save()
-            
+            rows.append(row)
             seen.append(order_id)
-    
+
+    # Bulk query data
+    char_map = Character.objects.in_bulk(char_ids)
+    item_map = Item.objects.in_bulk(item_ids)
+    station_map = Station.objects.in_bulk(station_ids)
+
+    # Create new MarketOrder objects
+    new = []
+    for row in rows:
+        char = char_map.get(int(row.attrib['charID']))
+        if char is None:
+            logger.warn("market_orders: No matching Character %s", row.attrib['charID'])
+            continue
+
+        item = item_map.get(int(row.attrib['typeID']))
+        if item is None:
+            logger.warn("market_orders: No matching Item %s", row.attrib['typeID'])
+
+        station = station_map.get(int(row.attrib['stationID']))
+        if station is None:
+            logger.warn("market_orders: No matching Station %s", row.attrib['stationID'])
+
+        # Create the new order object
+        buy_order = (row.attrib['bid'] == '1')
+        remaining = int(row.attrib['volRemaining'])
+        price = Decimal(row.attrib['price'])
+        issued = parse_api_date(row.attrib['issued'])
+
+        order = MarketOrder(
+            order_id=row.attrib['orderID'],
+            station=station,
+            item=item,
+            character=char,
+            escrow=Decimal(row.attrib['escrow']),
+            price=price,
+            total_price=remaining * price,
+            buy_order=buy_order,
+            volume_entered=int(row.attrib['volEntered']),
+            volume_remaining=remaining,
+            minimum_volume=int(row.attrib['minVolume']),
+            issued=issued,
+            expires=issued + datetime.timedelta(int(row.attrib['duration'])),
+        )
+        # Set the corp_wallet for corporation API requests
+        if job.apikey.corp_character:
+            order.corp_wallet = wallet_map.get(int(row.attrib['accountKey']))
+
+        new.append(order)
 
     # Insert any new orders
     if new:
