@@ -586,7 +586,12 @@ def asset_list(url, apikey_id, taskstate_id, character_id):
     job = APIJob(apikey_id, taskstate_id)
     if job.ready is False:
         return
-    character = Character.objects.get(pk=character_id)
+    
+    try:
+        character = Character.objects.get(pk=character_id)
+    except Character.DoesNotExist:
+        logger.warn("Character %s does not exist!", character_id)
+        return
 
     # Initialise for corporate query
     if job.apikey.corp_character:
@@ -724,7 +729,12 @@ def character_info(url, apikey_id, taskstate_id, character_id):
     job = APIJob(apikey_id, taskstate_id)
     if job.ready is False:
         return
-    character = Character.objects.get(pk=character_id)
+    
+    try:
+        character = Character.objects.get(pk=character_id)
+    except Character.DoesNotExist:
+        logger.warn("Character %s does not exist!", character_id)
+        return
 
     # Fetch the API data
     params = { 'characterID': character.id }
@@ -755,7 +765,12 @@ def character_sheet(url, apikey_id, taskstate_id, character_id):
     job = APIJob(apikey_id, taskstate_id)
     if job.ready is False:
         return
-    character = Character.objects.get(pk=character_id)
+    
+    try:
+        character = Character.objects.get(pk=character_id)
+    except Character.DoesNotExist:
+        logger.warn("Character %s does not exist!", character_id)
+        return
 
     # Fetch the API data
     params = { 'characterID': character.id }
@@ -871,7 +886,12 @@ def contracts(url, apikey_id, taskstate_id, character_id):
     job = APIJob(apikey_id, taskstate_id)
     if job.ready is False:
         return
-    character = Character.objects.get(pk=character_id)
+    
+    try:
+        character = Character.objects.get(pk=character_id)
+    except Character.DoesNotExist:
+        logger.warn("Character %s does not exist!", character_id)
+        return
     
     now = datetime.datetime.now()
 
@@ -1174,7 +1194,12 @@ def market_orders(url, apikey_id, taskstate_id, character_id):
     job = APIJob(apikey_id, taskstate_id)
     if job.ready is False:
         return
-    character = Character.objects.get(pk=character_id)
+    
+    try:
+        character = Character.objects.get(pk=character_id)
+    except Character.DoesNotExist:
+        logger.warn("Character %s does not exist!", character_id)
+        return
     
     # Initialise for corporate key
     if job.apikey.corp_character:
@@ -1323,7 +1348,12 @@ def skill_queue(url, apikey_id, taskstate_id, character_id):
     job = APIJob(apikey_id, taskstate_id)
     if job.ready is False:
         return
-    character = Character.objects.get(pk=character_id)
+
+    try:
+        character = Character.objects.get(pk=character_id)
+    except Character.DoesNotExist:
+        logger.warn("Character %s does not exist!", character_id)
+        return
 
     # Fetch the API data
     params = { 'characterID': character.id }
@@ -1362,7 +1392,12 @@ def standings(url, apikey_id, taskstate_id, character_id):
     job = APIJob(apikey_id, taskstate_id)
     if job.ready is False:
         return
-    character = Character.objects.get(pk=character_id)
+
+    try:
+        character = Character.objects.get(pk=character_id)
+    except Character.DoesNotExist:
+        logger.warn("Character %s does not exist!", character_id)
+        return
 
     # Fetch the API data
     params = { 'characterID': character.id }
@@ -1447,7 +1482,12 @@ def wallet_journal(url, apikey_id, taskstate_id, character_id):
     job = APIJob(apikey_id, taskstate_id)
     if job.ready is False:
         return
-    character = Character.objects.get(pk=character_id)
+
+    try:
+        character = Character.objects.get(pk=character_id)
+    except Character.DoesNotExist:
+        logger.warn("Character %s does not exist!", character_id)
+        return
 
     # Corporation key, visit each related CorpWallet
     if job.apikey.corp_character:
@@ -1652,7 +1692,12 @@ def wallet_transactions(url, apikey_id, taskstate_id, character_id):
     job = APIJob(apikey_id, taskstate_id)
     if job.ready is False:
         return
-    character = Character.objects.get(pk=character_id)
+
+    try:
+        character = Character.objects.get(pk=character_id)
+    except Character.DoesNotExist:
+        logger.warn("Character %s does not exist!", character_id)
+        return
 
     # Corporation key, visit each related CorpWallet
     if job.apikey.corp_character:
