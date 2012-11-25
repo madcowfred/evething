@@ -24,6 +24,8 @@ class UserProfile(models.Model):
 
     user = models.OneToOneField(User)
 
+    last_seen = models.DateTimeField(default=datetime.datetime.now)
+
     # User can add APIKeys
     can_add_keys = models.BooleanField(default=True)
 
