@@ -315,15 +315,19 @@ def spawn_tasks():
     # Build a magical QuerySet for APIKey objects
     apikeys = APIKey.objects.select_related('corp_character__corporation')
     apikeys = apikeys.prefetch_related('characters', 'corp_character__corporation__corpwallet_set')
-    apikeys = apikeys.filter(valid=True, user__last_login__gt=one_month_ago)
+    apikeys = apikeys.filter(valid=True, user__userprofile__last_seen__gt=one_month_ago)
 
     # Get a set of unique API keys
     keys = {}
     status = {}
-    for apikey in apikeys:#.iterator():
+    for apikey in apikeys:
         key_info = apikey.get_key_info()
         keys[key_info] = apikey
         status[key_info] = {}
+
+    # Early exit if there's no keys
+    if not keys:
+        return
 
     # Check their task states
     for taskstate in TaskState.objects.filter(key_info__in=keys.keys()).iterator():
