@@ -2170,20 +2170,9 @@ def parse_api_date(s):
     return datetime.datetime.strptime(s, '%Y-%m-%d %H:%M:%S')
 
 # ---------------------------------------------------------------------------
-# Caching corporation fetcher, adds new corporations to the database
-_corp_cache = {}
+# Corporation fetcher, adds new corporations to the database
 def get_corporation(corp_id, corp_name):
-    corp = _corp_cache.get(corp_id, None)
-    if corp is None:
-        try:
-            corp = Corporation.objects.get(pk=corp_id)
-        # Corporation doesn't exist, make a new object and save it
-        except Corporation.DoesNotExist:
-            corp = Corporation(id=corp_id, name=corp_name)
-            corp.save()
-        
-        _corp_cache[corp_id] = corp
-    
+    corp, created = Corporation.objects.get_or_create(pk=corp_id, defaults={ 'name': corp_name })
     return corp
 
 # ---------------------------------------------------------------------------
