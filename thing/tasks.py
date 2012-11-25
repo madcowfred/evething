@@ -2156,16 +2156,3 @@ def get_station(station_id):
     
     return _station_cache[station_id]
 
-# ---------------------------------------------------------------------------
-# Caching system fetcher
-_system_cache = {}
-def get_system(system_id):
-    if system_id not in _system_cache:
-        try:
-            system = System.objects.get(pk=system_id)
-        except System.DoesNotExist:
-            system = None
-        
-        _system_cache[system_id] = system
-    
-    return _system_cache[system_id]
