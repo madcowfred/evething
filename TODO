@@ -39,10 +39,6 @@
   - When a key is successfully updated, check the APICache for any 221 "derp check access" errors. If any are found, purge
     them from the cache and also the related TaskState object.
 
-* tasks.asset_list:
-  - Only call Locations API straight after assets are updated, this SHOULD ensure we never get that stupid "user may not own
-    all of those IDs" error ever again.
-
 * tasks.price_updater:
   - Add support for other sources of market data (EVE-Central, EVEMarketData?)
 
@@ -74,6 +70,8 @@
 
 * views.assets:
   - Add a volume column
+  - Allow infinite asset expansion
+  - Start with all groups expanded to allow ctrl-f searching?
   - Improve search features:
     = Types:
       # Value
