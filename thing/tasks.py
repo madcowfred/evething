@@ -173,15 +173,15 @@ class APIJob:
             try:
                 r = _session.post(full_url, params, prefetch=True)
                 data = r.text
-            except socket.error:
-                return False
-            except SoftTimeLimitExceeded:
+            except Exception, e:
+                _post_sleep(e)
                 return False
 
             self.api_total_time += (time.time() - start)
 
             # If the status code is bad return False
             if not r.status_code == requests.codes.ok:
+                _post_sleep('Bad status code: %s' % (r.status_code))
                 return False
 
         # Data is cached, use that
@@ -271,6 +271,24 @@ class APIJob:
         self.apicache = apicache
 
         return True
+
+# helper function to sleep for 5->10->20->40 seconds on API failures
+sleep_last = 1
+sleep_time = 5
+def _post_sleep(e):
+    global sleep_last, sleep_time
+
+    now = time.time()
+    # if it hasn't been 5 minutes, double the sleep timer
+    if (now - sleep_last) < 300:
+        sleep_time = min(40, sleep_time * 2)
+    # otherwise just reset it to 5 seconds
+    else:
+        sleep_time = 5
+
+    logger.warn('Sleeping for %d seconds: %s', sleep_time, e)
+    sleep_last = now
+    time.sleep(sleep_time)
 
 # ---------------------------------------------------------------------------
 # Periodic task to clean up broken tasks
@@ -1923,7 +1941,12 @@ ALLIANCE_LIST_URL = urljoin(settings.API_HOST, '/eve/AllianceList.xml.aspx')
 
 @task
 def alliance_list():
-    r = _session.get(ALLIANCE_LIST_URL, prefetch=True)
+    try:
+        r = _session.get(ALLIANCE_LIST_URL, prefetch=True)
+    except Exception, e:
+        _post_sleep(e)
+        return False
+
     root = parse_xml(r.text)
 
     bulk_data = {}
@@ -1964,7 +1987,11 @@ CONQUERABLE_STATION_URL = urljoin(settings.API_HOST, '/eve/ConquerableStationLis
 
 @task
 def conquerable_stations():
-    r = _session.get(CONQUERABLE_STATION_URL, prefetch=True)
+    try:
+        r = _session.get(CONQUERABLE_STATION_URL, prefetch=True)
+    except Exception, e:
+        _post_sleep(e)
+        return False
     root = parse_xml(r.text)
 
     # Build a stationID:row dictionary
@@ -2019,7 +2046,11 @@ def history_updater():
     for i in range(0, len(item_ids), 50):
         # Fetch the XML
         url = HISTORY_URL % (','.join(str(z) for z in item_ids[i:i+50]))
-        r = _session.get(url, prefetch=True)
+        try:
+            r = _session.get(url, prefetch=True)
+        except Exception, e:
+            _post_sleep(e)
+            return False
         root = parse_xml(r.text)
         
         # Do stuff
@@ -2073,7 +2104,11 @@ def price_updater():
     for i in range(0, len(item_ids), PRICE_PER_REQUEST):
         # Retrieve market data and parse the XML
         url = PRICE_URL % (','.join(str(item_id) for item_id in item_ids[i:i+PRICE_PER_REQUEST]))
-        r = _session.get(url, prefetch=True)
+        try:
+            r = _session.get(url, prefetch=True)
+        except Exception, e:
+            _post_sleep(e)
+            return False
         root = parse_xml(r.text)
         
         # Update item prices
