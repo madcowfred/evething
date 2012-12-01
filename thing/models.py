@@ -831,6 +831,16 @@ class MarketOrder(models.Model):
 
 # ---------------------------------------------------------------------------
 # Inventory flags
+FLAG_NICE = {
+    'HiSlot': ('High Slot', 0),
+    'MedSlot': ('Mid Slot', 1),
+    'LoSlot': ('Low Slot', 2),
+    'RigSlot': ('Rig Slot', 3),
+    'DroneBay': ('Drone Bay', 4),
+    'ShipHanger': ('Ship Hangar', 5),
+    'SpecializedFuelBay': ('Fuel Bay', 6),
+}
+
 class InventoryFlag(models.Model):
     id = models.IntegerField(primary_key=True)
     name = models.CharField(max_length=64)

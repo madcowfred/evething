@@ -145,7 +145,7 @@
       </div>
 
       <div class="row-fluid">
-        <div class="span10">
+        <div class="span12">
           <p><strong>Total asset value:</strong> {{ total_value|commas }} ISK</p>
           {% with user.get_profile().show_item_icons as show_item_icons -%}
           {% for system_name, asset_roots in systems -%}
@@ -153,8 +153,10 @@
             <thead>
               <tr class="c">
                 <th class="l" colspan="2">{{ system_name }}</th>
-                <th class="c">Group</th>
+                <th class="c">Item Group</th>
+                <th class="c">Slot</th>
                 <th class="c">Quantity</th>
+                <th class="c">Volume</th>
                 <th class="c">Unit Value</th>
                 <th class="c">Total Value</th>
               </tr>
@@ -187,13 +189,15 @@
                   <i class="icons-asset-bpc pull-right" rel="tooltip" title="Blueprint copy, valued at 0 for now"></i>
                   {%- endif -%}
                 </td>
-                <td class="assets-type c">{{ asset.z_item.item_group.category.name }}</td>
-                <td class="assets-quantity r">{{ asset.quantity|commas }}</td>
-                <td class="assets-value r">
+                <td class="assets-group">{{ asset.z_item.item_group.category.name }}</td>
+                <td class="assets-slot"></td>
+                <td class="assets-quantity">{{ asset.quantity|commas }}</td>
+                <td class="assets-volume">{{ asset.z_volume|commas }} m<sup>3</sup></td>
+                <td class="assets-value">
                   {%- if asset.z_capital %}<i class="icons-information pull-left" rel="tooltip" title="ME2 hull, ME50 component, minerals from buys"></i>{% endif %}
                   {{ asset.z_price|commas }}
                 </td>
-                <td class="assets-value r">{{ asset.z_total|commas }}</td>
+                <td class="assets-value">{{ asset.z_total|commas }}</td>
               </tr>
               {% if asset.z_contents -%}
               {% for content in asset.z_contents -%}
@@ -212,19 +216,22 @@
                   <i class="icons-asset-bpc pull-right" rel="tooltip" title="Blueprint copy, valued at 0 for now"></i>
                   {%- endif %}
                 </td>
-                <td class="c">{{ content.z_group }}</td>
-                <td class="r">{{ content.quantity|commas }}</td>
-                <td class="assets-value r">
+                <td class="assets-group">{{ content.z_item.item_group.category.name }}</td>
+                <td class="assets-slot">{{ content.z_slot }}</td>
+                <td class="assets-quantity">{{ content.quantity|commas }}</td>
+                <td class="assets-volume">{{ content.z_volume|commas }} m<sup>3</sup></td>
+                <td class="assets-value">
                   {%- if content.z_capital %}<i class="icons-information pull-left" rel="tooltip" title="ME2 hull, ME50 component, minerals from buys"></i>{% endif %}
                   {{ content.z_price|commas }}
                 </td>
-                <td class="r">{{ content.z_total|commas }}</td>
+                <td class="assets-value">{{ content.z_total|commas }}</td>
               </tr>
               {%- endfor %}
               {% if asset.z_mod == 1 %}<tr></tr>{% endif %}
               {%- endif %}{% endfor %}
               <tr>
-                <td colspan="4"></td>
+                <td colspan="5"></td>
+                <td class="assets-total">{#{{ vol_totals[system_name]|commas }}#}</td>
                 <td class="assets-total r" colspan="2">{{ loc_totals[system_name]|commas }}</td>
               </tr>
             </tbody>
