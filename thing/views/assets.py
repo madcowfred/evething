@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q, Avg, Count, Max, Min, Sum
+from django.http import HttpResponse
 from django.template import RequestContext
 
 from coffin.shortcuts import *
@@ -21,7 +22,6 @@ def assets(request):
     corporations = Corporation.objects.in_bulk(corporation_ids)
 
     # apply our initial set of filters
-    #assets = Asset.objects.select_related('system', 'station', 'inv_flag')
     assets = Asset.objects.filter(
         Q(character__in=character_ids)
         &
@@ -88,6 +88,7 @@ def assets(request):
     inv_flag_map = InventoryFlag.objects.in_bulk(inv_flag_ids)
     tt.add_time('bulk invflag')
     item_map = Item.objects.select_related().in_bulk(item_ids)
+    #item_map = Item.objects.prefetch_related('item_group__category').in_bulk(item_ids)
     tt.add_time('bulk item')
     station_map = Station.objects.in_bulk(station_ids)
     tt.add_time('bulk station')
@@ -123,7 +124,7 @@ def assets(request):
         # total value of this asset stack
         if ca.z_blueprint >= 0:
             # capital ship, calculate build cost
-            if ca.z_item.item_group.name in ('Carrier', 'Dreadnought', 'Supercarrier', 'Titan'):
+            if ca.z_item.item_group.name in ('Capital Industrial Ship', 'Carrier', 'Dreadnought', 'Supercarrier', 'Titan'):
                 ca.z_capital = True
             ca.z_price = ca.z_item.sell_price
         # BPOs use the base price
@@ -134,6 +135,7 @@ def assets(request):
             ca.z_price = 0
         
         ca.z_total = ca.quantity * ca.z_price
+        ca.z_volume = (ca.quantity * ca.z_item.volume).quantize(Decimal('0.01'))
 
         # system/station asset
         if k is not None:
@@ -166,14 +168,15 @@ def assets(request):
             if parent.z_item.item_group.category.name == 'Celestial':
                 ca.z_locked = (ca.z_inv_flag.name == 'Locked')
 
-                ca.z_group = ca.z_item.item_group.category.name
+                ca.z_type = ca.z_item.item_group.category.name
 
             else:
                 # inventory group
-                ca.z_group = ca.z_inv_flag.nice_name()
-                # corporation hangar
-                if ca.z_corporation is not None and ca.z_group.startswith('CorpSAG'):
-                    ca.z_group = getattr(ca.z_corporation, 'division%s' % (ca.z_group[-1]))
+                ca.z_slot = ca.z_inv_flag.nice_name()
+                # corporation hangar  
+                if ca.z_corporation is not None and ca.z_slot.startswith('CorpSAG'):
+                    ca.z_slot = getattr(ca.z_corporation, 'division%s' % (ca.z_slot[-1]))
+                #else:aa
 
     tt.add_time('main loop')
 
@@ -224,5 +227,3 @@ def assets(request):
         tt.finished()
 
     return out
-
-# ---------------------------------------------------------------------------
