@@ -330,7 +330,7 @@
                         {%- if remaining < 864000 -%}
                         <i class="icons-time-warning pull-left" rel="tooltip" title="Warning: low game time remaining!"></i>
                         <span class="low-game-time">
-                          {% if remaining < 0 -%}
+                          {% if remaining <= 0 -%}
                           Expired!
                           {%- else -%}
                           {{ remaining|duration_right }}
