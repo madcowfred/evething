@@ -1312,10 +1312,12 @@ def market_orders(url, apikey_id, taskstate_id, character_id):
         item = item_map.get(int(row.attrib['typeID']))
         if item is None:
             logger.warn("market_orders: No matching Item %s", row.attrib['typeID'])
+            continue
 
         station = station_map.get(int(row.attrib['stationID']))
         if station is None:
             logger.warn("market_orders: No matching Station %s", row.attrib['stationID'])
+            continue
 
         # Create the new order object
         buy_order = (row.attrib['bid'] == '1')
