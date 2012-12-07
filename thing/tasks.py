@@ -1402,19 +1402,34 @@ def skill_queue(url, apikey_id, taskstate_id, character_id):
     # Delete the old queue
     SkillQueue.objects.filter(character=character).delete()
     
-    # Add new skills
-    new = []
+    # Gather info
+    rows = []
+    skill_ids = set()
     for row in job.root.findall('result/rowset/row'):
         if row.attrib['startTime'] and row.attrib['endTime']:
-            new.append(SkillQueue(
-                character=character,
-                skill_id=row.attrib['typeID'],
-                start_time=row.attrib['startTime'],
-                end_time=row.attrib['endTime'],
-                start_sp=row.attrib['startSP'],
-                end_sp=row.attrib['endSP'],
-                to_level=row.attrib['level'],
-            ))
+            skill_ids.add(int(row.attrib['typeID']))
+            rows.append(row)
+
+    skill_map = Skill.objects.in_bulk(skill_ids)
+
+    # Add new skills
+    new = []
+    for row in rows:
+        skill_id = int(row.attrib['typeID'])
+        skill = skill_map.get(skill_id)
+        if skill is None:
+            logger.warn("skill_queue: Skill %s does not exist!", skill_id)
+            continue
+
+        new.append(SkillQueue(
+            character=character,
+            skill=skill,
+            start_time=row.attrib['startTime'],
+            end_time=row.attrib['endTime'],
+            start_sp=row.attrib['startSP'],
+            end_sp=row.attrib['endSP'],
+            to_level=row.attrib['level'],
+        ))
     
     # Create any new SkillQueue objects
     if new:
