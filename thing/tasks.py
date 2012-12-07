@@ -629,6 +629,7 @@ def asset_list(url, apikey_id, taskstate_id, character_id):
         'assets': [],
         'locations': set(),
         'items': set(),
+        'flags': set(),
     }
     _asset_list_recurse(data, job.root.find('result/rowset'), None)
 
@@ -636,13 +637,19 @@ def asset_list(url, apikey_id, taskstate_id, character_id):
     item_map = Item.objects.in_bulk(data['items'])
     station_map = Station.objects.in_bulk(data['locations'])
     system_map = System.objects.in_bulk(data['locations'])
+    flag_map = InventoryFlag.objects.in_bulk(data['flags'])
 
     # Build new Asset objects for each row
     assets = []
-    for asset_id, location_id, container_id, item_id, inv_flag, quantity, rawQuantity, singleton in data['assets']:
+    for asset_id, location_id, container_id, item_id, flag_id, quantity, rawQuantity, singleton in data['assets']:
         item = item_map.get(item_id)
         if item is None:
             logger.warn('asset_list: Invalid item_id %s', item_id)
+            continue
+
+        inv_flag = flag_map.get(flag_id)
+        if inv_flag is None:
+            logger.warn('asset_list: Invalid flag_id %s', flag_id)
             continue
 
         asset = Asset(
@@ -652,7 +659,7 @@ def asset_list(url, apikey_id, taskstate_id, character_id):
             system=system_map.get(location_id),
             station=station_map.get(location_id),
             item=item,
-            inv_flag_id=inv_flag,
+            inv_flag=inv_flag,
             quantity=quantity,
             raw_quantity=rawQuantity,
             singleton=singleton,
@@ -721,12 +728,15 @@ def _asset_list_recurse(data, rowset, container_id):
         item_id = int(row.attrib['typeID'])
         data['items'].add(item_id)
 
+        flag_id = int(row.attrib['flag'])
+        data['flags'].add(flag_id)
+
         data['assets'].append([
             asset_id,
             location_id,
             container_id,
             item_id,
-            int(row.attrib['flag']),
+            flag_id,
             int(row.attrib.get('quantity', '0')),
             int(row.attrib.get('rawQuantity', '0')),
             int(row.attrib.get('singleton', '0')),
