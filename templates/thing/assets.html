@@ -59,15 +59,11 @@
         
         if ($this.hasClass('icons-expand')) {
           $this.addClass('icons-collapse').removeClass('icons-expand');
-          $($this.attr('data-target')).each(function() {
-            $(this).show();
-          });
+          $($this.attr('data-target')).show();
         }
         else {
           $this.addClass('icons-expand').removeClass('icons-collapse');
-          $($this.attr('data-target')).each(function() {
-            $(this).hide();
-          });
+          $($this.attr('data-target')).hide();
         }
       });
 
