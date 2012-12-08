@@ -173,14 +173,14 @@
                 </td>
                 <td class="assets-item">
                   {% if asset.z_contents -%}
-                  <i class="icons-expand asset-expand" data-target=".asset-{{ asset.id }}"></i>
+                  <i class="icons-collapse asset-expand" data-target=".asset-{{ asset.id }}"></i>
                   {%- endif %}
                   {% if show_item_icons -%}
-                  <img src="http://image.eveonline.com/Type/{{ asset.z_item.id }}_32.png" height="20" width="20">
+                  <img src="http://image.eveonline.com/Type/{{ asset.item.id }}_32.png" height="20" width="20">
                   {%- endif %}
-                  {{ asset.z_item.name }}
+                  {{ asset.item.name }}
                   {%- if asset.name %} - <i>{{ asset.name }}</i>{% endif %}
-                  {% if asset.z_contents and asset.z_item.item_group.category.name == 'Ship' -%}
+                  {% if asset.z_contents and asset.item.item_group.category.name == 'Ship' -%}
                   <i class="icons-asset-eft pull-right asset-eft"></i>
                   {%- endif %}
                   {% if asset.z_blueprint == -1 -%}
@@ -189,7 +189,7 @@
                   <i class="icons-asset-bpc pull-right" rel="tooltip" title="Blueprint copy, valued at 0 for now"></i>
                   {%- endif -%}
                 </td>
-                <td class="assets-group">{{ asset.z_item.item_group.category.name }}</td>
+                <td class="assets-group">{{ asset.item.item_group.category.name }}</td>
                 <td class="assets-slot"></td>
                 <td class="assets-quantity">{{ asset.quantity|commas }}</td>
                 <td class="assets-volume">{{ asset.z_volume|commas }} m<sup>3</sup></td>
@@ -200,23 +200,25 @@
                 <td class="assets-value">{{ asset.z_total|commas }}</td>
               </tr>
               {% if asset.z_contents -%}
-              {% for content in asset.z_contents -%}
-              <tr class="asset-sneaky asset-{{ asset.id }}">
+              {% for content in asset.z_contents recursive -%}
+              <tr class="asset-{{ asset.id }}">
                 <td></td>
                 <td>
+                  {% for i in range(content.z_indent) -%}
                   <i class="icons-indent"></i>
+                  {%- endfor %}
                   {%- if content.z_locked %}<i class="icons-asset-locked"></i>{% endif %}
                   {% if show_item_icons -%}
-                  <img src="http://image.eveonline.com/Type/{{ content.z_item.id }}_32.png" height="16" width="16">
+                  <img src="http://image.eveonline.com/Type/{{ content.item.id }}_32.png" height="16" width="16">
                   {%- endif %}
-                  {{ content.z_item.name }}
+                  {{ content.item.name }}
                   {%- if content.z_blueprint == -1 %}
                   <i class="icons-asset-bpo pull-right" rel="tooltip" title="Blueprint original, valued at NPC base price"></i>
                   {%- elif content.z_blueprint == -2 %}
                   <i class="icons-asset-bpc pull-right" rel="tooltip" title="Blueprint copy, valued at 0 for now"></i>
                   {%- endif %}
                 </td>
-                <td class="assets-group">{{ content.z_item.item_group.category.name }}</td>
+                <td class="assets-group">{{ content.item.item_group.category.name }}</td>
                 <td class="assets-slot">{{ content.z_slot }}</td>
                 <td class="assets-quantity">{{ content.quantity|commas }}</td>
                 <td class="assets-volume">{{ content.z_volume|commas }} m<sup>3</sup></td>
@@ -226,9 +228,12 @@
                 </td>
                 <td class="assets-value">{{ content.z_total|commas }}</td>
               </tr>
-              {%- endfor %}
-              {% if asset.z_mod == 1 %}<tr></tr>{% endif %}
-              {%- endif %}{% endfor %}
+              {% if content.z_contents -%}
+                {{ loop (content.z_contents) }}
+              {%- endif %}
+              {%- endfor %}{# for content #}
+              {%- endif %}{# if asset.z_contents #}
+              {%- endfor %}{# for asset #}
               <tr>
                 <td colspan="5"></td>
                 <td class="assets-total">{#{{ vol_totals[system_name]|commas }}#}</td>

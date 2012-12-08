@@ -31,6 +31,7 @@ def assets(request):
             Q(corporation_id__in=corporation_ids)
         )
     )
+    assets = assets.prefetch_related('item__item_group__category', 'inv_flag', 'system', 'station')
     #assets = assets.distinct()
 
     tt.add_time('init')
@@ -69,145 +70,133 @@ def assets(request):
 
     tt.add_time('filters')
 
-    # gather data for bulk fetching
-    inv_flag_ids = set()
-    item_ids = set()
-    station_ids = set()
-    system_ids = set()
-
+    asset_map = {}
     for asset in assets:
-        inv_flag_ids.add(asset.inv_flag_id)
-        item_ids.add(asset.item_id)
-        if asset.station_id is not None:
-            station_ids.add(asset.station_id)
-        if asset.system_id is not None:
-            system_ids.add(asset.system_id)
+        asset_map[asset.asset_id] = asset
 
-    tt.add_time('assets prep')
-
-    inv_flag_map = InventoryFlag.objects.in_bulk(inv_flag_ids)
-    tt.add_time('bulk invflag')
-    item_map = Item.objects.select_related().in_bulk(item_ids)
-    #item_map = Item.objects.prefetch_related('item_group__category').in_bulk(item_ids)
-    tt.add_time('bulk item')
-    station_map = Station.objects.in_bulk(station_ids)
-    tt.add_time('bulk station')
-    system_map = System.objects.in_bulk(system_ids)
-    tt.add_time('bulk system')
+    tt.add_time('asset map')
 
     # initialise data structures
-    ca_lookup = {}
+    asset_lookup = {}
     loc_totals = {}
     systems = {}
+    last_count = 999999999999999999
 
-    for ca in assets:
-        # skip missing character ids
-        if ca.character_id not in characters:
-            continue
+    while True:
+        assets_now = asset_map.values()
+        assets_len = len(assets_now)
+        if assets_len == 0:
+            break
+        if assets_len == last_count:
+            print 'infinite loop in assets?! %s' % (assets_len)
+            break
+        last_count = assets_len
 
-        ca.z_inv_flag = inv_flag_map[ca.inv_flag_id]
-        ca.z_item = item_map[ca.item_id]
-
-        # character and corporation
-        ca.z_character = characters[ca.character_id]
-        ca.z_corporation = corporations.get(ca.corporation_id)
-
-        # work out if this is a system or station asset
-        k = getattr(station_map.get(ca.station_id, system_map.get(ca.system_id)), 'name', None)
-
-        # zz blueprints
-        if ca.z_item.item_group.category.name == 'Blueprint':
-            ca.z_blueprint = min(-1, ca.raw_quantity)
-        else:
-            ca.z_blueprint = 0
-        
-        # total value of this asset stack
-        if ca.z_blueprint >= 0:
-            # capital ship, calculate build cost
-            if ca.z_item.item_group.name in ('Capital Industrial Ship', 'Carrier', 'Dreadnought', 'Supercarrier', 'Titan'):
-                ca.z_capital = True
-            ca.z_price = ca.z_item.sell_price
-        # BPOs use the base price
-        elif ca.z_blueprint == -1:
-            ca.z_price = ca.z_item.base_price
-        # BPCs count as 0 value
-        else:
-            ca.z_price = 0
-        
-        ca.z_total = ca.quantity * ca.z_price
-        ca.z_volume = (ca.quantity * ca.z_item.volume).quantize(Decimal('0.01'))
-
-        # system/station asset
-        if k is not None:
-            ca_lookup[ca.asset_id] = ca
-
-            ca.z_k = k
-            ca.z_contents = []
-
-            if k not in systems:
-                loc_totals[k] = 0
-                systems[k] = []
-            
-            loc_totals[k] += ca.z_total
-            systems[k].append(ca)
-
-        # asset is inside something, assign it to parent
-        else:
-            parent = ca_lookup.get(ca.parent, None)
-            if parent is None:
+        for asset in assets_now:
+            # need to recurse this one later
+            if asset.parent and asset_lookup.get(asset.parent) is None:
                 continue
 
-            # add to parent's contents
-            parent.z_contents.append(ca)
+            asset.z_contents = []
+            asset_lookup[asset.asset_id] = asset
+            del asset_map[asset.asset_id]
 
-            # add this to the parent's entry in loc_totals
-            loc_totals[parent.z_k] += ca.z_total
-            parent.z_total += ca.z_total
+            # skip missing character ids
+            if asset.character_id not in characters:
+                continue
 
-            # Celestials (containers) need some special casing
-            if parent.z_item.item_group.category.name == 'Celestial':
-                ca.z_locked = (ca.z_inv_flag.name == 'Locked')
+            # character and corporation
+            asset.z_character = characters[asset.character_id]
+            asset.z_corporation = corporations.get(asset.corporation_id)
 
-                ca.z_type = ca.z_item.item_group.category.name
-
+            # zz blueprints
+            if asset.item.item_group.category.name == 'Blueprint':
+                asset.z_blueprint = min(-1, asset.raw_quantity)
             else:
-                # inventory group
-                ca.z_slot = ca.z_inv_flag.nice_name()
-                # corporation hangar  
-                if ca.z_corporation is not None and ca.z_slot.startswith('CorpSAG'):
-                    ca.z_slot = getattr(ca.z_corporation, 'division%s' % (ca.z_slot[-1]))
-                #else:aa
+                asset.z_blueprint = 0
+            
+            # total value of this asset stack
+            if asset.z_blueprint >= 0:
+                # capital ships!
+                if asset.item.item_group.name in ('Capital Industrial Ship', 'Carrier', 'Dreadnought', 'Supercarrier', 'Titan'):
+                    asset.z_capital = True
+                asset.z_price = asset.item.sell_price
+            # BPOs use the base (NPC) price
+            elif asset.z_blueprint == -1:
+                asset.z_price = asset.item.base_price
+            # BPCs count as 0 value for now
+            else:
+                asset.z_price = 0
+            
+            asset.z_total = asset.quantity * asset.z_price
+            asset.z_volume = (asset.quantity * asset.item.volume).quantize(Decimal('0.01'))
+
+            # work out if this is a system or station asset
+            k = asset.system_or_station()
+
+            # system/station asset
+            if k is not None:
+                asset.z_k = k
+                asset.z_indent = 0
+
+                if k not in systems:
+                    loc_totals[k] = 0
+                    systems[k] = []
+                
+                loc_totals[k] += asset.z_total
+                systems[k].append(asset)
+
+            # asset is inside something, assign it to parent
+            else:
+                parent = asset_lookup.get(asset.parent, None)
+                if parent is None:
+                    continue
+
+                # add to parent contents
+                parent.z_contents.append(asset)
+
+                # set various things from parent
+                asset.z_k = parent.z_k
+                asset.z_indent = parent.z_indent + 1
+
+                # add this to the parent entry in loc_totals
+                loc_totals[asset.z_k] += asset.z_total
+                parent.z_total += asset.z_total
+
+                # Celestials (containers) need some special casing
+                if parent.item.item_group.category.name == 'Celestial':
+                    asset.z_locked = (asset.inv_flag.name == 'Locked')
+
+                    asset.z_type = asset.item.item_group.category.name
+
+                else:
+                    # inventory group
+                    asset.z_slot = asset.inv_flag.nice_name()
+                    # corporation hangar  
+                    if asset.z_corporation is not None and asset.z_slot.startswith('CorpSAG'):
+                        asset.z_slot = getattr(asset.z_corporation, 'division%s' % (asset.z_slot[-1]))
 
     tt.add_time('main loop')
-
-    # add contents to the parent total
-    for cas in systems.values():
-        for ca in cas:
-            if hasattr(ca, 'z_contents'):
-                #for content in ca.z_contents:
-                #    ca.z_total += content.z_total
-
-                # decorate/sort/undecorate argh
-                temp = [(c.z_inv_flag.sort_order(), c.z_item.name, c) for c in ca.z_contents]
-                temp.sort()
-                ca.z_contents = [s[2] for s in temp]
-
-                ca.z_mod = len(ca.z_contents) % 2
-
-    tt.add_time('parents')
 
     # get a total asset value
     total_value = sum(loc_totals.values())
 
     # decorate/sort/undecorate for our strange sort requirements :(
     for system_name in systems:
-        temp = [(ca.z_character.name.lower(), len(getattr(ca, 'z_contents', [])) * -1, ca.z_item.name, ca.name, ca) for ca in systems[system_name]]
+        temp = [(asset.z_character.name.lower(), len(asset.z_contents) == 0, asset.item.name, asset.name, asset) for asset in systems[system_name]]
         temp.sort()
         systems[system_name] = [s[-1] for s in temp]
 
     sorted_systems = sorted(systems.items())
 
-    tt.add_time('sort')
+    tt.add_time('sort root')
+
+    # 
+    for asset_set in systems.values():
+        for asset in asset_set:
+            _content_sort(asset)
+
+    tt.add_time('sort contents')
 
     out = render_to_response(
         'thing/assets.html',
@@ -227,3 +216,12 @@ def assets(request):
         tt.finished()
 
     return out
+
+def _content_sort(asset):
+    if asset.z_contents:
+        # decorate/sort/undecorate argh
+        temp = [(c.inv_flag.sort_order(), c.item.name, c) for c in asset.z_contents]
+        temp.sort()
+        asset.z_contents = [s[2] for s in temp]
+        for asset in asset.z_contents:
+            _content_sort(asset)
