@@ -209,12 +209,12 @@ class APIJob:
                 # Work out if we need a cache multiplier for this key
                 last_seen = APIKey.objects.filter(keyid=self.apikey.keyid, vcode=self.apikey.vcode).aggregate(s=Max('user__userprofile__last_seen'))['s']
                 secs = max(0, total_seconds(utcnow - last_seen))
-                mult = 1 + (max(20, secs / PENALTY_TIME) * PENALTY_MULT)
+                mult = 1 + (min(20, max(0, secs / PENALTY_TIME)) * PENALTY_MULT)
 
                 # Generate a delta for cache penalty value
                 delta = datetime.timedelta(seconds=max(0, total_seconds(until - current) * mult))
 
-                print until, secs, mult, delta, until + delta
+                #print until, secs, mult, delta, until + delta
 
                 apicache = APICache(
                     url=url,
