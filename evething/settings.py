@@ -195,7 +195,9 @@ CELERY_QUEUES = (
 )
 
 # Periodic tasks
+from celery.schedules import crontab
 from datetime import timedelta
+
 CELERYBEAT_SCHEDULE = {
     # spawn tasks every 10 seconds
     'spawn-tasks': {
