@@ -107,6 +107,7 @@ class APIJob:
 
         self.root = None
         self.apicache = None
+        self.padding = 0
 
     def completed(self):
         self.apicache.completed()
@@ -137,7 +138,7 @@ class APIJob:
             utc_now = datetime.datetime.utcnow()
             until = parse_api_date(self.root.find('cachedUntil').text)
             diff = until - utc_now
-            self.taskstate.next_time = now + diff + datetime.timedelta(seconds=30)
+            self.taskstate.next_time = now + diff + datetime.timedelta(seconds=30) + self.padding
         else:
             # If we have an APICache object, delay until the page is no longer cached
             if self.apicache is not None:
@@ -212,7 +213,8 @@ class APIJob:
                 mult = 1 + (min(20, max(0, secs / PENALTY_TIME)) * PENALTY_MULT)
 
                 # Generate a delta for cache penalty value
-                delta = datetime.timedelta(seconds=max(0, total_seconds(until - current) * mult))
+                self.padding = max(0, total_seconds(until - current) * mult)
+                delta = datetime.timedelta(seconds=self.padding)
 
                 #print until, secs, mult, delta, until + delta
 
