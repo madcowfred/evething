@@ -191,7 +191,7 @@ def assets(request):
 
     tt.add_time('sort root')
 
-    # 
+    # recursively sort asset.z_contents
     for asset_set in systems.values():
         for asset in asset_set:
             _content_sort(asset)
