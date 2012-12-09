@@ -219,8 +219,16 @@ class Importer:
         
         data_map = MarketGroup.objects.in_bulk(bulk_data.keys())
         
+        last_count = 999999
         while bulk_data:
             items = list(bulk_data.items())
+            if len(items) == last_count:
+                print 'infinite loop!'
+                for id, data in items:
+                    print id, data
+                break
+            last_count = len(items)
+
             for id, data in items:
                 if data[1] is None:
                     parent = None
@@ -329,19 +337,27 @@ class Importer:
     def import_item(self):
         added = 0
         
-        self.cursor.execute('SELECT typeID, typeName, groupID, marketGroupID, portionSize, volume, basePrice FROM invTypes')
+        self.cursor.execute('SELECT typeID, typeName, groupID, marketGroupID, portionSize, volume, basePrice FROM invTypes WHERE marketGroupID IS NOT NULL')
         
         bulk_data = {}
+        mg_ids = set()
         for row in self.cursor:
             bulk_data[int(row[0])] = row[1:]
+            mg_ids.add(int(row[3]))
         
         data_map = Item.objects.in_bulk(bulk_data.keys())
+        mg_map = MarketGroup.objects.in_bulk(mg_ids)
         
         new = []
         for id, data in bulk_data.items():
-            if not data[1]:
+            if not data[0] or not data[1]:
                 continue
             
+            mg_id = int(data[2])
+            if mg_id not in mg_map:
+                print '==> Invalid marketGroupID %s' % (mg_id)
+                continue
+
             portion_size = Decimal(data[3])
             volume = PACKAGED.get(data[1], Decimal(str(data[4])))
             base_price = Decimal(data[5])
@@ -350,12 +366,13 @@ class Importer:
             item = data_map.get(id, None)
             if item is not None:
                 if item.name != data[0] or item.portion_size != portion_size or item.volume != volume or \
-                   item.base_price != base_price:
+                   item.base_price != base_price or item.market_group_id != mg_id:
                     print '==> Updated data for #%s (%r)' % (item.id, item.name)
                     item.name = data[0]
                     item.portion_size = portion_size
                     item.volume = volume
                     item.base_price = base_price
+                    item.market_group_id = mg_id
                     item.save()
                 continue
             
@@ -363,7 +380,7 @@ class Importer:
                 id=id,
                 name=data[0],
                 item_group_id=data[1],
-                market_group_id=data[2],
+                market_group_id=mg_id,
                 portion_size=portion_size,
                 volume=volume,
                 base_price=base_price,
@@ -482,6 +499,7 @@ class Importer:
             WHERE   invGroups.categoryID = 16
                     AND dgmTypeAttributes.attributeID = 275
                     AND dgmTypeAttributes.valueFloat IS NOT NULL
+                    AND invTypes.marketGroupID IS NOT NULL
             ORDER BY invTypes.typeID
         """)
         for row in self.cursor:
