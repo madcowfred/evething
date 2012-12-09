@@ -225,7 +225,7 @@ class APIJob:
 
                 # Generate a delta for cache penalty value
                 self.padding = max(0, total_seconds(until - current) * mult)
-                print 'padding = %s' % (self.padding)
+                #print 'padding = %s' % (self.padding)
                 delta = datetime.timedelta(seconds=self.padding)
 
                 #print until, secs, mult, delta, until + delta
