@@ -214,7 +214,7 @@ class APIJob:
                 # Generate a delta for cache penalty value
                 delta = datetime.timedelta(seconds=max(0, total_seconds(until - current) * mult))
 
-                print until, secs, mult, delta
+                print until, secs, mult, delta, until + delta
 
                 apicache = APICache(
                     url=url,
