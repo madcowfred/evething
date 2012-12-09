@@ -138,7 +138,7 @@ class APIJob:
             utc_now = datetime.datetime.utcnow()
             until = parse_api_date(self.root.find('cachedUntil').text)
             diff = until - utc_now
-            self.taskstate.next_time = now + diff + datetime.timedelta(seconds=30) + self.padding
+            self.taskstate.next_time = now + diff + datetime.timedelta(seconds=30 + self.padding)
         else:
             # If we have an APICache object, delay until the page is no longer cached
             if self.apicache is not None:
