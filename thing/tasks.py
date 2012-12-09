@@ -30,6 +30,8 @@ from celery.exceptions import SoftTimeLimitExceeded
 from celery.utils.log import get_task_logger
 logger = get_task_logger(__name__)
 
+from djcelery.models import TaskMeta
+
 # ---------------------------------------------------------------------------
 # Requests session
 _session = requests.session(
@@ -435,6 +437,44 @@ def _init_taskstate(taskdata, now, taskstate, apikey_id, key_info, func, url, qu
         taskdata[True].append((key_info, apikey_id, func, url, queue, parameter))
     elif taskstate.queue_now(now):
         taskdata[False].append((taskstate.id, apikey_id, func, url, queue, parameter))
+
+# ---------------------------------------------------------------------------
+# Task summaries
+@task
+def task_summaries():
+    cursor = connection.cursor()
+    # apparently SQLite doesn't do EXTRACT(), special case it  #BADIDEA
+    if 'sqlite' in connection.vendor:
+        cursor.execute(queries.task_summary_sqlite)
+    else:
+        cursor.execute(queries.task_summary_generic)
+
+    # retrieve hourly data from database
+    hours = OrderedDict()
+    for row in cursor:
+        dt = datetime.datetime(int(row[0]), int(row[1]), int(row[2]), int(row[3]))
+        hours[dt] = int(row[4])
+
+    # update any current summaries if the count is higher
+    first = hours.keys()[0]
+    for tsum in TaskSummary.objects.filter(ymdh__gte=first):
+        count = hours.get(tsum.ymdh)
+        if count is not None:
+            if count > tsum.count:
+                tsum.count = count
+                tsum.save()
+
+            del hours[tsum.ymdh]
+
+    # create new summaries
+    new = []
+    for ymdh, count in hours.items():
+        new.append(TaskSummary(
+            ymdh=ymdh,
+            count=count,
+        ))
+
+    TaskSummary.objects.bulk_create(new)
 
 # ---------------------------------------------------------------------------
 # Account balances

@@ -115,3 +115,27 @@ WHERE   character_id = %s
         AND corp_wallet_id = %s
 GROUP BY year, month, day, ref_type_id
 """
+
+
+# taskmeta stuff
+task_summary_generic = """
+SELECT  EXTRACT(YEAR FROM date_done) AS y,
+        EXTRACT(MONTH FROM date_done) AS m,
+        EXTRACT(DAY FROM date_done) AS d,
+        EXTRACT(HOUR FROM date_done) AS h,
+        COUNT(*) AS count
+FROM    celery_taskmeta
+GROUP BY y, m, d, h
+ORDER BY y, m, d, h
+"""
+
+task_summary_sqlite = """
+SELECT  strftime('%Y', date_done) as y,
+        strftime('%m', date_done) as m,
+        strftime('%d', date_done) as d,
+        strftime('%H', date_done) as h,
+        COUNT(*) AS count
+FROM    celery_taskmeta
+GROUP BY y, m, d, h
+ORDER BY y, m, d, h
+"""

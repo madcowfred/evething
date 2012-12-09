@@ -277,4 +277,15 @@ CELERYBEAT_SCHEDULE = {
         },
         'args': (),
     },
+
+    # generate hourly task summaries at xx:01
+    'task-summaries': {
+        'task': 'thing.tasks.task_summaries',
+        'schedule': crontab(minute=1),
+        'options': {
+            'expires': 9,
+            'queue': 'et_high',
+        },
+        'args': (),
+    },
 }

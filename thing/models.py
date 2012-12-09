@@ -206,6 +206,12 @@ class TaskState(models.Model):
         return ((self.state == self.READY_STATE) and self.next_time <= now)
 
 # ---------------------------------------------------------------------------
+# Task summaries
+class TaskSummary(models.Model):
+    ymdh = models.DateTimeField(db_index=True)
+    count = models.IntegerField()
+
+# ---------------------------------------------------------------------------
 # API cache entries
 class APICache(models.Model):
     url = models.URLField()
