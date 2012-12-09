@@ -246,6 +246,11 @@ class Importer:
                     if parent is not None and mg.parent.id != parent.id:
                         mg.delete()
                     else:
+                        if mg.name != data[0]:
+                            mg.name = data[0]
+                            mg.save()
+                            print '==> Updated data for #%s (%r)' % (mg.id, mg.name)
+
                         del bulk_data[id]
                         continue
                 
