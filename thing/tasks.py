@@ -1528,13 +1528,13 @@ def standings(url, apikey_id, taskstate_id, character_id):
         return
     
     # Build data maps
-    corp_map = {}
+    cs_map = {}
     for cs in CorporationStanding.objects.filter(character=character):
-        corp_map[cs.corporation_id] = cs
+        cs_map[cs.corporation_id] = cs
 
-    faction_map = {}
+    fs_map = {}
     for fs in FactionStanding.objects.filter(character=character):
-        faction_map[fs.faction_id] = fs
+        fs_map[fs.faction_id] = fs
 
     # Iterate over rowsets
     for rowset in job.root.findall('result/characterNPCStandings/rowset'):
@@ -1551,7 +1551,7 @@ def standings(url, apikey_id, taskstate_id, character_id):
                 id = int(row.attrib['fromID'])
                 standing = Decimal(row.attrib['standing'])
 
-                cs = corp_map.get(id, None)
+                cs = cs_map.get(id, None)
                 # Standing doesn't exist, make a new one
                 if cs is None:
                     cs = CorporationStanding(
@@ -1571,28 +1571,39 @@ def standings(url, apikey_id, taskstate_id, character_id):
 
         # Factions
         elif name == 'factions':
-            new = []
+            factions = {}
             for row in rowset.findall('row'):
                 id = int(row.attrib['fromID'])
                 standing = Decimal(row.attrib['standing'])
 
-                fs = faction_map.get(id, None)
+                fs = fs_map.get(id, None)
                 # Standing doesn't exist, make a new one
                 if fs is None:
-                    fs = FactionStanding(
-                        character_id=character.id,
-                        faction_id=id,
-                        standing=standing,
-                    )
-                    new.append(fs)
+                    factions[id] = (row.attrib['fromName'], standing)
                 # Exists, check for standings change
                 else:
                     if fs.standing != standing:
                         fs.standing = standing
                         fs.save()
 
-            if new:
-                FactionStanding.objects.bulk_create(new)
+            if factions:
+                faction_map = Faction.objects.in_bulk(factions.keys())
+                new = []
+                for id, (name, standing) in factions.items():
+                    if id not in faction_map:
+                        Faction.objects.create(
+                            id=id,
+                            name=name,
+                        )
+
+                    new.append(FactionStanding(
+                        character_id=character.id,
+                        faction_id=id,
+                        standing=standing,
+                    ))
+
+                if new:
+                    FactionStanding.objects.bulk_create(new)
 
     # completed ok
     job.completed()
