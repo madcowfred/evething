@@ -20,7 +20,7 @@ except ImportError:
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.db import connection, transaction, IntegrityError
-from django.db.models import Count
+from django.db.models import Count, Max
 
 from thing import queries
 from thing.models import *
@@ -78,6 +78,9 @@ CORP_URLS = {
 
 # ---------------------------------------------------------------------------
 # Class to wrap things
+PENALTY_TIME = 12 * 60 * 60
+PENALTY_MULT = 0.2
+
 class APIJob:
     def __init__(self, apikey_id, taskstate_id):
         connection.queries = []
@@ -203,11 +206,19 @@ class APIJob:
 
             # If the data wasn't cached, cache it now
             if apicache is None:
+                # Work out if we need a cache multiplier for this key
+                last_seen = APIKey.objects.filter(keyid=self.apikey.keyid, vcode=self.apikey.vcode).aggregate(s=Max('user__userprofile__last_seen'))['s']
+                secs = max(0, total_seconds(utcnow - last_seen))
+                mult = 1 + (max(20, secs / PENALTY_TIME) * PENALTY_MULT)
+                
+                # Generate a delta for cache penalty value
+                delta = datetime.timedelta(seconds=total_seconds(until - current) * mult)
+
                 apicache = APICache(
                     url=url,
                     parameters=params_repr,
                     text=data,
-                    cached_until=until,
+                    cached_until=until + delta,
                 )
                 apicache.save()
 
