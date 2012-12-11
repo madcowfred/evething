@@ -14,6 +14,7 @@
 @grayDark:              #333;
 @gray:                  #555;
 @grayLight:             #999;
+@grayLightish:          #bbb;
 @grayLighter:           #eee;
 @white:                 #fff;
 
@@ -181,14 +182,14 @@
 @navbarCollapseDesktopWidth:      @navbarCollapseWidth + 1;
 
 @navbarHeight:                    40px;
-@navbarBackgroundHighlight:       #ffffff;
+@navbarBackgroundHighlight:       #1e2940;
 @navbarBackground:                darken(@navbarBackgroundHighlight, 5%);
 @navbarBorder:                    darken(@navbarBackground, 12%);
 
-@navbarText:                      #777;
-@navbarLinkColor:                 #777;
-@navbarLinkColorHover:            @grayDark;
-@navbarLinkColorActive:           @gray;
+@navbarText:                      @grayLight;
+@navbarLinkColor:                 @grayLighter;
+@navbarLinkColorHover:            @grayLightish;
+@navbarLinkColorActive:           @grayLightish;
 @navbarLinkBackgroundHover:       transparent;
 @navbarLinkBackgroundActive:      darken(@navbarBackground, 5%);
 
@@ -273,17 +274,17 @@
 // -------------------------
 @gridColumns:             12;
 @gridColumnWidth:         60px;
-@gridGutterWidth:         20px;
+@gridGutterWidth:         15px;
 @gridRowWidth:            (@gridColumns * @gridColumnWidth) + (@gridGutterWidth * (@gridColumns - 1));
 
 // 1200px min
 @gridColumnWidth1200:     70px;
-@gridGutterWidth1200:     30px;
+@gridGutterWidth1200:     20px;
 @gridRowWidth1200:        (@gridColumns * @gridColumnWidth1200) + (@gridGutterWidth1200 * (@gridColumns - 1));
 
 // 768px-979px
 @gridColumnWidth768:      42px;
-@gridGutterWidth768:      20px;
+@gridGutterWidth768:      15px;
 @gridRowWidth768:         (@gridColumns * @gridColumnWidth768) + (@gridGutterWidth768 * (@gridColumns - 1));
 
 
