@@ -1,7 +1,5 @@
-//
+// Slate 2.2.2
 // Variables
-// Swatch: Slate
-// Version: 2.1.1
 // --------------------------------------------------
 
 
@@ -15,17 +13,17 @@
 @grayDarker:            #272B30;
 @grayDark:              #3A3F44;
 @gray:                  #52575C;
-@grayLight:             #959CA2;
+@grayLight:             #7A8288;
 @grayLighter:           #BBBFC2;
 @white:                 #fff;
 
 
 // Accent colors
 // -------------------------
-@blue:                  #02A1DD;
+@blue:                  #5bc0de;
 @blueDark:              #108CBB;
-@green:                 #87CA4D;
-@red:                   #9d261d;
+@green:                 #62c462;
+@red:                   #ee5f5b;
 @yellow:                #F6D30D;
 @orange:                #f89406;
 @pink:                  #c3325f;
@@ -35,7 +33,7 @@
 // Scaffolding
 // -------------------------
 @bodyBackground:        @grayDarker;
-@textColor:             @grayLight;
+@textColor:             #C8C8C8;
 
 
 // Links
@@ -50,14 +48,31 @@
 @serifFontFamily:       Georgia, "Times New Roman", Times, serif;
 @monoFontFamily:        Menlo, Monaco, Consolas, "Courier New", monospace;
 
-@baseFontSize:          13px;
+@baseFontSize:          14px;
 @baseFontFamily:        @sansFontFamily;
-@baseLineHeight:        18px;
+@baseLineHeight:        21px;
 @altFontFamily:         @serifFontFamily;
 
 @headingsFontFamily:    inherit; // empty to use BS default, @baseFontFamily
 @headingsFontWeight:    bold;    // instead of browser default, bold
 @headingsColor:         inherit; // empty to use BS default, @textColor
+
+
+// Component sizing
+// -------------------------
+// Based on 14px font-size and 20px line-height
+
+@fontSizeLarge:         @baseFontSize * 1.25; // ~18px
+@fontSizeSmall:         @baseFontSize * 0.85; // ~12px
+@fontSizeMini:          @baseFontSize * 0.75; // ~11px
+
+@paddingLarge:          11px 19px; // 44px
+@paddingSmall:          2px 10px;  // 26px
+@paddingMini:           0px 6px;   // 22px
+
+@baseBorderRadius:      4px;
+@borderRadiusLarge:     6px;
+@borderRadiusSmall:     3px;
 
 
 // Tables
@@ -67,26 +82,25 @@
 @tableBackgroundHover:              @grayDark; // for hover
 @tableBorder:                       darken(@grayDarker, 5%); // table and cell border
 
-
 // Buttons
 // -------------------------
 @btnBackground:                     @white;
 @btnBackgroundHighlight:            darken(@white, 10%);
 @btnBorder:                         darken(@white, 20%);
 
-@btnPrimaryBackground:              @grayLight;
+@btnPrimaryBackground:              @grayLighter;
 @btnPrimaryBackgroundHighlight:     spin(@btnPrimaryBackground, 15%);
 
-@btnInfoBackground:                 #5bc0de;
+@btnInfoBackground:                 @blue;
 @btnInfoBackgroundHighlight:        #2f96b4;
 
-@btnSuccessBackground:              #62c462;
+@btnSuccessBackground:              @green;
 @btnSuccessBackgroundHighlight:     #51a351;
 
 @btnWarningBackground:              lighten(@orange, 15%);
 @btnWarningBackgroundHighlight:     @orange;
 
-@btnDangerBackground:               #ee5f5b;
+@btnDangerBackground:               @red;
 @btnDangerBackgroundHighlight:      #bd362f;
 
 @btnInverseBackground:              @gray;
@@ -97,29 +111,31 @@
 // -------------------------
 @inputBackground:               @white;
 @inputBorder:                   #ccc;
-@inputBorderRadius:             3px;
+@inputBorderRadius:             @baseBorderRadius;
 @inputDisabledBackground:       @grayLighter;
 @formActionsBackground:         darken(@grayDarker, 3%);
+@inputHeight:                   @baseLineHeight + 10px; // base line-height + 8px vertical padding + 2px top/bottom border
+
 
 // Dropdowns
 // -------------------------
 @dropdownBackground:            @grayDark;
 @dropdownBorder:                rgba(0,0,0,.2);
-@dropdownDividerTop:            #e5e5e5;
+@dropdownDividerTop:            transparent;
 @dropdownDividerBottom:         darken(@grayDarker, 5%);
 
 @dropdownLinkColor:             @grayLight;
+@dropdownLinkColorHover:        @white;
+@dropdownLinkColorActive:       @white;
 
-@dropdownLinkColorHover:        @grayLighter;
-@dropdownLinkBackgroundHover:   @grayDarker;
-
-@dropdownLinkColorActive:       @dropdownLinkColor;
 @dropdownLinkBackgroundActive:  @grayDarker;
+@dropdownLinkBackgroundHover:   @grayDarker;
 
 
 
 // COMPONENT VARIABLES
 // --------------------------------------------------
+
 
 // Z-index master list
 // -------------------------
@@ -162,15 +178,16 @@
 // Navbar
 // -------------------------
 @navbarCollapseWidth:             979px;
+@navbarCollapseDesktopWidth:      @navbarCollapseWidth + 1;
 
 @navbarHeight:                    40px;
 @navbarBackground:                @grayDarker;
 @navbarBackgroundHighlight:       @grayDark;
 @navbarBorder:                    darken(@navbarBackground, 12%);
 
-@navbarText:                      @grayLight;
-@navbarLinkColor:                 @grayLighter;
-@navbarLinkColorHover:            @grayLighter;
+@navbarText:                      @textColor;
+@navbarLinkColor:                 @textColor;
+@navbarLinkColorHover:            @white;
 @navbarLinkColorActive:           @navbarLinkColorHover;
 @navbarLinkBackgroundHover:       @grayDark;
 @navbarLinkBackgroundActive:      @navbarBackground;
@@ -233,14 +250,14 @@
 // Tooltips and popovers
 // -------------------------
 @tooltipColor:            #fff;
-@tooltipBackground:       #000;
+@tooltipBackground:       @dropdownBackground;
 @tooltipArrowWidth:       5px;
 @tooltipArrowColor:       @tooltipBackground;
 
-@popoverBackground:       #fff;
+@popoverBackground:       @dropdownBackground;
 @popoverArrowWidth:       10px;
-@popoverArrowColor:       #fff;
-@popoverTitleBackground:  darken(@popoverBackground, 3%);
+@popoverArrowColor:       @dropdownBackground;
+@popoverTitleBackground:  lighten(@popoverBackground, 3%);
 
 // Special enhancement for popovers
 @popoverArrowOuterWidth:  @popoverArrowWidth + 1;

@@ -1,7 +1,7 @@
-// Bootswatch.less
-// Swatch: Slate
-// Version: 2.1.1
+// Slate 2.2.2
+// Bootswatch
 // -----------------------------------------------------
+
 
 // TYPOGRAPHY
 // -----------------------------------------------------
@@ -67,6 +67,11 @@ hr, legend, .page-header {
 
 	.navbar-search .search-query {
 		border: 1px solid darken(@gray, 15%);
+	}
+
+	.btn,
+	.btn-group {
+		margin: 4px 0;
 	}
 
 	.divider-vertical {
@@ -194,29 +199,33 @@ div.subnav {
 // NAV
 // -----------------------------------------------------
 
-.nav .nav-header {
-	text-shadow: none;
-}
+.nav {
 
-.nav > li > a {
-	#gradient > .vertical-three-colors(@gray, @grayDark, 70%, @grayDark);
-	.box-shadow('0 1px 3px rgba(0, 0, 0, 0.25), inset 0 -1px 0 rgba(0, 0, 0, 0.1)');
-	border: none;
-	color: @grayLight;
-	font-weight: bold;
-	text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.3);
-}
+	.nav-header {
+		text-shadow: none;
+	}
 
-.nav > li.active > a,
-.nav > li.active > a:hover {
-	background-color: transparent;
-	border: none;
-	color: @white;
-}
+	& > li > a {
+		#gradient > .vertical-three-colors(@gray, @grayDark, 70%, @grayDark);
+		.box-shadow('0 1px 3px rgba(0, 0, 0, 0.25), inset 0 -1px 0 rgba(0, 0, 0, 0.1)');
+		border: none;
+		color: @grayLight;
+		font-weight: bold;
+		text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.3);
+	}
 
-.nav > li > a:hover {
-	background-color: transparent;
-	color: @grayLighter;
+	li.active > a,
+	li.active > a:hover {
+		background-color: transparent;
+		border: none;
+		color: @white;
+	}
+
+	li > a:hover {
+		background-color: transparent;
+		color: @grayLighter;
+	}
+
 }
 
 .nav-list {
@@ -255,70 +264,98 @@ div.subnav {
 	border-left: none;
 }
 
-.nav-tabs.nav-stacked > li > a,
-.nav-tabs.nav-stacked > li > a:hover {
-	border: none;
+.nav-tabs.nav-stacked {
+
+	li > a,
+	li > a:hover {
+		border: 1px solid darken(@grayDarker, 5%);
+		background-image: none;
+	}
+
+	li > a:hover,
+	.active > a,
+	.active > a:hover {
+		background-color: @wellBackground;
+		color: @white;
+	}
 }
 
 .breadcrumb {
-	.box-shadow(none);
-}
-
-.breadcrumb, .pagination > ul a, .pager a {
 	border: 1px solid transparent;
-	.box-shadow('0 1px 3px rgba(0, 0, 0, 0.25), inset 0 -1px 0 rgba(0, 0, 0, 0.1)');
 	#gradient > .vertical-three-colors(@gray, @grayDark, 70%, @grayDark);
-}
+	.box-shadow('0 1px 3px rgba(0, 0, 0, 0.25), inset 0 -1px 0 rgba(0, 0, 0, 0.1)');
 
-.breadcrumb li, .breadcrumb a, .pagination > ul a {
-	color: @grayLighter;
-	font-weight: bold;
-	text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.3);
-}
+	a {
+		color: @grayLighter;
+		font-weight: bold;
+	}
 
-.breadcrumb a {
-	color: @white;
+	li {
+		color: @grayLight;
+		font-weight: bold;
+		text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.3);
+	}
 }
 
 .pagination {
 
-	& > ul {
+	ul {
 		.box-shadow(none);
 	}
 
-	& li > a,
-	& li.disabled > a {
+	ul > li > a,
+	ul > li > span {
 		border-left: 1px solid @gray;
 		border-right: 1px solid darken(@gray, 15%);
 		border-top: none;
 		border-bottom: none;
+		#gradient > .vertical-three-colors(@gray, @grayDark, 70%, @grayDark);
+		.box-shadow('0 1px 3px rgba(0, 0, 0, 0.25), inset 0 -1px 0 rgba(0, 0, 0, 0.1)');
+		color: @grayLighter;
+		font-weight: bold;
+		text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.3);
+
+		&:hover {
+			#gradient > .directional(@grayDarker, @grayDark, 280deg);
+			border-left: 1px solid transparent;
+		}
 	}
 
-	li.disabled > a {
-		#gradient > .vertical-three-colors(@grayLight, @gray, 70%, @gray);
-	}
-
-	& > ul > li:not(.disabled) a:hover,
-	  {
-		#gradient > .directional(@grayDarker, @grayDark, 280deg);
-		border-left: 1px solid transparent;
-	}
-
-	& > ul > li.active > a,
-	& > ul > li.active > a:hover {
+	ul > .active > a,
+	ul > .active > a:hover,
+	ul > .active > span,
+	ul > .active > span:hover {
 		color: @grayLighter;
 		background-color: @grayDark;
 		#gradient > .directional(lighten(@grayDarker, 4%), lighten(@grayDark, 4%), 280deg);
 		border-left: 1px solid transparent;
 	}
+
+	ul > .disabled > a,
+	ul > .disabled > a:hover,
+	ul > .disabled > span,
+	ul > .disabled > span:hover {
+		border-left: 1px solid @gray;
+		border-right: 1px solid darken(@gray, 15%);
+		border-top: none;
+		border-bottom: none;
+		#gradient > .vertical-three-colors(@grayLight, @gray, 70%, @gray);
+	}
 }
 
 .pager {
 
-	a:hover {
-		#gradient > .directional(@grayDarker, @grayDark, 280deg);
+	li > a,
+	li > span {
 		border: 1px solid transparent;
-	}
+		.box-shadow('0 1px 3px rgba(0, 0, 0, 0.25), inset 0 -1px 0 rgba(0, 0, 0, 0.1)');
+		#gradient > .vertical-three-colors(@gray, @grayDark, 70%, @grayDark);
+
+		&:hover {
+			#gradient > .directional(@grayDarker, @grayDark, 280deg);
+			border: 1px solid transparent;
+		}
+	}	
 
 	.disabled a,
 	.disabled a:hover {
@@ -338,31 +375,33 @@ div.subnav {
 .btn, .btn:hover {
 	color: @white;
 	font-weight: bold;
-	text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.3);
+	text-shadow: -1px -1px 1px rgba(0, 0, 0, 0.3);
 }
 
 .btn-primary {
-  .buttonBackground(@btnPrimaryBackground, spin(@btnPrimaryBackground, 20));
+	.buttonBackground(@btnPrimaryBackground, spin(@btnPrimaryBackground, 20));
+	color: @grayDark;
+	text-shadow: 1px 1px 1px rgba(255, 255, 255, 0.3);
 }
 
 .btn-warning {
-  .buttonBackground(lighten(@orange, 15%), @orange);
+	.buttonBackground(lighten(@orange, 15%), @orange);
 }
 
 .btn-danger {
-  .buttonBackground(#ee5f5b, #bd362f);
+	.buttonBackground(@red, #bd362f);
 }
 
 .btn-success {
-  .buttonBackground(#62c462, #51a351);
+	.buttonBackground(@green, #51a351);
 }
 
 .btn-info {
-  .buttonBackground(#5bc0de, #2f96b4);
+	.buttonBackground(@blue, #2f96b4);
 }
 
 .btn-inverse {
-  .buttonBackground(#454545, #262626);
+	.buttonBackground(@gray, @grayDarker);
 }
 
 .caret {
@@ -371,6 +410,23 @@ div.subnav {
 
 // TABLES
 // -----------------------------------------------------
+
+.table {
+
+	tbody tr.success td {
+		background-color: @successText;
+	}
+
+	tbody tr.error td {
+		background-color: @errorText;
+	}
+
+	tbody tr.info td {
+		background-color: @infoText;
+	}
+
+}
+
 
 // FORMS
 // -----------------------------------------------------
@@ -419,11 +475,6 @@ textarea[readonly] {
 
 .dropdown-menu {
 	.box-shadow(0 5px 5px rgba(0, 0, 0, 0.2));
-
-	li.active a,
-	li.active a:hover {
-		background-color: @grayDark;
-	}
 }
 
 .dropdown.open .dropdown-toggle {
@@ -431,10 +482,8 @@ textarea[readonly] {
 	color: @grayLighter;
 }
 
-.dropdown-menu .divider {
-	border-top: none;
-	border-bottom: 1px solid darken(@grayDarker, 5%);
-	background-color: transparent;
+.dropdown-submenu > a::after {
+	border-left-color: @white;
 }
 
 // ALERTS, LABELS, BADGES
@@ -446,14 +495,14 @@ textarea[readonly] {
 	.box-shadow(1px 1px 1px rgba(0, 0, 0, 0.3));
 }
 
-.alert-heading {
-  	color: rgba(255, 255, 255, 0.9);
-	text-shadow: -1px -1px 0 rgba(0, 0, 0, 0.4);
-}
-
 .alert {
   background-color: @orange;
   border-color: @orange;
+
+	.alert-heading {
+		color: rgba(255, 255, 255, 0.9);
+		text-shadow: -1px -1px 0 rgba(0, 0, 0, 0.4);
+	}
 }
 
 .alert-success {
@@ -475,7 +524,7 @@ textarea[readonly] {
 // -----------------------------------------------------
 
 .well, .hero-unit {
-	.box-shadow(inset 1px 1px 1px rgba(0, 0, 0, 0.5);
+	.box-shadow(inset 1px 1px 1px rgba(0, 0, 0, 0.5));
 }
 
 .thumbnail,
@@ -484,9 +533,9 @@ a.thumbnail:hover {
 }
 
 .progress {
-	background-color: lighten(@grayDarker, 4%);
-	#gradient > .vertical(lighten(@grayDarker, 4%), lighten(@grayDarker, 4%));
-	.box-shadow(inset 1px 1px 1px rgba(0, 0, 0, 0.5);
+	background-color: darken(@grayDarker, 3%);
+	#gradient > .vertical(darken(@grayDarker, 3%), darken(@grayDarker, 3%));
+	.box-shadow(inset 1px 1px 1px rgba(0, 0, 0, 0.5));
 }
 
 .footer {
