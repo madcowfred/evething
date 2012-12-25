@@ -17,11 +17,9 @@ class Migration(SchemaMigration):
             db.execute("ALTER TABLE thing_apikey ALTER COLUMN id SET DEFAULT nextval('thing_apikey_id_seq'::regclass)")
         elif db.backend_name == 'mysql':
             db.add_column('thing_apikey', 'id', models.AutoField(primary_key=True))
-        elif db.backend_name == 'sqlite':
-            db.add_column('thing_apikey', 'id', models.AutoField(primary_key=True, default=0), keep_default=False)
         # try a fallback for any other weird databases
         else:
-            db.add_column('thing_apikey', 'id', models.AutoField(primary_key=True))
+            db.add_column('thing_apikey', 'id', models.AutoField(primary_key=True, default=0), keep_default=False)
 
     def backwards(self, orm):
         db.delete_primary_key('thing_apikey')
