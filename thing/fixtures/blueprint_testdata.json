@@ -1,0 +1,255 @@
+[
+    {
+        "pk": 4,
+        "model": "thing.itemcategory",
+        "fields": {
+            "name": "Material"
+        }
+    },
+    {
+        "pk": 9,
+        "model": "thing.itemcategory",
+        "fields": {
+            "name": "Blueprint"
+        }
+    },
+    {
+        "pk": 6,
+        "model": "thing.itemcategory",
+        "fields": {
+            "name": "Ship"
+        }
+    },
+    {
+        "pk": 27,
+        "model": "thing.itemgroup",
+        "fields": {
+            "category": 6,
+            "name": "Battleship"
+        }
+    },
+    {
+        "pk": 18,
+        "model": "thing.itemgroup",
+        "fields": {
+            "category": 4,
+            "name": "Mineral"
+        }
+    },
+    {
+        "pk": 107,
+        "model": "thing.itemgroup",
+        "fields": {
+            "category": 9,
+            "name": "Battleship Blueprint"
+        }
+    },
+    {
+        "pk": 34,
+        "model": "thing.item",
+        "fields": {
+            "sell_price": "6.11",
+            "name": "Tritanium",
+            "item_group": 18,
+            "buy_price": "6.04",
+            "volume": "0.0100",
+            "portion_size": 1,
+            "market_group": null,
+            "base_price": "2.00"
+        }
+    },
+    {
+        "pk": 35,
+        "model": "thing.item",
+        "fields": {
+            "sell_price": "13.84",
+            "name": "Pyerite",
+            "item_group": 18,
+            "buy_price": "13.78",
+            "volume": "0.0100",
+            "portion_size": 1,
+            "market_group": null,
+            "base_price": "8.00"
+        }
+    },
+    {
+        "pk": 36,
+        "model": "thing.item",
+        "fields": {
+            "sell_price": "60.99",
+            "name": "Mexallon",
+            "item_group": 18,
+            "buy_price": "60.11",
+            "volume": "0.0100",
+            "portion_size": 1,
+            "market_group": null,
+            "base_price": "32.00"
+        }
+    },
+    {
+        "pk": 37,
+        "model": "thing.item",
+        "fields": {
+            "sell_price": "168.84",
+            "name": "Isogen",
+            "item_group": 18,
+            "buy_price": "165.87",
+            "volume": "0.0100",
+            "portion_size": 1,
+            "market_group": null,
+            "base_price": "128.00"
+        }
+    },
+    {
+        "pk": 38,
+        "model": "thing.item",
+        "fields": {
+            "sell_price": "792.78",
+            "name": "Nocxium",
+            "item_group": 18,
+            "buy_price": "774.52",
+            "volume": "0.0100",
+            "portion_size": 1,
+            "market_group": null,
+            "base_price": "512.00"
+        }
+    },
+    {
+        "pk": 39,
+        "model": "thing.item",
+        "fields": {
+            "sell_price": "825.00",
+            "name": "Zydrine",
+            "item_group": 18,
+            "buy_price": "808.97",
+            "volume": "0.0100",
+            "portion_size": 1,
+            "market_group": null,
+            "base_price": "2048.00"
+        }
+    },
+    {
+        "pk": 40,
+        "model": "thing.item",
+        "fields": {
+            "sell_price": "2200.00",
+            "name": "Megacyte",
+            "item_group": 18,
+            "buy_price": "2140.01",
+            "volume": "0.0100",
+            "portion_size": 1,
+            "market_group": null,
+            "base_price": "8192.00"
+        }
+    },
+    {
+        "pk": 24694,
+        "model": "thing.item",
+        "fields": {
+            "sell_price": "216999999.99",
+            "name": "Maelstrom",
+            "item_group": 27,
+            "buy_price": "208601000.01",
+            "volume": "50000.0000",
+            "portion_size": 1,
+            "market_group": null,
+            "base_price": "145000000.00"
+        }
+    },
+    {
+        "pk": 24695,
+        "model": "thing.item",
+        "fields": {
+            "sell_price": "1413000000.00",
+            "name": "Maelstrom Blueprint",
+            "item_group": 107,
+            "buy_price": "753100000.56",
+            "volume": "0.0100",
+            "portion_size": 1,
+            "market_group": null,
+            "base_price": "1450000000.00"
+        }
+    },
+    {
+        "pk": 312023,
+        "model": "thing.blueprintcomponent",
+        "fields": {
+            "blueprint": 24695,
+            "item": 34,
+            "count": 10617760,
+            "needs_waste": true
+        }
+    },
+    {
+        "pk": 312024,
+        "model": "thing.blueprintcomponent",
+        "fields": {
+            "blueprint": 24695,
+            "item": 35,
+            "count": 2654764,
+            "needs_waste": true
+        }
+    },
+    {
+        "pk": 312025,
+        "model": "thing.blueprintcomponent",
+        "fields": {
+            "blueprint": 24695,
+            "item": 36,
+            "count": 663953,
+            "needs_waste": true
+        }
+    },
+    {
+        "pk": 312026,
+        "model": "thing.blueprintcomponent",
+        "fields": {
+            "blueprint": 24695,
+            "item": 37,
+            "count": 165851,
+            "needs_waste": true
+        }
+    },
+    {
+        "pk": 312027,
+        "model": "thing.blueprintcomponent",
+        "fields": {
+            "blueprint": 24695,
+            "item": 38,
+            "count": 41419,
+            "needs_waste": true
+        }
+    },
+    {
+        "pk": 312028,
+        "model": "thing.blueprintcomponent",
+        "fields": {
+            "blueprint": 24695,
+            "item": 39,
+            "count": 9867,
+            "needs_waste": true
+        }
+    },
+    {
+        "pk": 312029,
+        "model": "thing.blueprintcomponent",
+        "fields": {
+            "blueprint": 24695,
+            "item": 40,
+            "count": 2275,
+            "needs_waste": true
+        }
+    },
+    {
+        "pk": 24695,
+        "model": "thing.blueprint",
+        "fields": {
+            "name": "Maelstrom Blueprint",
+            "production_time": 18000,
+            "item": 24694,
+            "material_modifier": 5,
+            "waste_factor": 10,
+            "productivity_modifier": 3600
+        }
+    }
+]
