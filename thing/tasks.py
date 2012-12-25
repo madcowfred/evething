@@ -1949,15 +1949,15 @@ def _wallet_transactions_work(url, job, character, corp_wallet=None):
         t = t_map.get(transaction_id, None)
         if t is None:
             # Make sure the item is valid
-            item = item_map.get(int(row['typeID']))
+            item = item_map.get(int(row.attrib['typeID']))
             if item is None:
-                logger.warn('wallet_transactions: Invalid item_id %s', row['typeID'])
+                logger.warn('wallet_transactions: Invalid item_id %s', row.attrib['typeID'])
                 continue
 
             # Make sure the station is valid
-            station = station_map.get(int(row['stationID']))
+            station = station_map.get(int(row.attrib['stationID']))
             if station is None:
-                logger.warn('wallet_transactions: Invalid station_id %s', row['stationID'])
+                logger.warn('wallet_transactions: Invalid station_id %s', row.attrib['stationID'])
                 continue
             
             # For a corporation key, make sure the character exists
