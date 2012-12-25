@@ -2129,11 +2129,13 @@ def conquerable_stations():
             continue
         
         # New station!
-        new.append(Station(
+        s = Station(
             id=id,
             name=row.attrib['stationName'],
             system_id=row.attrib['solarSystemID'],
-        ))
+        )
+        s._make_shorter_name()
+        new.append(s)
 
     # Create any new stations
     if new:
