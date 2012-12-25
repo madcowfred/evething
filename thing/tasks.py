@@ -1121,6 +1121,16 @@ def contracts(url, apikey_id, taskstate_id, character_id):
             logger.warn('contracts: Invalid issuerCorpID %s', row.attrib['issuerCorpID'])
             continue
         
+        start_station = station_map.get(int(row.attrib['startStationID']))
+        if start_station is None:
+            logger.warn('contracts: Invalid startStationID %s', row.attrib['startStationID'])
+            continue
+
+        end_station = station_map.get(int(row.attrib['endStationID']))
+        if end_station is None:
+            logger.warn('contracts: Invalid endStationID %s', row.attrib['endStationID'])
+            continue
+
         assigneeID = int(row.attrib['assigneeID'])
         acceptorID = int(row.attrib['acceptorID'])
 
