@@ -553,7 +553,7 @@ class Station(models.Model):
             out.append('%s %s' % (a_parts[0], str(roman_to_int(a_parts[1]))))
             
             # Moooon
-            if parts[1].startswith('Moon'):
+            if parts[1].startswith('Moon') and len(parts) == 3:
                 out[0] = '%s-%s' % (out[0], parts[1][5:])
                 out.append(''.join(s[0] for s in parts[2].split()))
             else:
