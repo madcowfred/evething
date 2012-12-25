@@ -1738,7 +1738,7 @@ def _wallet_journal_work(url, job, character, corp_wallet=None):
                         logger.warn('wallet_journal: invalid taxReceiverID #%d', trid)
                         new_simple[trid] = SimpleCharacter(
                             id=trid,
-                            name='*UNKNOWN',
+                            name='*UNKNOWN*',
                         )
 
                     continue
