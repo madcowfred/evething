@@ -843,7 +843,7 @@ FLAG_NICE = {
     'LoSlot': ('Low Slot', 2),
     'RigSlot': ('Rig Slot', 3),
     'DroneBay': ('Drone Bay', 4),
-    'ShipHanger': ('Ship Hangar', 5),
+    'ShipHangar': ('Ship Hangar', 5),
     'SpecializedFuelBay': ('Fuel Bay', 6),
 }
 
@@ -853,32 +853,18 @@ class InventoryFlag(models.Model):
     text = models.CharField(max_length=128)
 
     def nice_name(self):
-        if self.name.startswith('HiSlot'):
-            return 'High Slot'
-        elif self.name.startswith('MedSlot'):
-            return 'Mid Slot'
-        elif self.name.startswith('LoSlot'):
-            return 'Low Slot'
-        elif self.name.startswith('RigSlot'):
-            return 'Rig Slot'
-        elif self.name == 'DroneBay':
-            return 'Drone Bay'
-        else:
-            return self.name
+        for pre, data in FLAG_NICE.items():
+            if self.name.startswith(pre):
+                return data[0]
+        
+        return self.name
 
     def sort_order(self):
-        if self.name.startswith('HiSlot'):
-            return 0
-        elif self.name.startswith('MedSlot'):
-            return 1
-        elif self.name.startswith('LoSlot'):
-            return 2
-        elif self.name.startswith('RigSlot'):
-            return 3
-        elif self.name.startswith('DroneBay'):
-            return 4
-        else:
-            return self.name
+        for pre, data in FLAG_NICE.items():
+            if self.name.startswith(pre):
+                return data[1]
+        
+        return 999
 
 # ---------------------------------------------------------------------------
 # Assets
