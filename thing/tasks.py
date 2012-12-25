@@ -2321,31 +2321,3 @@ def parse_api_date(s):
 def get_corporation(corp_id, corp_name):
     corp, created = Corporation.objects.get_or_create(pk=corp_id, defaults={ 'name': corp_name })
     return corp
-
-# ---------------------------------------------------------------------------
-# Caching item fetcher
-_item_cache = {}
-def get_item(item_id):
-    if item_id not in _item_cache:
-        try:
-            _item_cache[item_id] = Item.objects.get(pk=item_id)
-        except Item.DoesNotExist:
-            logger.warn("Item #%s apparently doesn't exist", item_id)
-            _item_cache[item_id] = None
-
-    return _item_cache[item_id]
-
-# ---------------------------------------------------------------------------
-# Caching station fetcher
-_station_cache = {}
-def get_station(station_id):
-    if station_id not in _station_cache:
-        try:
-            station = Station.objects.get(pk=station_id)
-        except Station.DoesNotExist:
-            station = None
-        
-        _station_cache[station_id] = station
-    
-    return _station_cache[station_id]
-
