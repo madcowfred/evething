@@ -2,7 +2,7 @@ from django.test import TestCase
 from thing.models import *
 
 class StationTestCase(TestCase):
-    fixtures = ['region_constellation_system_testdata.json']
+    #fixtures = ['region_constellation_system_testdata.json']
 
     def setUp(self):
         super(StationTestCase, self).setUp()
@@ -40,6 +40,7 @@ class InventoryFlagTestCase(TestCase):
         self.fuel_bay = InventoryFlag.objects.get(pk=133)
 
     def test_nice_name(self):
+        # Test name lookups
         self.assertEqual(self.hi_slot_1.nice_name(), 'High Slot')
         self.assertEqual(self.med_slot_1.nice_name(), 'Mid Slot')
         self.assertEqual(self.low_slot_1.nice_name(), 'Low Slot')
@@ -47,3 +48,12 @@ class InventoryFlagTestCase(TestCase):
         self.assertEqual(self.drone_bay.nice_name(), 'Drone Bay')
         self.assertEqual(self.ship_hangar.nice_name(), 'Ship Hangar')
         self.assertEqual(self.fuel_bay.nice_name(), 'Fuel Bay')
+
+    def test_sort_order(self):
+        # Test sort order lookups
+        flags = [self.fuel_bay, self.ship_hangar, self.drone_bay, self.rig_slot_1,
+            self.low_slot_1, self.med_slot_1, self.hi_slot_1]
+        flags.sort(key=lambda f: f.sort_order())
+        
+        self.assertEqual(flags, [self.hi_slot_1, self.med_slot_1, self.low_slot_1, self.rig_slot_1,
+            self.drone_bay, self.ship_hangar, self.fuel_bay])
