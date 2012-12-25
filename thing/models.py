@@ -1151,7 +1151,7 @@ class BlueprintInstance(models.Model):
     def _get_components(self, components=None, runs=1):
         PES = 5 #fixme: self.character.production_efficiency_skill
         ML = self.material_level
-        WF = self.blueprint.waste_factor
+        WF = self.blueprint.waste_factor / 100.0
         
         comps = []
         
@@ -1160,7 +1160,11 @@ class BlueprintInstance(models.Model):
         
         for component in components:
             if component.needs_waste:
-                amt = round(component.count * (1 + ((WF / 100.0) / (ML + 1)) + (0.25 - (0.05 * PES))))
+                # well this is horrible
+                if self.material_level >= 0:
+                    amt = round(component.count * (1 + (WF / (ML + 1)) + (0.25 - (0.05 * PES))))
+                else:
+                    amt = round(component.count * (1 + (WF * (abs(ML) + 1))) + (0.25 - (0.05 * PES)))
             else:
                 amt = component.count
             
