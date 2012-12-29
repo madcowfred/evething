@@ -167,6 +167,12 @@
             </div>
             <fieldset id="filters">
             </fieldset>
+            <fieldset>
+              {#<div class="control-group">
+                <input type="checkbox" name="ignoreself" class="input-small">
+                Ignore transactions between my own characters
+              </div>#}
+            </fieldset>
             <button type="submit" class="btn btn-success">Apply filters</button>
             <a id="clear-button" href="{% url thing.views.transactions %}" class="btn btn-danger">Clear filters</a>
           </form>

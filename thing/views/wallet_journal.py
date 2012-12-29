@@ -60,13 +60,6 @@ def wallet_journal(request):
         Q(corp_wallet__corporation__in=corporation_ids)
     )
 
-    # Days
-    days = request.GET.get('days', '')
-    if days.isdigit() and int(days) >= 0:
-        days = int(days)
-    else:
-        days = 0
-
     # Parse and apply filters
     filters = parse_filters(request, JOURNAL_EXPECTED)
 
@@ -146,9 +139,25 @@ def wallet_journal(request):
         )
 
     # Apply days limit
+    days = request.GET.get('days', '')
+    if days.isdigit() and int(days) >= 0:
+        days = int(days)
+    else:
+        days = 0
+    
     if days > 0:
         limit = datetime.datetime.utcnow() - datetime.timedelta(days)
         journal_ids = journal_ids.filter(date__gte=limit)
+
+    # Apply ignoreself
+    if 'ignoreself' in request.GET:
+        journal_ids = journal_ids.filter(
+            ~(
+                Q(owner1_id__in=character_ids)
+                &
+                Q(owner2_id__in=character_ids)
+            )
+        )
 
     # Calculate a total value
     total_amount = journal_ids.aggregate(t=Sum('amount'))['t']
@@ -308,6 +317,7 @@ def wallet_journal(request):
             'paginated': paginated,
             'next': next,
             'prev': prev,
+            'ignoreself': 'ignoreself' in request.GET,
         },
         context_instance=RequestContext(request)
     )

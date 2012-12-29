@@ -39,13 +39,9 @@
       $('a').each(function() {
         var href = $(this).attr('href');
         if (href !== undefined && href.substr(0, 5) === '?page') {
-          var m = search.match(/page=\d+/);
-          if (m !== null) {
-            $(this).attr('href', search.replace(m, 'page=' + href.split(/=/)[1]));
-          }
-          else {
-            $(this).attr('href', search + href.replace('?', '&'));
-          }
+          var params = parseParams(search.substring(1));
+          params.page = href.split(/=/)[1];
+          $(this).attr('href', '?' + $.param(params));
         }
       });
 
@@ -186,9 +182,13 @@
             <fieldset id="filters">
             </fieldset>
             <fieldset>
-              <div class="control-group">
+              <div class="control-group nomargin">
                 # of days
                 <input type="text" name="days" class="input-small" value="{{ days }}">
+              </div>
+              <div class="control-group">
+                <input type="checkbox" name="ignoreself" class="input-small"{% if ignoreself %} checked{% endif %}>
+                Ignore transactions between my own characters
               </div>
             </fieldset>
             <button type="submit" class="btn btn-success">Apply filters</button>

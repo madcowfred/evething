@@ -97,3 +97,24 @@ function randString(n)
 
     return text;
 }
+
+
+function parseParams(queryString) {
+    /*
+     * queryParameters -> handles the query string parameters
+     * queryString -> the query string without the fist '?' character
+     * re -> the regular expression
+     * m -> holds the string matching the regular expression
+     */
+    var queryParameters = {};
+    //var queryString = location.search.substring(1);
+    var re = /([^&=]+)=([^&]*)/g;
+    var m;
+     
+    // Creates a map with the query string parameters
+    while (m = re.exec(queryString)) {
+        queryParameters[decodeURIComponent(m[1])] = decodeURIComponent(m[2]);
+    }
+    
+    return queryParameters;
+}
