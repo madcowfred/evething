@@ -2,6 +2,15 @@
 
 {% block title %}Skill Plan: {% if anonymous %}{{ char.config.anon_key }}{% else %}{{ char.name }}{% endif %}, {{ skillplan.name }}{% endblock %}
 
+{% block extra_js %}
+    <script type="text/javascript">
+      $(document).ready(function() {
+        // hover thing for skill descriptions
+        $('.skill-hover').popover({ animation: false, trigger: 'hover', html: true });
+      });
+    </script>
+{% endblock %}
+
 {% block content %}
       <div class="row-fluid">
         <div class="span9">
