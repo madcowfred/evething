@@ -1,3 +1,5 @@
+import json
+
 #from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator, EmptyPage, InvalidPage, PageNotAnInteger
@@ -7,10 +9,32 @@ from django.template import RequestContext
 from coffin.shortcuts import *
 
 from thing.models import *
+from thing.stuff import parse_filters, q_reduce_or
 
 # ---------------------------------------------------------------------------
 
 MONTHS = (None, 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec')
+
+FILTER_EXPECTED = {
+    'char': {
+        'comps': ['eq', 'ne'],
+        'number': True,
+    },
+    'corp': {
+        'comps': ['eq', 'ne'],
+        'number': True,
+    },
+    'client': {
+        'comps': ['eq', 'ne', 'in'],
+    },
+    'item': {
+        'comps': ['eq', 'ne', 'in'],
+    },
+    'amount': {
+        'comps': ['eq', 'ne', 'gt', 'gte', 'lt', 'lte'],
+        'number': True,
+    },
+}
 
 # ---------------------------------------------------------------------------
 # Transaction list
@@ -19,13 +43,103 @@ def transactions(request):
     # Get profile
     profile = request.user.get_profile()
 
-    # Get a QuerySet of transactions IDs by this user
-    characters = list(Character.objects.filter(apikeys__user=request.user.id).values_list('id', flat=True))
-    transaction_ids = Transaction.objects.filter(character_id__in=characters)
+    characters = Character.objects.filter(apikeys__user=request.user.id)
+    character_ids = [c.id for c in characters]
+
+    corporations = Corporation.objects.filter(pk__in=APIKey.objects.filter(user=request.user).exclude(corp_character=None).values('corp_character__corporation'))
+    corporation_ids = [c.id for c in corporations]
+    
+    # Get a QuerySet of transactions by this user
+    transaction_ids = Transaction.objects.filter(
+        (
+            Q(character__in=character_ids)
+            &
+            Q(corp_wallet__isnull=True)
+        )
+        |
+        Q(corp_wallet__corporation__in=corporation_ids)
+    )
     transaction_ids = transaction_ids.order_by('-date')
+
+    # Get a QuerySet of transactions IDs by this user
+    #characters = list(Character.objects.filter(apikeys__user=request.user.id).values_list('id', flat=True))
+    #transaction_ids = Transaction.objects.filter(character_id__in=characters)
+    #transaction_ids = transaction_ids.order_by('-date')
 
     # Get only the ids, at this point joining the rest is unnecessary
     transaction_ids = transaction_ids.values_list('pk', flat=True)
+
+    # Parse and apply filters
+    filters = parse_filters(request, FILTER_EXPECTED)
+
+    if 'amount' in filters:
+        qs = []
+        for fc, fv in filters['amount']:
+            if fc == 'eq':
+                qs.append(Q(amount=fv))
+            elif fc == 'ne':
+                qs.append(~Q(amount=fv))
+            elif fc == 'gt':
+                qs.append(Q(amount__gt=fv))
+            elif fc == 'gte':
+                qs.append(Q(amount__gte=fv))
+            elif fc == 'lt':
+                qs.append(Q(amount__lt=fv))
+            elif fc == 'lte':
+                qs.append(Q(amount__lte=fv))
+        transaction_ids = transaction_ids.filter(reduce(q_reduce_or, qs))
+
+    if 'char' in filters:
+        qs = []
+        for fc, fv in filters['char']:
+            if fc == 'eq':
+                qs.append(Q(character=fv))
+            elif fc == 'ne':
+                qs.append(~Q(character=fv))
+        transaction_ids = transaction_ids.filter(reduce(q_reduce_or, qs))
+
+    if 'corp' in filters:
+        qs = []
+        for fc, fv in filters['corp']:
+            if fc == 'eq':
+                qs.append(Q(corp_wallet__corporation=fv))
+            elif fc == 'ne':
+                qs.append(~Q(corp_wallet__corporation=fv))
+        transaction_ids = transaction_ids.filter(reduce(q_reduce_or, qs))
+
+    if 'item' in filters:
+        qs = []
+        for fc, fv in filters['item']:
+            if fc == 'eq':
+                qs.append(Q(item__name=fv))
+            elif fc == 'ne':
+                qs.append(~Q(item__name=fv))
+            elif fc == 'in':
+                qs.append(Q(item__name__icontains=fv))
+        transaction_ids = transaction_ids.filter(reduce(q_reduce_or, qs))
+
+    # Client is a special case that requires some extra queries
+    if 'client' in filters:
+        qs = []
+        for fc, fv in filters['client']:
+            if fc == 'eq':
+                qs.append(Q(name=fv))
+            elif fc == 'ne':
+                qs.append(~Q(name=fv))
+            elif fc == 'in':
+                qs.append(Q(name__icontains=fv))
+
+        qs_reduced = reduce(q_reduce_or, qs)
+
+        char_ids = list(SimpleCharacter.objects.filter(qs_reduced).values_list('id', flat=True))
+        corp_ids = list(Corporation.objects.filter(qs_reduced).values_list('id', flat=True))
+
+        transaction_ids = transaction_ids.filter(
+            Q(other_char_id__in=char_ids)
+            |
+            Q(other_corp_id__in=corp_ids)
+        )
+
 
     # Create a new paginator
     paginator = Paginator(transaction_ids, profile.entries_per_page)
@@ -71,6 +185,13 @@ def transactions(request):
         for i in range(paginated.number + 1, paginator.num_pages)[:2]:
             next.append(i)
 
+    # Ready template things
+    json_expected = json.dumps(FILTER_EXPECTED)
+    values = {
+        'chars': characters,
+        'corps': corporations,
+    }
+
     # Render template
     return render_to_response(
         'thing/transactions.html',
@@ -79,6 +200,9 @@ def transactions(request):
             'paginated': paginated,
             'next': next,
             'prev': prev,
+            'filters': filters,
+            'json_expected': json_expected,
+            'values': values,
         },
         context_instance=RequestContext(request)
     )
@@ -88,9 +212,25 @@ def transactions(request):
 @login_required
 def transactions_item(request, item_id, year=None, month=None, period=None, slug=None):
     data = {}
+
+    characters = Character.objects.filter(apikeys__user=request.user.id)
+    character_ids = [c.id for c in characters]
+
+    corporations = Corporation.objects.filter(pk__in=APIKey.objects.filter(user=request.user).exclude(corp_character=None).values('corp_character__corporation'))
+    corporation_ids = [c.id for c in corporations]
     
     # Get a QuerySet of transactions by this user
-    transactions = Transaction.objects.filter(character__apikeys__user=request.user).order_by('-date')
+    transactions = Transaction.objects.filter(
+        (
+            Q(character__in=character_ids)
+            &
+            Q(corp_wallet__isnull=True)
+        )
+        |
+        Q(corp_wallet__corporation__in=corporation_ids)
+    )
+    transactions = transactions.order_by('-date')
+    #transactions = Transaction.objects.filter(character__apikeys__user=request.user).order_by('-date')
     
     # If item_id is an integer we should filter on that item_id
     if item_id.isdigit():
@@ -130,6 +270,13 @@ def transactions_item(request, item_id, year=None, month=None, period=None, slug
     
     data['transactions'] = transactions
     
+    # Ready template things
+    data['json_expected'] = json.dumps(FILTER_EXPECTED)
+    data['values'] = {
+        'chars': characters,
+        'corps': corporations,
+    }
+
     # Render template
     return render_to_response(
         'thing/transactions_item.html',
