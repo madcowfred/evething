@@ -30,7 +30,7 @@ FILTER_EXPECTED = {
     'item': {
         'comps': ['eq', 'ne', 'in'],
     },
-    'amount': {
+    'total': {
         'comps': ['eq', 'ne', 'gt', 'gte', 'lt', 'lte'],
         'number': True,
     },
@@ -72,21 +72,58 @@ def transactions(request):
     # Parse and apply filters
     filters = parse_filters(request, FILTER_EXPECTED)
 
-    if 'amount' in filters:
+    if 'total' in filters:
         qs = []
-        for fc, fv in filters['amount']:
+        for fc, fv in filters['total']:
             if fc == 'eq':
-                qs.append(Q(amount=fv))
+                if fv < 0:
+                    qs.append(Q(buy_transction=True, total_price=abs(fv)))
+                else:
+                    qs.append(Q(buy_transction=False, total_price=fv))
+
             elif fc == 'ne':
-                qs.append(~Q(amount=fv))
+                qs.append(~Q(total_price=fv))
+
             elif fc == 'gt':
-                qs.append(Q(amount__gt=fv))
+                if fv > 0:
+                    qs.append(Q(buy_transaction=False, total_price__gt=fv))
+                else:
+                    qs.append(
+                        Q(buy_transaction=False, total_price__gt=abs(fv))
+                        |
+                        Q(buy_transaction=True, total_price__lt=abs(fv))
+                    )
+
             elif fc == 'gte':
-                qs.append(Q(amount__gte=fv))
+                if fv >= 0:
+                    qs.append(Q(buy_transaction=False, total_price__gte=fv))
+                else:
+                    qs.append(
+                        Q(buy_transaction=False, total_price__gte=abs(fv))
+                        |
+                        Q(buy_transaction=True, total_price__lte=abs(fv))
+                    )
+
             elif fc == 'lt':
-                qs.append(Q(amount__lt=fv))
+                if fv > 0:
+                    qs.append(
+                        Q(buy_transaction=False, total_price__lt=fv)
+                        |
+                        Q(buy_transaction=True, total_price__gt=0)
+                    )
+                else:
+                    qs.append(Q(buy_transaction=True, total_price__gt=abs(fv)))
+
             elif fc == 'lte':
-                qs.append(Q(amount__lte=fv))
+                if fv >= 0:
+                    qs.append(
+                        Q(buy_transaction=False, total_price__lte=fv)
+                        |
+                        Q(buy_transaction=True, total_price__gte=0)
+                    )
+                else:
+                    qs.append(Q(buy_transaction=True, total_price__gte=abs(fv)))
+
         transaction_ids = transaction_ids.filter(reduce(q_reduce_or, qs))
 
     if 'char' in filters:
