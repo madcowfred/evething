@@ -28,6 +28,8 @@
               $this.text('corporation.name [ticker]');
             else if ($this.hasClass('character-location'))
               $this.text('Hoth -- X-Wing');
+            else if ($this.hasClass('wallet-division'))
+              $this.text('Hookers & Blow')
           }
           else {
             $this.text($oldname);
@@ -163,7 +165,7 @@
           <tbody>
             {% for wallet in corporation.corpwallet_set.all() %}
             <tr>
-              <td>{{ wallet.description }}</td>
+              <td class="sensitive wallet-division">{{ wallet.description }}</td>
               <td class="r">{{ wallet.balance|commas }}</td>
             </tr>
             {% endfor %}
