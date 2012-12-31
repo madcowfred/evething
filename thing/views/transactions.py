@@ -17,20 +17,25 @@ MONTHS = (None, 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', '
 
 FILTER_EXPECTED = {
     'char': {
+        'label': 'Character',
         'comps': ['eq', 'ne'],
         'number': True,
     },
     'corp': {
+        'label': 'Corporation',
         'comps': ['eq', 'ne'],
         'number': True,
     },
     'client': {
+        'label': 'Client',
         'comps': ['eq', 'ne', 'in'],
     },
     'item': {
+        'label': 'Item',
         'comps': ['eq', 'ne', 'in'],
     },
     'total': {
+        'label': 'Total Amount',
         'comps': ['eq', 'ne', 'gt', 'gte', 'lt', 'lte'],
         'number': True,
     },

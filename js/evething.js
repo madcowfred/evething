@@ -118,3 +118,80 @@ function parseParams(queryString) {
     
     return queryParameters;
 }
+
+
+function sorted_keys(obj) {
+    var keys = [];
+    for (var key in obj)
+        keys.push(key);
+    return keys.sort(function (a,b) {
+        if (obj[a] < obj[b]) return -1;
+        if (obj[a] > obj[b]) return 1;
+        return 0;
+    });
+}
+
+
+var filter_comps = { 'eq': '==', 'ne': '!=', 'gt': '>', 'gte': '>=', 'lt': '<', 'lte': '<=', 'in': 'contains' }
+
+function filter_build(expected, data, ft, fc, fv) {
+    var html = '<div class="control-group" style="margin: 0;">';
+    html += '<i class="icons-delete"></i> ';
+    html += '<select name="ft" class="filter-type input-medium">';
+    html += '<option value=""></option>';
+
+    $.each(sorted_keys(expected), function(i, k) {
+        if (k === ft)
+            html += '<option value="' + k + '" selected>' + expected[k].label + '</option>';
+        else
+            html += '<option value="' + k + '">' + expected[k].label + '</option>';
+    });
+    html += '</select>';
+
+    if (ft) {
+        html += filter_build_comp(expected, ft, fc);
+        html += filter_build_value(data, ft, fc, fv);
+    }
+
+    html += '</div>';
+
+    return html;
+}
+
+function filter_build_comp(expected, ft, fc) {
+    html = ' <select name="fc" class="input-small">';
+
+    for (var k in expected[ft].comps) {
+        var v = expected[ft].comps[k];
+        if (v == fc)
+            html += '<option value="' + v + '" selected>' + filter_comps[v] + '</option>';
+        else
+            html += '<option value="' + v + '">' + filter_comps[v] + '</option>';
+    }
+
+    html += '</select>';
+    return html;
+}
+
+function filter_build_value(data, ft, fc, fv) {
+    html = ' ';
+
+    if (data[ft]) {
+        html += '<select name="fv" class="filter-value input-xlarge">';
+
+        $.each(sorted_keys(data[ft]), function(i, d_id) {
+            var d_name = data[ft][d_id];
+            if (d_id == fv)
+                html += '<option value="' + d_id + '" selected>' + d_name + '</option>';
+            else
+                html += '<option value="' + d_id + '">' + d_name + '</option>';
+        });
+
+        html += '</select>';
+    }
+    else {
+        html += '<input name="fv" class="filter-value input-xlarge" type="text" value="' + fv + '">';
+    }
+
+    return html;
+}

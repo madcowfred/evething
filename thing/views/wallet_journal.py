@@ -17,21 +17,26 @@ from thing.views.trade import _month_range
 
 JOURNAL_EXPECTED = {
     'char': {
+        'label': 'Character',
         'comps': ['eq', 'ne'],
         'number': True,
     },
     'corp': {
+        'label': 'Corporation',
         'comps': ['eq', 'ne'],
         'number': True,
     },
     'reftype': {
+        'label': 'Ref Type',
         'comps': ['eq', 'ne'],
         'number': True,
     },
     'owners': {
+        'label': 'Owners',
         'comps': ['eq', 'ne', 'in'],
     },
     'amount': {
+        'label': 'Amount',
         'comps': ['eq', 'ne', 'gt', 'gte', 'lt', 'lte'],
         'number': True,
     },
