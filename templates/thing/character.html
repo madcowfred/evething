@@ -68,11 +68,7 @@
       <div class="row-fluid">
         <div class="span3 character-side">
           <div class="image">
-            {% if anonymous -%}
-            <img src="{{ STATIC_URL }}img/anonymous_character.jpg" height="256" width="256" class="img-rounded">
-            {%- else -%}
-            <img src="http://image.eveonline.com/Character/{{ char.id }}_256.jpg" height="256" width="256" class="img-rounded">
-            {%- endif %}
+            <img src="{% if anonymous %}img/anonymous_character.jpg{% else %}http://image.eveonline.com/Character/{{ char.id }}_256.jpg{% endif %}" height="256" width="256" class="img-rounded">
           </div>
           
           {%- if not public %}
@@ -178,7 +174,7 @@
         </div>
         
         <div class="span9">
-          <h2 class="nomargin">{% if anonymous %}{{ char.config.anon_key }}{% else %}{{ char.name }}{% endif %}</h2>
+          <h2 class="nomargin">{% if anonymous %}Anonymized: {{ char.config.anon_key }}{% else %}{{ char.name }}{% endif %}</h2>
           <div class="row-fluid">
             <div class="span4">
               {% if not anonymous -%}

@@ -90,7 +90,11 @@ def character_common(request, char, public=True, anonymous=False):
     unpub_mg.z_total_sp = 0
     skills[unpub_mg] = []
 
-    for cs in CharacterSkill.objects.select_related('skill__item__market_group').filter(character=char).order_by('skill__item__market_group__name', 'skill__item__name'):
+    css = CharacterSkill.objects.select_related('skill__item__market_group')
+    css = css.filter(character=char)
+    css = css.order_by('skill__item__market_group__name', 'skill__item__name')
+
+    for cs in css:
         mg = cs.skill.item.market_group or unpub_mg
         if mg != cur:
             cur = mg
