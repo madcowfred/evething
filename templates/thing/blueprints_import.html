@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}Blueprints: Import{% endblock %}
+
+{% block content %}
+      <div class="row-fluid">
+        <div class="span6">
+          <h2>Blueprints Import</h2>
+
+          {% if message -%}
+          <div class="alert alert-{{ message_type }}">
+            <strong>{{ message_type|capfirst }}:</strong> {{ message }}
+          </div>
+          {%- endif %}
+
+          <form action="" method="POST">
+            {% csrf_token %}
+            <fieldset>
+              <textarea name="csv" class="input-block-level" placeholder="Paste your CSV data here" rows="10">{{ csv }}</textarea>
+            </fieldset>
+            <fieldset>
+              <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Import</button>
+              </div>
+            </fieldset>
+          </form>
+        </div>
+      </div>
+{% endblock %}
