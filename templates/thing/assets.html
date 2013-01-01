@@ -87,7 +87,7 @@
         var last_slot = null;
 
         $(data_target).each(function() {
-          var slot = $.trim($('td:nth-child(3)', $(this)).text());
+          var slot = $.trim($('td:nth-child(4)', $(this)).text());
           if (slot.substr(-4) == "Slot") {
             if (last_slot && last_slot != slot) {
               $('#eft-textarea').append('\n');
@@ -250,7 +250,7 @@
         <div class="modal-body">
           <div class="row-fluid">
             <div class="span12">
-              <textarea id="eft-textarea" rows="20" style="width: 98%;">
+              <textarea id="eft-textarea" rows="18" style="width: 98%;">
               </textarea>
             </div>
           </div>
