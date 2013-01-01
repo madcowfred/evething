@@ -10,6 +10,9 @@
         $("[rel=tooltip]").each(function () {
           $(this).data('tooltip').options.placement = 'right';
         });
+
+        // hover thing for skill descriptions
+        $('.skill-hover').popover({ animation: false, trigger: 'hover', html: true });
       });
 
       function screenshot_mode() {
@@ -117,7 +120,8 @@
 
           {% if character.z_training -%}
           <div class="margin-half-top">
-            <span>{{ character.z_training.sq.skill.item.name }} {{ character.z_training.sq.get_roman_level() }}</span>
+            <span class="skill-hover" rel="popover" title="{{ character.z_training.sq.skill.item.name }}"
+             data-content="{{ character.z_training.sq.skill }}"{% if loop.index == profile.home_chars_per_row %} data-placement="left"{% endif %}>{{ character.z_training.sq.skill.item.name }} {{ character.z_training.sq.get_roman_level() }}</span>
             <span class="small">(Rank {{ character.z_training.sq.skill.rank }})</span>
             <br>
             <em class="small">{{ character.z_training.skill_duration|shortduration }} @ {{ character.z_training.sp_per_hour }} SP/hr</em>
@@ -163,7 +167,7 @@
             </tr>
           </thead>
           <tbody>
-            {% for wallet in corporation.corpwallet_set.all() %}
+            {% for wallet in corporation.wallets %}
             <tr>
               <td class="sensitive wallet-division">{{ wallet.description }}</td>
               <td class="r">{{ wallet.balance|commas }}</td>

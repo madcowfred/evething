@@ -211,7 +211,10 @@ def home(request):
 
     # Get corporations this user has APIKeys for
     corp_ids = APIKey.objects.select_related().filter(user=request.user.id).exclude(corp_character=None).values_list('corp_character__corporation', flat=True)
-    corporations = Corporation.objects.filter(pk__in=corp_ids)
+    corporations = Corporation.objects.prefetch_related('corpwallet_set').filter(pk__in=corp_ids)
+
+    for corp in corporations:
+        corp.wallets = corp.corpwallet_set.all()
 
     # Get old event stats for staff users
     if request.user.is_staff:
@@ -230,7 +233,7 @@ def home(request):
             'total_sp': total_sp,
             'corporations': corporations,
             'characters': first + last,
-            'events': Event.objects.filter(user=request.user)[:10],
+            'events': list(Event.objects.filter(user=request.user)[:10]),
             'ship_map': ship_map,
             'task_count': task_count,
         },
