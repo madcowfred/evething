@@ -148,7 +148,7 @@
           <a class="close" data-dismiss="modal"><i class="icons-close"></i></a>
           <h3>Add Blueprint</h3>
         </div>
-        <form action="{% url thing.views.blueprints_add %}" method="GET" class="form-horizontal">
+        <form action="{% url thing.views.blueprints_add %}" method="GET" class="form-horizontal nomargin">
           <div class="modal-body">
             <fieldset>
               <div class="control-group">
@@ -195,7 +195,7 @@
           <a class="close" data-dismiss="modal"><i class="icons-close"></i></a>
           <h3>Edit Blueprint</h3>
         </div>
-        <form action="{% url thing.views.blueprints_edit %}" class="form-horizontal">
+        <form action="{% url thing.views.blueprints_edit %}" class="form-horizontal nomargin">
           <input type="hidden" name="bpi_id" id="bp-edit-bpi_id" value="">
           <div class="modal-body">
             <fieldset>
@@ -231,7 +231,7 @@
           <a class="close" data-dismiss="modal"><i class="icons-close"></i></a>
           <h3>Delete Confirmation</h3>
         </div>
-        <form action="{% url thing.views.blueprints_del %}">
+        <form action="{% url thing.views.blueprints_del %}" class="nomargin">
           <input type="hidden" name="bpi_id" id="bp-del-bpi_id" value="">
           <div class="modal-body">
             Are you sure you wish to delete blueprint #<span id="bp-del-id"></span> (<span id="bp-del-name"></span>, <span id="bp-del-type"></span>, 
