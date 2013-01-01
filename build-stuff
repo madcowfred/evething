@@ -10,6 +10,9 @@ uglifyjs -nc static/js/evething.js > static/js/evething.min.js
 echo Building theme-default...
 recess --compress less/theme-default/bootstrap.less > static/css/theme-default.min.css
 
+echo Building theme-darkthing...
+recess --compress less/theme-darkthing/bootstrap.less > static/css/theme-darkthing.min.css
+
 echo Building theme-slate...
 recess --compress less/theme-slate/bootstrap.less > static/css/theme-slate.min.css
 
