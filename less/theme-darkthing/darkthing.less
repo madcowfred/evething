@@ -107,16 +107,18 @@ input[type="color"],
 // --------
 .popover {
     width: 350px;
+    border: 1px solid lighten(@popoverBackground, 25%);
 }
 
 // MODALS
 // ------
 .modal {
-    background: @popoverBackground;
+    background: @tooltipBackground;
+    border: 1px solid lighten(@tooltipBackground, 25%);
 }
 .modal-header {
-    background: @popoverTitleBackground;
+    background: lighten(@tooltipBackground, 10%);
 }
 .modal-footer {
-    background: @popoverBackground;
+    background: @tooltipBackground;
 }

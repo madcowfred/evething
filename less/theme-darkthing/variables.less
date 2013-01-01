@@ -255,10 +255,10 @@
 @tooltipArrowWidth:       5px;
 @tooltipArrowColor:       lighten(@tooltipBackground, 25%);
 
-@popoverBackground:       #282828;
+@popoverBackground:       @tooltipBackground;
 @popoverArrowWidth:       10px;
-@popoverArrowColor:       @popoverBackground;
-@popoverTitleBackground:  #2f2f2f;
+@popoverArrowColor:       lighten(@popoverBackground, 25%);
+@popoverTitleBackground:  lighten(@tooltipBackground, 5%);
 
 // Special enhancement for popovers
 @popoverArrowOuterWidth:  @popoverArrowWidth + 1;
