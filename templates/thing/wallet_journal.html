@@ -31,13 +31,9 @@
       $('a').each(function() {
         var href = $(this).attr('href');
         if (href !== undefined && href.substr(0, 5) === '?page') {
-          var m = search.match(/page=\d+/);
-          if (m !== null) {
-            $(this).attr('href', search.replace(m, 'page=' + href.split(/=/)[1]));
-          }
-          else {
-            $(this).attr('href', search + href.replace('?', '&'));
-          }
+          var params = parseParams(search.substring(1));
+          params.page = href.split(/=/)[1];
+          $(this).attr('href', '?' + $.param(params));
         }
       });
 
