@@ -74,7 +74,9 @@
         </div>
         <div class="span5">
           <div class="pull-right">
-            <a class="btn btn-success" data-toggle="modal" href="#add-blueprint">Add Blueprint</a>
+            <a class="btn btn-success" data-toggle="modal" href="#add-blueprint">Add</a>
+            <a class="btn btn-info" href="{% url thing.views.blueprints_import %}">Import</a>
+            <a class="btn btn-info" href="{% url thing.views.blueprints_export %}">Export</a>
           </div>
         </div>
       </div>

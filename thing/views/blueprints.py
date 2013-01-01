@@ -1,3 +1,5 @@
+import csv
+
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.db import connection
@@ -86,6 +88,90 @@ def blueprints_edit(request):
     bpi.save()
 
     return redirect('blueprints')
+
+# ---------------------------------------------------------------------------
+# Export blueprints as CSV
+@login_required
+def blueprints_export(request):
+    return render_to_response(
+        'thing/blueprints_export.html',
+        {
+            'bpis': BlueprintInstance.objects.select_related().filter(user=request.user.id),
+        },
+        context_instance=RequestContext(request)
+    )
+
+# Import blueprints from CSV
+@login_required
+def blueprints_import(request):
+    csvdata = ''
+
+    if request.method == 'POST':
+        if 'csv' in request.POST:
+            csvdata = request.POST['csv']
+
+            # parse CSV data
+            data = []
+            for row in csv.reader(csvdata.splitlines()):
+                if len(row) != 4:
+                    continue
+                if row[1] not in ('0', '1'):
+                    continue
+                if not (row[2].isdigit() or (row[2][0] == '-' and row[2][1:].isdigit())):
+                    continue
+                if not (row[3].isdigit() or (row[3][0] == '-' and row[3][1:].isdigit())):
+                    continue
+
+                data.append(row)
+
+            # retrieve blueprint data
+            bpnames = set([d[0] for d in data])
+            bp_map = {}
+            for bp in Blueprint.objects.filter(name__in=bpnames):
+                bp_map[bp.name] = bp
+
+            # build new objects
+            new = []
+            for bpname, original, me, pe in data:
+                bp = bp_map.get(bpname)
+                if not bp:
+                    continue
+
+                new.append(BlueprintInstance(
+                    user=request.user,
+                    blueprint=bp,
+                    original=original,
+                    material_level=me,
+                    productivity_level=pe,
+                ))
+
+            # actually create new objects if we have to
+            if new:
+                BlueprintInstance.objects.bulk_create(new)
+
+                message = 'Successfully added %s new blueprints!' % (len(new))
+                message_type = 'success'
+            else:
+                message = 'Invalid CSV data!'
+                message_type = 'error'
+
+        else:
+            message = 'Invalid CSV data!'
+            message_type = 'error'
+
+    else:
+        message = None
+        message_type = None
+
+    return render_to_response(
+        'thing/blueprints_import.html',
+        {
+            'message': message,
+            'message_type': message_type,
+            'csv': csvdata,
+        },
+        context_instance=RequestContext(request)
+    )
 
 # ---------------------------------------------------------------------------
 # Calculate blueprint production details for X number of days

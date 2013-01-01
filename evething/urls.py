@@ -38,6 +38,8 @@ urlpatterns += patterns('thing.views',
     (r'^blueprints/add/$', 'blueprints_add'),
     (r'^blueprints/del/$', 'blueprints_del'),
     (r'^blueprints/edit/$', 'blueprints_edit'),
+    (r'^blueprints/export/$', 'blueprints_export'),
+    (r'^blueprints/import/$', 'blueprints_import'),
 
     (r'^bpcalc/$', 'bpcalc'),
     
