@@ -10,6 +10,7 @@ from django.template import RequestContext
 from coffin.shortcuts import *
 
 from thing.models import *
+from thing.stuff import TimerThing
 from thing import queries
 
 # ---------------------------------------------------------------------------
@@ -20,6 +21,8 @@ ONE_DAY = 24 * 60 * 60
 # List of blueprints we own
 @login_required
 def blueprints(request):
+    tt = TimerThing('blueprints')
+
     # Get a valid number of runs
     try:
         runs = int(request.GET.get('runs', '1'))
@@ -32,6 +35,8 @@ def blueprints(request):
     for bpc in BlueprintComponent.objects.select_related(depth=1).filter(blueprint__in=bp_ids):
         bpc_map.setdefault(bpc.blueprint.id, []).append(bpc)
     
+    tt.add_time('bp->bpc map')
+
     # Assemble blueprint data
     bpis = []
     for bpi in BlueprintInstance.objects.select_related().filter(user=request.user.id):
@@ -48,8 +53,10 @@ def blueprints(request):
         
         bpis.append(bpi)
     
+    tt.add_time('bp data')
+
     # Render template
-    return render_to_response(
+    out = render_to_response(
         'thing/blueprints.html',
         {
             'blueprints': Blueprint.objects.all(),
@@ -58,6 +65,12 @@ def blueprints(request):
         },
         context_instance=RequestContext(request)
     )
+
+    tt.add_time('template')
+    if settings.DEBUG:
+        tt.finished()
+
+    return out
 
 # Add a new blueprint
 @login_required

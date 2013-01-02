@@ -155,9 +155,9 @@
                 <label class="control-label" for="blueprint_id">Blueprint</label>
                 <div class="controls">
                   <select name="blueprint_id" class="input-xlarge">
-                    {% for blueprint in blueprints %}
+                    {% for blueprint in blueprints -%}
                     <option value="{{ blueprint.id }}">{{ blueprint.name }}</option>
-                    {% endfor %}
+                    {%- endfor %}
                   </select>
                 </div>
               </div>
