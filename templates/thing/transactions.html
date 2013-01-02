@@ -114,7 +114,6 @@
               </tr>
             </thead>
             <tbody>
-              {% with user.get_profile().show_item_icons as show_item_icons -%}
               {% for transaction in transactions -%}
               <tr>
                 <td class="c">{{ transaction.date|date("Y-m-d H:i") }}</td>
@@ -148,7 +147,6 @@
                 <td colspan="9">No matching transactions.</td>
               </tr>
               {%- endfor %}
-              {%- endwith %}
             </tbody>
           </table>
           <div class="pagination pagination-centered">

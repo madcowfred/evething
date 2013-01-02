@@ -1,6 +1,6 @@
 import json
 
-#from django.conf import settings
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator, EmptyPage, InvalidPage, PageNotAnInteger
 #from django.db.models import Q, Avg, Count, Max, Min, Sum
@@ -9,7 +9,7 @@ from django.template import RequestContext
 from coffin.shortcuts import *
 
 from thing.models import *
-from thing.stuff import parse_filters, q_reduce_or
+from thing.stuff import TimerThing, parse_filters, q_reduce_or
 
 # ---------------------------------------------------------------------------
 
@@ -45,6 +45,8 @@ FILTER_EXPECTED = {
 # Transaction list
 @login_required
 def transactions(request):
+    tt = TimerThing('transactions')
+
     # Get profile
     profile = request.user.get_profile()
 
@@ -54,6 +56,8 @@ def transactions(request):
     corporations = Corporation.objects.filter(pk__in=APIKey.objects.filter(user=request.user).exclude(corp_character=None).values('corp_character__corporation'))
     corporation_ids = [c.id for c in corporations]
     
+    tt.add_time('init')
+
     # Get a QuerySet of transactions by this user
     transaction_ids = Transaction.objects.filter(
         (
@@ -73,6 +77,8 @@ def transactions(request):
 
     # Get only the ids, at this point joining the rest is unnecessary
     transaction_ids = transaction_ids.values_list('pk', flat=True)
+
+    tt.add_time('transaction ids')
 
     # Parse and apply filters
     filters = parse_filters(request, FILTER_EXPECTED)
@@ -182,6 +188,7 @@ def transactions(request):
             Q(other_corp_id__in=corp_ids)
         )
 
+    tt.add_time('filters')
 
     # Create a new paginator
     paginator = Paginator(transaction_ids, profile.entries_per_page)
@@ -202,10 +209,7 @@ def transactions(request):
         # Page is out of range, deliver last page
         paginated = paginator.page(paginator.num_pages)
 
-    # Actually execute the query to avoid a nested subquery
-    paginated_ids = list(paginated.object_list.all())
-    transactions = Transaction.objects.filter(pk__in=paginated_ids).select_related('corp_wallet__corporation', 'item', 'station', 'character', 'other_char', 'other_corp')
-    transactions = transactions.order_by('-date')
+    tt.add_time('paginator')
 
     # Do page number things
     hp = paginated.has_previous()
@@ -227,6 +231,14 @@ def transactions(request):
         for i in range(paginated.number + 1, paginator.num_pages)[:2]:
             next.append(i)
 
+    # Build the transaction queryset now to avoid nasty subqueries
+    transactions = Transaction.objects.filter(pk__in=paginated)
+    transactions = transactions.select_related('corp_wallet__corporation', 'item', 'station', 'character', 'other_char', 'other_corp')
+    transactions = transactions.order_by('-date')
+    transactions = list(transactions)
+
+    tt.add_time('transactions')
+
     # Ready template things
     json_expected = json.dumps(FILTER_EXPECTED)
     values = {
@@ -234,11 +246,14 @@ def transactions(request):
         'corps': corporations,
     }
 
+    tt.add_time('template bits')
+
     # Render template
-    return render_to_response(
+    out = render_to_response(
         'thing/transactions.html',
         {
             'transactions': transactions,
+            'show_item_icons': request.user.get_profile().show_item_icons,
             'paginated': paginated,
             'next': next,
             'prev': prev,
@@ -248,6 +263,12 @@ def transactions(request):
         },
         context_instance=RequestContext(request)
     )
+
+    tt.add_time('template')
+    if settings.DEBUG:
+        tt.finished()
+
+    return out
 
 # ---------------------------------------------------------------------------
 # Transaction details for last x days for specific item
