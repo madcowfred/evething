@@ -1,14 +1,31 @@
 // DarkThing (2.2.2)
 
+
 // FONTS
 // -----------------------------------------------------
 @import url("http://fonts.googleapis.com/css?family=Droid+Sans&css");
 @import url("http://fonts.googleapis.com/css?family=Droid+Serif&css");
 
+// EVETHING
+// --------
+.level5 {
+  color: #5F7FBF;
+}
+.training-highlight {
+  color: #7FBF3F;
+  font-weight: normal;
+}
+.pos {
+  color: #00a81f;
+}
+.neg {
+  color: #df001f;
+}
+
 // SCAFFOLDING
 // -----------------------------------------------------
 body {
-    background: url("../img/theme-darkthing.png") repeat 0 0;
+  background: url("../img/theme-darkthing.png") repeat 0 0;
 }
 
 // TABS
@@ -20,14 +37,14 @@ body {
 
 .nav-tabs > .active > a,
 .nav-tabs > .active > a:hover {
-    color: lighten(@linkColor, 35%);
-    background: rgba(40, 40, 40, 0.5);
+  color: lighten(@linkColor, 35%);
+  background: rgba(40, 40, 40, 0.5);
 }
 
 // PROGRESS BARS
 // -------------
 .progress {
-  #gradient > .vertical(lighten(@wellBackground, 5%), lighten(@wellBackground, 7%));
+  #gradient > .vertical(rgba(65, 65, 65, 0.2), rgba(75, 75, 75, 0.2));
 }
 // 149bdf
 .progress-striped .bar {
@@ -49,39 +66,39 @@ body {
 // WELLS
 // -----
 .well {
-    border: 1px solid lighten(@wellBackground, 10%);
+  border: 1px solid lighten(@wellBackground, 10%);
 }
 .well-small {
-    padding: 6px;
+  padding: 6px;
 }
 
 // TOOLTIPS
 // --------
 .tooltip {
-    &.in {
-        .opacity(100);
-    }
+  &.in {
+    .opacity(100);
+  }
 }
 .tooltip-inner {
-    border: 1px solid lighten(@tooltipBackground, 25%);
+  border: 1px solid lighten(@tooltipBackground, 25%);
 }
 
 // FORMS
 // -----
 legend {
-    color: lighten(@textColor, 5%);
-    border-bottom: 1px solid #aaa;
+  color: lighten(@textColor, 5%);
+  border-bottom: 1px solid #aaa;
 }
 .uneditable-input,
 .uneditable-textarea {
-    color: #111;
+  color: #111;
 }
 .uneditable-textarea {
-    padding: 4px;
-    margin-bottom: 10px;
+  padding: 4px;
+  margin-bottom: 10px;
 }
 .form-actions {
-    border-top: 1px solid #aaa;
+  border-top: 1px solid #aaa;
 }
 select,
 textarea,
@@ -100,25 +117,25 @@ input[type="search"],
 input[type="tel"],
 input[type="color"],
 .uneditable-input {
-    color: #111;
+  color: #111;
 }
 
 // POPOVERS
 // --------
 .popover {
-    width: 350px;
-    border: 1px solid lighten(@popoverBackground, 25%);
+  width: 350px;
+  border: 1px solid lighten(@popoverBackground, 25%);
 }
 
 // MODALS
 // ------
 .modal {
-    background: @tooltipBackground;
-    border: 1px solid lighten(@tooltipBackground, 25%);
+  background: @tooltipBackground;
+  border: 1px solid lighten(@tooltipBackground, 25%);
 }
 .modal-header {
-    background: lighten(@tooltipBackground, 10%);
+  background: lighten(@tooltipBackground, 10%);
 }
 .modal-footer {
-    background: @tooltipBackground;
+  background: @tooltipBackground;
 }

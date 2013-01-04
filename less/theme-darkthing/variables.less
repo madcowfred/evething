@@ -39,7 +39,7 @@
 
 // Links
 // -------------------------
-@linkColor:             #0af;
+@linkColor:             #3f9fcf;
 @linkColorHover:        darken(@linkColor, 15%);
 
 
@@ -89,23 +89,23 @@
 @btnBackgroundHighlight:            darken(@white, 10%);
 @btnBorder:                         #bbb;
 
-@btnPrimaryBackground:              @linkColor;
-@btnPrimaryBackgroundHighlight:     spin(@btnPrimaryBackground, 20%);
+@btnPrimaryBackground:              darken(@linkColor, 22%);
+@btnPrimaryBackgroundHighlight:     spin(@btnPrimaryBackground, 10%);
 
-@btnInfoBackground:                 darken(#5bc0de, 40%);
-@btnInfoBackgroundHighlight:        darken(#2f96b4, 25%);
+@btnInfoBackground:                 #286874;
+@btnInfoBackgroundHighlight:        spin(@btnInfoBackground, 10%);
 
-@btnSuccessBackground:              darken(#62c462, 40%);
-@btnSuccessBackgroundHighlight:     darken(#51a351, 25%);
+@btnSuccessBackground:              #194f19;
+@btnSuccessBackgroundHighlight:     spin(@btnSuccessBackground, 10%);
 
 @btnWarningBackground:              lighten(@orange, 15%);
-@btnWarningBackgroundHighlight:     @orange;
+@btnWarningBackgroundHighlight:     spin(@btnWarningBackground, 10%);
 
 @btnDangerBackground:               darken(#ee5f5b, 40%);
-@btnDangerBackgroundHighlight:      darken(#bd362f, 25%);
+@btnDangerBackgroundHighlight:      spin(@btnDangerBackground, 10%);
 
 @btnInverseBackground:              #444;
-@btnInverseBackgroundHighlight:     @grayDarker;
+@btnInverseBackgroundHighlight:     spin(@btnInverseBackground, 10%);
 
 
 // Forms
@@ -240,7 +240,7 @@
 @errorBorder:             darken(spin(@errorBackground, -10), 3%);
 
 @successText:             rgb(165, 225, 165);
-@successBackground:       rgba(40, 80, 40, 0.3);
+@successBackground:       rgba(50, 90, 50, 0.3);
 @successBorder:           darken(spin(@successBackground, -10), 5%);
 
 @infoText:                #3a87ad;
