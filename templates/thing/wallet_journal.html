@@ -31,8 +31,9 @@
       $('a').each(function() {
         var href = $(this).attr('href');
         if (href !== undefined && href.substr(0, 5) === '?page') {
-          var params = parseParams(search.substring(1));
+          var params = parseQueryString();
           params.page = href.split(/=/)[1];
+          console.log(params);
           $(this).attr('href', '?' + $.param(params));
         }
       });
@@ -66,7 +67,7 @@
 
 {% block content %}
       <div class="row-fluid">
-        <div class="span5">
+        <div class="span12">
           <h2>Wallet Journal</h2>
 
           <form id="filter-form" class="well well-small" action="{% url thing.views.wallet_journal %}" method="GET">

@@ -1,3 +1,7 @@
+// PHP default? wtf
+jQuery.ajaxSettings.traditional = true;
+
+
 $(document).ready(function() {
     // highlight currently active link
     var path = window.location.pathname;
@@ -99,24 +103,14 @@ function randString(n)
 }
 
 
-function parseParams(queryString) {
-    /*
-     * queryParameters -> handles the query string parameters
-     * queryString -> the query string without the fist '?' character
-     * re -> the regular expression
-     * m -> holds the string matching the regular expression
-     */
-    var queryParameters = {};
-    //var queryString = location.search.substring(1);
-    var re = /([^&=]+)=([^&]*)/g;
-    var m;
-     
-    // Creates a map with the query string parameters
-    while (m = re.exec(queryString)) {
-        queryParameters[decodeURIComponent(m[1])] = decodeURIComponent(m[2]);
-    }
-    
-    return queryParameters;
+// http://codereview.stackexchange.com/a/10396
+function parseQueryString() {
+    var query = (window.location.search || '?').substr(1),
+        map   = {};
+    query.replace(/([^&=]+)=?([^&]*)(?:&+|$)/g, function(match, key, value) {
+        (map[key] = map[key] || []).push(value);
+    });
+    return map;
 }
 
 
