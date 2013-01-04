@@ -248,6 +248,7 @@ def wallet_journal(request):
         # Owner 1
         if entry.owner1_id in character_ids:
             entry.z_owner1_mine = True
+        
         entry.z_owner1_char = char_map.get(entry.owner1_id)
         entry.z_owner1_corp = corp_map.get(entry.owner1_id)
         entry.z_owner1_alliance = alliance_map.get(entry.owner1_id)
@@ -255,6 +256,7 @@ def wallet_journal(request):
         # Owner 2
         if entry.owner2_id in character_ids:
             entry.z_owner2_mine = True
+
         entry.z_owner2_char = char_map.get(entry.owner2_id)
         entry.z_owner2_corp = corp_map.get(entry.owner2_id)
         entry.z_owner2_alliance = alliance_map.get(entry.owner2_id)

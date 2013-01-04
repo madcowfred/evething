@@ -117,6 +117,7 @@
             <thead>
               <tr class="c">
                 <th>Date</th>
+                <th>Source</th>
                 <th>RefType</th>
                 <th>Owner 1</th>
                 <th>Owner 2</th>
@@ -130,6 +131,16 @@
               {% for entry in entries -%}
               <tr>
                 <td class="journal-date">{{ entry.date|date("Y-m-d H:i") }}</td>
+                <td>
+                  {% if entry.corp_wallet -%}
+                  <i class="icons-corporation"></i>
+                  [<span class="tip" rel="tooltip" title="{{ entry.corp_wallet.corporation.name }}">{{ entry.corp_wallet.corporation.ticker }}</span>]
+                  {{ entry.corp_wallet.description }}
+                  {%- else -%}
+                  <i class="icons-player"></i>
+                  {{ entry.character.name }}
+                  {% endif %}
+                </td>
                 <td>{{ entry.z_reftype }}</td>
                 <td>
                   {% if entry.z_owner1_char -%}
@@ -137,7 +148,11 @@
                   {{ entry.z_owner1_char }}
                   {%- elif entry.z_owner1_corp -%}
                   <i class="icons-corporation"></i>
-                  {{ entry.z_owner1_corp }}
+                  {% if entry.z_owner1_corp.ticker -%}
+                  [<span class="tip" rel="tooltip" title="{{ entry.z_owner1_corp.name }}">{{ entry.z_owner1_corp.ticker }}</span>]
+                  {%- else -%}
+                  {{ entry.z_owner1_corp.name }}
+                  {%- endif %}
                   {%- elif entry.z_owner1_alliance -%}
                   <i class="icons-alliance"></i>
                   {{ entry.z_owner1_alliance }}
@@ -151,7 +166,11 @@
                   {{ entry.z_owner2_char }}
                   {%- elif entry.z_owner2_corp -%}
                   <i class="icons-corporation"></i>
-                  {{ entry.z_owner2_corp }}
+                  {% if entry.z_owner2_corp.ticker -%}
+                  [<span class="tip" rel="tooltip" title="{{ entry.z_owner2_corp.name }}">{{ entry.z_owner2_corp.ticker }}</span>]
+                  {%- else -%}
+                  {{ entry.z_owner2_corp.name }}
+                  {%- endif %}
                   {%- elif entry.z_owner2_alliance -%}
                   <i class="icons-alliance"></i>
                   {{ entry.z_owner2_alliance }}
