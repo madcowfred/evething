@@ -6,13 +6,11 @@
 
 * features:
   - Industry jobs:
-    = Implement database model
     = Events for job installation/completion/etc
     = Some sort of success rate tracker for invention?
   - Wallet journal:
     = ISK per hour graph for mission rewards/rat bounties/etc
     = Corporation graph too?
-    = Add a "Exclude entries between my characters/corporations" checkbox for searches
   - Email warnings
     = Let user configure email address (save to auth_user email field?)
       # Implement email verification because people are idiots
@@ -22,7 +20,6 @@
       # Things to email about (insufficient clone, room in skill queue, account not in training, account time <10 days)
 
 * misc:
-  - Get some less awful themes, oh dear
   - Implement proper APIKey access_mask checks:
     = User A has a full (all masks) key for account 'example'
     = User B has a minimal (say, basic character info only) key for account 'example'
@@ -32,8 +29,6 @@
 
 * tasks:
   - Make SystemEvent objects for admin-related events
-  - Make sure all tasks use in_bulk/bulk_create to reduce database thrashing
-    = Any task using get_(station|item) is obviously not using bulk calls.
 
 * tasks.api_key_info:
   - When a key is successfully updated, check the APICache for any 221 "derp check access" errors. If any are found, purge
@@ -69,9 +64,6 @@
       # Complex updating - deal with pre-requisites, urgh
 
 * views.assets:
-  - Add a volume column
-  - Allow infinite asset expansion
-  - Start with all groups expanded to allow ctrl-f searching?
   - Improve search features:
     = Types:
       # Value
@@ -95,8 +87,6 @@
   - Ability to see a post-skill-plan character sheet?
   - Add employment history
   - Skill tooltips:
-    = Move to their own icon
-    = Should display primary/secondary attributes
     = Should display training time for each further level
 
 * views.contracts:
@@ -110,10 +100,3 @@
     = Assets
     = Blueprints
     = [All]
-
-* views.trade:
-  - Add contract sums to the overview page
-
-* views.transactions:
-  - Steal Wallet Journal filtering system
-  - Clickable Client column?
