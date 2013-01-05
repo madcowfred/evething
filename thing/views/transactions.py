@@ -9,7 +9,7 @@ from django.template import RequestContext
 from coffin.shortcuts import *
 
 from thing.models import *
-from thing.stuff import TimerThing, parse_filters, q_reduce_or
+from thing.stuff import TimerThing, build_filter, parse_filters, q_reduce_or
 
 # ---------------------------------------------------------------------------
 
@@ -238,6 +238,13 @@ def transactions(request):
     transactions = list(transactions)
 
     tt.add_time('transactions')
+
+    # Build filter links, urgh
+    for transaction in transactions:
+        transaction.z_client_filter = build_filter(filters, 'client', 'eq', transaction.other_char or transaction.other_corp)
+        transaction.z_item_filter = build_filter(filters, 'item', 'eq', transaction.item.name)
+
+    tt.add_time('build links')
 
     # Ready template things
     json_expected = json.dumps(FILTER_EXPECTED)

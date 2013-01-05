@@ -1,6 +1,7 @@
 import gzip
 import time
 from cStringIO import StringIO
+from urllib import urlencode
 
 try:
     import xml.etree.cElementTree as ET
@@ -42,6 +43,26 @@ def dictfetchall(cursor):
 # Convert a datetime.timedelta object into a number of seconds
 def total_seconds(delta):
     return (delta.days * 24 * 60 * 60) + delta.seconds
+
+# ---------------------------------------------------------------------------
+
+def build_filter(filters, filter_type, filter_comp, filter_value):
+    params = []
+
+    for ft, stuff in filters.items():
+        if ft == filter_type:
+            continue
+
+        for fc, fv in stuff:
+            params.append(('ft', ft))
+            params.append(('fc', fc))
+            params.append(('fv', fv))
+
+    params.append(('ft', filter_type))
+    params.append(('fc', filter_comp))
+    params.append(('fv', filter_value))
+
+    return urlencode(params)
 
 # ---------------------------------------------------------------------------
 # Parse filter GET variables

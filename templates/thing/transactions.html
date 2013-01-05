@@ -136,16 +136,19 @@
                 </td>
                 <td>
                   {% if transaction.other_char -%}
-                  <i class="icons-other-player"></i> {{ transaction.other_char.name }}
+                  <i class="icons-other-player"></i>
+                  <a href="?{{ transaction.z_client_filter }}">{{ transaction.other_char.name }}</a>
                   {%- elif transaction.other_corp -%}
-                  <i class="icons-corporation"></i> {{ transaction.other_corp.name }}
+                  <i class="icons-corporation"></i>
+                  <a href="?{{ transaction.z_client_filter }}">{{ transaction.other_corp.name }}</a>
                   {%- endif %}
                 </td>
                 <td>
                   {% if show_item_icons -%}
                   <img src="http://image.eveonline.com/Type/{{ transaction.item.id }}_32.png" height="20" width="20">
                   {%- endif %}
-                  <a href="{{ 'transactions-all'|url(transaction.item.id, 'all') }}">{{ transaction.item }}</a>
+                  {#<a href="{{ 'transactions-all'|url(transaction.item.id, 'all') }}">{{ transaction.item }}</a>#}
+                  <a href="?{{ transaction.z_item_filter }}">{{ transaction.item }}</a>
                 </td>
                 <td class="r">{{ transaction.quantity|humanize }}</td>
                 {% if transaction.buy_transaction -%}
