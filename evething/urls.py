@@ -63,9 +63,6 @@ urlpatterns += patterns('thing.views',
     (r'^trade/(?P<slug>[-\w]+)/$', 'trade_timeframe'),
     
     (r'^transactions/$', 'transactions'),
-    (r'^transactions/(?P<item_id>all|\d+)/(?P<year>\d{4})-(?P<month>\d{2})/$', 'transactions_item'),
-    url(r'^transactions/(?P<item_id>all|\d+)/(?P<period>all)/$', 'transactions_item', name='transactions-all'),
-    (r'^transactions/(?P<item_id>all|\d+)/(?P<slug>[-\w]+)/$', 'transactions_item'),
 
     (r'^wallet_journal/', 'wallet_journal'),
 

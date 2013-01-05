@@ -81,7 +81,9 @@
                 <td>{{ order.station.short_name }}</td>
                 <td>{{ order.character.name }}</td>
                 <td>{% if order.corp_wallet %}{{ order.corp_wallet.corporation.ticker }}{% endif %}</td>
-                <td><a href="{{ 'transactions-all'|url(order.item.id, 'all') }}">{{ order.item.name }}</a></td>
+                <td>
+                  <a href="{% url thing.views.transactions %}?ft=item&fc=eq&fv={{ order.item.name }}">{{ order.item.name }}</a>
+                </td>
                 <td class="r">{{ order.volume_remaining|humanize }}</td>
                 <td class="r">{{ order.volume_entered|humanize }}</td>
                 {% if order.buy_order %}

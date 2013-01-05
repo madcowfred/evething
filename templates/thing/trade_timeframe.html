@@ -54,7 +54,7 @@
             <tbody>
               {% for item in items -%}
               <tr class="r">
-                <td class="l"><a href="{{ 'thing.views.transactions_item'|url(item.pk, urlpart) }}">{{ item.name }}</a></td>
+                <td class="l">{#<a href="{{ 'thing.views.transactions_item'|url(item.pk, urlpart) }}">#}{{ item.name }}{#</a>#}</td>
                 <td class="l">{{ item.item_group.category.name }}</td>
                 <td>
                   <a href="#" title="Min: {{ item.t.buy_minimum|humanize }} | Avg: {{ item.t.buy_average|humanize }} | Max: {{ item.t.buy_maximum|humanize }}">

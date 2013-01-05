@@ -76,12 +76,6 @@
             </p>
             <fieldset id="filters">
             </fieldset>
-            <fieldset>
-              {#<div class="control-group">
-                <input type="checkbox" name="ignoreself" class="input-small">
-                Ignore transactions between my own characters
-              </div>#}
-            </fieldset>
             <button type="submit" class="btn btn-success">Apply filters</button>
             <a id="clear-button" href="{% url thing.views.transactions %}" class="btn btn-danger">Clear filters</a>
           </form>
@@ -147,7 +141,6 @@
                   {% if show_item_icons -%}
                   <img src="http://image.eveonline.com/Type/{{ transaction.item.id }}_32.png" height="20" width="20">
                   {%- endif %}
-                  {#<a href="{{ 'transactions-all'|url(transaction.item.id, 'all') }}">{{ transaction.item }}</a>#}
                   <a href="?{{ transaction.z_item_filter }}">{{ transaction.item }}</a>
                 </td>
                 <td class="r">{{ transaction.quantity|humanize }}</td>
