@@ -8,6 +8,7 @@
       var mask_map = Array();
       mask_map[2] = 'AssetList';
       mask_map[8] = 'CharacterSheet';
+      mask_map[128] = 'IndustryJobs';
       mask_map[4096] = 'MarketOrders';
       mask_map[262144] = 'SkillQueue';
       mask_map[524288] = 'Standings';
@@ -183,6 +184,9 @@
                       </label>
                       <label class="checkbox inline">
                         <input type="checkbox" name="show_contracts"{% if profile.show_contracts %} checked{% endif %}>Contracts</input>
+                      </label>
+                      <label class="checkbox inline">
+                        <input type="checkbox" name="show_industry"{% if profile.show_industry %} checked{% endif %}>Industry</input>
                       </label>
                       <label class="checkbox inline">
                         <input type="checkbox" name="show_orders"{% if profile.show_orders %} checked{% endif %}>Orders</input>
@@ -411,6 +415,10 @@
                         <label class="checkbox">
                           <input type="checkbox" class="apikey-build" data-masks="67108864">
                           Contracts
+                        </label>
+                        <label class="checkbox">
+                          <input type="checkbox" class="apikey-build" data-masks="128">
+                          Industry jobs
                         </label>
                         <a class="btn btn-primary" id="apikey-link" href="https://support.eveonline.com/api/Key/CreatePredefined/33816584" target="_blank">Create new key</a>
                       </form>

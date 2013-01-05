@@ -36,6 +36,7 @@ class UserProfile(models.Model):
     show_assets = models.BooleanField(default=True)
     show_blueprints = models.BooleanField(default=True)
     show_contracts = models.BooleanField(default=True)
+    show_industry = models.BooleanField(default=True)
     show_orders = models.BooleanField(default=True)
     show_trade = models.BooleanField(default=True)
     show_transactions = models.BooleanField(default=True)
