@@ -1602,7 +1602,7 @@ def market_orders(url, apikey_id, taskstate_id, character_id):
         else:
             order_type = 'personal'
 
-        url = reverse('transactions-all', args=[order.item.id, 'all'])
+        url = '%s?ft=item&fc=eq&fv=%s' % (reverse('thing.views.transactions'), order.item.name)
         text = '%s: %s %s order for <a href="%s">%s</a> completed/expired (%s)' % (order.station.short_name, order_type, buy_sell, url, 
             order.item.name, order.character.name)
 
