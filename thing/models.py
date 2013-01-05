@@ -73,6 +73,7 @@ class APIKey(models.Model):
     CHAR_CHARACTER_INFO_MASK = 16777216
     CHAR_CHARACTER_SHEET_MASK = 8
     CHAR_CONTRACTS_MASK = 67108864
+    CHAR_INDUSTRY_JOBS_MASK = 128
     CHAR_LOCATIONS_MASK = 134217728
     CHAR_MARKET_ORDERS_MASK = 4096
     CHAR_SKILL_QUEUE_MASK = 262144
@@ -86,6 +87,7 @@ class APIKey(models.Model):
         CHAR_CHARACTER_INFO_MASK,
         CHAR_CHARACTER_SHEET_MASK,
         CHAR_CONTRACTS_MASK,
+        CHAR_INDUSTRY_JOBS_MASK,
         CHAR_LOCATIONS_MASK,
         CHAR_MARKET_ORDERS_MASK,
         CHAR_SKILL_QUEUE_MASK,
@@ -98,6 +100,7 @@ class APIKey(models.Model):
     CORP_ASSET_LIST_MASK = 2
     CORP_CONTRACTS_MASK = 8388608
     CORP_CORPORATION_SHEET_MASK = 8
+    CORP_INDUSTRY_JOBS_MASK = 128
     CORP_MARKET_ORDERS_MASK = 4096
     CORP_WALLET_JOURNAL_MASK = 1048576
     CORP_WALLET_TRANSACTIONS_MASK = 2097152
@@ -107,6 +110,7 @@ class APIKey(models.Model):
         CORP_ASSET_LIST_MASK,
         CORP_CONTRACTS_MASK,
         CORP_CORPORATION_SHEET_MASK,
+        CORP_INDUSTRY_JOBS_MASK,
         CORP_MARKET_ORDERS_MASK,
         CORP_WALLET_JOURNAL_MASK,
         CORP_WALLET_TRANSACTIONS_MASK,
@@ -1004,14 +1008,86 @@ class SPSkill(models.Model):
 
 # ---------------------------------------------------------------------------
 # Industry jobs
-# fixme: implement POS support, oh god
-#class IndustryJob(models.Model):
-#    job_id = models.IntegerField()
-#    station_id = models.ForeignKeyField(Station)
-#    
-#    install_time = models.DateTimeField()
-#    begin_time = models.DateTimeField()
-#    end_time = models.DateTimeField()
+class IndustryJob(models.Model):
+    FAILED_STATUS = 0
+    DELIVERED_STATUS = 1
+    ABORTED_STATUS = 2
+    GM_ABORTED_STATUS = 3
+    INFLIGHT_UNANCHORED_STATUS = 4
+    DESTROYED_STATUS = 5
+    STATUS_CHOICES = (
+        (FAILED_STATUS, 'Failed'),
+        (DELIVERED_STATUS, 'Delivered'),
+        (ABORTED_STATUS, 'Aborted'),
+        (GM_ABORTED_STATUS, 'GM aborted'),
+        (INFLIGHT_UNANCHORED_STATUS, 'Inflight unanchored'),
+        (DESTROYED_STATUS, 'Destroyed'),
+    )
+
+    NONE_ACTIVITY = 0
+    MANUFACTURING_ACTIVITY = 1
+    RESEARCHING_TECHNOLOGY_ACTIVITY = 2
+    RESEARCHING_TIME_ACTIVITY = 3
+    RESEARCHING_MATERIAL_ACTIVITY = 4
+    COPYING_ACTIVITY = 5
+    DUPLICATING_ACTIVITY = 6
+    REVERSE_ENGINEERING_ACTIVITY = 7
+    INVENTION_ACTIVITY = 8
+    ACTIVITY_CHOICES = (
+        (NONE_ACTIVITY, 'None'),
+        (MANUFACTURING_ACTIVITY, 'Manufacturing'),
+        (RESEARCHING_TECHNOLOGY_ACTIVITY, 'Researching Technology'),
+        (RESEARCHING_TIME_ACTIVITY, 'PE Research'),
+        (RESEARCHING_MATERIAL_ACTIVITY, 'ME Research'),
+        (COPYING_ACTIVITY, 'Copying'),
+        (DUPLICATING_ACTIVITY, 'Duplicating'),
+        (REVERSE_ENGINEERING_ACTIVITY, 'Reverse Engineering'),
+        (INVENTION_ACTIVITY, 'Invention'),
+    )
+
+    character = models.ForeignKey(Character)
+    corporation = models.ForeignKey(Corporation, blank=True, null=True)
+
+    job_id = models.IntegerField()
+    assembly_line_id = models.IntegerField()
+    container_id = models.BigIntegerField()
+    location_id = models.IntegerField()
+
+    # asset ID?
+    #item_id = models.IntegerField()
+    item_productivity_level = models.IntegerField()
+    item_material_level = models.IntegerField()
+
+    output_location_id = models.BigIntegerField()
+    installer_id = models.IntegerField()
+    runs = models.IntegerField()
+    licensed_production_runs_remaining = models.IntegerField()
+    licensed_production_runs = models.IntegerField()
+
+    system = models.ForeignKey(System)
+    container_location_id = models.IntegerField()
+    
+    material_multiplier = models.DecimalField(max_digits=5, decimal_places=3)
+    character_material_multiplier = models.DecimalField(max_digits=5, decimal_places=3)
+    time_multiplier = models.DecimalField(max_digits=5, decimal_places=3)
+    character_time_multiplier = models.DecimalField(max_digits=5, decimal_places=3)
+
+    installed_item = models.ForeignKey(Item, related_name='job_installed_items')
+    installed_flag = models.ForeignKey(InventoryFlag, related_name='job_installed_flags')
+    output_item = models.ForeignKey(Item, related_name='job_output_items')
+    output_flag = models.ForeignKey(InventoryFlag, related_name='job_output_flags')
+
+    completed = models.IntegerField()
+    completed_status = models.IntegerField(choices=STATUS_CHOICES)
+    activity = models.IntegerField(choices=ACTIVITY_CHOICES)
+   
+    install_time = models.DateTimeField()
+    begin_time = models.DateTimeField()
+    end_time = models.DateTimeField()
+    pause_time = models.DateTimeField()
+    
+    class Meta:
+        ordering = ('-end_time',)
 
 # ---------------------------------------------------------------------------
 # Blueprints

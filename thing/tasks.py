@@ -60,6 +60,7 @@ CHAR_URLS = {
     APIKey.CHAR_CHARACTER_SHEET_MASK: ('character_sheet', '/char/CharacterSheet.xml.aspx', 'et_medium'),
     APIKey.CHAR_CONTRACTS_MASK: ('contracts', '/char/Contracts.xml.aspx', 'et_medium'),
     APIKey.CHAR_CHARACTER_INFO_MASK: ('character_info', '/eve/CharacterInfo.xml.aspx', 'et_medium'),
+    APIKey.CHAR_INDUSTRY_JOBS_MASK: ('industry_jobs', '/char/IndustryJobs.xml.aspx', 'et_medium'),
     APIKey.CHAR_MARKET_ORDERS_MASK: ('market_orders', '/char/MarketOrders.xml.aspx', 'et_medium'),
     APIKey.CHAR_SKILL_QUEUE_MASK: ('skill_queue', '/char/SkillQueue.xml.aspx', 'et_medium'),
     APIKey.CHAR_STANDINGS_MASK: ('standings', '/char/Standings.xml.aspx', 'et_medium'),
@@ -71,6 +72,7 @@ CORP_URLS = {
     APIKey.CORP_ASSET_LIST_MASK: ('asset_list', '/corp/AssetList.xml.aspx', 'et_medium'),
     APIKey.CORP_CONTRACTS_MASK: ('contracts', '/corp/Contracts.xml.aspx', 'et_medium'),
     APIKey.CORP_CORPORATION_SHEET_MASK: ('corporation_sheet', '/corp/CorporationSheet.xml.aspx', 'et_medium'),
+    APIKey.CORP_INDUSTRY_JOBS_MASK: ('industry_jobs', '/corp/IndustryJobs.xml.aspx', 'et_medium'),
     APIKey.CORP_MARKET_ORDERS_MASK: ('market_orders', '/corp/MarketOrders.xml.aspx', 'et_medium'),
     APIKey.CORP_WALLET_JOURNAL_MASK: ('wallet_journal', '/corp/WalletJournal.xml.aspx', 'et_medium'),
     APIKey.CORP_WALLET_TRANSACTIONS_MASK: ('wallet_transactions', '/corp/WalletTransactions.xml.aspx', 'et_medium'),
@@ -1287,6 +1289,165 @@ def corporation_sheet(url, apikey_id, taskstate_id, character_id):
         job.completed()
     else:
         job.failed()
+
+# ---------------------------------------------------------------------------
+# Industry jobs :cripes:
+@task
+def industry_jobs(url, apikey_id, taskstate_id, character_id):
+    job = APIJob(apikey_id, taskstate_id)
+    if job.ready is False:
+        return
+    
+    try:
+        character = Character.objects.get(pk=character_id)
+    except Character.DoesNotExist:
+        logger.warn("industry_jobs: Character %s does not exist!", character_id)
+        return
+
+    # Initialise for corporate key
+    if job.apikey.corp_character:
+        j_filter = IndustryJob.objects.filter(corporation=character.corporation)
+    # Initialise for other keys
+    else:
+        j_filter = IndustryJob.objects.filter(corporation=None, character=character)
+
+    # Fetch the API data
+    params = { 'characterID': character.id }
+    if job.fetch_api(url, params) is False or job.root is None:
+        job.failed()
+        return
+
+    # Generate a job id map
+    job_map = {}
+    for ij in j_filter:
+        job_map[ij.job_id] = ij
+    
+    # Iterate over the returned result set
+    now = datetime.datetime.now()
+    flag_ids = set()
+    item_ids = set()
+    system_ids = set()
+
+    rows = []
+    for row in job.root.findall('result/rowset/row'):
+        job_id = int(row.attrib['jobID'])
+        
+        # Job exists
+        ij = job_map.get(job_id, None)
+        if ij is not None:
+            # Job is still active, update relevant details
+            if row.attrib['completed'] == '0':
+                install_time = parse_api_date(row.attrib['installTime'])
+                begin_time = parse_api_date(row.attrib['beginProductionTime'])
+                end_time = parse_api_date(row.attrib['endProductionTime'])
+                pause_time = parse_api_date(row.attrib['pauseProductionTime'])
+
+                if install_time > ij.install_time or begin_time > ij.begin_time or end_time > ij.end_time or \
+                   pause_time > ij.pause_time:
+                    ij.install_time = install_time
+                    ij.begin_time = begin_time
+                    ij.end_time = end_time
+                    ij.pause_time = pause_time
+                    ij.save()
+
+            # Job is now complete, issue an event
+            elif row.attrib['completed'] and not ij.completed:
+                ij.completed = True
+                ij.completed_status = row.attrib['completedStatus']
+                ij.save()
+
+                text = 'Industry Job #%s (%s, %s) has been delivered' % (ij.job_id, ij.system.name, ij.get_activity_display())
+                event = Event(
+                    user_id=job.apikey.user.id,
+                    issued=now,
+                    text=text,
+                )
+                event.save()
+
+        # Doesn't exist, save data for later
+        else:
+            flag_ids.add(int(row.attrib['installedItemFlag']))
+            flag_ids.add(int(row.attrib['outputFlag']))
+            item_ids.add(int(row.attrib['installedItemTypeID']))
+            item_ids.add(int(row.attrib['outputTypeID']))
+            system_ids.add(int(row.attrib['installedInSolarSystemID']))
+
+            rows.append(row)
+
+    # Bulk query data
+    flag_map = InventoryFlag.objects.in_bulk(flag_ids)
+    item_map = Item.objects.in_bulk(item_ids)
+    system_map = System.objects.in_bulk(system_ids)
+
+    # Create new IndustryJob objects
+    new = []
+    for row in rows:
+        installed_item = item_map.get(int(row.attrib['installedItemTypeID']))
+        if installed_item is None:
+            logger.warn("industry_jobs: No matching Item %s", row.attrib['installedItemTypeID'])
+            continue
+
+        installed_flag = flag_map.get(int(row.attrib['installedItemFlag']))
+        if installed_flag is None:
+            logger.warn("industry_jobs: No matching InventoryFlag %s", row.attrib['installedItemFlag'])
+            continue
+
+        output_item = item_map.get(int(row.attrib['outputTypeID']))
+        if output_item is None:
+            logger.warn("industry_jobs: No matching Item %s", row.attrib['outputTypeID'])
+            continue
+
+        output_flag = flag_map.get(int(row.attrib['outputFlag']))
+        if output_flag is None:
+            logger.warn("industry_jobs: No matching InventoryFlag %s", row.attrib['outputFlag'])
+            continue
+
+        system = system_map.get(int(row.attrib['installedInSolarSystemID']))
+        if system is None:
+            logger.warn("industry_jobs: No matching System %s", row.attrib['installedInSolarSystemID'])
+            continue
+
+        # Create the new job object
+        ij = IndustryJob(
+            character=character,
+            job_id=row.attrib['jobID'],
+            assembly_line_id=row.attrib['assemblyLineID'],
+            container_id=row.attrib['containerID'],
+            location_id=row.attrib['installedItemLocationID'],
+            item_productivity_level=row.attrib['installedItemProductivityLevel'],
+            item_material_level=row.attrib['installedItemMaterialLevel'],
+            licensed_production_runs_remaining=row.attrib['installedItemLicensedProductionRunsRemaining'],
+            output_location_id=row.attrib['outputLocationID'],
+            installer_id=row.attrib['installerID'],
+            runs=row.attrib['runs'],
+            licensed_production_runs=row.attrib['licensedProductionRuns'],
+            system=system,
+            container_location_id=row.attrib['containerLocationID'],
+            material_multiplier=row.attrib['materialMultiplier'],
+            character_material_multiplier=row.attrib['charMaterialMultiplier'],
+            time_multiplier=row.attrib['timeMultiplier'],
+            character_time_multiplier=row.attrib['charTimeMultiplier'],
+            installed_item=installed_item,
+            installed_flag=installed_flag,
+            output_item=output_item,
+            output_flag=output_flag,
+            completed=row.attrib['completed'],
+            completed_status=row.attrib['completedStatus'],
+            activity=row.attrib['activityID'],
+            install_time=parse_api_date(row.attrib['installTime']),
+            begin_time=parse_api_date(row.attrib['beginProductionTime']),
+            end_time=parse_api_date(row.attrib['endProductionTime']),
+            pause_time=parse_api_date(row.attrib['pauseProductionTime']),
+        )
+        
+        if job.apikey.corp_character:
+            ij.corporation = job.apikey.corp_character.corporation
+
+        new.append(ij)
+
+    # Insert any new orders
+    if new:
+        IndustryJob.objects.bulk_create(new)
 
 # ---------------------------------------------------------------------------
 # Market orders

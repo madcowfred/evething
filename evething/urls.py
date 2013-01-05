@@ -53,6 +53,8 @@ urlpatterns += patterns('thing.views',
 
     (r'^events/$', 'events'),
     
+    (r'^industry/$', 'industry'),
+
     (r'^orders/$', 'orders'),
     
     (r'^market_scan/$', 'market_scan'),
