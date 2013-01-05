@@ -147,21 +147,23 @@
                   {{ entry.character.name }}
                   {% endif %}
                 </td>
-                <td>{{ entry.z_reftype }}</td>
+                <td>
+                  <a href="?{{ entry.z_reftype_filter }}">{{ entry.z_reftype }}</a>
+                </td>
                 <td>
                   {% if entry.z_owner1_char -%}
                   <i class="icons-{% if not entry.z_owner1_mine %}other-{% endif %}player"></i>
-                  {{ entry.z_owner1_char }}
+                  <a href="?{{ entry.z_owner1_filter }}">{{ entry.z_owner1_char }}</a>
                   {%- elif entry.z_owner1_corp -%}
                   <i class="icons-corporation"></i>
                   {% if entry.z_owner1_corp.ticker -%}
-                  [<span class="tip" rel="tooltip" title="{{ entry.z_owner1_corp.name }}">{{ entry.z_owner1_corp.ticker }}</span>]
+                  [<span class="tip" rel="tooltip" title="{{ entry.z_owner1_corp.name }}"><a href="?{{ entry.z_owner1_filter }}">{{ entry.z_owner1_corp.ticker }}</a></span>]
                   {%- else -%}
-                  {{ entry.z_owner1_corp.name }}
+                  <a href="?{{ entry.z_owner1_filter }}">{{ entry.z_owner1_corp.name }}</a>
                   {%- endif %}
                   {%- elif entry.z_owner1_alliance -%}
                   <i class="icons-alliance"></i>
-                  {{ entry.z_owner1_alliance }}
+                  <a href="?{{ entry.z_owner1_filter }}">{{ entry.z_owner1_alliance }}</a>
                   {%- elif entry.owner1_id > 0 -%}
                   Unknown ID: {{ entry.owner1_id }}
                   {%- endif %}
@@ -169,17 +171,17 @@
                 <td>
                   {% if entry.z_owner2_char -%}
                   <i class="icons-{% if not entry.z_owner2_mine %}other-{% endif %}player"></i>
-                  {{ entry.z_owner2_char }}
+                  <a href="?{{ entry.z_owner2_filter }}">{{ entry.z_owner2_char }}</a>
                   {%- elif entry.z_owner2_corp -%}
                   <i class="icons-corporation"></i>
                   {% if entry.z_owner2_corp.ticker -%}
-                  [<span class="tip" rel="tooltip" title="{{ entry.z_owner2_corp.name }}">{{ entry.z_owner2_corp.ticker }}</span>]
+                  [<span class="tip" rel="tooltip" title="{{ entry.z_owner2_corp.name }}"><a href="?{{ entry.z_owner2_filter }}">{{ entry.z_owner2_corp.ticker }}</a></span>]
                   {%- else -%}
-                  {{ entry.z_owner2_corp.name }}
+                  <a href="?{{ entry.z_owner2_filter }}">{{ entry.z_owner2_corp.name }}</a>
                   {%- endif %}
                   {%- elif entry.z_owner2_alliance -%}
                   <i class="icons-alliance"></i>
-                  {{ entry.z_owner2_alliance }}
+                  <a href="?{{ entry.z_owner2_filter }}">{{ entry.z_owner2_alliance }}</a>
                   {%- elif entry.owner2_id > 0 -%}
                   Unknown ID: {{ entry.owner2_id }}
                   {%- endif %}

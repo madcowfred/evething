@@ -10,7 +10,7 @@ from django.template import RequestContext
 from coffin.shortcuts import *
 
 from thing.models import *
-from thing.stuff import parse_filters, q_reduce_or
+from thing.stuff import build_filter, parse_filters, q_reduce_or
 from thing.views.trade import _month_range
 
 # ---------------------------------------------------------------------------
@@ -302,6 +302,11 @@ def wallet_journal(request):
 
             entry.z_description = 'Bounty prizes for killing pirates in %s' % (entry.arg_name.strip())
             entry.z_hover = '||'.join(killed)
+
+        # Filter links
+        entry.z_reftype_filter = build_filter(filters, 'reftype', 'eq', entry.ref_type_id)
+        entry.z_owner1_filter = build_filter(filters, 'owners', 'eq', entry.z_owner1_char or entry.z_owner1_corp or entry.z_owner1_alliance)
+        entry.z_owner2_filter = build_filter(filters, 'owners', 'eq', entry.z_owner2_char or entry.z_owner2_corp or entry.z_owner2_alliance)
 
     # Ready template things
     json_expected = json.dumps(JOURNAL_EXPECTED)

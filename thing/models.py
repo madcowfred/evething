@@ -275,10 +275,7 @@ class Corporation(models.Model):
         ordering = ('name',)
     
     def __unicode__(self):
-        if self.ticker is None:
-            return '%s [?]' % (self.name)
-        else:
-            return '%s [%s]' % (self.name, self.ticker)
+        return self.name
     
     def get_total_balance(self):
         return self.corpwallet_set.aggregate(Sum('balance'))['balance_sum']
