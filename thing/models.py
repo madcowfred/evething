@@ -1052,7 +1052,7 @@ class IndustryJob(models.Model):
     job_id = models.IntegerField()
     assembly_line_id = models.IntegerField()
     container_id = models.BigIntegerField()
-    location_id = models.IntegerField()
+    location_id = models.BigIntegerField()
 
     # asset ID?
     #item_id = models.IntegerField()
