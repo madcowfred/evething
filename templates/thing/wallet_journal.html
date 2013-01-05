@@ -75,6 +75,11 @@
               <strong class="large">Filters</strong>
               <i class="icons-add"></i>
             </div>
+            <p>
+              Apply filters to the results here. Filters of different types are queried using AND while filters of
+              the same type are queried using OR, for example "Character == Bob, Item == Pants, Item == Hats" will
+              turn into something like "WHERE Character == Bob AND (Item == Pants OR Item == Hats)".
+            </p>
             <fieldset id="filters">
             </fieldset>
             <fieldset>
