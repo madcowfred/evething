@@ -29,7 +29,7 @@ def industry(request):
         |
         Q(corporation__in=corporation_ids)
     )
-    jobs = jobs.select_related('character', 'corporation', 'system', 'output_item')
+    jobs = jobs.prefetch_related('character', 'corporation', 'system', 'output_item')
 
     # Gather some lookup ids
     char_ids = set()

@@ -904,11 +904,6 @@ class Contract(models.Model):
 
     issuer_char = models.ForeignKey(SimpleCharacter, related_name="contract_issuers")
     issuer_corp = models.ForeignKey(Corporation, related_name="contract_issuers")
-    #assignee_char = models.ForeignKey(SimpleCharacter, blank=True, null=True, related_name="contract_assignees")
-    #assignee_corp = models.ForeignKey(Corporation, blank=True, null=True, related_name="contract_assignees")
-    #assignee_alliance = models.ForeignKey(Alliance, blank=True, null=True, related_name="contract_assignees")
-    #acceptor_char = models.ForeignKey(SimpleCharacter, blank=True, null=True, related_name="contract_acceptors")
-    #acceptor_corp = models.ForeignKey(Corporation, blank=True, null=True, related_name="contract_acceptors")
     assignee_id = models.IntegerField(blank=True, null=True)
     acceptor_id = models.IntegerField(blank=True, null=True)
 
@@ -933,6 +928,8 @@ class Contract(models.Model):
     buyout = models.DecimalField(max_digits=15, decimal_places=2)
     volume = models.DecimalField(max_digits=16, decimal_places=4)
 
+    retrieved_items = models.BooleanField(default=False)
+
     def __unicode__(self):
         if self.type == 'Courier':
             return '#%d (%s, %s -> %s)' % (self.contract_id, self.type, self.start_station.short_name, self.end_station.short_name)
@@ -947,6 +944,16 @@ class Contract(models.Model):
             return self.issuer_corp.name
         else:
             return self.issuer_char.name
+
+# Contract items
+class ContractItem(models.Model):
+    contract_id = models.IntegerField(db_index=True)
+    item = models.ForeignKey(Item, related_name='contract_items')
+
+    quantity = models.IntegerField()
+    raw_quantity = models.IntegerField()
+    singleton = models.BooleanField()
+    included = models.BooleanField()
 
 # ---------------------------------------------------------------------------
 # Skill plan storage disaster
