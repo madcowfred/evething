@@ -62,16 +62,13 @@ def orders(request):
     character_ids = list(Character.objects.filter(apikeys__user=request.user.id).distinct().values_list('id', flat=True))
     corporation_ids = list(APIKey.objects.filter(user=request.user).exclude(corp_character=None).values_list('corp_character__corporation__id', flat=True))
 
-    orders = MarketOrder.objects.select_related('item', 'station', 'character', 'corp_wallet__corporation')
-    orders = orders.filter(
-        (
-            Q(character__in=character_ids)
-            &
-            Q(corp_wallet=None)
-        )
+    orders = MarketOrder.objects.filter(
+        Q(character__in=character_ids, corp_wallet__isnull=True)
         |
         Q(corp_wallet__corporation__in=corporation_ids)
     )
+    orders = orders.select_related('item', 'station', 'character')
+    orders = orders.prefetch_related('corp_wallet__corporation')
     orders = orders.order_by('station__name', '-buy_order', 'item__name')
 
     creator_ids = set()
