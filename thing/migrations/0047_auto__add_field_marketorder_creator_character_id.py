@@ -8,14 +8,13 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
+        # Clear the table
+        db.execute('DELETE FROM thing_marketorder')
+
         # Adding field 'MarketOrder.creator_character_id'
         db.add_column('thing_marketorder', 'creator_character_id',
                       self.gf('django.db.models.fields.IntegerField')(default=0, db_index=True),
                       keep_default=False)
-
-        # Clear the table
-        from thing.models import MarketOrder
-        MarketOrder.objects.all().delete()
 
 
     def backwards(self, orm):
