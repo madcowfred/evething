@@ -1571,10 +1571,10 @@ def market_orders(url, apikey_id, taskstate_id, character_id):
     # Create new MarketOrder objects
     new = []
     for row in rows:
-        char = char_map.get(int(row.attrib['charID']))
-        if char is None:
-            logger.warn("market_orders: No matching Character %s", row.attrib['charID'])
-            continue
+        #creator_char = char_map.get(int(row.attrib['charID']))
+        #if char is None:
+        #    logger.warn("market_orders: No matching Character %s", row.attrib['charID'])
+        #    continue
 
         item = item_map.get(int(row.attrib['typeID']))
         if item is None:
@@ -1596,8 +1596,9 @@ def market_orders(url, apikey_id, taskstate_id, character_id):
             order_id=row.attrib['orderID'],
             station=station,
             item=item,
-            character=char,
+            character=character,
             escrow=Decimal(row.attrib['escrow']),
+            creator_character_id=row.attrib['charID'],
             price=price,
             total_price=remaining * price,
             buy_order=buy_order,

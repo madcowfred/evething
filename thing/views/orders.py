@@ -29,7 +29,7 @@ def orders(request):
     char_orders = OrderedDict()
     for row in dictfetchall(cursor):
         row['slots'] = 5
-        char_orders[row['character_id']] = row
+        char_orders[row['creator_character_id']] = row
 
     # Retrieve trade skills that we're interested in
     order_cs = CharacterSkill.objects.filter(character__apikeys__user=request.user, skill__item__name__in=ORDER_SLOT_SKILLS.keys())
@@ -59,13 +59,33 @@ def orders(request):
     }
 
     # Retrieve all orders
+    character_ids = list(Character.objects.filter(apikeys__user=request.user.id).distinct().values_list('id', flat=True))
+    corporation_ids = list(APIKey.objects.filter(user=request.user).exclude(corp_character=None).values_list('corp_character__corporation__id', flat=True))
+
     orders = MarketOrder.objects.select_related('item', 'station', 'character', 'corp_wallet__corporation')
-    orders = orders.filter(character__apikeys__user=request.user)
+    orders = orders.filter(
+        (
+            Q(character__in=character_ids)
+            &
+            Q(corp_wallet=None)
+        )
+        |
+        Q(corp_wallet__corporation__in=corporation_ids)
+    )
     orders = orders.order_by('station__name', '-buy_order', 'item__name')
 
-    now = datetime.datetime.utcnow()
+    creator_ids = set()
+    utcnow = datetime.datetime.utcnow()
     for order in orders:
-        order.z_remaining = total_seconds(order.expires - now)
+        creator_ids.add(order.creator_character_id)
+        order.z_remaining = total_seconds(order.expires - utcnow)
+
+    # Bulk query
+    simple_map = SimpleCharacter.objects.in_bulk(creator_ids)
+
+    # Sort out possible chars
+    for order in orders:
+        order.z_creator_character = simple_map.get(order.creator_character_id)
 
     # Render template
     return render_page(
@@ -76,6 +96,8 @@ def orders(request):
             'total_row': total_row,
         },
         request,
+        character_ids,
+        corporation_ids,
     )
 
 # ---------------------------------------------------------------------------

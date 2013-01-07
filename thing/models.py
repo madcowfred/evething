@@ -823,6 +823,8 @@ class MarketOrder(models.Model):
     character = models.ForeignKey(Character)
     corp_wallet = models.ForeignKey(CorpWallet, null=True, blank=True)
     
+    creator_character_id = models.IntegerField(db_index=True)
+
     escrow = models.DecimalField(max_digits=14, decimal_places=2)
     price = models.DecimalField(max_digits=14, decimal_places=2)
     total_price = models.DecimalField(max_digits=17, decimal_places=2)

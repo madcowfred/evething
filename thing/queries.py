@@ -13,7 +13,7 @@ ORDER BY c.name, cw.account_key
 """
 
 order_aggregation = """
-SELECT  mo.character_id,
+SELECT  mo.creator_character_id,
         c.name,
         COUNT(mo.order_id) AS orders,
         COALESCE(SUM(CASE WHEN mo.corp_wallet_id IS NULL THEN 1 END), 0) AS personal_orders,
@@ -24,11 +24,11 @@ SELECT  mo.character_id,
         COALESCE(SUM(CASE mo.buy_order WHEN false THEN mo.total_price END), 0) AS total_sells,
         COALESCE(SUM(mo.escrow), 0) AS total_escrow
 FROM    thing_marketorder mo, thing_character c, thing_apikey_characters ac, thing_apikey a
-WHERE   mo.character_id = c.id
+WHERE   mo.creator_character_id = c.id
         AND c.id = ac.character_id
         AND ac.apikey_id = a.id
         AND a.user_id = %s
-GROUP BY mo.character_id, c.name
+GROUP BY mo.creator_character_id, c.name
 ORDER BY c.name
 """
 

@@ -3,10 +3,20 @@
 
 {% block title %}Orders{% endblock %}
 
+{% block extra_js %}
+    <script type="text/javascript">
+      $(document).ready(function() {
+        // make tooltips appear to the right of icons
+        $("[rel=tooltip]").each(function () {
+          $(this).data('tooltip').options.placement = 'right';
+        });
+      });
+    </script>
+{% endblock %}
+
 {% block content %}
       {% if char_orders %}
       <div class="row-fluid">
-        <div class="span1">&nbsp;</div>
         <div class="span8">
           <h2>Character Summary</h2>
           <table class="table table-striped table-bordered table-condensed">
@@ -58,15 +68,14 @@
       {% endif %}
 
       <div class="row-fluid">
-        <div class="span1">&nbsp;</div>
-        <div class="span10">
+        <div class="span12">
           <h2>Active Orders</h2>
           <table class="table table-striped table-bordered table-condensed">
             <thead>
               <tr class="c">
+                <th>Source</th>
                 <th>Station</th>
                 <th>Character</th>
-                <th>Corp</th>
                 <th>Item</th>
                 <th colspan="2">Units</th>
                 <th>Unit Price</th>
@@ -78,9 +87,24 @@
             <tbody>
               {% for order in orders %}
               <tr>
+                <td>
+                  {% if order.corp_wallet -%}
+                  <i class="icons-corporation"></i>
+                  [<span class="tip" rel="tooltip" title="{{ order.corp_wallet.corporation.name }}">{{ order.corp_wallet.corporation.ticker }}</span>]
+                  {{ order.corp_wallet.description }}
+                  {%- else -%}
+                  <i class="icons-player"></i>
+                  {{ order.character.name }}
+                  {%- endif %}
+                </td>
                 <td>{{ order.station.short_name }}</td>
-                <td>{{ order.character.name }}</td>
-                <td>{% if order.corp_wallet %}{{ order.corp_wallet.corporation.ticker }}{% endif %}</td>
+                <td>
+                  {% if order.z_creator_character -%}
+                  {{ order.z_creator_character.name }}
+                  {%- else -%}
+                  Unknown ID: {{ order.creator_character_id }}
+                  {%- endif %}
+                </td>
                 <td>
                   <a href="{% url thing.views.transactions %}?ft=item&fc=eq&fv={{ order.item.name }}">{{ order.item.name }}</a>
                 </td>
