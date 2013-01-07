@@ -2,12 +2,9 @@ from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q, Avg, Count, Max, Min, Sum
 from django.http import HttpResponse
-from django.template import RequestContext
-
-from coffin.shortcuts import *
 
 from thing.models import *
-from thing.stuff import TimerThing
+from thing.stuff import *
 
 # ---------------------------------------------------------------------------
 # Assets
@@ -198,7 +195,7 @@ def assets(request):
 
     tt.add_time('sort contents')
 
-    out = render_to_response(
+    out = render_page(
         'thing/assets.html',
         {
             'characters': characters,
@@ -208,7 +205,9 @@ def assets(request):
             'systems': sorted_systems,
             'loc_totals': loc_totals,
         },
-        context_instance=RequestContext(request)
+        request,
+        character_ids,
+        corporation_ids,
     )
 
     tt.add_time('template')
@@ -217,6 +216,7 @@ def assets(request):
 
     return out
 
+# Recursively sort the contents of an asset
 def _content_sort(asset):
     if asset.z_contents:
         # decorate/sort/undecorate argh
@@ -225,3 +225,5 @@ def _content_sort(asset):
         asset.z_contents = [s[2] for s in temp]
         for asset in asset.z_contents:
             _content_sort(asset)
+
+# ---------------------------------------------------------------------------

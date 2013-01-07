@@ -1,12 +1,8 @@
-#from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator, EmptyPage, InvalidPage, PageNotAnInteger
-#from django.db.models import Q, Avg, Count, Max, Min, Sum
-from django.template import RequestContext
-
-from coffin.shortcuts import *
 
 from thing.models import *
+from thing.stuff import *
 
 # ---------------------------------------------------------------------------
 # Events
@@ -34,12 +30,12 @@ def events(request):
         events = paginator.page(paginator.num_pages)
     
     # Render template
-    return render_to_response(
+    return render_page(
         'thing/events.html',
         {
             'events': events,
         },
-        context_instance=RequestContext(request)
+        request,
     )
 
 # ---------------------------------------------------------------------------

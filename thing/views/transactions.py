@@ -3,13 +3,9 @@ import json
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator, EmptyPage, InvalidPage, PageNotAnInteger
-#from django.db.models import Q, Avg, Count, Max, Min, Sum
-from django.template import RequestContext
-
-from coffin.shortcuts import *
 
 from thing.models import *
-from thing.stuff import TimerThing, build_filter, parse_filters, q_reduce_or
+from thing.stuff import *
 
 # ---------------------------------------------------------------------------
 
@@ -256,7 +252,7 @@ def transactions(request):
     tt.add_time('template bits')
 
     # Render template
-    out = render_to_response(
+    out = render_page(
         'thing/transactions.html',
         {
             'transactions': transactions,
@@ -268,7 +264,9 @@ def transactions(request):
             'json_expected': json_expected,
             'values': values,
         },
-        context_instance=RequestContext(request)
+        request,
+        character_ids,
+        corporation_ids,
     )
 
     tt.add_time('template')

@@ -3,12 +3,9 @@ import datetime
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q, Avg, Count, Max, Min, Sum
-from django.template import RequestContext
-
-from coffin.shortcuts import *
 
 from thing.models import *
-from thing.stuff import TimerThing, total_seconds, q_reduce_or
+from thing.stuff import *
 from thing.templatetags.thing_extras import commas, duration, shortduration
 
 # ---------------------------------------------------------------------------
@@ -224,7 +221,7 @@ def home(request):
 
     tt.add_time('misc junk')
 
-    out = render_to_response(
+    out = render_page(
         'thing/home.html',
         {
             'profile': profile,
@@ -237,7 +234,9 @@ def home(request):
             'ship_map': ship_map,
             'task_count': task_count,
         },
-        context_instance=RequestContext(request)
+        request,
+        chars.keys(),
+        [c.id for c in corporations]
     )
 
     tt.add_time('template')

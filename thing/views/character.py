@@ -7,15 +7,11 @@ except ImportError:
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
-#from django.db.models import Q, Avg, Count, Max, Min, Sum
 from django.http import Http404
 from django.shortcuts import redirect, get_object_or_404
-from django.template import RequestContext
-
-from coffin.shortcuts import *
 
 from thing.models import *
-from thing.stuff import TimerThing, total_seconds
+from thing.stuff import *
 
 # ---------------------------------------------------------------------------
 # Display a character page
@@ -181,7 +177,7 @@ def character_common(request, char, public=True, anonymous=False):
         corp_standings = []
 
     # Render template
-    out = render_to_response(
+    out = render_page(
         'thing/character.html',
         {
             'char': char,
@@ -198,7 +194,7 @@ def character_common(request, char, public=True, anonymous=False):
             'faction_standings': faction_standings,
             'corp_standings': corp_standings,
         },
-        context_instance=RequestContext(request)
+        request,
     )
 
     tt.add_time('template')
@@ -386,7 +382,7 @@ def character_skillplan_common(request, character, skillplan, public=True, anony
 
     tt.add_time('skillplan loop')
 
-    out = render_to_response(
+    out = render_page(
         'thing/character_skillplan.html',
         {
             'show_trained': show_trained,
@@ -398,7 +394,7 @@ def character_skillplan_common(request, character, skillplan, public=True, anony
             'entries': entries,
             'total_remaining': total_remaining,
         },
-        context_instance=RequestContext(request)
+        request,
     )
 
     tt.add_time('template')

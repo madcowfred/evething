@@ -1,27 +1,23 @@
-#from django.conf import settings
 from django.contrib.auth.decorators import login_required
-#from django.db.models import Q, Avg, Count, Max, Min, Sum
-from django.template import RequestContext
-
-from coffin.shortcuts import *
 
 from thing.models import *
+from thing.stuff import *
 
 # ---------------------------------------------------------------------------
 # Contracts
 @login_required
 def contracts(request):
-    characters = list(Character.objects.filter(apikeys__user=request.user.id).distinct().values_list('id', flat=True))
-    corporations = list(APIKey.objects.filter(user=request.user).exclude(corp_character=None).values_list('corp_character__corporation__id', flat=True))
+    character_ids = list(Character.objects.filter(apikeys__user=request.user.id).distinct().values_list('id', flat=True))
+    corporation_ids = list(APIKey.objects.filter(user=request.user).exclude(corp_character=None).values_list('corp_character__corporation__id', flat=True))
 
     # Whee~
     contracts = Contract.objects.select_related('issuer_char', 'issuer_corp', 'start_station', 'end_station')
     contracts = contracts.filter(
         (
             (
-                Q(issuer_char_id__in=characters) |
-                Q(assignee_id__in=characters) |
-                Q(acceptor_id__in=characters)
+                Q(issuer_char_id__in=character_ids) |
+                Q(assignee_id__in=character_ids) |
+                Q(acceptor_id__in=character_ids)
             )
             &
             Q(for_corp=False)
@@ -29,9 +25,9 @@ def contracts(request):
         |
         (
             (
-                Q(issuer_corp_id__in=corporations) |
-                Q(assignee_id__in=corporations) |
-                Q(acceptor_id__in=corporations)
+                Q(issuer_corp_id__in=corporation_ids) |
+                Q(assignee_id__in=corporation_ids) |
+                Q(acceptor_id__in=corporation_ids)
             )
             &
             Q(for_corp=True)
@@ -89,16 +85,18 @@ def contracts(request):
                 contract.z_acceptor_corp = corp
 
 
-    return render_to_response(
+    return render_page(
         'thing/contracts.html',
         dict(
-            characters=characters,
+            characters=character_ids,
             contracts=contracts,
             char_map=char_map,
             corp_map=corp_map,
             alliance_map=alliance_map,
         ),
-        context_instance=RequestContext(request)
+        request,
+        character_ids,
+        corporation_ids,
     )
 
 # ---------------------------------------------------------------------------

@@ -5,12 +5,9 @@ from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator, EmptyPage, InvalidPage, PageNotAnInteger
 from django.db import connection
 from django.db.models import Q, Avg, Count, Max, Min, Sum
-from django.template import RequestContext
-
-from coffin.shortcuts import *
 
 from thing.models import *
-from thing.stuff import build_filter, parse_filters, q_reduce_or
+from thing.stuff import *
 from thing.views.trade import _month_range
 
 # ---------------------------------------------------------------------------
@@ -317,7 +314,7 @@ def wallet_journal(request):
     }
 
     # Render template
-    return render_to_response(
+    return render_page(
         'thing/wallet_journal.html',
         {
             'json_expected': json_expected,
@@ -331,7 +328,9 @@ def wallet_journal(request):
             'prev': prev,
             'ignoreself': 'ignoreself' in request.GET,
         },
-        context_instance=RequestContext(request)
+        request,
+        character_ids,
+        corporation_ids,
     )
 
 # ---------------------------------------------------------------------------
@@ -352,12 +351,14 @@ def wjthing(request):
 
     months = summaries.values('year','month').annotate(sum_in=Sum('total_in'), sum_out=Sum('total_out'), sum_bal=Sum('balance')).order_by('-year', '-month')
 
-    return render_to_response(
+    return render_page(
         'thing/wjthing.html',
         {
             'months': months,
         },
-        context_instance=RequestContext(request)
+        request,
+        character_ids,
+        corporation_ids,
     )
 
 # ---------------------------------------------------------------------------

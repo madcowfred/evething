@@ -3,15 +3,11 @@ import csv
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.db import connection
-#from django.db.models import Q, Avg, Count, Max, Min, Sum
 from django.shortcuts import redirect, get_object_or_404
-from django.template import RequestContext
 
-from coffin.shortcuts import *
-
-from thing.models import *
-from thing.stuff import TimerThing
 from thing import queries
+from thing.models import *
+from thing.stuff import *
 
 # ---------------------------------------------------------------------------
 
@@ -56,14 +52,14 @@ def blueprints(request):
     tt.add_time('bp data')
 
     # Render template
-    out = render_to_response(
+    out = render_page(
         'thing/blueprints.html',
         {
             'blueprints': Blueprint.objects.all(),
             'bpis': bpis,
             'runs': runs,
         },
-        context_instance=RequestContext(request)
+        request,
     )
 
     tt.add_time('template')
@@ -106,12 +102,12 @@ def blueprints_edit(request):
 # Export blueprints as CSV
 @login_required
 def blueprints_export(request):
-    return render_to_response(
+    return render_page(
         'thing/blueprints_export.html',
         {
             'bpis': BlueprintInstance.objects.select_related().filter(user=request.user.id),
         },
-        context_instance=RequestContext(request)
+        request,
     )
 
 # Import blueprints from CSV
@@ -176,14 +172,14 @@ def blueprints_import(request):
         message = None
         message_type = None
 
-    return render_to_response(
+    return render_page(
         'thing/blueprints_import.html',
         {
             'message': message,
             'message_type': message_type,
             'csv': csvdata,
         },
-        context_instance=RequestContext(request)
+        request,
     )
 
 # ---------------------------------------------------------------------------
@@ -314,7 +310,7 @@ def bpcalc(request):
             comp_totals['sell_total'] = sum(comp['sell_total'] for comp in component_list)
         
     # Render template
-    return render_to_response(
+    return render_page(
         'thing/bpcalc.html',
         {
             'bpis': bpis,
@@ -323,7 +319,7 @@ def bpcalc(request):
             'comp_totals': comp_totals,
             'days': days,
         },
-        context_instance=RequestContext(request)
+        request,
     )
 
 # ---------------------------------------------------------------------------

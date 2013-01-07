@@ -3,17 +3,12 @@ try:
 except ImportError:
     from ordereddict import OrderedDict
 
-#from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.db import connection
-#from django.db.models import Q, Avg, Count, Max, Min, Sum
-from django.template import RequestContext
 
-from coffin.shortcuts import *
-
-from thing.models import *
-from thing.stuff import dictfetchall, total_seconds
 from thing import queries
+from thing.models import *
+from thing.stuff import *
 
 # ---------------------------------------------------------------------------
 
@@ -40,7 +35,6 @@ def orders(request):
     order_cs = CharacterSkill.objects.filter(character__apikeys__user=request.user, skill__item__name__in=ORDER_SLOT_SKILLS.keys())
     order_cs = order_cs.select_related('character__apikey', 'skill__item')
 
-    #for cs in CharacterSkill.objects.select_related().filter(character__apikey__user=request.user, skill__item__name__in=ORDER_SLOT_SKILLS.keys()):
     for cs in order_cs:
         char_id = cs.character.id
         if char_id not in char_orders:
@@ -74,14 +68,14 @@ def orders(request):
         order.z_remaining = total_seconds(order.expires - now)
 
     # Render template
-    return render_to_response(
+    return render_page(
         'thing/orders.html',
         {
             'char_orders': char_orders,
             'orders': orders,
             'total_row': total_row,
         },
-        context_instance=RequestContext(request)
+        request,
     )
 
 # ---------------------------------------------------------------------------

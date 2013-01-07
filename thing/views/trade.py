@@ -1,13 +1,10 @@
 import calendar
 
-#from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q, Avg, Count, Max, Min, Sum
-from django.template import RequestContext
-
-from coffin.shortcuts import *
 
 from thing.models import *
+from thing.stuff import *
 
 # ---------------------------------------------------------------------------
 
@@ -75,10 +72,11 @@ def trade(request):
     data['transactions'] = t_data
     
     # Render template
-    return render_to_response(
+    return render_page(
         'thing/trade.html',
         data,
-        context_instance=RequestContext(request)
+        request,
+        characters,
     )
 
 # ---------------------------------------------------------------------------
@@ -206,10 +204,10 @@ def trade_timeframe(request, year=None, month=None, period=None, slug=None):
         data['total_projected_market'] += t['projected_market']
 
     # Render template
-    return render_to_response(
+    return render_page(
         'thing/trade_timeframe.html',
         data,
-        context_instance=RequestContext(request)
+        request,
     )
 
 # ---------------------------------------------------------------------------

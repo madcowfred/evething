@@ -10,13 +10,11 @@ from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse
 from django.shortcuts import redirect
-from django.template import RequestContext
 from django.views.decorators.debug import sensitive_post_parameters, sensitive_variables
-
-from coffin.shortcuts import *
 
 from thing.forms import UploadSkillPlanForm
 from thing.models import *
+from thing.stuff import *
 
 # ---------------------------------------------------------------------------
 # Account management view
@@ -34,7 +32,7 @@ def account(request):
     characters = Character.objects.filter(apikeys__user=request.user).distinct()
     home_hide_characters = set(int(c) for c in profile.home_hide_characters.split(',') if c)
 
-    return render_to_response(
+    return render_page(
         'thing/account.html',
         {
             'message': message,
@@ -51,7 +49,8 @@ def account(request):
             'visibilities': SkillPlan.VISIBILITY_CHOICES,
             'disable_password': getattr(settings, 'DISABLE_ACCOUNT_PASSWORD', False)
         },
-        context_instance=RequestContext(request)
+        request,
+        [c.id for c in characters],
     )
 
 # ---------------------------------------------------------------------------

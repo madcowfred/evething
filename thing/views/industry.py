@@ -1,12 +1,8 @@
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
-from django.template import RequestContext
-
-from coffin.shortcuts import *
 
 from thing.models import *
-
-from thing.stuff import TimerThing
+from thing.stuff import *
 
 # ---------------------------------------------------------------------------
 # Industry jobs list
@@ -72,13 +68,15 @@ def industry(request):
     tt.add_time('load jobs')
 
     # Render template
-    out = render_to_response(
+    out = render_page(
         'thing/industry.html',
         {
             'incomplete': incomplete,
             'complete': complete,
         },
-        RequestContext(request),
+        request,
+        character_ids,
+        corporation_ids,
     )
 
     tt.add_time('template')
