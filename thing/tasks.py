@@ -1243,7 +1243,7 @@ def contracts(url, apikey_id, taskstate_id, character_id):
                 singleton=row.attrib['singleton'] == '1',
                 included=row.attrib['included'] == '1',
             ))
-    
+
     if new:
         ContractItem.objects.bulk_create(new)
         c_filter.update(retrieved_items=True)
@@ -1474,6 +1474,9 @@ def industry_jobs(url, apikey_id, taskstate_id, character_id):
     # Insert any new orders
     if new:
         IndustryJob.objects.bulk_create(new)
+
+    # completed ok
+    job.completed()
 
 # ---------------------------------------------------------------------------
 # Market orders
