@@ -611,7 +611,7 @@ def api_key_info(url, apikey_id, taskstate_id, zero):
             # Get a corporation object
             corp = get_corporation(row.attrib['corporationID'], row.attrib['corporationName'])
             
-            characters = Character.objects.filter(id=characterID)
+            characters = Character.objects.select_related('config', 'details').filter(id=characterID)
             # Character doesn't exist, make a new one and save it
             if characters.count() == 0:
                 character = Character.objects.create(
@@ -620,6 +620,7 @@ def api_key_info(url, apikey_id, taskstate_id, zero):
                     corporation=corp,
                 )
 
+                cc = CharacterConfig.objects.create(character=character)
                 cd = CharacterDetails.objects.create(character=character)
 
             # Character exists, update API key and corporation information
@@ -627,6 +628,12 @@ def api_key_info(url, apikey_id, taskstate_id, zero):
                 character = characters[0]
                 character.corporation = corp
                 character.save()
+
+                if character.config is None:
+                    cc = CharacterConfig.objects.create(character=character)
+
+                if character.details is None:
+                    cd = CharacterDetails.objects.create(character=character)
             
             # Save the character
             seen_chars[character.id] = character
