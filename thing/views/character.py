@@ -16,21 +16,21 @@ from thing.stuff import *
 # ---------------------------------------------------------------------------
 # Display a character page
 def character(request, character_name):
-    queryset = Character.objects.select_related('config', 'corporation__alliance')
+    queryset = Character.objects.select_related('config', 'details', 'corporation__alliance')
     char = get_object_or_404(queryset, name=character_name)
 
     # Check access
     public = True
-    if request.user.is_authenticated() and char.apikeys.filter(user=request.user):
+    if request.user.is_authenticated() and char.apikeys.filter(user=request.user).count():
         public = False
 
     # Check for CharacterConfig, creating an empty config if it does not exist
-    if char.config is None:
-        config = CharacterConfig(character=char)
-        config.save()
+    # if char.config is None:
+    #     config = CharacterConfig(character=char)
+    #     config.save()
 
-        char.config = config
-        char.save()
+    #     char.config = config
+    #     char.save()
 
     # If it's for public access, make sure this character is visible
     if public and not char.config.is_public:
@@ -40,7 +40,7 @@ def character(request, character_name):
 
 # Display an anonymized character page
 def character_anonymous(request, anon_key):
-    char = get_object_or_404(Character.objects.select_related('config'), config__anon_key=anon_key)
+    char = get_object_or_404(Character.objects.select_related('config', 'details'), config__anon_key=anon_key)
 
     return character_common(request, char, anonymous=True)
 
@@ -86,8 +86,8 @@ def character_common(request, char, public=True, anonymous=False):
     unpub_mg.z_total_sp = 0
     skills[unpub_mg] = []
 
-    css = CharacterSkill.objects.select_related('skill__item__market_group')
-    css = css.filter(character=char)
+    css = CharacterSkill.objects.filter(character=char)
+    css = css.select_related('skill__item__market_group')
     css = css.order_by('skill__item__market_group__name', 'skill__item__name')
 
     for cs in css:
