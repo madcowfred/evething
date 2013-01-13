@@ -614,18 +614,21 @@ def api_key_info(url, apikey_id, taskstate_id, zero):
             characters = Character.objects.filter(id=characterID)
             # Character doesn't exist, make a new one and save it
             if characters.count() == 0:
-                character = Character(
+                character = Character.objects.create(
                     id=characterID,
                     name=row.attrib['characterName'],
                     corporation=corp,
                 )
+
+                cd = CharacterDetails.objects.create(character=character)
+
             # Character exists, update API key and corporation information
             else:
                 character = characters[0]
                 character.corporation = corp
+                character.save()
             
             # Save the character
-            character.save()
             seen_chars[character.id] = character
         
         # Iterate over all APIKeys with this (keyid, vcode) combo
@@ -824,10 +827,14 @@ def character_info(url, apikey_id, taskstate_id, character_id):
         return
     
     try:
-        character = Character.objects.get(pk=character_id)
+        character = Character.objects.select_related('details').get(pk=character_id)
     except Character.DoesNotExist:
         logger.warn("character_info: Character %s does not exist!", character_id)
         return
+
+    # If Character.details doesn't exist, create it now
+    if character.details is None:
+        character.details = CharacterDetails.objects.create(character=character)
 
     # Fetch the API data
     params = { 'characterID': character.id }
@@ -835,20 +842,23 @@ def character_info(url, apikey_id, taskstate_id, character_id):
         job.failed()
         return
 
+    # Update character details from the API data
     ship_type_id = job.root.findtext('result/shipTypeID')
     ship_name = job.root.findtext('result/shipName')
     if ship_type_id is not None and ship_type_id.isdigit() and int(ship_type_id) > 0:
-        character.ship_item_id = ship_type_id
-        character.ship_name = ship_name or ''
+        character.details.ship_item_id = ship_type_id
+        character.details.ship_name = ship_name or ''
     else:
-        character.ship_item_id = None
-        character.ship_name = ''
+        character.details.ship_item_id = None
+        character.details.ship_name = ''
 
-    character.last_known_location = job.root.findtext('result/lastKnownLocation')
-    character.security_status = job.root.findtext('result/securityStatus')
+    character.details.last_known_location = job.root.findtext('result/lastKnownLocation')
+    character.details.security_status = job.root.findtext('result/securityStatus')
 
-    character.save()
+    # Save the character details
+    character.details.save()
 
+    # completed ok
     job.completed()
 
 # ---------------------------------------------------------------------------
@@ -860,10 +870,14 @@ def character_sheet(url, apikey_id, taskstate_id, character_id):
         return
     
     try:
-        character = Character.objects.get(pk=character_id)
+        character = Character.objects.select_related('details').get(pk=character_id)
     except Character.DoesNotExist:
         logger.warn("character_sheet: Character %s does not exist!", character_id)
         return
+
+    # If Character.details doesn't exist, create it now
+    if character.details is None:
+        character.details = CharacterDetails.objects.create(character=character)
 
     # Fetch the API data
     params = { 'characterID': character.id }
@@ -872,51 +886,54 @@ def character_sheet(url, apikey_id, taskstate_id, character_id):
         return
     
     # Update wallet balance
-    character.wallet_balance = job.root.findtext('result/balance')
+    character.details.wallet_balance = job.root.findtext('result/balance')
     
     # Update attributes
-    character.cha_attribute = job.root.findtext('result/attributes/charisma')
-    character.int_attribute = job.root.findtext('result/attributes/intelligence')
-    character.mem_attribute = job.root.findtext('result/attributes/memory')
-    character.per_attribute = job.root.findtext('result/attributes/perception')
-    character.wil_attribute = job.root.findtext('result/attributes/willpower')
+    character.details.cha_attribute = job.root.findtext('result/attributes/charisma')
+    character.details.int_attribute = job.root.findtext('result/attributes/intelligence')
+    character.details.mem_attribute = job.root.findtext('result/attributes/memory')
+    character.details.per_attribute = job.root.findtext('result/attributes/perception')
+    character.details.wil_attribute = job.root.findtext('result/attributes/willpower')
     
     # Update attribute bonuses :ccp:
     enh = job.root.find('result/attributeEnhancers')
 
     val = enh.find('charismaBonus/augmentatorValue')
     if val is None:
-        character.cha_bonus = 0
+        character.details.cha_bonus = 0
     else:
-        character.cha_bonus = val.text
+        character.details.cha_bonus = val.text
 
     val = enh.find('intelligenceBonus/augmentatorValue')
     if val is None:
-        character.int_bonus = 0
+        character.details.int_bonus = 0
     else:
-        character.int_bonus = val.text
+        character.details.int_bonus = val.text
 
     val = enh.find('memoryBonus/augmentatorValue')
     if val is None:
-        character.mem_bonus = 0
+        character.details.mem_bonus = 0
     else:
-        character.mem_bonus = val.text
+        character.details.mem_bonus = val.text
 
     val = enh.find('perceptionBonus/augmentatorValue')
     if val is None:
-        character.per_bonus = 0
+        character.details.per_bonus = 0
     else:
-        character.per_bonus = val.text
+        character.details.per_bonus = val.text
 
     val = enh.find('willpowerBonus/augmentatorValue')
     if val is None:
-        character.wil_bonus = 0
+        character.details.wil_bonus = 0
     else:
-        character.wil_bonus = val.text
+        character.details.wil_bonus = val.text
 
     # Update clone information
-    character.clone_skill_points = job.root.findtext('result/cloneSkillPoints')
-    character.clone_name = job.root.findtext('result/cloneName')
+    character.details.clone_skill_points = job.root.findtext('result/cloneSkillPoints')
+    character.details.clone_name = job.root.findtext('result/cloneName')
+
+    # Save character details
+    character.details.save()
 
     # Get all of the rowsets
     rowsets = job.root.findall('result/rowset')
@@ -967,7 +984,7 @@ def character_sheet(url, apikey_id, taskstate_id, character_id):
         CharacterSkill.objects.bulk_create(new)
 
     # Save character
-    character.save()
+    #character.save()
     
     # completed ok
     job.completed()
