@@ -163,11 +163,9 @@ class APIKey(models.Model):
         else:
             return []
 
-    # Mark this key as invalid and clear associated characters
+    # Mark this key as invalid
     def invalidate(self):
         self.valid = False
-        # Maybe clear characters later?
-        #self.characters.clear()
         self.save()
 
     # Delete ALL related data for this key
@@ -314,32 +312,12 @@ class Character(models.Model):
     
     name = models.CharField(max_length=64)
     corporation = models.ForeignKey(Corporation, blank=True, null=True)
-    
-    # wallet_balance = models.DecimalField(max_digits=18, decimal_places=2, default=0)
-    
-    # cha_attribute = models.SmallIntegerField(default=0)
-    # int_attribute = models.SmallIntegerField(default=0)
-    # mem_attribute = models.SmallIntegerField(default=0)
-    # per_attribute = models.SmallIntegerField(default=0)
-    # wil_attribute = models.SmallIntegerField(default=0)
-    # cha_bonus = models.SmallIntegerField(default=0)
-    # int_bonus = models.SmallIntegerField(default=0)
-    # mem_bonus = models.SmallIntegerField(default=0)
-    # per_bonus = models.SmallIntegerField(default=0)
-    # wil_bonus = models.SmallIntegerField(default=0)
-    
-    # clone_name = models.CharField(max_length=32, default='')
-    # clone_skill_points= models.IntegerField(default=0)
-
-    # last_known_location = models.CharField(max_length=255, default='')
-    # ship_item = models.ForeignKey('Item', blank=True, null=True)
-    # ship_name = models.CharField(max_length=128, default='')
 
     # Skill stuff
     skills = models.ManyToManyField('Skill', related_name='learned_by', through='CharacterSkill')
     skill_queue = models.ManyToManyField('Skill', related_name='training_by', through='SkillQueue')
     
-    # # Standings stuff
+    # Standings stuff
     faction_standings = models.ManyToManyField('Faction', related_name='has_standings', through='FactionStanding')
     corporation_standings = models.ManyToManyField('Corporation', related_name='has_standings', through='CorporationStanding')
 
@@ -1281,3 +1259,5 @@ class BlueprintInstance(models.Model):
             comps.append((component.item, int(amt * runs)))
         
         return comps
+
+# ---------------------------------------------------------------------------
