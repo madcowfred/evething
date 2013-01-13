@@ -240,7 +240,7 @@ def character_skillplan(request, character_name, skillplan_id):
 
     # If the user is logged in, check if the character belongs to them
     if request.user.is_authenticated():
-        chars = Character.objects.filter(name=character_name, apikeys__user=request.user).distinct()
+        chars = Character.objects.filter(name=character_name, apikeys__user=request.user).select_related('config', 'details').distinct()
         if chars.count() == 1:
             character = chars[0]
             public = False
@@ -249,7 +249,7 @@ def character_skillplan(request, character_name, skillplan_id):
 
     # Not logged in or character does not belong to user
     if public is True:
-        character = get_object_or_404(Character, name=character_name, config__is_public=True)
+        character = get_object_or_404(Character.objects.select_related('config', 'details'), name=character_name, config__is_public=True)
         
         qs = Q(visibility=SkillPlan.GLOBAL_VISIBILITY) | (Q(user__in=user_ids) & Q(visibility=SkillPlan.PUBLIC_VISIBILITY))
         if request.user.is_authenticated():
@@ -260,7 +260,7 @@ def character_skillplan(request, character_name, skillplan_id):
 
 # Display a SkillPlan for an anonymous character
 def character_anonymous_skillplan(request, anon_key, skillplan_id):
-    character = get_object_or_404(Character.objects.select_related('config'), config__anon_key=anon_key)
+    character = get_object_or_404(Character.objects.select_related('config', 'details'), config__anon_key=anon_key)
     skillplan = get_object_or_404(SkillPlan.objects.prefetch_related('entries'), pk=skillplan_id, visibility=SkillPlan.GLOBAL_VISIBILITY)
 
     return character_skillplan_common(request, character, skillplan, anonymous=True)
@@ -303,17 +303,17 @@ def character_skillplan_common(request, character, skillplan, public=True, anony
 
     # Initialise stat stuff
     remap_stats = dict(
-        int_attribute=character.int_attribute,
-        mem_attribute=character.mem_attribute,
-        per_attribute=character.per_attribute,
-        wil_attribute=character.wil_attribute,
-        cha_attribute=character.cha_attribute,
+        int_attribute=character.details.int_attribute,
+        mem_attribute=character.details.mem_attribute,
+        per_attribute=character.details.per_attribute,
+        wil_attribute=character.details.wil_attribute,
+        cha_attribute=character.details.cha_attribute,
     )
     implant_stats = {}
     for stat in ('int', 'mem', 'per', 'wil', 'cha'):
         k = '%s_bonus' % (stat)
         if implants == 0 and implants_visible is True:
-            implant_stats[k] = getattr(character, k)
+            implant_stats[k] = getattr(character.details, k)
         else:
             implant_stats[k] = implants
 
