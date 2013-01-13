@@ -311,37 +311,35 @@ class SimpleCharacter(models.Model):
 
 class Character(models.Model):
     id = models.IntegerField(primary_key=True)
-    #apikey = models.ForeignKey(APIKey, null=True, blank=True)
     
     name = models.CharField(max_length=64)
-    corporation = models.ForeignKey(Corporation)
+    corporation = models.ForeignKey(Corporation, blank=True, null=True)
     
-    wallet_balance = models.DecimalField(max_digits=18, decimal_places=2, default=0)
+    # wallet_balance = models.DecimalField(max_digits=18, decimal_places=2, default=0)
     
-    cha_attribute = models.SmallIntegerField(default=0)
-    int_attribute = models.SmallIntegerField(default=0)
-    mem_attribute = models.SmallIntegerField(default=0)
-    per_attribute = models.SmallIntegerField(default=0)
-    wil_attribute = models.SmallIntegerField(default=0)
-    cha_bonus = models.SmallIntegerField(default=0)
-    int_bonus = models.SmallIntegerField(default=0)
-    mem_bonus = models.SmallIntegerField(default=0)
-    per_bonus = models.SmallIntegerField(default=0)
-    wil_bonus = models.SmallIntegerField(default=0)
+    # cha_attribute = models.SmallIntegerField(default=0)
+    # int_attribute = models.SmallIntegerField(default=0)
+    # mem_attribute = models.SmallIntegerField(default=0)
+    # per_attribute = models.SmallIntegerField(default=0)
+    # wil_attribute = models.SmallIntegerField(default=0)
+    # cha_bonus = models.SmallIntegerField(default=0)
+    # int_bonus = models.SmallIntegerField(default=0)
+    # mem_bonus = models.SmallIntegerField(default=0)
+    # per_bonus = models.SmallIntegerField(default=0)
+    # wil_bonus = models.SmallIntegerField(default=0)
     
-    clone_name = models.CharField(max_length=32, default='')
-    clone_skill_points= models.IntegerField(default=0)
+    # clone_name = models.CharField(max_length=32, default='')
+    # clone_skill_points= models.IntegerField(default=0)
 
-    last_known_location = models.CharField(max_length=255, default='')
-    ship_item = models.ForeignKey('Item', blank=True, null=True)
-    ship_name = models.CharField(max_length=128, default='')
+    # last_known_location = models.CharField(max_length=255, default='')
+    # ship_item = models.ForeignKey('Item', blank=True, null=True)
+    # ship_name = models.CharField(max_length=128, default='')
 
     # Skill stuff
     skills = models.ManyToManyField('Skill', related_name='learned_by', through='CharacterSkill')
     skill_queue = models.ManyToManyField('Skill', related_name='training_by', through='SkillQueue')
     
-    # Standings stuff
-    security_status = models.DecimalField(max_digits=6, decimal_places=4, default=0)
+    # # Standings stuff
     faction_standings = models.ManyToManyField('Faction', related_name='has_standings', through='FactionStanding')
     corporation_standings = models.ManyToManyField('Corporation', related_name='has_standings', through='CorporationStanding')
 
@@ -391,6 +389,32 @@ def create_characterconfig(sender, instance, created, **kwargs):
         CharacterConfig.objects.create(character=instance)
 
 post_save.connect(create_characterconfig, sender=Character)
+
+# Character details
+class CharacterDetails(models.Model):
+    character = models.OneToOneField(Character, unique=True, primary_key=True, related_name='details')
+
+    wallet_balance = models.DecimalField(max_digits=18, decimal_places=2, default=0)
+    
+    cha_attribute = models.SmallIntegerField(default=0)
+    int_attribute = models.SmallIntegerField(default=0)
+    mem_attribute = models.SmallIntegerField(default=0)
+    per_attribute = models.SmallIntegerField(default=0)
+    wil_attribute = models.SmallIntegerField(default=0)
+    cha_bonus = models.SmallIntegerField(default=0)
+    int_bonus = models.SmallIntegerField(default=0)
+    mem_bonus = models.SmallIntegerField(default=0)
+    per_bonus = models.SmallIntegerField(default=0)
+    wil_bonus = models.SmallIntegerField(default=0)
+    
+    clone_name = models.CharField(max_length=32, default='')
+    clone_skill_points= models.IntegerField(default=0)
+    
+    security_status = models.DecimalField(max_digits=6, decimal_places=4, default=0)
+
+    last_known_location = models.CharField(max_length=255, default='')
+    ship_item = models.ForeignKey('Item', blank=True, null=True)
+    ship_name = models.CharField(max_length=128, default='')
 
 # Character skills
 class CharacterSkill(models.Model):
