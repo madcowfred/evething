@@ -700,11 +700,11 @@ class Skill(models.Model):
         sec_attrs = Skill.ATTRIBUTE_MAP[self.secondary_attribute]
 
         if force_bonus is None:
-            pri = getattr(character, pri_attrs[0]) + getattr(character, pri_attrs[1])
-            sec = getattr(character, sec_attrs[0]) + getattr(character, sec_attrs[1])
+            pri = getattr(character.details, pri_attrs[0]) + getattr(character.details, pri_attrs[1])
+            sec = getattr(character.details, sec_attrs[0]) + getattr(character.details, sec_attrs[1])
         else:
-            pri = getattr(character, pri_attrs[0]) + force_bonus
-            sec = getattr(character, sec_attrs[0]) + force_bonus
+            pri = getattr(character.details, pri_attrs[0]) + force_bonus
+            sec = getattr(character.details, sec_attrs[0]) + force_bonus
 
         return pri + (sec / 2.0)
 
