@@ -78,11 +78,11 @@ def orders(request):
         order.z_remaining = total_seconds(order.expires - utcnow)
 
     # Bulk query
-    simple_map = SimpleCharacter.objects.in_bulk(creator_ids)
+    char_map = Character.objects.in_bulk(creator_ids)
 
     # Sort out possible chars
     for order in orders:
-        order.z_creator_character = simple_map.get(order.creator_character_id)
+        order.z_creator_character = char_map.get(order.creator_character_id)
 
     # Render template
     return render_page(

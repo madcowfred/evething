@@ -55,7 +55,7 @@ def contracts(request):
             lookup_ids.add(contract.acceptor_id)
 
     # Do some lookups
-    char_map = SimpleCharacter.objects.in_bulk(lookup_ids)
+    char_map = Character.objects.in_bulk(lookup_ids)
     corp_map = Corporation.objects.in_bulk(lookup_ids)
     alliance_map = Alliance.objects.in_bulk(lookup_ids)
 

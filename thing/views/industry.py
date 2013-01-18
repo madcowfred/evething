@@ -37,7 +37,6 @@ def industry(request):
 
     # Bulk lookups
     char_map = Character.objects.in_bulk(char_ids)
-    simple_map = SimpleCharacter.objects.in_bulk(char_ids)
     station_map = Station.objects.in_bulk(station_ids)
 
     # Split into incomplete/complete
@@ -54,7 +53,7 @@ def industry(request):
         if ij.installer_id in character_ids:
             ij.z_installer_mine = True
 
-        ij.z_installer = char_map.get(ij.installer_id, simple_map.get(ij.installer_id))
+        ij.z_installer = char_map.get(ij.installer_id)
         ij.z_station = station_map.get(ij.container_id)
 
         if ij.completed:
