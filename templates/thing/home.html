@@ -95,9 +95,13 @@
         <div class="well-small well{% if character.z_apikey in not_training %} alert alert-error{% endif %}">
           <div>
             <span class="large">
+              {% if character.name == '*UNKNOWN' -%}
+              {{ character.name }}
+              {%- else -%}
               <a href="{% url thing.views.character character.name %}" class="sensitive character-name">
                 {{ character.name }}
               </a>
+              {%- endif %}
             </span>
             <span class="small pull-right sensitive apikey-name">
               [{{ character.z_apikey.name }}]
