@@ -22,30 +22,31 @@ def render_page(template, data, request, character_ids=None, corporation_ids=Non
 
     utcnow = datetime.datetime.utcnow()
     
-    if character_ids is None:
-        character_ids = list(Character.objects.filter(apikeys__user=request.user.id).values_list('id', flat=True))
+    if request.user.is_authenticated():
+        if character_ids is None:
+            character_ids = list(Character.objects.filter(apikeys__user=request.user.id).values_list('id', flat=True))
 
-    if corporation_ids is None:
-        #corporation_ids = list(Corporation.objects.filter(pk__in=APIKey.objects.filter(user=request.user).exclude(corp_character=None).values('corp_character__corporation')).values_list('id', flat=True))
-        corporation_ids = list(APIKey.objects.filter(user=request.user).exclude(corp_character=None).values_list('corp_character__corporation', flat=True))
+        if corporation_ids is None:
+            #corporation_ids = list(Corporation.objects.filter(pk__in=APIKey.objects.filter(user=request.user).exclude(corp_character=None).values('corp_character__corporation')).values_list('id', flat=True))
+            corporation_ids = list(APIKey.objects.filter(user=request.user).exclude(corp_character=None).values_list('corp_character__corporation', flat=True))
 
-    # Aggregate outstanding contracts
-    contracts = Contract.objects.filter(
-        Q(assignee_id__in=character_ids)
-        |
-        Q(assignee_id__in=corporation_ids)
-    )
-    contracts = contracts.filter(status='Outstanding')
-    data['nav_contracts'] = contracts.aggregate(t=Count('id'))['t']
+        # Aggregate outstanding contracts
+        contracts = Contract.objects.filter(
+            Q(assignee_id__in=character_ids)
+            |
+            Q(assignee_id__in=corporation_ids)
+        )
+        contracts = contracts.filter(status='Outstanding')
+        data['nav_contracts'] = contracts.aggregate(t=Count('id'))['t']
 
-    # Aggregate ready industry jobs
-    jobs = IndustryJob.objects.filter(
-        Q(character__in=character_ids, corporation=None)
-        |
-        Q(corporation__in=corporation_ids)
-    )
-    jobs = jobs.filter(completed=False, end_time__lte=utcnow)
-    data['nav_industryjobs'] = jobs.aggregate(t=Count('id'))['t']
+        # Aggregate ready industry jobs
+        jobs = IndustryJob.objects.filter(
+            Q(character__in=character_ids, corporation=None)
+            |
+            Q(corporation__in=corporation_ids)
+        )
+        jobs = jobs.filter(completed=False, end_time__lte=utcnow)
+        data['nav_industryjobs'] = jobs.aggregate(t=Count('id'))['t']
 
     return render_to_response(template, data, RequestContext(request))
 
