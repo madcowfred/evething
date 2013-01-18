@@ -633,8 +633,10 @@ def api_key_info(url, apikey_id, taskstate_id, zero):
             # Character exists, update API key and corporation information
             else:
                 character = characters[0]
-                character.corporation = corp
-                character.save()
+                if character.name != row.attrib['characterName'] or character.corporation != corp:
+                    character.name = row.attrib['characterName']
+                    character.corporation = corp
+                    character.save()
 
                 if character.config is None:
                     cc = CharacterConfig.objects.create(character=character)
