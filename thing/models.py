@@ -334,7 +334,7 @@ class Character(models.Model):
         )
 
     def get_short_clone_name(self):
-        if self.details.clone_name:
+        if self.details and self.details.clone_name:
             return self.details.clone_name.replace('Clone Grade ', '')
         else:
             return 'Unknown'

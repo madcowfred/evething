@@ -302,18 +302,28 @@ def character_skillplan_common(request, character, skillplan, public=True, anony
     tt.add_time('training')
 
     # Initialise stat stuff
-    remap_stats = dict(
-        int_attribute=character.details.int_attribute,
-        mem_attribute=character.details.mem_attribute,
-        per_attribute=character.details.per_attribute,
-        wil_attribute=character.details.wil_attribute,
-        cha_attribute=character.details.cha_attribute,
-    )
+    if character.details:
+        remap_stats = dict(
+            int_attribute=character.details.int_attribute,
+            mem_attribute=character.details.mem_attribute,
+            per_attribute=character.details.per_attribute,
+            wil_attribute=character.details.wil_attribute,
+            cha_attribute=character.details.cha_attribute,
+        )
+    else:
+        remap_stats = dict(
+            int_attribute=0,
+            mem_attribute=0,
+            per_attribute=0,
+            wil_attribute=0,
+            cha_attribute=0,
+        )
+
     implant_stats = {}
     for stat in ('int', 'mem', 'per', 'wil', 'cha'):
         k = '%s_bonus' % (stat)
         if implants == 0 and implants_visible is True:
-            implant_stats[k] = getattr(character.details, k)
+            implant_stats[k] = getattr(character.details, k, 0)
         else:
             implant_stats[k] = implants
 
