@@ -611,21 +611,31 @@ def api_key_info(url, apikey_id, taskstate_id, zero):
             # Get a corporation object
             corp = get_corporation(row.attrib['corporationID'], row.attrib['corporationName'])
             
-            characters = Character.objects.filter(id=characterID)
+            characters = Character.objects.select_related('config', 'details').filter(id=characterID)
             # Character doesn't exist, make a new one and save it
             if characters.count() == 0:
-                character = Character(
+                character = Character.objects.create(
                     id=characterID,
                     name=row.attrib['characterName'],
                     corporation=corp,
                 )
+
+                cc = CharacterConfig.objects.create(character=character)
+                cd = CharacterDetails.objects.create(character=character)
+
             # Character exists, update API key and corporation information
             else:
                 character = characters[0]
                 character.corporation = corp
+                character.save()
+
+                if character.config is None:
+                    cc = CharacterConfig.objects.create(character=character)
+
+                if character.details is None:
+                    cd = CharacterDetails.objects.create(character=character)
             
             # Save the character
-            character.save()
             seen_chars[character.id] = character
         
         # Iterate over all APIKeys with this (keyid, vcode) combo
@@ -824,10 +834,14 @@ def character_info(url, apikey_id, taskstate_id, character_id):
         return
     
     try:
-        character = Character.objects.get(pk=character_id)
+        character = Character.objects.select_related('details').get(pk=character_id)
     except Character.DoesNotExist:
         logger.warn("character_info: Character %s does not exist!", character_id)
         return
+
+    # If Character.details doesn't exist, create it now
+    if character.details is None:
+        character.details = CharacterDetails.objects.create(character=character)
 
     # Fetch the API data
     params = { 'characterID': character.id }
@@ -835,20 +849,23 @@ def character_info(url, apikey_id, taskstate_id, character_id):
         job.failed()
         return
 
+    # Update character details from the API data
     ship_type_id = job.root.findtext('result/shipTypeID')
     ship_name = job.root.findtext('result/shipName')
     if ship_type_id is not None and ship_type_id.isdigit() and int(ship_type_id) > 0:
-        character.ship_item_id = ship_type_id
-        character.ship_name = ship_name or ''
+        character.details.ship_item_id = ship_type_id
+        character.details.ship_name = ship_name or ''
     else:
-        character.ship_item_id = None
-        character.ship_name = ''
+        character.details.ship_item_id = None
+        character.details.ship_name = ''
 
-    character.last_known_location = job.root.findtext('result/lastKnownLocation')
-    character.security_status = job.root.findtext('result/securityStatus')
+    character.details.last_known_location = job.root.findtext('result/lastKnownLocation')
+    character.details.security_status = job.root.findtext('result/securityStatus')
 
-    character.save()
+    # Save the character details
+    character.details.save()
 
+    # completed ok
     job.completed()
 
 # ---------------------------------------------------------------------------
@@ -860,10 +877,14 @@ def character_sheet(url, apikey_id, taskstate_id, character_id):
         return
     
     try:
-        character = Character.objects.get(pk=character_id)
+        character = Character.objects.select_related('details').get(pk=character_id)
     except Character.DoesNotExist:
         logger.warn("character_sheet: Character %s does not exist!", character_id)
         return
+
+    # If Character.details doesn't exist, create it now
+    if character.details is None:
+        character.details = CharacterDetails.objects.create(character=character)
 
     # Fetch the API data
     params = { 'characterID': character.id }
@@ -872,51 +893,54 @@ def character_sheet(url, apikey_id, taskstate_id, character_id):
         return
     
     # Update wallet balance
-    character.wallet_balance = job.root.findtext('result/balance')
+    character.details.wallet_balance = job.root.findtext('result/balance')
     
     # Update attributes
-    character.cha_attribute = job.root.findtext('result/attributes/charisma')
-    character.int_attribute = job.root.findtext('result/attributes/intelligence')
-    character.mem_attribute = job.root.findtext('result/attributes/memory')
-    character.per_attribute = job.root.findtext('result/attributes/perception')
-    character.wil_attribute = job.root.findtext('result/attributes/willpower')
+    character.details.cha_attribute = job.root.findtext('result/attributes/charisma')
+    character.details.int_attribute = job.root.findtext('result/attributes/intelligence')
+    character.details.mem_attribute = job.root.findtext('result/attributes/memory')
+    character.details.per_attribute = job.root.findtext('result/attributes/perception')
+    character.details.wil_attribute = job.root.findtext('result/attributes/willpower')
     
     # Update attribute bonuses :ccp:
     enh = job.root.find('result/attributeEnhancers')
 
     val = enh.find('charismaBonus/augmentatorValue')
     if val is None:
-        character.cha_bonus = 0
+        character.details.cha_bonus = 0
     else:
-        character.cha_bonus = val.text
+        character.details.cha_bonus = val.text
 
     val = enh.find('intelligenceBonus/augmentatorValue')
     if val is None:
-        character.int_bonus = 0
+        character.details.int_bonus = 0
     else:
-        character.int_bonus = val.text
+        character.details.int_bonus = val.text
 
     val = enh.find('memoryBonus/augmentatorValue')
     if val is None:
-        character.mem_bonus = 0
+        character.details.mem_bonus = 0
     else:
-        character.mem_bonus = val.text
+        character.details.mem_bonus = val.text
 
     val = enh.find('perceptionBonus/augmentatorValue')
     if val is None:
-        character.per_bonus = 0
+        character.details.per_bonus = 0
     else:
-        character.per_bonus = val.text
+        character.details.per_bonus = val.text
 
     val = enh.find('willpowerBonus/augmentatorValue')
     if val is None:
-        character.wil_bonus = 0
+        character.details.wil_bonus = 0
     else:
-        character.wil_bonus = val.text
+        character.details.wil_bonus = val.text
 
     # Update clone information
-    character.clone_skill_points = job.root.findtext('result/cloneSkillPoints')
-    character.clone_name = job.root.findtext('result/cloneName')
+    character.details.clone_skill_points = job.root.findtext('result/cloneSkillPoints')
+    character.details.clone_name = job.root.findtext('result/cloneName')
+
+    # Save character details
+    character.details.save()
 
     # Get all of the rowsets
     rowsets = job.root.findall('result/rowset')
@@ -967,7 +991,7 @@ def character_sheet(url, apikey_id, taskstate_id, character_id):
         CharacterSkill.objects.bulk_create(new)
 
     # Save character
-    character.save()
+    #character.save()
     
     # completed ok
     job.completed()
@@ -1061,21 +1085,21 @@ def contracts(url, apikey_id, taskstate_id, character_id):
         contract_rows.append(row)
 
     # Fetch existing chars and corps
-    char_map = SimpleCharacter.objects.in_bulk(lookup_ids)
+    char_map = Character.objects.in_bulk(lookup_ids)
     corp_map = Corporation.objects.in_bulk(lookup_ids | lookup_corp_ids)
     alliance_map = Alliance.objects.in_bulk(lookup_ids)
     
-    # Add missing IDs as *UNKNOWN* SimpleCharacters for now
+    # Add missing IDs as *UNKNOWN* Characters for now
     new = []
     for new_id in lookup_ids.difference(char_map, corp_map, alliance_map, lookup_corp_ids):
-        new.append(SimpleCharacter(
+        new.append(Character(
             id=new_id,
             name="*UNKNOWN*",
         ))
         char_map[new_id] = new[-1]
 
     if new:
-        SimpleCharacter.objects.bulk_create(new)
+        Character.objects.bulk_create(new)
 
     # Add missing Corporations too
     new = []
@@ -1090,8 +1114,6 @@ def contracts(url, apikey_id, taskstate_id, character_id):
         Corporation.objects.bulk_create(new)
 
     # Re-fetch data
-    #char_map = SimpleCharacter.objects.in_bulk(lookup_ids)
-    #corp_map = Corporation.objects.in_bulk(lookup_ids | lookup_corp_ids)
     station_map = Station.objects.in_bulk(station_ids)
 
     # Fetch all existing contracts
@@ -1893,7 +1915,7 @@ def _wallet_journal_work(url, job, character, corp_wallet=None):
 
     # If we found some data, deal with it
     if bulk_data:
-        new_simple = {}
+        new_chars = {}
 
         # Fetch all existing journal entries
         j_map = {}
@@ -1925,9 +1947,9 @@ def _wallet_journal_work(url, job, character, corp_wallet=None):
                 trid = int(taxReceiverID)
                 tax_corp = corp_map.get(trid)
                 if tax_corp is None:
-                    if trid not in new_simple:
+                    if trid not in new_chars:
                         logger.warn('wallet_journal: invalid taxReceiverID #%d', trid)
-                        new_simple[trid] = SimpleCharacter(
+                        new_chars[trid] = Character(
                             id=trid,
                             name='*UNKNOWN*',
                         )
@@ -1968,11 +1990,11 @@ def _wallet_journal_work(url, job, character, corp_wallet=None):
         if new:
             JournalEntry.objects.bulk_create(new)
 
-        # Check to see if we need to add any new SimpleCharacter objects
-        if new_simple:
-            simple_map = SimpleCharacter.objects.in_bulk(new_simple.keys())
-            insert_me = [v for k, v in new_simple.items() if k not in simple_map]
-            SimpleCharacter.objects.bulk_create(insert_me)
+        # Check to see if we need to add any new Character objects
+        if new_chars:
+            char_map = Character.objects.in_bulk(new_chars.keys())
+            insert_me = [v for k, v in new_chars.items() if k not in char_map]
+            Character.objects.bulk_create(insert_me)
 
     return True
 
@@ -2107,8 +2129,8 @@ def _wallet_transactions_work(url, job, character, corp_wallet=None):
         t_map[t['transaction_id']] = t
 
     # Fetch bulk data
-    simple_map = SimpleCharacter.objects.in_bulk(client_ids)
-    corp_map = Corporation.objects.in_bulk(client_ids.difference(simple_map))
+    char_map = Character.objects.in_bulk(client_ids)
+    corp_map = Corporation.objects.in_bulk(client_ids.difference(char_map))
     item_map = Item.objects.in_bulk(item_ids)
     station_map = Station.objects.in_bulk(station_ids)
     
@@ -2124,17 +2146,17 @@ def _wallet_transactions_work(url, job, character, corp_wallet=None):
 
         # Handle possible new clients
         client_id = int(row.attrib['clientID'])
-        client = simple_map.get(client_id, corp_map.get(client_id, None))
+        client = char_map.get(client_id, corp_map.get(client_id, None))
         if client is None:
             try:
-                client = SimpleCharacter.objects.create(
+                client = Character.objects.create(
                     id=client_id,
                     name=row.attrib['clientName'],
                 )
             except IntegrityError:
-                client = SimpleCharacter.objects.get(id=client_id)
+                client = Character.objects.get(id=client_id)
 
-            simple_map[client_id] = client
+            char_map[client_id] = client
 
         # Check to see if this transaction already exists
         t = t_map.get(transaction_id, None)
@@ -2189,7 +2211,7 @@ def _wallet_transactions_work(url, job, character, corp_wallet=None):
                 t.corp_wallet = corp_wallet
             
             # Set whichever client type is relevant
-            if isinstance(client, SimpleCharacter):
+            if isinstance(client, Character):
                 t.other_char_id = client.id
             else:
                 t.other_corp_id = client.id
@@ -2434,18 +2456,18 @@ def price_updater():
         bp.item.save()
 
 # ---------------------------------------------------------------------------
-# Periodic task to try to fix *UNKNOWN* SimpleCharacter objects
+# Periodic task to try to fix *UNKNOWN* Character objects
 CHAR_NAME_URL = urljoin(settings.API_HOST, '/eve/CharacterName.xml.aspx')
 CORP_SHEET_URL = urljoin(settings.API_HOST, '/corp/CorporationSheet.xml.aspx')
 
 @task
-def fix_unknown_simplecharacters():
-    # Fetch all unknown SimpleCharacter objects
-    sc_map = {}
-    for sc in SimpleCharacter.objects.filter(name='*UNKNOWN*'):
-        sc_map[sc.id] = sc
+def fix_unknown_characters():
+    # Fetch all unknown Character objects
+    char_map = {}
+    for char in Character.objects.filter(name='*UNKNOWN*'):
+        char_map[char.id] = char
     
-    ids = sc_map.keys()
+    ids = char_map.keys()
     if len(ids) == 0:
         return
 
@@ -2478,10 +2500,10 @@ def fix_unknown_simplecharacters():
 
         error = root.find('error')
         if error is not None:
-            # Not a corporation, update the SimpleCharacter object
-            sc = sc_map.get(id)
-            sc.name = name
-            sc.save()
+            # Not a corporation, update the Character object
+            char = char_map.get(id)
+            char.name = name
+            char.save()
         else:
             new_corps.append(Corporation(
                 id=id,
@@ -2495,7 +2517,7 @@ def fix_unknown_simplecharacters():
     Corporation.objects.bulk_create(new_corps)
 
     # And finally delete all of the things we probably added
-    SimpleCharacter.objects.filter(pk__in=name_map.keys(), name='*UNKNOWN*').delete()
+    Character.objects.filter(pk__in=name_map.keys(), name='*UNKNOWN*').delete()
 
 # ---------------------------------------------------------------------------
 # Parse data into an XML ElementTree

@@ -175,7 +175,7 @@ def transactions(request):
 
         qs_reduced = reduce(q_reduce_or, qs)
 
-        char_ids = list(SimpleCharacter.objects.filter(qs_reduced).values_list('id', flat=True))
+        char_ids = list(Character.objects.filter(qs_reduced).values_list('id', flat=True))
         corp_ids = list(Corporation.objects.filter(qs_reduced).values_list('id', flat=True))
 
         transaction_ids = transaction_ids.filter(

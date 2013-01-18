@@ -40,16 +40,41 @@ def home(request):
     chars = {}
     ship_item_ids = set()
 
-    for apikey in APIKey.objects.prefetch_related('characters').filter(user=request.user).exclude(key_type=APIKey.CORPORATION_TYPE):
-        api_keys.add(apikey)
-        for char in apikey.characters.all():
-            if char.id not in chars:
-                chars[char.id] = char
-                char.z_apikey = apikey
-                char.z_training = {}
-                total_balance += char.wallet_balance
-                if char.ship_item_id is not None:
-                    ship_item_ids.add(char.ship_item_id)
+    characters = Character.objects.filter(apikeys__user=request.user)
+    characters = characters.exclude(apikeys__key_type=APIKey.CORPORATION_TYPE)
+    characters = characters.prefetch_related('apikeys')
+    characters = characters.select_related('details')
+    characters = characters.distinct()
+
+    for character in characters:
+        char_keys = [ak for ak in character.apikeys.all() if ak.user_id == request.user.id]
+        api_keys.update(char_keys)
+
+        chars[character.id] = character
+        character.z_apikey = char_keys[0]
+        character.z_training = {}
+
+        if character.details is not None:
+            total_balance += character.details.wallet_balance
+            if character.details.ship_item_id is not None:
+                ship_item_ids.add(character.details.ship_item_id)
+
+    # apikeys = APIKey.objects.filter(user=request.user)
+    # apikeys = apikeys.exclude(key_type=APIKey.CORPORATION_TYPE)
+    # apikeys = apikeys.prefetch_related('characters')
+
+    # for apikey in apikeys:
+    #     api_keys.add(apikey)
+    #     for char in apikey.characters.all():
+    #         if char.id not in chars:
+    #             chars[char.id] = char
+    #             char.z_apikey = apikey
+    #             char.z_training = {}
+
+    #             if char.details is not None:
+    #                 total_balance += char.details.wallet_balance
+    #                 if char.details.ship_item_id is not None:
+    #                     ship_item_ids.add(char.details.ship_item_id)
 
     tt.add_time('apikeys')
 
@@ -61,7 +86,8 @@ def home(request):
     # scales like crap doing individual queries
     skill_qs = []
 
-    queues = SkillQueue.objects.select_related('character', 'skill__item').filter(character__in=chars, end_time__gte=now)
+    queues = SkillQueue.objects.filter(character__in=chars, end_time__gte=now)
+    queues = queues.select_related('character__details', 'skill__item')
     for sq in queues:
         char = chars[sq.character_id]
         if 'sq' not in char.z_training:
@@ -152,30 +178,31 @@ def home(request):
                 })
 
             # Missing implants
-            skill = char.z_training['sq'].skill
-            pri_attrs = Skill.ATTRIBUTE_MAP[skill.primary_attribute]
-            sec_attrs = Skill.ATTRIBUTE_MAP[skill.secondary_attribute]
-            pri_bonus = getattr(char, pri_attrs[1])
-            sec_bonus = getattr(char, sec_attrs[1])
+            if char.details is not None:
+                skill = char.z_training['sq'].skill
+                pri_attrs = Skill.ATTRIBUTE_MAP[skill.primary_attribute]
+                sec_attrs = Skill.ATTRIBUTE_MAP[skill.secondary_attribute]
+                pri_bonus = getattr(char.details, pri_attrs[1])
+                sec_bonus = getattr(char.details, sec_attrs[1])
 
-            if pri_bonus == 0 or sec_bonus == 0:
-                t = []
-                if pri_bonus == 0:
-                    t.append(skill.get_primary_attribute_display())
-                if sec_bonus == 0:
-                    t.append(skill.get_secondary_attribute_display())
+                if pri_bonus == 0 or sec_bonus == 0:
+                    t = []
+                    if pri_bonus == 0:
+                        t.append(skill.get_primary_attribute_display())
+                    if sec_bonus == 0:
+                        t.append(skill.get_secondary_attribute_display())
 
-                char.z_notifications.append({
-                    'icon': 'missing-implants',
-                    'text': ', '.join(t),
-                    'tooltip': 'Missing stat implants for currently training skill!',
-                })
+                    char.z_notifications.append({
+                        'icon': 'missing-implants',
+                        'text': ', '.join(t),
+                        'tooltip': 'Missing stat implants for currently training skill!',
+                    })
 
         # Insufficient clone
-        if hasattr(char, 'z_total_sp') and char.z_total_sp > char.clone_skill_points:
+        if char.details is not None and hasattr(char, 'z_total_sp') and char.z_total_sp > char.details.clone_skill_points:
             char.z_notifications.append({
                 'icon': 'inadequate-clone',
-                'text': '%s SP' % (commas(char.clone_skill_points)),
+                'text': '%s SP' % (commas(char.details.clone_skill_points)),
                 'tooltip': 'Insufficient clone!',
             })
 
@@ -192,7 +219,7 @@ def home(request):
     elif profile.home_sort_order == 'totalsp':
         temp = [(getattr(c, 'z_total_sp', 0), c) for c in char_list]
     elif profile.home_sort_order == 'wallet':
-        temp = [(c.wallet_balance, c.name.lower(), c) for c in char_list]
+        temp = [(c.details and c.details.wallet_balance, c.name.lower(), c) for c in char_list]
 
     temp.sort()
     if profile.home_sort_descending:

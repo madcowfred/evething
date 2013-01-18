@@ -185,11 +185,11 @@
                 {%- endif %}
               </ul>
               {%- endif %}
-              {% if show.wallet %}<p><strong>Wallet:</strong> {{ char.wallet_balance|commas }} ISK</p>{% endif %}
+              {% if show.wallet %}<p><strong>Wallet:</strong> {{ char.details.wallet_balance|commas }} ISK</p>{% endif %}
               <ul class="unstyled">
                 <li><strong>Total SP:</strong> {{ total_sp|commas }}</li>
                 {% if show.clone -%}
-                <li><strong>Clone limit:</strong> {{ char.clone_skill_points|commas }} ({{ char.get_short_clone_name() }})</li>
+                <li><strong>Clone limit:</strong> {{ char.details.clone_skill_points|commas }} ({{ char.get_short_clone_name() }})</li>
                 {%- endif %}
               </ul>
             </div>
@@ -197,28 +197,28 @@
               <table>
                 <tr class="r">
                   <td><strong>Int:</strong></td>
-                  <td>{{ char.int_attribute }}</td>
-                  <td>({% if show.implants %}+{{ char.int_bonus }}{% else %}??{% endif %})</td>
+                  <td>{{ char.details.int_attribute }}</td>
+                  <td>({% if show.implants %}+{{ char.details.int_bonus }}{% else %}??{% endif %})</td>
                 </tr>
                 <tr class="r">
                   <td><strong>Mem:</strong></td>
-                  <td>{{ char.mem_attribute }}</td>
-                  <td>({% if show.implants %}+{{ char.mem_bonus }}{% else %}??{% endif %})</td>
+                  <td>{{ char.details.mem_attribute }}</td>
+                  <td>({% if show.implants %}+{{ char.details.mem_bonus }}{% else %}??{% endif %})</td>
                 </tr>
                 <tr class="r">
                   <td><strong>Per:</strong></td>
-                  <td>{{ char.per_attribute }}</td>
-                  <td>({% if show.implants %}+{{ char.per_bonus }}{% else %}??{% endif %})</td>
+                  <td>{{ char.details.per_attribute }}</td>
+                  <td>({% if show.implants %}+{{ char.details.per_bonus }}{% else %}??{% endif %})</td>
                 </tr>
                 <tr class="r">
                   <td><strong>Wil:</strong></td>
-                  <td>{{ char.wil_attribute }}</td>
-                  <td>({% if show.implants %}+{{ char.wil_bonus }}{% else %}??{% endif %})</td>
+                  <td>{{ char.details.wil_attribute }}</td>
+                  <td>({% if show.implants %}+{{ char.details.wil_bonus }}{% else %}??{% endif %})</td>
                 </tr>
                 <tr class="r">
                   <td><strong>Cha:</strong></td>
-                  <td>{{ char.cha_attribute }}</td>
-                  <td>({% if show.implants %}+{{ char.cha_bonus }}{% else %}??{% endif %})</td>
+                  <td>{{ char.details.cha_attribute }}</td>
+                  <td>({% if show.implants %}+{{ char.details.cha_bonus }}{% else %}??{% endif %})</td>
                 </tr>
               </table>
               <br>

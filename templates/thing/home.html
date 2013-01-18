@@ -105,16 +105,16 @@
           </div>
 
           <div>
-            <span>{{ character.wallet_balance|commas }} ISK</span>
+            <span>{{ character.details.wallet_balance|commas }} ISK</span>
             <span class="small pull-right">
               {{ character.z_total_sp|commas }} SP
             </span>
           </div>
 
-          {% if profile.home_show_locations and character.last_known_location -%}
+          {% if profile.home_show_locations and character.details.last_known_location -%}
           <div class="margin-half-top sensitive character-location">
-            {{ character.last_known_location }}
-            {% if character.ship_item_id %}-- {{ ship_map[character.ship_item_id] }}{% endif %}
+            {{ character.details.last_known_location }}
+            {% if character.details.ship_item_id %}-- {{ ship_map[character.details.ship_item_id] }}{% endif %}
           </div>
           {%- endif %}
 

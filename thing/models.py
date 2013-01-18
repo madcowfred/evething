@@ -163,11 +163,9 @@ class APIKey(models.Model):
         else:
             return []
 
-    # Mark this key as invalid and clear associated characters
+    # Mark this key as invalid
     def invalidate(self):
         self.valid = False
-        # Maybe clear characters later?
-        #self.characters.clear()
         self.save()
 
     # Delete ALL related data for this key
@@ -302,46 +300,17 @@ class CorpWallet(models.Model):
 
 # ---------------------------------------------------------------------------
 # Characters
-class SimpleCharacter(models.Model):
-    id = models.IntegerField(primary_key=True)
-    name = models.CharField(max_length=64)
-
-    def __unicode__(self):
-        return self.name
-
 class Character(models.Model):
     id = models.IntegerField(primary_key=True)
-    #apikey = models.ForeignKey(APIKey, null=True, blank=True)
     
     name = models.CharField(max_length=64)
-    corporation = models.ForeignKey(Corporation)
-    
-    wallet_balance = models.DecimalField(max_digits=18, decimal_places=2, default=0)
-    
-    cha_attribute = models.SmallIntegerField(default=0)
-    int_attribute = models.SmallIntegerField(default=0)
-    mem_attribute = models.SmallIntegerField(default=0)
-    per_attribute = models.SmallIntegerField(default=0)
-    wil_attribute = models.SmallIntegerField(default=0)
-    cha_bonus = models.SmallIntegerField(default=0)
-    int_bonus = models.SmallIntegerField(default=0)
-    mem_bonus = models.SmallIntegerField(default=0)
-    per_bonus = models.SmallIntegerField(default=0)
-    wil_bonus = models.SmallIntegerField(default=0)
-    
-    clone_name = models.CharField(max_length=32, default='')
-    clone_skill_points= models.IntegerField(default=0)
-
-    last_known_location = models.CharField(max_length=255, default='')
-    ship_item = models.ForeignKey('Item', blank=True, null=True)
-    ship_name = models.CharField(max_length=128, default='')
+    corporation = models.ForeignKey(Corporation, blank=True, null=True)
 
     # Skill stuff
     skills = models.ManyToManyField('Skill', related_name='learned_by', through='CharacterSkill')
     skill_queue = models.ManyToManyField('Skill', related_name='training_by', through='SkillQueue')
     
     # Standings stuff
-    security_status = models.DecimalField(max_digits=6, decimal_places=4, default=0)
     faction_standings = models.ManyToManyField('Faction', related_name='has_standings', through='FactionStanding')
     corporation_standings = models.ManyToManyField('Corporation', related_name='has_standings', through='CorporationStanding')
 
@@ -365,7 +334,10 @@ class Character(models.Model):
         )
 
     def get_short_clone_name(self):
-        return self.clone_name.replace('Clone Grade ', '')
+        if self.details.clone_name:
+            return self.details.clone_name.replace('Clone Grade ', '')
+        else:
+            return 'Unknown'
 
     def get_total_skill_points(self):
         return CharacterSkill.objects.filter(character=self).aggregate(total_sp=Sum('points'))['total_sp']
@@ -391,6 +363,32 @@ def create_characterconfig(sender, instance, created, **kwargs):
         CharacterConfig.objects.create(character=instance)
 
 post_save.connect(create_characterconfig, sender=Character)
+
+# Character details
+class CharacterDetails(models.Model):
+    character = models.OneToOneField(Character, unique=True, primary_key=True, related_name='details')
+
+    wallet_balance = models.DecimalField(max_digits=18, decimal_places=2, default=0)
+    
+    cha_attribute = models.SmallIntegerField(default=0)
+    int_attribute = models.SmallIntegerField(default=0)
+    mem_attribute = models.SmallIntegerField(default=0)
+    per_attribute = models.SmallIntegerField(default=0)
+    wil_attribute = models.SmallIntegerField(default=0)
+    cha_bonus = models.SmallIntegerField(default=0)
+    int_bonus = models.SmallIntegerField(default=0)
+    mem_bonus = models.SmallIntegerField(default=0)
+    per_bonus = models.SmallIntegerField(default=0)
+    wil_bonus = models.SmallIntegerField(default=0)
+    
+    clone_name = models.CharField(max_length=32, default='')
+    clone_skill_points= models.IntegerField(default=0)
+    
+    security_status = models.DecimalField(max_digits=6, decimal_places=4, default=0)
+
+    last_known_location = models.CharField(max_length=255, default='')
+    ship_item = models.ForeignKey('Item', blank=True, null=True)
+    ship_name = models.CharField(max_length=128, default='')
 
 # Character skills
 class CharacterSkill(models.Model):
@@ -676,11 +674,11 @@ class Skill(models.Model):
         sec_attrs = Skill.ATTRIBUTE_MAP[self.secondary_attribute]
 
         if force_bonus is None:
-            pri = getattr(character, pri_attrs[0]) + getattr(character, pri_attrs[1])
-            sec = getattr(character, sec_attrs[0]) + getattr(character, sec_attrs[1])
+            pri = getattr(character.details, pri_attrs[0]) + getattr(character.details, pri_attrs[1])
+            sec = getattr(character.details, sec_attrs[0]) + getattr(character.details, sec_attrs[1])
         else:
-            pri = getattr(character, pri_attrs[0]) + force_bonus
-            sec = getattr(character, sec_attrs[0]) + force_bonus
+            pri = getattr(character.details, pri_attrs[0]) + force_bonus
+            sec = getattr(character.details, sec_attrs[0]) + force_bonus
 
         return pri + (sec / 2.0)
 
@@ -794,7 +792,7 @@ class Transaction(models.Model):
 
     character = models.ForeignKey(Character)
     corp_wallet = models.ForeignKey(CorpWallet, null=True, blank=True)
-    other_char = models.ForeignKey(SimpleCharacter, null=True, blank=True)
+    other_char = models.ForeignKey(Character, null=True, blank=True, related_name='transaction_others')
     other_corp = models.ForeignKey(Corporation, null=True, blank=True)
 
     transaction_id = models.BigIntegerField(db_index=True)
@@ -904,7 +902,7 @@ class Asset(models.Model):
 class Contract(models.Model):
     contract_id = models.IntegerField(db_index=True)
 
-    issuer_char = models.ForeignKey(SimpleCharacter, related_name="contract_issuers")
+    issuer_char = models.ForeignKey(Character, blank=True, null=True, related_name="contract_issuers")
     issuer_corp = models.ForeignKey(Corporation, related_name="contract_issuers")
     assignee_id = models.IntegerField(blank=True, null=True)
     acceptor_id = models.IntegerField(blank=True, null=True)
@@ -1254,3 +1252,5 @@ class BlueprintInstance(models.Model):
             comps.append((component.item, int(amt * runs)))
         
         return comps
+
+# ---------------------------------------------------------------------------

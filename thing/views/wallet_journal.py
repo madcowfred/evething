@@ -122,7 +122,7 @@ def wallet_journal(request):
 
         qs_reduced = reduce(q_reduce_or, qs)
 
-        o_chars = SimpleCharacter.objects.filter(qs_reduced)
+        o_chars = Character.objects.filter(qs_reduced)
         o_corps = Corporation.objects.filter(qs_reduced)
         o_alliances = Alliance.objects.filter(qs_reduced)
 
@@ -234,7 +234,7 @@ def wallet_journal(request):
                 if ':' in thing:
                     item_ids.add(int(thing.split(':')[0]))
 
-    char_map = SimpleCharacter.objects.in_bulk(owner_ids)
+    char_map = Character.objects.in_bulk(owner_ids)
     corp_map = Corporation.objects.in_bulk(owner_ids)
     alliance_map = Alliance.objects.in_bulk(owner_ids)
     item_map = Item.objects.in_bulk(item_ids)

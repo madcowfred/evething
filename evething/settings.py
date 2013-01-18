@@ -271,9 +271,9 @@ CELERYBEAT_SCHEDULE = {
         'args': (),
     },
 
-    # update unknown SimpleCharacters every hour
-    'fix-unknown-simplecharacters': {
-        'task': 'thing.tasks.fix_unknown_simplecharacters',
+    # update unknown Characters every hour
+    'fix-unknown-characters': {
+        'task': 'thing.tasks.fix_unknown_characters',
         'schedule': timedelta(hours=1),
         'options': {
             'expires': 59 * 60,
