@@ -93,8 +93,12 @@ def home(request):
         if 'sq' not in char.z_training:
             char.z_training['sq'] = sq
             char.z_training['skill_duration'] = total_seconds(sq.end_time - now)
-            char.z_training['sp_per_hour'] = int(sq.skill.get_sp_per_minute(char) * 60)
-            char.z_training['complete_per'] = sq.get_complete_percentage(now)
+            if char.details:
+                char.z_training['sp_per_hour'] = int(sq.skill.get_sp_per_minute(char) * 60)
+                char.z_training['complete_per'] = sq.get_complete_percentage(now)
+            else:
+                char.z_training['sp_per_hour'] = 1
+                char.z_training['complete_per'] = 1
             training.add(char.z_apikey)
 
             skill_qs.append(Q(character=char, skill=sq.skill))
