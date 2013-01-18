@@ -620,8 +620,15 @@ def api_key_info(url, apikey_id, taskstate_id, zero):
                     corporation=corp,
                 )
 
-                cc = CharacterConfig.objects.create(character=character)
-                cd = CharacterDetails.objects.create(character=character)
+                # Poor error handling
+                try:
+                    cc = CharacterConfig.objects.create(character=character)
+                except:
+                    pass
+                try:
+                    cd = CharacterDetails.objects.create(character=character)
+                except:
+                    pass
 
             # Character exists, update API key and corporation information
             else:
