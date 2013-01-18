@@ -300,13 +300,6 @@ class CorpWallet(models.Model):
 
 # ---------------------------------------------------------------------------
 # Characters
-class SimpleCharacter(models.Model):
-    id = models.IntegerField(primary_key=True)
-    name = models.CharField(max_length=64)
-
-    def __unicode__(self):
-        return self.name
-
 class Character(models.Model):
     id = models.IntegerField(primary_key=True)
     
@@ -799,7 +792,6 @@ class Transaction(models.Model):
 
     character = models.ForeignKey(Character)
     corp_wallet = models.ForeignKey(CorpWallet, null=True, blank=True)
-    #other_char = models.ForeignKey(SimpleCharacter, null=True, blank=True)
     other_char = models.ForeignKey(Character, null=True, blank=True, related_name='transaction_others')
     other_corp = models.ForeignKey(Corporation, null=True, blank=True)
 
@@ -910,7 +902,6 @@ class Asset(models.Model):
 class Contract(models.Model):
     contract_id = models.IntegerField(db_index=True)
 
-    #issuer_char = models.ForeignKey(SimpleCharacter, related_name="contract_issuers")
     issuer_char = models.ForeignKey(Character, blank=True, null=True, related_name="contract_issuers")
     issuer_corp = models.ForeignKey(Corporation, related_name="contract_issuers")
     assignee_id = models.IntegerField(blank=True, null=True)
