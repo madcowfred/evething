@@ -68,7 +68,7 @@
       <div class="row-fluid">
         <div class="span3 character-side">
           <div class="image">
-            <img src="{% if anonymous %}img/anonymous_character.jpg{% else %}http://image.eveonline.com/Character/{{ char.id }}_256.jpg{% endif %}" height="256" width="256" class="img-rounded">
+            <img src="{% if anonymous %}{{ STATIC_URL }}img/anonymous_character.jpg{% else %}http://image.eveonline.com/Character/{{ char.id }}_256.jpg{% endif %}" height="256" width="256" class="img-rounded">
           </div>
           
           {%- if not public %}
