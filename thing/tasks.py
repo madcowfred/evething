@@ -327,7 +327,7 @@ def _post_sleep(e):
 def taskstate_cleanup():
     now = datetime.datetime.utcnow()
     fifteen_mins_ago = now - datetime.timedelta(minutes=15)
-    four_hours_ago = now - datetime.timedelta(minutes=60)
+    four_hours_ago = now - datetime.timedelta(minutes=240)
 
     # Build a QuerySet to find broken tasks
     taskstates = TaskState.objects.filter(
