@@ -323,7 +323,7 @@ def _post_sleep(e):
 
 # ---------------------------------------------------------------------------
 # Periodic task to clean up broken tasks
-@task
+@task(ignore_result=True)
 def taskstate_cleanup():
     now = datetime.datetime.utcnow()
     fifteen_mins_ago = now - datetime.timedelta(minutes=15)
@@ -349,14 +349,14 @@ def taskstate_cleanup():
 
 # ---------------------------------------------------------------------------
 # Periodic task to clean up expired APICache objects
-@task
+@task(ignore_result=True)
 def apicache_cleanup():
     now = datetime.datetime.utcnow()
     count = APICache.objects.filter(cached_until__lt=now).delete()
 
 # ---------------------------------------------------------------------------
 # Periodic task to spawn API tasks
-@task
+@task(ignore_result=True)
 def spawn_tasks():
     now = datetime.datetime.utcnow()
     one_month_ago = now - datetime.timedelta(30)
@@ -469,7 +469,7 @@ def _init_taskstate(taskdata, now, taskstate, apikey_id, key_info, func, url, qu
 
 # ---------------------------------------------------------------------------
 # Task summaries
-@task
+@task(ignore_result=True)
 def task_summaries():
     cursor = connection.cursor()
     # apparently SQLite doesn't do EXTRACT(), special case it  #BADIDEA
@@ -507,7 +507,7 @@ def task_summaries():
 
 # ---------------------------------------------------------------------------
 # Account balances
-@task
+@task(ignore_result=True)
 def account_balance(url, apikey_id, taskstate_id, character_id):
     job = APIJob(apikey_id, taskstate_id)
     if job.ready is False:
@@ -554,7 +554,7 @@ def account_balance(url, apikey_id, taskstate_id, character_id):
 
 # ---------------------------------------------------------------------------
 # Account status
-@task
+@task(ignore_result=True)
 def account_status(url, apikey_id, taskstate_id, zero):
     job = APIJob(apikey_id, taskstate_id)
     if job.ready is False:
@@ -574,7 +574,7 @@ def account_status(url, apikey_id, taskstate_id, zero):
 
 # ---------------------------------------------------------------------------
 # Various API things
-@task
+@task(ignore_result=True)
 def api_key_info(url, apikey_id, taskstate_id, zero):
     job = APIJob(apikey_id, taskstate_id)
     if job.ready is False:
@@ -678,7 +678,7 @@ def api_key_info(url, apikey_id, taskstate_id, zero):
 # Fetch assets
 LOCATIONS_URL = urljoin(settings.API_HOST, '/char/Locations.xml.aspx')
 
-@task
+@task(ignore_result=True)
 def asset_list(url, apikey_id, taskstate_id, character_id):
     job = APIJob(apikey_id, taskstate_id)
     if job.ready is False:
@@ -827,7 +827,7 @@ def _asset_list_recurse(data, rowset, container_id):
 
 # ---------------------------------------------------------------------------
 # Character info
-@task
+@task(ignore_result=True)
 def character_info(url, apikey_id, taskstate_id, character_id):
     job = APIJob(apikey_id, taskstate_id)
     if job.ready is False:
@@ -870,7 +870,7 @@ def character_info(url, apikey_id, taskstate_id, character_id):
 
 # ---------------------------------------------------------------------------
 # Character sheet
-@task
+@task(ignore_result=True)
 def character_sheet(url, apikey_id, taskstate_id, character_id):
     job = APIJob(apikey_id, taskstate_id)
     if job.ready is False:
@@ -998,7 +998,7 @@ def character_sheet(url, apikey_id, taskstate_id, character_id):
 
 # ---------------------------------------------------------------------------
 # Fetch contracts
-@task
+@task(ignore_result=True)
 def contracts(url, apikey_id, taskstate_id, character_id):
     job = APIJob(apikey_id, taskstate_id)
     if job.ready is False:
@@ -1275,7 +1275,7 @@ def contracts(url, apikey_id, taskstate_id, character_id):
 
 # ---------------------------------------------------------------------------
 # Corporation sheet
-@task
+@task(ignore_result=True)
 def corporation_sheet(url, apikey_id, taskstate_id, character_id):
     job = APIJob(apikey_id, taskstate_id)
     if job.ready is False:
@@ -1340,7 +1340,7 @@ def corporation_sheet(url, apikey_id, taskstate_id, character_id):
 
 # ---------------------------------------------------------------------------
 # Industry jobs :cripes:
-@task
+@task(ignore_result=True)
 def industry_jobs(url, apikey_id, taskstate_id, character_id):
     job = APIJob(apikey_id, taskstate_id)
     if job.ready is False:
@@ -1502,7 +1502,7 @@ def industry_jobs(url, apikey_id, taskstate_id, character_id):
 
 # ---------------------------------------------------------------------------
 # Market orders
-@task
+@task(ignore_result=True)
 def market_orders(url, apikey_id, taskstate_id, character_id):
     job = APIJob(apikey_id, taskstate_id)
     if job.ready is False:
@@ -1673,7 +1673,7 @@ def market_orders(url, apikey_id, taskstate_id, character_id):
 
 # ---------------------------------------------------------------------------
 # Skill queue
-@task
+@task(ignore_result=True)
 def skill_queue(url, apikey_id, taskstate_id, character_id):
     job = APIJob(apikey_id, taskstate_id)
     if job.ready is False:
@@ -1732,7 +1732,7 @@ def skill_queue(url, apikey_id, taskstate_id, character_id):
 
 # ---------------------------------------------------------------------------
 # Standings
-@task
+@task(ignore_result=True)
 def standings(url, apikey_id, taskstate_id, character_id):
     job = APIJob(apikey_id, taskstate_id)
     if job.ready is False:
@@ -1833,7 +1833,7 @@ def standings(url, apikey_id, taskstate_id, character_id):
 
 # ---------------------------------------------------------------------------
 # Fetch wallet journal entries
-@task
+@task(ignore_result=True)
 def wallet_journal(url, apikey_id, taskstate_id, character_id):
     job = APIJob(apikey_id, taskstate_id)
     if job.ready is False:
@@ -2043,7 +2043,7 @@ def _wjs_work(character, corp_wallet=None):
 
 # ---------------------------------------------------------------------------
 # Fetch wallet transactions
-@task
+@task(ignore_result=True)
 def wallet_transactions(url, apikey_id, taskstate_id, character_id):
     job = APIJob(apikey_id, taskstate_id)
     if job.ready is False:
@@ -2227,7 +2227,7 @@ def _wallet_transactions_work(url, job, character, corp_wallet=None):
 # ---------------------------------------------------------------------------
 # Purge all data related to an APIKey, woo
 # ---------------------------------------------------------------------------
-@task
+@task(ignore_result=True)
 def purge_data(apikey_id):
     try:
         apikey = APIKey.objects.get(pk=apikey_id)
@@ -2262,7 +2262,7 @@ def purge_data(apikey_id):
 # Periodic task to update the alliance list and Corporation.alliance fields
 ALLIANCE_LIST_URL = urljoin(settings.API_HOST, '/eve/AllianceList.xml.aspx')
 
-@task
+@task(ignore_result=True)
 def alliance_list():
     try:
         r = _session.get(ALLIANCE_LIST_URL, prefetch=True)
@@ -2308,7 +2308,7 @@ def alliance_list():
 # Periodic task to update conquerable statio names
 CONQUERABLE_STATION_URL = urljoin(settings.API_HOST, '/eve/ConquerableStationList.xml.aspx')
 
-@task
+@task(ignore_result=True)
 def conquerable_stations():
     try:
         r = _session.get(CONQUERABLE_STATION_URL, prefetch=True)
@@ -2354,7 +2354,7 @@ def conquerable_stations():
 HISTORY_PER_REQUEST = 50
 HISTORY_URL = 'http://goonmetrics.com/api/price_history/?region_id=10000002&type_id=%s'
 
-@task
+@task(ignore_result=True)
 def history_updater():
     # Get a list of all item_ids
     cursor = connection.cursor()
@@ -2411,7 +2411,7 @@ def history_updater():
 PRICE_PER_REQUEST = 100
 PRICE_URL = 'http://goonmetrics.com/api/price_data/?station_id=60003760&type_id=%s'
 
-@task
+@task(ignore_result=True)
 def price_updater():
     # Get a list of all item_ids
     cursor = connection.cursor()
@@ -2460,7 +2460,7 @@ def price_updater():
 CHAR_NAME_URL = urljoin(settings.API_HOST, '/eve/CharacterName.xml.aspx')
 CORP_SHEET_URL = urljoin(settings.API_HOST, '/corp/CorporationSheet.xml.aspx')
 
-@task
+@task(ignore_result=True)
 def fix_unknown_characters():
     # Fetch all unknown Character objects
     char_map = {}
