@@ -5,6 +5,10 @@ import settings
 # NEVER LEAVE THIS ON FOR A PUBLIC SITE
 DEBUG = False
 
+# this is used for a few random things, it's a pretty good idea to change it
+# http://www.miniwebtool.com/django-secret-key-generator/
+# SECRET_KEY = ""
+
 # database configuration
 DATABASES = {
     'default': {
