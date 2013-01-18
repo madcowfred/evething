@@ -327,20 +327,20 @@ def _post_sleep(e):
 def taskstate_cleanup():
     now = datetime.datetime.utcnow()
     fifteen_mins_ago = now - datetime.timedelta(minutes=15)
-    one_hour_ago = now - datetime.timedelta(minutes=60)
+    four_hours_ago = now - datetime.timedelta(minutes=60)
 
     # Build a QuerySet to find broken tasks
     taskstates = TaskState.objects.filter(
-        # Queued for an hour?
-        Q(state=TaskState.QUEUED_STATE, mod_time__lt=one_hour_ago)
+        # Queued for more than 4 hours?
+        Q(state=TaskState.QUEUED_STATE, mod_time__lt=four_hours_ago)
         |
-        # Active for 15 minutes?
+        # Active for more than 15 minutes?
         Q(state=TaskState.ACTIVE_STATE, mod_time__lt=fifteen_mins_ago)
     )
 
     # FIXME: temp log
     for d in taskstates.values('state', 'url').annotate(n=Count('id')):
-        logger.warn('taskstate_cleanup: %d %d %s', d['state'], d['n'], d['url'])
+        logger.warn('taskstate_cleanup: % 4dx %s', d['n'], d['url'])
 
     # Set them to restart
     count = taskstates.update(mod_time=now, next_time=now, state=TaskState.READY_STATE)
