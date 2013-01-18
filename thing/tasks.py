@@ -1085,21 +1085,21 @@ def contracts(url, apikey_id, taskstate_id, character_id):
         contract_rows.append(row)
 
     # Fetch existing chars and corps
-    char_map = SimpleCharacter.objects.in_bulk(lookup_ids)
+    char_map = Character.objects.in_bulk(lookup_ids)
     corp_map = Corporation.objects.in_bulk(lookup_ids | lookup_corp_ids)
     alliance_map = Alliance.objects.in_bulk(lookup_ids)
     
-    # Add missing IDs as *UNKNOWN* SimpleCharacters for now
+    # Add missing IDs as *UNKNOWN* Characters for now
     new = []
     for new_id in lookup_ids.difference(char_map, corp_map, alliance_map, lookup_corp_ids):
-        new.append(SimpleCharacter(
+        new.append(Character(
             id=new_id,
             name="*UNKNOWN*",
         ))
         char_map[new_id] = new[-1]
 
     if new:
-        SimpleCharacter.objects.bulk_create(new)
+        Character.objects.bulk_create(new)
 
     # Add missing Corporations too
     new = []
@@ -1114,8 +1114,6 @@ def contracts(url, apikey_id, taskstate_id, character_id):
         Corporation.objects.bulk_create(new)
 
     # Re-fetch data
-    #char_map = SimpleCharacter.objects.in_bulk(lookup_ids)
-    #corp_map = Corporation.objects.in_bulk(lookup_ids | lookup_corp_ids)
     station_map = Station.objects.in_bulk(station_ids)
 
     # Fetch all existing contracts
@@ -1917,7 +1915,7 @@ def _wallet_journal_work(url, job, character, corp_wallet=None):
 
     # If we found some data, deal with it
     if bulk_data:
-        new_simple = {}
+        new_chars = {}
 
         # Fetch all existing journal entries
         j_map = {}
@@ -1949,9 +1947,9 @@ def _wallet_journal_work(url, job, character, corp_wallet=None):
                 trid = int(taxReceiverID)
                 tax_corp = corp_map.get(trid)
                 if tax_corp is None:
-                    if trid not in new_simple:
+                    if trid not in new_chars:
                         logger.warn('wallet_journal: invalid taxReceiverID #%d', trid)
-                        new_simple[trid] = SimpleCharacter(
+                        new_chars[trid] = Character(
                             id=trid,
                             name='*UNKNOWN*',
                         )
@@ -1992,11 +1990,11 @@ def _wallet_journal_work(url, job, character, corp_wallet=None):
         if new:
             JournalEntry.objects.bulk_create(new)
 
-        # Check to see if we need to add any new SimpleCharacter objects
-        if new_simple:
-            simple_map = SimpleCharacter.objects.in_bulk(new_simple.keys())
-            insert_me = [v for k, v in new_simple.items() if k not in simple_map]
-            SimpleCharacter.objects.bulk_create(insert_me)
+        # Check to see if we need to add any new Character objects
+        if new_chars:
+            char_map = Character.objects.in_bulk(new_chars.keys())
+            insert_me = [v for k, v in new_chars.items() if k not in char_map]
+            Character.objects.bulk_create(insert_me)
 
     return True
 
@@ -2131,8 +2129,8 @@ def _wallet_transactions_work(url, job, character, corp_wallet=None):
         t_map[t['transaction_id']] = t
 
     # Fetch bulk data
-    simple_map = SimpleCharacter.objects.in_bulk(client_ids)
-    corp_map = Corporation.objects.in_bulk(client_ids.difference(simple_map))
+    char_map = Character.objects.in_bulk(client_ids)
+    corp_map = Corporation.objects.in_bulk(client_ids.difference(char_map))
     item_map = Item.objects.in_bulk(item_ids)
     station_map = Station.objects.in_bulk(station_ids)
     
@@ -2148,17 +2146,17 @@ def _wallet_transactions_work(url, job, character, corp_wallet=None):
 
         # Handle possible new clients
         client_id = int(row.attrib['clientID'])
-        client = simple_map.get(client_id, corp_map.get(client_id, None))
+        client = char_map.get(client_id, corp_map.get(client_id, None))
         if client is None:
             try:
-                client = SimpleCharacter.objects.create(
+                client = Character.objects.create(
                     id=client_id,
                     name=row.attrib['clientName'],
                 )
             except IntegrityError:
-                client = SimpleCharacter.objects.get(id=client_id)
+                client = Character.objects.get(id=client_id)
 
-            simple_map[client_id] = client
+            char_map[client_id] = client
 
         # Check to see if this transaction already exists
         t = t_map.get(transaction_id, None)
@@ -2213,7 +2211,7 @@ def _wallet_transactions_work(url, job, character, corp_wallet=None):
                 t.corp_wallet = corp_wallet
             
             # Set whichever client type is relevant
-            if isinstance(client, SimpleCharacter):
+            if isinstance(client, Character):
                 t.other_char_id = client.id
             else:
                 t.other_corp_id = client.id
@@ -2458,18 +2456,18 @@ def price_updater():
         bp.item.save()
 
 # ---------------------------------------------------------------------------
-# Periodic task to try to fix *UNKNOWN* SimpleCharacter objects
+# Periodic task to try to fix *UNKNOWN* Character objects
 CHAR_NAME_URL = urljoin(settings.API_HOST, '/eve/CharacterName.xml.aspx')
 CORP_SHEET_URL = urljoin(settings.API_HOST, '/corp/CorporationSheet.xml.aspx')
 
 @task
-def fix_unknown_simplecharacters():
-    # Fetch all unknown SimpleCharacter objects
-    sc_map = {}
-    for sc in SimpleCharacter.objects.filter(name='*UNKNOWN*'):
-        sc_map[sc.id] = sc
+def fix_unknown_characters():
+    # Fetch all unknown Character objects
+    char_map = {}
+    for char in Character.objects.filter(name='*UNKNOWN*'):
+        char_map[char.id] = char
     
-    ids = sc_map.keys()
+    ids = char_map.keys()
     if len(ids) == 0:
         return
 
@@ -2502,10 +2500,10 @@ def fix_unknown_simplecharacters():
 
         error = root.find('error')
         if error is not None:
-            # Not a corporation, update the SimpleCharacter object
-            sc = sc_map.get(id)
-            sc.name = name
-            sc.save()
+            # Not a corporation, update the Character object
+            char = char_map.get(id)
+            char.name = name
+            char.save()
         else:
             new_corps.append(Corporation(
                 id=id,
@@ -2519,7 +2517,7 @@ def fix_unknown_simplecharacters():
     Corporation.objects.bulk_create(new_corps)
 
     # And finally delete all of the things we probably added
-    SimpleCharacter.objects.filter(pk__in=name_map.keys(), name='*UNKNOWN*').delete()
+    Character.objects.filter(pk__in=name_map.keys(), name='*UNKNOWN*').delete()
 
 # ---------------------------------------------------------------------------
 # Parse data into an XML ElementTree
