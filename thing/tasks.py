@@ -115,7 +115,7 @@ class APIJob:
         self.apicache.completed()
         self._taskstate_ready()
 
-        if settings.DEBUG and False:
+        if settings.DEBUG:# and False:
             print '%.3fs  %d queries (%.3fs)  API: %.2fs' % (time.time() - self.start,
                 len(connection.queries), sum(float(q['time']) for q in connection.queries),
                 self.api_total_time
@@ -2073,11 +2073,6 @@ def wallet_transactions(url, apikey_id, taskstate_id, character_id):
 
 # Do the actual work for wallet transactions
 def _wallet_transactions_work(url, job, character, corp_wallet=None):
-    # Generate a character id map
-    char_id_map = {}
-    for char in Character.objects.all():
-        char_id_map[char.id] = char
-
     # Initialise stuff
     params = {
         'characterID': character.id,
@@ -2187,7 +2182,7 @@ def _wallet_transactions_work(url, job, character, corp_wallet=None):
                         name=row.attrib['characterName'],
                         corporation=job.apikey.corp_character.corporation,
                     )
-                    char_id_map[char_id] = char
+                    char_map[char_id] = char
             # Any other key = just use the supplied character
             else:
                 char = character
