@@ -2133,7 +2133,7 @@ def _wallet_transactions_work(url, job, character, corp_wallet=None):
 
     # Fetch bulk data
     char_map = Character.objects.in_bulk(char_ids)
-    corp_map = Corporation.objects.in_bulk(client_ids.difference(char_map))
+    corp_map = Corporation.objects.in_bulk(char_ids.difference(char_map))
     item_map = Item.objects.in_bulk(item_ids)
     station_map = Station.objects.in_bulk(station_ids)
     
