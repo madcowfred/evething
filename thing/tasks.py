@@ -1536,11 +1536,6 @@ def market_orders(url, apikey_id, taskstate_id, character_id):
         o_filter = MarketOrder.objects.filter(corp_wallet=None, character=character)
 
     o_filter = o_filter.select_related('item')
-
-    # Generate a character id map
-    char_id_map = {}
-    for char in Character.objects.all():
-        char_id_map[char.id] = char
     
     # Fetch the API data
     params = { 'characterID': character.id }
@@ -1877,11 +1872,6 @@ def wallet_journal(url, apikey_id, taskstate_id, character_id):
 
 # Do the actual work for wallet journal entries
 def _wallet_journal_work(url, job, character, corp_wallet=None):
-    # Generate a character id map
-    char_id_map = {}
-    for char in Character.objects.all():
-        char_id_map[char.id] = char
-
     # Initialise stuff
     params = {
         'characterID': character.id,
