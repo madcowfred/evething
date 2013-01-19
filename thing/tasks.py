@@ -2094,7 +2094,7 @@ def _wallet_transactions_work(url, job, character, corp_wallet=None):
 
     # Stuff to collect
     bulk_data = {}
-    client_ids = set()
+    char_ids = set()
     item_ids = set()
     station_ids = set()
 
@@ -2112,9 +2112,13 @@ def _wallet_transactions_work(url, job, character, corp_wallet=None):
         for row in rows:
             transaction_id = int(row.attrib['transactionID'])
             bulk_data[transaction_id] = row
-            client_ids.add(int(row.attrib['clientID']))
+
+            char_ids.add(int(row.attrib['clientID']))
             item_ids.add(int(row.attrib['typeID']))
             station_ids.add(int(row.attrib['stationID']))
+
+            if job.apikey.corp_character:
+                char_ids.add(int(row.attrib['characterID']))
 
         # If we got MAX rows we should retrieve some more
         if len(rows) == TRANSACTION_ROWS:
@@ -2128,7 +2132,7 @@ def _wallet_transactions_work(url, job, character, corp_wallet=None):
         t_map[t['transaction_id']] = t
 
     # Fetch bulk data
-    char_map = Character.objects.in_bulk(client_ids)
+    char_map = Character.objects.in_bulk(char_ids)
     corp_map = Corporation.objects.in_bulk(client_ids.difference(char_map))
     item_map = Item.objects.in_bulk(item_ids)
     station_map = Station.objects.in_bulk(station_ids)
@@ -2175,7 +2179,7 @@ def _wallet_transactions_work(url, job, character, corp_wallet=None):
             # For a corporation key, make sure the character exists
             if job.apikey.corp_character:
                 char_id = int(row.attrib['characterID'])
-                char = char_id_map.get(char_id, None)
+                char = char_map.get(char_id, None)
                 # Doesn't exist, create it
                 if char is None:
                     char = Character.objects.create(
