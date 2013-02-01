@@ -119,7 +119,7 @@ def home(request):
         char.z_total_sp = cs['total_sp']
 
         # Current skill training
-        if 'sq' in char.z_training and hasattr(char, 'z_tskill'):
+        if char.details is not None and 'sq' in char.z_training and hasattr(char, 'z_tskill'):
             char.z_total_sp += int(char.z_training['sq'].get_completed_sp(char.z_tskill, now))
 
         total_sp += char.z_total_sp
