@@ -50,6 +50,12 @@ def character_common(request, char, public=True, anonymous=False):
     
     utcnow = datetime.datetime.utcnow()
 
+    # I don't know how this happens but hey, let's fix it here
+    if char.config is None:
+        char.config = CharacterConfig.objects.create(
+            character=char,
+        )
+
     # Do various visibility things here instead of in awful template code
     show = {
         'clone': not anonymous and (not public or char.config.show_clone),
