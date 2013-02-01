@@ -204,12 +204,12 @@ from celery.schedules import crontab
 from datetime import timedelta
 
 CELERYBEAT_SCHEDULE = {
-    # spawn tasks every 10 seconds
+    # spawn tasks every 30 seconds
     'spawn-tasks': {
         'task': 'thing.tasks.spawn_tasks',
-        'schedule': timedelta(seconds=10),
+        'schedule': timedelta(seconds=30),
         'options': {
-            'expires': 9,
+            'expires': 29,
             'queue': 'et_high',
         },
         'args': (),
@@ -225,10 +225,10 @@ CELERYBEAT_SCHEDULE = {
         'args': (),
     },
     
-    # clean up the API cache every 30 seconds
+    # clean up the API cache every 5 minutes
     'apicache-cleanup': {
         'task': 'thing.tasks.apicache_cleanup',
-        'schedule': timedelta(seconds=30),
+        'schedule': timedelta(minutes=5),
         'options': {
             'queue': 'et_high',
         },
