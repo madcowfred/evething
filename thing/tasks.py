@@ -140,23 +140,6 @@ class APIJob:
         else:
             self.taskstate.next_time = now + datetime.timedelta(minutes=30)
 
-        #print 'before %s' % (self.taskstate.next_time)
-        # if self.root:
-        #     utcnow = datetime.datetime.utcnow()
-        #     until = parse_api_date(self.root.find('cachedUntil').text)
-        #     diff = until - utcnow
-        #     self.taskstate.next_time = now + diff + datetime.timedelta(seconds=30 + self.padding)
-        #     print self.padding
-        #     self.taskstate.next_time = self.apicache.cached_until + datetime.timedelta(seconds=30)
-        # else:
-        #     # If we have an APICache object, delay until the page is no longer cached
-        #     if self.apicache is not None:
-        #         self.taskstate.next_time = self.apicache.cached_until + datetime.timedelta(seconds=30)
-        #     # No APICache? Just delay for 30 minutes
-        #     else:
-        #         self.taskstate.next_time = now + datetime.timedelta(minutes=30)
-        #print 'after %s' % (self.taskstate.next_time)
-
         self.taskstate.save()
 
     # ---------------------------------------------------------------------------
@@ -224,10 +207,7 @@ class APIJob:
 
                 # Generate a delta for cache penalty value
                 self.padding = max(0, total_seconds(until - current) * mult)
-                #print 'padding = %s' % (self.padding)
                 delta = datetime.timedelta(seconds=self.padding)
-
-                #print until, secs, mult, delta, until + delta
 
                 apicache = APICache(
                     url=url,
@@ -247,7 +227,7 @@ class APIJob:
                     logger.error('%s: %s | %s -> %s', error.attrib['code'], error.text, current, until)
 
                 # Permanent key errors
-                if error.attrib['code'] in ('202', '203', '204', '205', '210', '212', '207', '220', '222', '223'):
+                if error.attrib['code'] in ('202', '203', '204', '205', '210', '211', '212', '207', '220', '222', '223'):
                     now = datetime.datetime.now()
 
                     # Mark the key as invalid
