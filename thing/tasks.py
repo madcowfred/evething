@@ -37,7 +37,7 @@ from djcelery.models import TaskMeta
 _session = requests.session(
     config={
         'pool_maxsize': 1,
-        'max_retries': 1
+        'max_retries': 0,
     },
     headers={
         'User-Agent': 'EVEthing-tasks (keep-alive)',
@@ -45,10 +45,6 @@ _session = requests.session(
 )
 
 # ---------------------------------------------------------------------------
-# random HTTP headers
-HEADERS = {
-    'User-Agent': 'EVEthing-tasks',
-}
 # number of rows to request per WalletTransactions call, max is 2560
 TRANSACTION_ROWS = 2560
 
