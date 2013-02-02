@@ -747,29 +747,29 @@ def asset_list(url, apikey_id, taskstate_id, character_id):
 
 
     # Fetch names (via Locations API) for assets
-    if job.apikey.corp_character is None and APIKey.CHAR_LOCATIONS_MASK in job.apikey.get_masks():
-        a_filter = a_filter.filter(singleton=True, item__item_group__category__name__in=('Celestial', 'Ship'))
+    # if job.apikey.corp_character is None and APIKey.CHAR_LOCATIONS_MASK in job.apikey.get_masks():
+    #     a_filter = a_filter.filter(singleton=True, item__item_group__category__name__in=('Celestial', 'Ship'))
 
-        # Get ID list
-        ids = map(str, a_filter.values_list('asset_id', flat=True))
-        if ids:
-            # Fetch the API data
-            params['IDs'] = ','.join(map(str, ids))
-            if job.fetch_api(LOCATIONS_URL, params) is False or job.root is None:
-                job.completed()
-                return
+    #     # Get ID list
+    #     ids = map(str, a_filter.values_list('asset_id', flat=True))
+    #     if ids:
+    #         # Fetch the API data
+    #         params['IDs'] = ','.join(map(str, ids))
+    #         if job.fetch_api(LOCATIONS_URL, params) is False or job.root is None:
+    #             job.completed()
+    #             return
 
-            # Build a map of assetID:assetName
-            bulk_data = {}
-            for row in job.root.findall('result/rowset/row'):
-                bulk_data[int(row.attrib['itemID'])] = row.attrib['itemName']
+    #         # Build a map of assetID:assetName
+    #         bulk_data = {}
+    #         for row in job.root.findall('result/rowset/row'):
+    #             bulk_data[int(row.attrib['itemID'])] = row.attrib['itemName']
 
-            # Bulk query them
-            for asset in a_filter.filter(asset_id__in=bulk_data.keys()):
-                asset_name = bulk_data.get(asset.asset_id)
-                if asset.name is None or asset.name != asset_name:
-                    asset.name = asset_name
-                    asset.save()
+    #         # Bulk query them
+    #         for asset in a_filter.filter(asset_id__in=bulk_data.keys()):
+    #             asset_name = bulk_data.get(asset.asset_id)
+    #             if asset.name is None or asset.name != asset_name:
+    #                 asset.name = asset_name
+    #                 asset.save()
 
     # completed ok
     job.completed()
