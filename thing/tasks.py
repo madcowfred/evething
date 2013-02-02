@@ -18,6 +18,7 @@ except ImportError:
     from ordereddict import OrderedDict
 
 from django.conf import settings
+from django.core.cache import cache
 from django.core.urlresolvers import reverse
 from django.db import connection, transaction, IntegrityError
 from django.db.models import Count, Max
@@ -186,7 +187,8 @@ class APIJob:
             full_url = urljoin(settings.API_HOST, url)
             start = time.time()
             try:
-                r = _session.post(full_url, params, prefetch=True)
+                #r = _session.post(full_url, params, prefetch=True)
+                raise Exception
                 data = r.text
             except Exception, e:
                 _post_sleep(e)
@@ -299,23 +301,28 @@ class APIJob:
 
         return True
 
-# helper function to sleep for 5->10->20->40 seconds on API failures
-sleep_last = 1
-sleep_time = 5
+# helper function to sleep on API failures
 def _post_sleep(e):
-    global sleep_last, sleep_time
+    # Initialise the cache value
+    if cache.get('backoff_count') is None:
+        cache.set('backoff_count', 0)
+        cache.set('backoff_last', 0)
 
     now = time.time()
-    # if it hasn't been 5 minutes, double the sleep timer
-    if (now - sleep_last) < 300:
-        sleep_time = min(40, sleep_time * 2)
-    # otherwise just reset it to 5 seconds
+    # if it hasn't been 5 minutes, increment the wait value
+    if (now - cache.get('backoff_last')) < 300:
+        cache.incr('backoff_count')
     else:
-        sleep_time = 5
+        cache.set('backoff_count', 0)
 
-    logger.warn('Sleeping for %d seconds: %s', sleep_time, e)
-    sleep_last = now
-    time.sleep(sleep_time)
+    cache.set('backoff_last', now)
+
+    sleep_for = 15
+    for i in range(cache.get('backoff_count')):
+        sleep_for = min(240, sleep_for * 2)
+
+    logger.warn('Sleeping for %d seconds: %s', sleep_for, e)
+    time.sleep(sleep_for)
 
 # ---------------------------------------------------------------------------
 # Periodic task to clean up broken tasks
