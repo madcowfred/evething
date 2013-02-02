@@ -187,8 +187,7 @@ class APIJob:
             full_url = urljoin(settings.API_HOST, url)
             start = time.time()
             try:
-                #r = _session.post(full_url, params, prefetch=True)
-                raise Exception
+                r = _session.post(full_url, params, prefetch=True)
                 data = r.text
             except Exception, e:
                 _post_sleep(e)
