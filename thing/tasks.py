@@ -270,6 +270,14 @@ class APIJob:
                             text=text,
                         )
 
+                # Website is broken errors, trigger sleep
+                elif error.attrib['code'] in ('901', '902'):
+                    _post_sleep('API server seems broken')
+
+                # Something very bad has happened
+                elif error.attrib['code'] == '904':
+                    logger.error('Received 904 error, killing workers!')
+                    task.control.broadcast('shutdown')
 
                 apicache.error_displayed = True
                 apicache.save()
@@ -300,7 +308,7 @@ def _post_sleep(e):
     for i in range(cache.get('backoff_count')):
         sleep_for = min(240, sleep_for * 2)
 
-    logger.warn('Sleeping for %d seconds: %s', sleep_for, e)
+    logger.error('Sleeping for %d seconds: %s', sleep_for, e)
     time.sleep(sleep_for)
 
 # ---------------------------------------------------------------------------
