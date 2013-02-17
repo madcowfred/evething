@@ -370,19 +370,19 @@ class CharacterDetails(models.Model):
 
     wallet_balance = models.DecimalField(max_digits=18, decimal_places=2, default=0)
     
-    cha_attribute = models.SmallIntegerField(default=0)
-    int_attribute = models.SmallIntegerField(default=0)
-    mem_attribute = models.SmallIntegerField(default=0)
-    per_attribute = models.SmallIntegerField(default=0)
-    wil_attribute = models.SmallIntegerField(default=0)
+    cha_attribute = models.SmallIntegerField(default=20)
+    int_attribute = models.SmallIntegerField(default=20)
+    mem_attribute = models.SmallIntegerField(default=20)
+    per_attribute = models.SmallIntegerField(default=20)
+    wil_attribute = models.SmallIntegerField(default=19)
     cha_bonus = models.SmallIntegerField(default=0)
     int_bonus = models.SmallIntegerField(default=0)
     mem_bonus = models.SmallIntegerField(default=0)
     per_bonus = models.SmallIntegerField(default=0)
     wil_bonus = models.SmallIntegerField(default=0)
     
-    clone_name = models.CharField(max_length=32, default='')
-    clone_skill_points= models.IntegerField(default=0)
+    clone_name = models.CharField(max_length=32, default='Clone Grade Alpha')
+    clone_skill_points= models.IntegerField(default=900000)
     
     security_status = models.DecimalField(max_digits=6, decimal_places=4, default=0)
 
