@@ -24,14 +24,6 @@ def character(request, character_name):
     if request.user.is_authenticated() and char.apikeys.filter(user=request.user).count():
         public = False
 
-    # Check for CharacterConfig, creating an empty config if it does not exist
-    # if char.config is None:
-    #     config = CharacterConfig(character=char)
-    #     config.save()
-
-    #     char.config = config
-    #     char.save()
-
     # If it's for public access, make sure this character is visible
     if public and not char.config.is_public:
         raise Http404
