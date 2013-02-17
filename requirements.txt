@@ -4,6 +4,6 @@ Coffin>=0.3
 South>=0.7
 django-celery>=3.0
 django-mptt>=0.5
-requests>=0.13
+requests>=1.0
 MarkupSafe>=0.15
 -e git+git://github.com/theatlantic/jinja2-template-cache.git#egg=jinja2-template-cache

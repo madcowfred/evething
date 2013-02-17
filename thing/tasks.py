@@ -35,15 +35,12 @@ from djcelery.models import TaskMeta
 
 # ---------------------------------------------------------------------------
 # Requests session
-_session = requests.session(
-    config={
-        'pool_maxsize': 1,
-        'max_retries': 0,
-    },
-    headers={
-        'User-Agent': 'EVEthing-tasks (keep-alive)',
-    },
-)
+_session = requests.Session()
+_session.headers.update({
+    'User-Agent': 'EVEthing-tasks (keep-alive)',
+})
+_session.mount('http://', requests.adapters.HTTPAdapter(pool_connections=1, pool_maxsize=1))
+_session.mount('https://', requests.adapters.HTTPAdapter(pool_connections=1, pool_maxsize=1))
 
 # ---------------------------------------------------------------------------
 # number of rows to request per WalletTransactions call, max is 2560
