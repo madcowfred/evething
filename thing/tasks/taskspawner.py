@@ -42,6 +42,7 @@ CORP_URLS = {
 GLOBAL_TASKS = (
     #('thing.alliance_list', '/eve/AllianceList.xml.aspx'),
     ('thing.conquerable_station_list', '/eve/ConquerableStationList.xml.aspx', 'et_low'),
+    ('thing.ref_types', '/eve/RefTypes.xml.aspx', 'et_low'),
 )
 
 # ---------------------------------------------------------------------------
@@ -57,7 +58,7 @@ def task_spawner():
 
     # Global API tasks
     g_tasks = {}
-    for taskstate in TaskState.objects.filter(keyid=-1).iterator():
+    for taskstate in TaskState.objects.filter(keyid=-1):
         g_tasks[taskstate.url] = taskstate
 
     for taskname, url, queue in GLOBAL_TASKS:
