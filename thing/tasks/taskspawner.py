@@ -41,7 +41,7 @@ CORP_URLS = {
 
 GLOBAL_TASKS = (
     #('thing.alliance_list', '/eve/AllianceList.xml.aspx'),
-    #('thing.conquerable_stations', '/eve/ConquerableStations.xml.aspx'),
+    ('thing.conquerable_station_list', '/eve/ConquerableStationList.xml.aspx', 'et_low'),
 )
 
 # ---------------------------------------------------------------------------

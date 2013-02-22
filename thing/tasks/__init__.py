@@ -18,3 +18,4 @@ from apikeyinfo import APIKeyInfo
 
 # Periodic tasks
 #from alliancelist import AllianceList
+from conquerablestationlist import ConquerableStationList
