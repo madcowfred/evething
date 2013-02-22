@@ -8,6 +8,7 @@ from taskspawner import task_spawner
 from accountstatus import AccountStatus
 from apikeyinfo import APIKeyInfo
 # from assetlist import AssetList
+from characterinfo import CharacterInfo
 # from contracts import Contracts
 # from corporationsheet import CorporationSheet
 # from industryjobs import IndustryJobs
