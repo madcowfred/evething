@@ -12,7 +12,7 @@ from thing.models import APIKey, TaskState
 API_KEY_INFO_URL = ('thing.api_key_info', '/account/APIKeyInfo.xml.aspx', 'et_low')
 
 CHAR_URLS = {
-    # APIKey.CHAR_ACCOUNT_STATUS_MASK: ('thing.account_status', '/account/AccountStatus.xml.aspx', 'et_medium'),
+    APIKey.CHAR_ACCOUNT_STATUS_MASK: ('thing.account_status', '/account/AccountStatus.xml.aspx', 'et_medium'),
     # APIKey.CHAR_ASSET_LIST_MASK: ('thing.asset_list', '/char/AssetList.xml.aspx', 'et_medium'),
     # APIKey.CHAR_CHARACTER_SHEET_MASK: ('thing.character_sheet', '/char/CharacterSheet.xml.aspx', 'et_medium'),
     # APIKey.CHAR_CONTRACTS_MASK: ('thing.contracts', '/char/Contracts.xml.aspx', 'et_medium'),
@@ -112,7 +112,7 @@ def task_spawner():
                     else:
                         parameter = character.id
 
-                    taskstate = status[key_info].get((url, parameter), None)
+                    taskstate = status[keyid].get((url, parameter), None)
 
                     _init_taskstate(taskdata, now, taskstate, keyid, apikey.id, func, url, queue, parameter)
 
@@ -132,7 +132,7 @@ def task_spawner():
 
                 func, url, queue = url_data
 
-                taskstate = status[key_info].get((url, character.id), None)
+                taskstate = status[keyid].get((url, character.id), None)
 
                 _init_taskstate(taskdata, now, taskstate, keyid, apikey.id, func, url, queue, character.id)
 
