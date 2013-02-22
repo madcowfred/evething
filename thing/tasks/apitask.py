@@ -58,7 +58,7 @@ class APITask(Task):
 
         self._started = time.time()
         self._api_log = []
-        self._cached_until = None
+        self._cache_delta = None
 
         self.root = None
 
@@ -85,6 +85,7 @@ class APITask(Task):
 
         # Right, we're ready to go
         self._taskstate.state = TaskState.ACTIVE_STATE
+        self._taskstate.mod_time = datetime.datetime.utcnow()
         self._taskstate.save()
 
     # -----------------------------------------------------------------------
@@ -136,10 +137,9 @@ class APITask(Task):
         self._taskstate.state = TaskState.READY_STATE
         self._taskstate.mod_time = now
 
-        # If we received valid data, _cached_until will be set - use that as the
-        # next time
-        if self._cached_until is not None:
-            self._taskstate.next_time = self._cached_until + datetime.timedelta(seconds=15)
+        # If we received valid data, _cache_delta - use that to calculate next_time
+        if self._cache_delta is not None:
+            self._taskstate.next_time = now + self._cache_delta + datetime.timedelta(seconds=20)
         # No valid data? Try delaying for 30 minutes.
         else:
             self._taskstate.next_time = now + datetime.timedelta(minutes=30)
@@ -209,11 +209,11 @@ class APITask(Task):
 
             current = self.parse_api_date(self.root.find('currentTime').text)
             until = self.parse_api_date(self.root.find('cachedUntil').text)
-            self._cached_until = until
+            self._cache_delta = until - current
 
             # If the data wasn't cached, cache it now
             if cached_data is None:
-                cache_expires = total_seconds(until - utcnow) + 30
+                cache_expires = total_seconds(self._cache_delta) + 10
                 if cache_expires >= 0:
                     cache.set(cache_key, data, cache_expires)
 
