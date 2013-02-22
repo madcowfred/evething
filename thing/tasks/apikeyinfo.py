@@ -49,7 +49,7 @@ class APIKeyInfo(APITask):
             )
 
             # Get or create a Character object
-            character, created = Character.objects.select_related('config', 'details').get_or_create(
+            character, created = Character.objects.select_related('config', 'corporation', 'details').get_or_create(
                 pk=row.attrib['characterID'],
                 defaults={
                     'name': row.attrib['characterName'],
