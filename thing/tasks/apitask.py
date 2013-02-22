@@ -66,10 +66,8 @@ class APITask(Task):
         try:
             self._taskstate = TaskState.objects.get(pk=taskstate_id)
         except TaskState.DoesNotExist:
+            self.log_error('Task not starting: TaskState %d has gone missing', taskstate_id)
             return False
-        else:
-            self._taskstate = TaskState.ACTIVE_STATE
-            self._taskstate.save()
 
         # Fetch APIKey
         if apikey_id:
@@ -84,6 +82,10 @@ class APITask(Task):
 
         else:
             self.apikey = None
+
+        # Right, we're ready to go
+        self._taskstate.state = TaskState.ACTIVE_STATE
+        self._taskstate.save()
 
     # -----------------------------------------------------------------------
 
