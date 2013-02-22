@@ -3,9 +3,6 @@ import sys
 
 from .apitask import APITask
 
-# need to import model definitions from frontend
-from thing.models import APIKey, Character, Corporation
-
 # ---------------------------------------------------------------------------
 
 class AccountStatus(APITask):
