@@ -390,6 +390,13 @@ class CharacterDetails(models.Model):
     ship_item = models.ForeignKey('Item', blank=True, null=True)
     ship_name = models.CharField(max_length=128, default='')
 
+# Magical hook so this gets called when a new user is created
+def create_characterdetails(sender, instance, created, **kwargs):
+    if created:
+        CharacterDetails.objects.create(character=instance)
+
+post_save.connect(create_characterdetails, sender=Character)
+
 # Character skills
 class CharacterSkill(models.Model):
     character = models.ForeignKey('Character')
