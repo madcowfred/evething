@@ -15,7 +15,7 @@ CHAR_URLS = {
     APIKey.CHAR_ACCOUNT_STATUS_MASK: ('thing.account_status', '/account/AccountStatus.xml.aspx', 'et_medium'),
     # APIKey.CHAR_ASSET_LIST_MASK: ('thing.asset_list', '/char/AssetList.xml.aspx', 'et_medium'),
     APIKey.CHAR_CHARACTER_INFO_MASK: ('thing.character_info', '/eve/CharacterInfo.xml.aspx', 'et_medium'),
-    # APIKey.CHAR_CHARACTER_SHEET_MASK: ('thing.character_sheet', '/char/CharacterSheet.xml.aspx', 'et_medium'),
+    APIKey.CHAR_CHARACTER_SHEET_MASK: ('thing.character_sheet', '/char/CharacterSheet.xml.aspx', 'et_medium'),
     # APIKey.CHAR_CONTRACTS_MASK: ('thing.contracts', '/char/Contracts.xml.aspx', 'et_medium'),
     # APIKey.CHAR_INDUSTRY_JOBS_MASK: ('thing.industry_jobs', '/char/IndustryJobs.xml.aspx', 'et_medium'),
     # APIKey.CHAR_MARKET_ORDERS_MASK: ('thing.market_orders', '/char/MarketOrders.xml.aspx', 'et_medium'),

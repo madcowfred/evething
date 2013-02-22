@@ -9,6 +9,7 @@ from accountstatus import AccountStatus
 from apikeyinfo import APIKeyInfo
 # from assetlist import AssetList
 from characterinfo import CharacterInfo
+from charactersheet import CharacterSheet
 # from contracts import Contracts
 # from corporationsheet import CorporationSheet
 # from industryjobs import IndustryJobs
