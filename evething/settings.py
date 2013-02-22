@@ -205,94 +205,94 @@ from datetime import timedelta
 
 CELERYBEAT_SCHEDULE = {
     # spawn tasks every 30 seconds
-    'spawn-tasks': {
-        'task': 'thing.tasks.spawn_tasks',
-        'schedule': timedelta(seconds=30),
-        'options': {
-            'expires': 29,
-            'queue': 'et_high',
-        },
-        'args': (),
-    },
-
-    # clean up broken tasks every 5 minutes
-    'taskstate-cleanup': {
-        'task': 'thing.tasks.taskstate_cleanup',
-        'schedule': timedelta(minutes=5),
-        'options': {
-            'queue': 'et_high',
-        },
-        'args': (),
-    },
-    
-    # clean up the API cache every 5 minutes
-    'apicache-cleanup': {
-        'task': 'thing.tasks.apicache_cleanup',
-        'schedule': timedelta(minutes=5),
-        'options': {
-            'queue': 'et_high',
-        },
-        'args': (),
-    },
-
-    # update history data every 4 hours
-    'history-updater': {
-        'task': 'thing.tasks.history_updater',
-        'schedule': timedelta(hours=4),
-        'options': {
-            'expires': 239 * 60,
-        },
-        'args': (),
-    },
-
-    # update price data every 15 minutes
-    'price-updater': {
-        'task': 'thing.tasks.price_updater',
-        'schedule': timedelta(minutes=15),
-        'options': {
-            'expires': 14 * 60,
-        },
-        'args': (),
-    },
-
-    # update alliance list every hour
-    'alliance-list': {
-        'task': 'thing.tasks.alliance_list',
-        'schedule': timedelta(hours=1),
-        'options': {
-            'expires': 59 * 60,
-        },
-        'args': (),
-    },
-
-    # update conquerable stations every hour
-    'conquerable-stations': {
-        'task': 'thing.tasks.conquerable_stations',
-        'schedule': timedelta(hours=1),
-        'options': {
-            'expires': 59 * 60,
-        },
-        'args': (),
-    },
-
-    # update unknown Characters every hour
-    'fix-unknown-characters': {
-        'task': 'thing.tasks.fix_unknown_characters',
-        'schedule': timedelta(hours=1),
-        'options': {
-            'expires': 59 * 60,
-        },
-        'args': (),
-    },
-
-    # generate hourly task summaries at xx:01
-    'task-summaries': {
-        'task': 'thing.tasks.task_summaries',
-        'schedule': crontab(minute=1),
+    'task_spawner': {
+        'task': 'thing.task_spawner',
+        'schedule': timedelta(seconds=10),
         'options': {
             'expires': 9,
             'queue': 'et_high',
         },
         'args': (),
     },
+
+    # # clean up broken tasks every 5 minutes
+    # 'taskstate-cleanup': {
+    #     'task': 'thing.tasks.taskstate_cleanup',
+    #     'schedule': timedelta(minutes=5),
+    #     'options': {
+    #         'queue': 'et_high',
+    #     },
+    #     'args': (),
+    # },
+    
+    # # clean up the API cache every 5 minutes
+    # 'apicache-cleanup': {
+    #     'task': 'thing.tasks.apicache_cleanup',
+    #     'schedule': timedelta(minutes=5),
+    #     'options': {
+    #         'queue': 'et_high',
+    #     },
+    #     'args': (),
+    # },
+
+    # # update history data every 4 hours
+    # 'history-updater': {
+    #     'task': 'thing.tasks.history_updater',
+    #     'schedule': timedelta(hours=4),
+    #     'options': {
+    #         'expires': 239 * 60,
+    #     },
+    #     'args': (),
+    # },
+
+    # # update price data every 15 minutes
+    # 'price-updater': {
+    #     'task': 'thing.tasks.price_updater',
+    #     'schedule': timedelta(minutes=15),
+    #     'options': {
+    #         'expires': 14 * 60,
+    #     },
+    #     'args': (),
+    # },
+
+    # # update alliance list every hour
+    # 'alliance-list': {
+    #     'task': 'thing.tasks.alliance_list',
+    #     'schedule': timedelta(hours=1),
+    #     'options': {
+    #         'expires': 59 * 60,
+    #     },
+    #     'args': (),
+    # },
+
+    # # update conquerable stations every hour
+    # 'conquerable-stations': {
+    #     'task': 'thing.tasks.conquerable_stations',
+    #     'schedule': timedelta(hours=1),
+    #     'options': {
+    #         'expires': 59 * 60,
+    #     },
+    #     'args': (),
+    # },
+
+    # # update unknown Characters every hour
+    # 'fix-unknown-characters': {
+    #     'task': 'thing.tasks.fix_unknown_characters',
+    #     'schedule': timedelta(hours=1),
+    #     'options': {
+    #         'expires': 59 * 60,
+    #     },
+    #     'args': (),
+    # },
+
+    # # generate hourly task summaries at xx:01
+    # 'task-summaries': {
+    #     'task': 'thing.tasks.task_summaries',
+    #     'schedule': crontab(minute=1),
+    #     'options': {
+    #         'expires': 9,
+    #         'queue': 'et_high',
+    #     },
+    #     'args': (),
+    # },
 }
