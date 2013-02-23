@@ -1,5 +1,4 @@
 # Internal tasks
-# from addapikey import AddAPIKey
 # from tablecleaner import table_cleaner
 from taskspawner import task_spawner
 
@@ -11,7 +10,7 @@ from apikeyinfo import APIKeyInfo
 from characterinfo import CharacterInfo
 from charactersheet import CharacterSheet
 # from contracts import Contracts
-# from corporationsheet import CorporationSheet
+from corporationsheet import CorporationSheet
 # from industryjobs import IndustryJobs
 # from marketorders import MarketOrders
 # from membertracking import MemberTracking

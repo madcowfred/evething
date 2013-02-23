@@ -29,7 +29,7 @@ CORP_URLS = {
     # APIKey.CORP_ACCOUNT_BALANCE_MASK: ('thing.account_balance', '/corp/AccountBalance.xml.aspx'),
     # APIKey.CORP_ASSET_LIST_MASK: ('thing.asset_list', '/corp/AssetList.xml.aspx'),
     # APIKey.CORP_CONTRACTS_MASK: ('thing.contracts', '/corp/Contracts.xml.aspx'),
-    # APIKey.CORP_CORPORATION_SHEET_MASK: ('thing.corporation_sheet', '/corp/CorporationSheet.xml.aspx'),
+    APIKey.CORP_CORPORATION_SHEET_MASK: ('thing.corporation_sheet', '/corp/CorporationSheet.xml.aspx', 'et_medium'),
     # APIKey.CORP_INDUSTRY_JOBS_MASK: ('thing.industry_jobs', '/corp/IndustryJobs.xml.aspx'),
     # APIKey.CORP_MARKET_ORDERS_MASK: ('thing.market_orders', '/corp/MarketOrders.xml.aspx'),
     # APIKey.CORP_MEMBER_TRACKING_MASK: ('thing.member_tracking', '/corp/MemberTracking.xml.aspx'),
