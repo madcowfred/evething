@@ -19,6 +19,6 @@ from corporationsheet import CorporationSheet
 # from wallettransactions import WalletTransactions
 
 # Periodic tasks
-#from alliancelist import AllianceList
+from alliancelist import AllianceList
 from conquerablestationlist import ConquerableStationList
 from reftypes import RefTypes
