@@ -17,7 +17,6 @@ class ConquerableStationList(APITask):
 
         # Fetch the API data
         if self.fetch_api(url, {}, use_auth=False) is False or self.root is None:
-            self.failed()
             return
 
         # Build a stationID:row dictionary
@@ -52,7 +51,6 @@ class ConquerableStationList(APITask):
         if new:
             Station.objects.bulk_create(new)
 
-        # Job completed
-        self.completed()
+        return True
 
 # ---------------------------------------------------------------------------

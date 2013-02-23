@@ -17,7 +17,6 @@ class APIKeyInfo(APITask):
 
         # Fetch the API data
         if self.fetch_api(url, {}) is False or self.root is None:
-            self.failed()
             return
 
         # Find the key node
@@ -98,7 +97,6 @@ class APIKeyInfo(APITask):
             # Remove any missing characters from the APIKey
             ak.characters.exclude(pk__in=seen_chars.keys()).delete()
 
-        # Job completed
-        self.completed()
+        return True
 
 # ---------------------------------------------------------------------------

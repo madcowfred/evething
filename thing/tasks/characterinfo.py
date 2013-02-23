@@ -24,7 +24,6 @@ class CharacterInfo(APITask):
         # Fetch the API data
         params = { 'characterID': character_id }
         if self.fetch_api(url, params) is False or self.root is None:
-            self.failed()
             return
 
         # Update character details from the API data
@@ -43,7 +42,6 @@ class CharacterInfo(APITask):
         # Save the character details
         character.details.save()
 
-        # Job completed
-        self.completed()
+        return True
 
 # ---------------------------------------------------------------------------

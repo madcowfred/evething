@@ -14,7 +14,6 @@ class AccountStatus(APITask):
 
         # Fetch the API data
         if self.fetch_api(url, {}) is False or self.root is None:
-            self.failed()
             return
 
         # Update paid_until
@@ -23,7 +22,6 @@ class AccountStatus(APITask):
             self.apikey.paid_until = paidUntil
             self.apikey.save()
 
-        # Job completed
-        self.completed()
+        return True
 
 # ---------------------------------------------------------------------------

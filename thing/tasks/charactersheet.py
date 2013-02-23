@@ -24,7 +24,6 @@ class CharacterSheet(APITask):
         # Fetch the API data
         params = { 'characterID': character_id }
         if self.fetch_api(url, params) is False or self.root is None:
-            self.failed()
             return
 
 
@@ -101,7 +100,6 @@ class CharacterSheet(APITask):
         if new:
             CharacterSkill.objects.bulk_create(new)
 
-        # Job completed
-        self.completed()
+        return True
 
 # ---------------------------------------------------------------------------

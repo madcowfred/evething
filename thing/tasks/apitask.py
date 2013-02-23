@@ -90,41 +90,40 @@ class APITask(Task):
 
     # -----------------------------------------------------------------------
 
-    def completed(self):
+    def on_failure(self, exc, task_id, args, kwargs, einfo):
         """
-        Job completed, update the TaskState and possibly dump query debug
-        information.
+        Task exploded.
         """
         self._taskstate_ready()
 
-        # If DEBUG is enabled, log a bunch of debug
-        if settings.DEBUG:
-            total_api = sum(a[1] for a in self._api_log)
-            self.log_warn('[API] %.3fs  %d requests', total_api, len(self._api_log))
-            for url, runtime in self._api_log:
-                self.log_warn('%.3fs  %s', runtime, url)
-
-            for db in sorted(settings.DATABASES.keys()):
-                self.log_warn('[%s] %.3fs  %d queries',
-                    db,
-                    sum(float(q['time']) for q in connections[db].queries),
-                    len(connections[db].queries),
-                )
-                for query in connections[db].queries:
-                    if 'AES_' in query['sql']:
-                        self.log_warn('%02.3fs  -SECRET AES QUERY-', float(query['time']))
-                    elif len(query['sql']) > 500:
-                        self.log_warn('%02.3fs  %s...', float(query['time']), query['sql'][:500])
-                    else:
-                        self.log_warn('%02.3fs  %s', float(query['time']), query['sql'])
-    
     # -----------------------------------------------------------------------
 
-    def failed(self):
+    def on_success(self, retval, task_id, args, kwargs):
         """
-        Job failed, update the TaskState.
+        Task finished without crashing.
         """
         self._taskstate_ready()
+
+        # Actually successful
+        if retval is True:
+            # If DEBUG is enabled, log a bunch of stuff
+            if settings.DEBUG:
+                total_api = sum(a[1] for a in self._api_log)
+                self.log_warn('[API] %.3fs  %d requests', total_api, len(self._api_log))
+                for url, runtime in self._api_log:
+                    self.log_warn('%.3fs  %s', runtime, url)
+
+                for db in sorted(settings.DATABASES.keys()):
+                    self.log_warn('[%s] %.3fs  %d queries',
+                        db,
+                        sum(float(q['time']) for q in connections[db].queries),
+                        len(connections[db].queries),
+                    )
+                    for query in connections[db].queries:
+                        if len(query['sql']) > 500:
+                            self.log_warn('%02.3fs  %s...', float(query['time']), query['sql'][:500])
+                        else:
+                            self.log_warn('%02.3fs  %s', float(query['time']), query['sql'])
 
     # -----------------------------------------------------------------------
 

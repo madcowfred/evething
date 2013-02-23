@@ -17,7 +17,6 @@ class RefTypes(APITask):
 
         # Fetch the API data
         if self.fetch_api(url, {}, use_auth=False) is False or self.root is None:
-            self.failed()
             return
 
         # Build a refTypeID:row dictionary
@@ -48,7 +47,6 @@ class RefTypes(APITask):
         if new:
             RefType.objects.bulk_create(new)
 
-        # Job completed
-        self.completed()
+        return True
 
 # ---------------------------------------------------------------------------
