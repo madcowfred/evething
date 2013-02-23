@@ -3,7 +3,7 @@
 from taskspawner import task_spawner
 
 # API tasks
-# from accountbalance import AccountBalance
+from accountbalance import AccountBalance
 from accountstatus import AccountStatus
 from apikeyinfo import APIKeyInfo
 # from assetlist import AssetList
