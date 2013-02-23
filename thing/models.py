@@ -890,6 +890,9 @@ class Asset(models.Model):
 # ---------------------------------------------------------------------------
 # Contracts
 class Contract(models.Model):
+    character = models.ForeignKey(Character)
+    corporation = models.ForeignKey(Corporation, blank=True, null=True)
+    
     contract_id = models.IntegerField(db_index=True)
 
     issuer_char = models.ForeignKey(Character, blank=True, null=True, related_name="contract_issuers")
