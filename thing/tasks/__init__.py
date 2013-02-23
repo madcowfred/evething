@@ -2,7 +2,7 @@
 # from tablecleaner import table_cleaner
 from taskspawner import task_spawner
 
-# API tasks
+# APIKey tasks
 from accountbalance import AccountBalance
 from accountstatus import AccountStatus
 from apikeyinfo import APIKeyInfo
@@ -20,7 +20,10 @@ from standings import Standings
 from walletjournal import WalletJournal
 from wallettransactions import WalletTransactions
 
-# Periodic tasks
+# Global API tasks
 from alliancelist import AllianceList
 from conquerablestationlist import ConquerableStationList
 from reftypes import RefTypes
+
+# Periodic tasks
+from priceupdater import PriceUpdater

@@ -224,16 +224,6 @@ CELERYBEAT_SCHEDULE = {
     #     },
     #     'args': (),
     # },
-    
-    # # clean up the API cache every 5 minutes
-    # 'apicache-cleanup': {
-    #     'task': 'thing.tasks.apicache_cleanup',
-    #     'schedule': timedelta(minutes=5),
-    #     'options': {
-    #         'queue': 'et_high',
-    #     },
-    #     'args': (),
-    # },
 
     # # update history data every 4 hours
     # 'history-updater': {
@@ -245,35 +235,15 @@ CELERYBEAT_SCHEDULE = {
     #     'args': (),
     # },
 
-    # # update price data every 15 minutes
-    # 'price-updater': {
-    #     'task': 'thing.tasks.price_updater',
-    #     'schedule': timedelta(minutes=15),
-    #     'options': {
-    #         'expires': 14 * 60,
-    #     },
-    #     'args': (),
-    # },
-
-    # # update alliance list every hour
-    # 'alliance-list': {
-    #     'task': 'thing.tasks.alliance_list',
-    #     'schedule': timedelta(hours=1),
-    #     'options': {
-    #         'expires': 59 * 60,
-    #     },
-    #     'args': (),
-    # },
-
-    # # update conquerable stations every hour
-    # 'conquerable-stations': {
-    #     'task': 'thing.tasks.conquerable_stations',
-    #     'schedule': timedelta(hours=1),
-    #     'options': {
-    #         'expires': 59 * 60,
-    #     },
-    #     'args': (),
-    # },
+    # update price data every 30 minutes
+    'price_updater': {
+        'task': 'thing.price_updater',
+        'schedule': timedelta(minutes=30),
+        'options': {
+            'expires': 29 * 60,
+        },
+        'args': (),
+    },
 
     # # update unknown Characters every hour
     # 'fix-unknown-characters': {
