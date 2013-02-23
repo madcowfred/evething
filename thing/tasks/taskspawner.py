@@ -21,7 +21,7 @@ CHAR_URLS = {
     APIKey.CHAR_MARKET_ORDERS_MASK: ('thing.market_orders', '/char/MarketOrders.xml.aspx', 'et_medium'),
     APIKey.CHAR_SKILL_QUEUE_MASK: ('thing.skill_queue', '/char/SkillQueue.xml.aspx', 'et_medium'),
     APIKey.CHAR_STANDINGS_MASK: ('thing.standings', '/char/Standings.xml.aspx', 'et_medium'),
-    # APIKey.CHAR_WALLET_JOURNAL_MASK: ('thing.wallet_journal', '/char/WalletJournal.xml.aspx', 'et_medium'),
+    APIKey.CHAR_WALLET_JOURNAL_MASK: ('thing.wallet_journal', '/char/WalletJournal.xml.aspx', 'et_medium'),
     APIKey.CHAR_WALLET_TRANSACTIONS_MASK: ('thing.wallet_transactions', '/char/WalletTransactions.xml.aspx', 'et_medium'),
 }
 
@@ -35,7 +35,7 @@ CORP_URLS = {
     # APIKey.CORP_MEMBER_TRACKING_MASK: ('thing.member_tracking', '/corp/MemberTracking.xml.aspx', 'et_medium'),
     # APIKey.CORP_OUTPOST_LIST_MASK: ('outpost_list', '/corp/OutpostList.xml.aspx', 'et_medium'),
     # APIKey.CORP_SHAREHOLDERS_MASK: ('thing.shareholders', '/corp/Shareholders.xml.aspx', 'et_medium'),
-    # APIKey.CORP_WALLET_JOURNAL_MASK: ('thing.wallet_journal', '/corp/WalletJournal.xml.aspx', 'et_medium'),
+    APIKey.CORP_WALLET_JOURNAL_MASK: ('thing.wallet_journal', '/corp/WalletJournal.xml.aspx', 'et_medium'),
     APIKey.CORP_WALLET_TRANSACTIONS_MASK: ('thing.wallet_transactions', '/corp/WalletTransactions.xml.aspx', 'et_medium'),
 }
 

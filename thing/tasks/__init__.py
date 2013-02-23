@@ -17,7 +17,7 @@ from marketorders import MarketOrders
 # from shareholders import Shareholders
 from skillqueue import SkillQueue
 from standings import Standings
-# from walletjournal import WalletJournal
+from walletjournal import WalletJournal
 from wallettransactions import WalletTransactions
 
 # Periodic tasks
