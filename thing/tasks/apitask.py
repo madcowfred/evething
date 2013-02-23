@@ -94,7 +94,8 @@ class APITask(Task):
         """
         Task exploded.
         """
-        self._taskstate_ready()
+        if self._taskstate is not None:
+            self._taskstate_ready()
 
     # -----------------------------------------------------------------------
 
@@ -102,7 +103,8 @@ class APITask(Task):
         """
         Task finished without crashing.
         """
-        self._taskstate_ready()
+        if self._taskstate is not None:
+            self._taskstate_ready()
 
         # Actually successful
         if retval is True:
