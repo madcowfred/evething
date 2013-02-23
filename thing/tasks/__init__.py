@@ -18,7 +18,7 @@ from marketorders import MarketOrders
 from skillqueue import SkillQueue
 from standings import Standings
 # from walletjournal import WalletJournal
-# from wallettransactions import WalletTransactions
+from wallettransactions import WalletTransactions
 
 # Periodic tasks
 from alliancelist import AllianceList
