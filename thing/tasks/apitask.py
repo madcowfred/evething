@@ -304,6 +304,14 @@ class APITask(Task):
 
     # -----------------------------------------------------------------------
 
+    def get_cursor(self, db='default'):
+        """
+        Get a database connection cursor for db.
+        """
+        return connections[db].cursor()
+
+    # -----------------------------------------------------------------------
+
     def parse_api_date(self, apidate):
         """
         Parse a date from API XML into a datetime object.
