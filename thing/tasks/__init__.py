@@ -12,7 +12,7 @@ from charactersheet import CharacterSheet
 # from contracts import Contracts
 from corporationsheet import CorporationSheet
 # from industryjobs import IndustryJobs
-# from marketorders import MarketOrders
+from marketorders import MarketOrders
 # from membertracking import MemberTracking
 # from shareholders import Shareholders
 from skillqueue import SkillQueue
