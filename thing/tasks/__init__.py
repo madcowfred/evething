@@ -15,6 +15,7 @@ from corporationsheet import CorporationSheet
 # from marketorders import MarketOrders
 # from membertracking import MemberTracking
 # from shareholders import Shareholders
+from skillqueue import SkillQueue
 # from walletjournal import WalletJournal
 # from wallettransactions import WalletTransactions
 
