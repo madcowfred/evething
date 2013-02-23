@@ -45,7 +45,7 @@ class APITask(Task):
 
     # -----------------------------------------------------------------------
 
-    def init(self, taskstate_id, apikey_id=None):
+    def init(self, taskstate_id=None, apikey_id=None):
         """
         Tasks should call this in their run() method to initialise stuff.
         Returns False if anything bad happens.
@@ -63,14 +63,18 @@ class APITask(Task):
         self.root = None
 
         # Fetch TaskState
-        try:
-            self._taskstate = TaskState.objects.get(pk=taskstate_id)
-        except TaskState.DoesNotExist:
-            self.log_error('Task not starting: TaskState %d has gone missing', taskstate_id)
-            return False
+        if taskstate_id is not None:
+            try:
+                self._taskstate = TaskState.objects.get(pk=taskstate_id)
+            except TaskState.DoesNotExist:
+                self.log_error('Task not starting: TaskState %d has gone missing', taskstate_id)
+                return False
+
+        else:
+            self._taskstate = None
 
         # Fetch APIKey
-        if apikey_id:
+        if apikey_id is not None:
             try:
                 self.apikey = APIKey.objects.select_related('corp_character__corporation').get(pk=apikey_id)
             except APIKey.DoesNotExist:
@@ -84,9 +88,10 @@ class APITask(Task):
             self.apikey = None
 
         # Right, we're ready to go
-        self._taskstate.state = TaskState.ACTIVE_STATE
-        self._taskstate.mod_time = datetime.datetime.utcnow()
-        self._taskstate.save()
+        if self._taskstate is not None:
+            self._taskstate.state = TaskState.ACTIVE_STATE
+            self._taskstate.mod_time = datetime.datetime.utcnow()
+            self._taskstate.save()
 
     # -----------------------------------------------------------------------
 
@@ -148,7 +153,7 @@ class APITask(Task):
         self._taskstate.save()
 
     # ---------------------------------------------------------------------------
-    # Perform an API request and parse the returned XML via ElementTree
+    
     def fetch_api(self, url, params, use_auth=True, log_error=True):
         """
         Fetch API data either from the API cache (if cached) or from the actual
@@ -204,7 +209,7 @@ class APITask(Task):
         # Parse the data if there is any
         if data:
             try:
-                self.root = ET.fromstring(data.encode('utf-8'))
+                self.root = self.parse_xml(data)
             except Exception:
                 return False
 
@@ -246,6 +251,40 @@ class APITask(Task):
                 return False
 
         return True
+    
+    # -----------------------------------------------------------------------
+
+    def fetch_url(self, url, params):
+        """
+        Fetch a URL directly without any API magic.
+        """
+        start = time.time()
+        try:
+            if params:
+                r = self._session.post(url, params)
+            else:
+                r = self._session.get(url)
+            data = r.text
+        except Exception, e:
+            #self._increment_backoff(e)
+            return False
+
+        self._api_log.append((url, time.time() - start))
+        
+        # If the status code is bad return False
+        if not r.status_code == requests.codes.ok:
+            #self._increment_backoff('Bad status code: %s' % (r.status_code))
+            return False
+
+        return data
+
+    # -----------------------------------------------------------------------
+
+    def parse_xml(self, data):
+        """
+        Parse XML and return an ElementTree.
+        """
+        return ET.fromstring(data.encode('utf-8'))
 
     # -----------------------------------------------------------------------
 
