@@ -739,7 +739,7 @@ class JournalEntry(models.Model):
 
     date = models.DateTimeField(db_index=True)
 
-    ref_id = models.BigIntegerField()
+    ref_id = models.BigIntegerField(db_index=True)
     ref_type = models.ForeignKey('RefType')
     
     owner1_id = models.IntegerField()
