@@ -1,6 +1,3 @@
-import os
-import sys
-
 from .apitask import APITask
 
 from thing.models import Alliance, Corporation

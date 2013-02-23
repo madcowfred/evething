@@ -1,6 +1,3 @@
-import os
-import sys
-
 from decimal import *
 
 from .apitask import APITask

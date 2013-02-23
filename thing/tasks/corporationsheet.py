@@ -1,9 +1,5 @@
-import os
-import sys
-
 from .apitask import APITask
 
-# need to import model definitions from frontend
 from thing.models import CorpWallet
 
 # ---------------------------------------------------------------------------
