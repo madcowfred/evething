@@ -16,7 +16,7 @@ CHAR_URLS = {
     # APIKey.CHAR_ASSET_LIST_MASK: ('thing.asset_list', '/char/AssetList.xml.aspx', 'et_medium'),
     APIKey.CHAR_CHARACTER_INFO_MASK: ('thing.character_info', '/eve/CharacterInfo.xml.aspx', 'et_medium'),
     APIKey.CHAR_CHARACTER_SHEET_MASK: ('thing.character_sheet', '/char/CharacterSheet.xml.aspx', 'et_medium'),
-    # APIKey.CHAR_CONTRACTS_MASK: ('thing.contracts', '/char/Contracts.xml.aspx', 'et_medium'),
+    APIKey.CHAR_CONTRACTS_MASK: ('thing.contracts', '/char/Contracts.xml.aspx', 'et_medium'),
     APIKey.CHAR_INDUSTRY_JOBS_MASK: ('thing.industry_jobs', '/char/IndustryJobs.xml.aspx', 'et_medium'),
     APIKey.CHAR_MARKET_ORDERS_MASK: ('thing.market_orders', '/char/MarketOrders.xml.aspx', 'et_medium'),
     APIKey.CHAR_SKILL_QUEUE_MASK: ('thing.skill_queue', '/char/SkillQueue.xml.aspx', 'et_medium'),
@@ -28,7 +28,7 @@ CHAR_URLS = {
 CORP_URLS = {
     APIKey.CORP_ACCOUNT_BALANCE_MASK: ('thing.account_balance', '/corp/AccountBalance.xml.aspx', 'et_medium'),
     # APIKey.CORP_ASSET_LIST_MASK: ('thing.asset_list', '/corp/AssetList.xml.aspx', 'et_medium'),
-    # APIKey.CORP_CONTRACTS_MASK: ('thing.contracts', '/corp/Contracts.xml.aspx', 'et_medium'),
+    APIKey.CORP_CONTRACTS_MASK: ('thing.contracts', '/corp/Contracts.xml.aspx', 'et_medium'),
     APIKey.CORP_CORPORATION_SHEET_MASK: ('thing.corporation_sheet', '/corp/CorporationSheet.xml.aspx', 'et_medium'),
     APIKey.CORP_INDUSTRY_JOBS_MASK: ('thing.industry_jobs', '/corp/IndustryJobs.xml.aspx', 'et_medium'),
     APIKey.CORP_MARKET_ORDERS_MASK: ('thing.market_orders', '/corp/MarketOrders.xml.aspx', 'et_medium'),
