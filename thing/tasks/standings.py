@@ -5,7 +5,6 @@ from decimal import *
 
 from .apitask import APITask
 
-# need to import model definitions from frontend
 from thing.models import Character, CorporationStanding, FactionStanding
 
 # ---------------------------------------------------------------------------
