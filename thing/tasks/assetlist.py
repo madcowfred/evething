@@ -42,7 +42,7 @@ class AssetList(APITask):
             'items': set(),
             'flags': set(),
         }
-        self._find_assets(data, self.root.find('result/rowset'), None)
+        self._find_assets(data, self.root.find('result/rowset'))
 
         # Bulk query data
         item_map = Item.objects.in_bulk(data['items'])
@@ -52,7 +52,7 @@ class AssetList(APITask):
 
         # Build new Asset objects for each row
         assets = []
-        for asset_id, location_id, container_id, item_id, flag_id, quantity, rawQuantity, singleton in data['assets']:
+        for asset_id, location_id, parent_id, item_id, flag_id, quantity, rawQuantity, singleton in data['assets']:
             item = item_map.get(item_id)
             if item is None:
                 self.log_warn('Invalid item_id %s', item_id)
@@ -65,7 +65,7 @@ class AssetList(APITask):
 
             asset = Asset(
                 asset_id=asset_id,
-                parent=container_id,
+                parent=parent_id,
                 character=character,
                 system=system_map.get(location_id),
                 station=station_map.get(location_id),
@@ -76,7 +76,7 @@ class AssetList(APITask):
                 singleton=singleton,
             )
             if self.apikey.corp_character:
-                asset.corporation_id = self.apikey.corp_character.corporation.id
+                asset.corporation = self.apikey.corp_character.corporation
 
             assets.append(asset)
 
@@ -121,10 +121,11 @@ class AssetList(APITask):
 
 
     # Recursively visit the assets tree and gather data
-    def _find_assets(self, data, rowset, container_id):
+    def _find_assets(self, data, rowset, location_id=0, parent_id=0):
         for row in rowset.findall('row'):
             # No container_id (parent)
-            if 'locationID' in row.attrib:
+            if location_id == 0:
+                #if 'locationID' in row.attrib:
                 location_id = int(row.attrib['locationID'])
 
                 # :ccp: as fuck
@@ -136,8 +137,8 @@ class AssetList(APITask):
 
                 data['locations'].add(location_id)
 
-            else:
-                location_id = None
+            #else:
+            #    location_id = None
 
             asset_id = int(row.attrib['itemID'])
 
@@ -150,7 +151,7 @@ class AssetList(APITask):
             data['assets'].append([
                 asset_id,
                 location_id,
-                container_id,
+                parent_id,
                 item_id,
                 flag_id,
                 int(row.attrib.get('quantity', '0')),
@@ -160,6 +161,6 @@ class AssetList(APITask):
 
             # Now we need to recurse into children rowsets
             for rowset in row.findall('rowset'):
-                self._find_assets(data, rowset, asset_id)
+                self._find_assets(data, rowset, location_id, asset_id)
 
 # ---------------------------------------------------------------------------
