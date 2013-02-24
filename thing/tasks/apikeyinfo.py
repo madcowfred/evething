@@ -1,6 +1,6 @@
 from .apitask import APITask
 
-from thing.models import APIKey, Character, Corporation
+from thing.models import APIKey, Character, CharacterConfig, CharacterDetails, Corporation
 
 # ---------------------------------------------------------------------------
 
