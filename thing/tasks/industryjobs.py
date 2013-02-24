@@ -2,7 +2,7 @@ import datetime
 
 from .apitask import APITask
 
-from thing.models import Character, IndustryJob, InventoryFlag, Item, System
+from thing.models import Character, IndustryJob, Event, InventoryFlag, Item, System
 
 # ---------------------------------------------------------------------------
 
