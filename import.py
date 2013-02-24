@@ -58,6 +58,8 @@ def time_func(text, f):
 class Importer:
     def __init__(self):
         self.cursor = connections['import'].cursor()
+        # sqlite3 UTF drama workaround
+        connections['import'].connection.text_factory = lambda x: unicode(x, "utf-8", "ignore")
     
     def import_all(self):
         time_func('Region', self.import_region)
@@ -73,7 +75,6 @@ class Importer:
         time_func('InventoryFlag', self.import_inventoryflag)
         time_func('NPCFaction', self.import_npcfaction)
         time_func('NPCCorporation', self.import_npccorporation)
-        #time_func('RefType', self.import_reftypes)
     
     # -----------------------------------------------------------------------
     # Regions
@@ -405,6 +406,7 @@ class Importer:
             INNER JOIN invTypes AS t
             ON      b.blueprintTypeID = t.typeID
             WHERE   t.published = 1
+                    AND t.marketGroupID IS NOT NULL
         """)
         bulk_data = {}
         for row in self.cursor:
