@@ -2,7 +2,7 @@ from decimal import *
 
 from .apitask import APITask
 
-from thing.models import Character, CorporationStanding, FactionStanding
+from thing.models import Character, CorporationStanding, Faction, FactionStanding
 
 # ---------------------------------------------------------------------------
 
