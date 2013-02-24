@@ -218,7 +218,7 @@ CELERYBEAT_SCHEDULE = {
     # clean up various table messes every 5 minutes
     'table_cleaner': {
         'task': 'thing.table_cleaner',
-        'schedule': timedelta(minutes=1),
+        'schedule': timedelta(minutes=5),
         'options': {
             'queue': 'et_high',
         },
