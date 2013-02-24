@@ -139,3 +139,17 @@ FROM    celery_taskmeta
 GROUP BY y, m, d, h
 ORDER BY y, m, d, h
 """
+
+# asset stuff
+asset_delete_char = """
+DELETE
+FROM    thing_asset
+WHERE   character_id = %s
+        AND corporation_id IS NULL
+"""
+
+asset_delete_corp = """
+DELETE
+FROM    thing_asset
+WHERE   corporation_id = %s
+"""

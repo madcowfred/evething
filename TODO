@@ -37,9 +37,6 @@
 * tasks.price_updater:
   - Add support for other sources of market data (EVE-Central, EVEMarketData?)
 
-* tasks.ref_types:
-  - Port from import.py, timer?
-
 * tests:
   - Check that all page views return a correct OK/KABOOM response.
   - Check that database modification views (account, blueprints, etc) do what they should.

@@ -196,9 +196,9 @@ class TaskState(models.Model):
         (ACTIVE_STATE, 'Active'),
     )
 
-    key_info = models.CharField(max_length=80, db_index=True)
+    keyid = models.IntegerField(db_index=True)
     url = models.CharField(max_length=64, db_index=True)
-    parameter = models.IntegerField()
+    parameter = models.IntegerField(db_index=True)
     state = models.IntegerField(db_index=True)
 
     mod_time = models.DateTimeField(db_index=True)
@@ -213,23 +213,6 @@ class TaskState(models.Model):
 class TaskSummary(models.Model):
     ymdh = models.DateTimeField(db_index=True)
     count = models.IntegerField()
-
-# ---------------------------------------------------------------------------
-# API cache entries
-class APICache(models.Model):
-    url = models.URLField()
-    parameters = models.TextField()
-    text = models.TextField()
-
-    cached_until = models.DateTimeField()
-    completed_ok = models.BooleanField(default=False)
-    error_displayed = models.BooleanField(default=False)
-
-    # called when the API call completes successfully
-    def completed(self):
-        self.completed_ok = True
-        #self.text = ''
-        self.save()
 
 # ---------------------------------------------------------------------------
 # Events
@@ -358,11 +341,11 @@ class CharacterConfig(models.Model):
         return self.character.name
 
 # Magical hook so this gets called when a new user is created
-def create_characterconfig(sender, instance, created, **kwargs):
-    if created:
-        CharacterConfig.objects.create(character=instance)
-
-post_save.connect(create_characterconfig, sender=Character)
+#def create_characterconfig(sender, instance, created, **kwargs):
+#    if created:
+#        CharacterConfig.objects.create(character=instance)
+#
+#post_save.connect(create_characterconfig, sender=Character)
 
 # Character details
 class CharacterDetails(models.Model):
@@ -389,6 +372,13 @@ class CharacterDetails(models.Model):
     last_known_location = models.CharField(max_length=255, default='')
     ship_item = models.ForeignKey('Item', blank=True, null=True)
     ship_name = models.CharField(max_length=128, default='')
+
+# Magical hook so this gets called when a new user is created
+#def create_characterdetails(sender, instance, created, **kwargs):
+#    if created:
+#        CharacterDetails.objects.create(character=instance)
+#
+#post_save.connect(create_characterdetails, sender=Character)
 
 # Character skills
 class CharacterSkill(models.Model):
@@ -749,7 +739,7 @@ class JournalEntry(models.Model):
 
     date = models.DateTimeField(db_index=True)
 
-    ref_id = models.BigIntegerField()
+    ref_id = models.BigIntegerField(db_index=True)
     ref_type = models.ForeignKey('RefType')
     
     owner1_id = models.IntegerField()
@@ -900,6 +890,9 @@ class Asset(models.Model):
 # ---------------------------------------------------------------------------
 # Contracts
 class Contract(models.Model):
+    character = models.ForeignKey(Character)
+    corporation = models.ForeignKey(Corporation, blank=True, null=True)
+    
     contract_id = models.IntegerField(db_index=True)
 
     issuer_char = models.ForeignKey(Character, blank=True, null=True, related_name="contract_issuers")

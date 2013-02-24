@@ -15,7 +15,7 @@ from thing.models import *
 # ---------------------------------------------------------------------------
 
 #ALLIANCE_URL = '%s/eve/AllianceList.xml.aspx' % (settings.API_HOST)
-REF_TYPES_URL = '%s/eve/RefTypes.xml.aspx' % (settings.API_HOST)
+#REF_TYPES_URL = '%s/eve/RefTypes.xml.aspx' % (settings.API_HOST)
 #STATION_URL = '%s/eve/ConquerableStationList.xml.aspx' % (settings.API_HOST)
 
 # Override volume for ships, assembled volume is mostly useless :ccp:
@@ -77,7 +77,7 @@ class Importer:
         time_func('InventoryFlag', self.import_inventoryflag)
         time_func('NPCFaction', self.import_npcfaction)
         time_func('NPCCorporation', self.import_npccorporation)
-        time_func('RefType', self.import_reftypes)
+        #time_func('RefType', self.import_reftypes)
     
     # -----------------------------------------------------------------------
     # Regions
