@@ -1,22 +1,18 @@
+#!/usr/bin/env python
+
 import os
 import sys
 import time
-import urllib2
 import xml.etree.ElementTree as ET
 
 # Set up our environment and import settings
 os.environ['DJANGO_SETTINGS_MODULE'] = 'evething.settings'
 from django.conf import settings
-
 from django.db import connections
 
 from thing.models import *
 
 # ---------------------------------------------------------------------------
-
-#ALLIANCE_URL = '%s/eve/AllianceList.xml.aspx' % (settings.API_HOST)
-#REF_TYPES_URL = '%s/eve/RefTypes.xml.aspx' % (settings.API_HOST)
-#STATION_URL = '%s/eve/ConquerableStationList.xml.aspx' % (settings.API_HOST)
 
 # Override volume for ships, assembled volume is mostly useless :ccp:
 PACKAGED = {
@@ -704,124 +700,6 @@ class Importer:
 
         if new:
             Corporation.objects.bulk_create(new)
-
-        return added
-
-    # -----------------------------------------------------------------------
-    # Alliances
-    def import_alliance(self):
-        added = 0
-
-        data = urllib2.urlopen(ALLIANCE_URL).read()
-        root = ET.fromstring(data)
-
-        bulk_data = {}
-        for row in root.findall('result/rowset/row'):
-            bulk_data[int(row.attrib['allianceID'])] = row
-
-        data_map = Alliance.objects.in_bulk(bulk_data.keys())
-
-        new = []
-        # <row name="Goonswarm Federation" shortName="CONDI" allianceID="1354830081" executorCorpID="1344654522" memberCount="8960" startDate="2010-06-01 05:36:00"/>
-        for id, row in bulk_data.items():
-            alliance = data_map.get(id, None)
-            if alliance is not None:
-                pass
-
-            else:
-                alliance = Alliance(
-                    id=id,
-                    name=row.attrib['name'],
-                    short_name=row.attrib['shortName'],
-                )
-                new.append(alliance)
-                added += 1
-
-        if new:
-            Alliance.objects.bulk_create(new)
-
-        # update any corporations in each alliance
-        for id, row in bulk_data.items():
-            corp_ids = []
-            for corp_row in row.findall('rowset/row'):
-                corp_ids.append(int(corp_row.attrib['corporationID']))
-
-            Corporation.objects.filter(pk__in=corp_ids).update(alliance=id)
-            Corporation.objects.filter(alliance_id=id).exclude(pk__in=corp_ids).update(alliance=None)
-
-        return added
-
-    # -----------------------------------------------------------------------
-    # Conquerable stations
-    def import_conquerable_station(self):
-        added = 0
-        
-        data = urllib2.urlopen(STATION_URL).read()
-        root = ET.fromstring(data)
-        
-        bulk_data = {}
-        # <row stationID="61000042" stationName="442-CS V - 442 S T A L I N G R A D" stationTypeID="21644" solarSystemID="30002616" corporationID="1001879801" corporationName="VVS Corporition"/>
-        for row in root.findall('result/rowset/row'):
-            bulk_data[int(row.attrib['stationID'])] = row
-        
-        data_map = Station.objects.in_bulk(bulk_data.keys())
-        
-        new = []
-        for id, row in bulk_data.items():
-            station = data_map.get(id, None)
-            if station is not None:
-                # update the station name
-                if station.name != row.attrib['stationName']:
-                    station.name = row.attrib['stationName']
-                    station.save()
-                continue
-            
-            station = Station(
-                id=id,
-                name=row.attrib['stationName'],
-                system_id=row.attrib['solarSystemID'],
-            )
-            new.append(station)
-            added += 1
-        
-        if new:
-            Station.objects.bulk_create(new)
-
-        return added
-
-    # -----------------------------------------------------------------------
-    # RefTypes (journal entries)
-    def import_reftypes(self):
-        added = 0
-
-        data = urllib2.urlopen(REF_TYPES_URL).read()
-        root = ET.fromstring(data)
-
-        bulk_data = {}
-        # <row refTypeID="0" refTypeName="Undefined" />
-        for row in root.findall('result/rowset/row'):
-            bulk_data[int(row.attrib['refTypeID'])] = row
-
-        data_map = RefType.objects.in_bulk(bulk_data.keys())
-
-        new = []
-        for id, row in bulk_data.items():
-            reftype = data_map.get(id)
-            if reftype is not None:
-                if reftype.name != row.attrib['refTypeName']:
-                    reftype.name = row.attrib['refTypeName']
-                    reftype.save()
-                continue
-
-            reftype = RefType(
-                id=id,
-                name=row.attrib['refTypeName'],
-            )
-            new.append(reftype)
-            added += 1
-
-        if new:
-            RefType.objects.bulk_create(new)
 
         return added
 
