@@ -1,5 +1,5 @@
 # Internal tasks
-# from tablecleaner import table_cleaner
+from tablecleaner import table_cleaner
 from taskspawner import task_spawner
 
 # APIKey tasks

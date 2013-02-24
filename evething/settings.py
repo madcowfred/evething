@@ -215,15 +215,15 @@ CELERYBEAT_SCHEDULE = {
         'args': (),
     },
 
-    # # clean up broken tasks every 5 minutes
-    # 'taskstate-cleanup': {
-    #     'task': 'thing.tasks.taskstate_cleanup',
-    #     'schedule': timedelta(minutes=5),
-    #     'options': {
-    #         'queue': 'et_high',
-    #     },
-    #     'args': (),
-    # },
+    # clean up various table messes every 5 minutes
+    'table_cleaner': {
+        'task': 'thing.table_cleaner',
+        'schedule': timedelta(minutes=1),
+        'options': {
+            'queue': 'et_high',
+        },
+        'args': (),
+    },
 
     # update history data every 4 hours
     'history_updater': {
