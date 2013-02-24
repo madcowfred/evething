@@ -225,15 +225,15 @@ CELERYBEAT_SCHEDULE = {
     #     'args': (),
     # },
 
-    # # update history data every 4 hours
-    # 'history-updater': {
-    #     'task': 'thing.tasks.history_updater',
-    #     'schedule': timedelta(hours=4),
-    #     'options': {
-    #         'expires': 239 * 60,
-    #     },
-    #     'args': (),
-    # },
+    # update history data every 4 hours
+    'history_updater': {
+        'task': 'thing.history_updater',
+        'schedule': timedelta(hours=4),
+        'options': {
+            'expires': 239 * 60,
+        },
+        'args': (),
+    },
 
     # update price data every 30 minutes
     'price_updater': {

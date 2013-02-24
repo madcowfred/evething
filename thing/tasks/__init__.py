@@ -26,4 +26,5 @@ from conquerablestationlist import ConquerableStationList
 from reftypes import RefTypes
 
 # Periodic tasks
+from historyupdater import HistoryUpdater
 from priceupdater import PriceUpdater
