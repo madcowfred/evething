@@ -40,8 +40,7 @@ def home(request):
     chars = {}
     ship_item_ids = set()
 
-    characters = Character.objects.filter(apikeys__user=request.user)
-    characters = characters.exclude(apikeys__key_type=APIKey.CORPORATION_TYPE)
+    characters = Character.objects.filter(apikeys__user=request.user, apikeys__key_type__in=(APIKey.ACCOUNT_TYPE, APIKey.CHARACTER_TYPE))
     characters = characters.prefetch_related('apikeys')
     characters = characters.select_related('config', 'details')
     characters = characters.distinct()
