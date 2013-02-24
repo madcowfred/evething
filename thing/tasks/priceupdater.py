@@ -29,8 +29,6 @@ class PriceUpdater(APITask):
         cursor.execute(queries.all_item_ids)
 
         item_ids = [row[0] for row in cursor]
-        #for row in cursor:
-        #    item_ids.append(row[0])
 
         cursor.close()
 
