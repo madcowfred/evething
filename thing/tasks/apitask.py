@@ -24,7 +24,7 @@ from django.db import connections
 from django.db.models import Max
 from urlparse import urljoin
 
-from thing.models import APIKey, TaskState
+from thing.models import APIKey, APIKeyFailure, Event, TaskState
 from thing.stuff import total_seconds
 
 # ---------------------------------------------------------------------------
@@ -238,13 +238,52 @@ class APITask(Task):
 
                 # Permanent key errors
                 if error.attrib['code'] in ('202', '203', '204', '205', '210', '212', '207', '220', '222', '223'):
-                    now = datetime.datetime.utcnow()
+                    now = datetime.datetime.now()
 
                     # Mark the key as invalid
                     self.apikey.invalidate()
 
                     # Log an error
                     self.log_error('fetch_api: API key with keyID %d marked invalid!', self.apikey.keyid)
+
+                    # Log an error event for the user
+                    text = "Your API key #%d was marked invalid: %s %s" % (
+                        self.apikey.id,
+                        error.attrib['code'],
+                        error.text
+                    )
+                    Event.objects.create(
+                        user_id=self.apikey.user.id,
+                        issued=now,
+                        text=text,
+                    )
+
+                    # Log a key failure
+                    fail_reason = '%s: %s' % (error.attrib['code'], error.text)
+                    APIKeyFailure.objects.create(
+                        user_id=self.apikey.user.id,
+                        keyid=self.apikey.keyid,
+                        fail_time=now,
+                        fail_reason=fail_reason,
+                    )
+
+                    # Check if we need to punish this user for their sins
+                    one_week_ago = now - datetime.timedelta(7)
+                    count = APIKeyFailure.objects.filter(user=self.apikey.user, fail_time__gt=one_week_ago).count()
+                    limit = getattr(settings, 'API_FAILURE_LIMIT', 3)
+                    if limit > 0 and count >= limit:
+                        # Disable their ability to add keys
+                        profile = self.apikey.user.get_profile()
+                        profile.can_add_keys = False
+                        profile.save()
+
+                        # Log that we did so
+                        text = "Limit of %d API key failures per 7 days exceeded, you may no longer add keys." % (limit)
+                        Event.objects.create(
+                            user_id=self.apikey.user.id,
+                            issued=now,
+                            text=text,
+                        )
 
                 # Website is broken errors, trigger sleep
                 elif error.attrib['code'] in ('901', '902', '1001'):
