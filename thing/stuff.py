@@ -48,7 +48,7 @@ def render_page(template, data, request, character_ids=None, corporation_ids=Non
 
             # Aggregate ready industry jobs
             jobs = IndustryJob.objects.filter(
-                Q(character__in=character_ids, corporation=None)
+                Q(character__in=character_ids, corporation__isnull=True)
                 |
                 Q(corporation__in=corporation_ids)
             )
