@@ -13,41 +13,13 @@ def contracts(request):
     # Whee~
     contracts = Contract.objects.select_related('issuer_char', 'issuer_corp', 'start_station', 'end_station')
     contracts = contracts.filter(
-        (
-            (
-                Q(issuer_char_id__in=character_ids) |
-                Q(assignee_id__in=character_ids) |
-                Q(acceptor_id__in=character_ids)
-            )
-            &
-            Q(for_corp=False)
-        )
+        Q(character__in=character_ids, corporation__isnull=True)
         |
-        (
-            (
-                Q(issuer_corp_id__in=corporation_ids) |
-                Q(assignee_id__in=corporation_ids) |
-                Q(acceptor_id__in=corporation_ids)
-            )
-            &
-            Q(for_corp=True)
-        )
+        Q(corporation__in=corporation_ids)
     )
 
     lookup_ids = set()
     for contract in contracts:
-        # Assign a status icon to each contract
-        if contract.status.startswith('Completed'):
-            contract.z_status_icon = 'completed'
-        elif contract.status == 'InProgress':
-            contract.z_status_icon = 'inprogress'
-        elif contract.status in ('Cancelled', 'Deleted', 'Failed', 'Rejected'):
-            contract.z_status_icon = 'failed'
-        elif contract.status == 'Outstanding':
-            contract.z_status_icon = 'outstanding'
-        else:
-            contract.z_status_icon = 'unknown'
-
         # Add the ids to the lookup set
         if contract.assignee_id:
             lookup_ids.add(contract.assignee_id)
@@ -60,7 +32,27 @@ def contracts(request):
     alliance_map = Alliance.objects.in_bulk(lookup_ids)
 
     # Now attach those to each contract
+    contract_ids = set()
+    contract_list = []
     for contract in contracts:
+        # Skip duplicate contracts
+        if contract.contract_id in contract_ids:
+            continue
+        contract_ids.add(contract.contract_id)
+        contract_list.append(contract)
+
+        # Assign a status icon to each contract
+        if contract.status.startswith('Completed'):
+            contract.z_status_icon = 'completed'
+        elif contract.status == 'InProgress':
+            contract.z_status_icon = 'inprogress'
+        elif contract.status in ('Cancelled', 'Deleted', 'Failed', 'Rejected'):
+            contract.z_status_icon = 'failed'
+        elif contract.status == 'Outstanding':
+            contract.z_status_icon = 'outstanding'
+        else:
+            contract.z_status_icon = 'unknown'
+
         if contract.assignee_id:
             # Assignee
             char = char_map.get(contract.assignee_id, None)
@@ -84,12 +76,12 @@ def contracts(request):
             if corp is not None:
                 contract.z_acceptor_corp = corp
 
-
+    # Render template
     return render_page(
         'thing/contracts.html',
         dict(
             characters=character_ids,
-            contracts=contracts,
+            contracts=contract_list,
             char_map=char_map,
             corp_map=corp_map,
             alliance_map=alliance_map,
