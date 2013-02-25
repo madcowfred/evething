@@ -33,7 +33,6 @@ def render_page(template, data, request, character_ids=None, corporation_ids=Non
                 character_ids = list(Character.objects.filter(apikeys__user=request.user.id).values_list('id', flat=True))
 
             if corporation_ids is None:
-                #corporation_ids = list(Corporation.objects.filter(pk__in=APIKey.objects.filter(user=request.user).exclude(corp_character=None).values('corp_character__corporation')).values_list('id', flat=True))
                 corporation_ids = list(APIKey.objects.filter(user=request.user).exclude(corp_character=None).values_list('corp_character__corporation', flat=True))
 
             # Aggregate outstanding contracts
@@ -43,8 +42,6 @@ def render_page(template, data, request, character_ids=None, corporation_ids=Non
                 Q(corporation__in=corporation_ids)
             )
             contracts = contracts.filter(status='Outstanding')
-            #contracts = contracts.values('contract_id')
-            #contracts = contracts.distinct()
 
             data['nav_contracts'] = contracts.aggregate(t=Count('contract_id', distinct=True))['t']
 
