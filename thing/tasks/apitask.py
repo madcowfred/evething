@@ -21,10 +21,16 @@ from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.core.cache import cache
 from django.db import connections
+from django.db.models import Max
 from urlparse import urljoin
 
 from thing.models import APIKey, TaskState
 from thing.stuff import total_seconds
+
+# ---------------------------------------------------------------------------
+
+PENALTY_TIME = 12 * 60 * 60
+PENALTY_MULT = 0.2
 
 # ---------------------------------------------------------------------------
 
@@ -60,6 +66,8 @@ class APITask(Task):
         self._api_log = []
         self._cache_delta = None
 
+        self._taskstate = None
+        self.apikey = None
         self.root = None
 
         # Fetch TaskState
@@ -69,9 +77,6 @@ class APITask(Task):
             except TaskState.DoesNotExist:
                 self.log_error('Task not starting: TaskState %d has gone missing', taskstate_id)
                 return False
-
-        else:
-            self._taskstate = None
 
         # Fetch APIKey
         if apikey_id is not None:
@@ -83,9 +88,6 @@ class APITask(Task):
                 # Still valid?
                 if not self.apikey.valid:
                     return False
-
-        else:
-            self.apikey = None
 
     # -----------------------------------------------------------------------
 
@@ -213,7 +215,15 @@ class APITask(Task):
 
             # If the data wasn't cached, cache it now
             if cached_data is None:
-                cache_expires = total_seconds(self._cache_delta) + 10
+                # Work out if we need a cache multiplier for this key
+                last_seen = APIKey.objects.filter(keyid=self.apikey.keyid, vcode=self.apikey.vcode).aggregate(m=Max('user__userprofile__last_seen'))['m']
+                secs = max(0, total_seconds(utcnow - last_seen))
+                mult = 1 + (min(20, max(0, secs / PENALTY_TIME)) * PENALTY_MULT)
+
+                # Generate a delta for cache penalty value
+                cache_expires = max(0, total_seconds(self._cache_delta) * mult) + 10
+                self._cache_delta = datetime.timedelta(seconds=cache_expires)
+
                 if cache_expires >= 0:
                     cache.set(cache_key, data, cache_expires)
 
