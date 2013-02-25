@@ -23,11 +23,12 @@ def render_page(template, data, request, character_ids=None, corporation_ids=Non
     utcnow = datetime.datetime.utcnow()
     
     if request.user.is_authenticated():
-        cache_key = '%s:contracts' % (request.user.id)
+        cache_key = 'nav_counts:%s' % (request.user.id)
         cc = cache.get(cache_key)
 
         if cc:
-            data['nav_contracts'] = cc
+            data['nav_contracts'] = cc[0]
+            data['nav_industryjobs'] = cc[1]
         else:
             if character_ids is None:
                 character_ids = list(Character.objects.filter(apikeys__user=request.user.id).values_list('id', flat=True))
@@ -45,16 +46,18 @@ def render_page(template, data, request, character_ids=None, corporation_ids=Non
 
             data['nav_contracts'] = contracts.aggregate(t=Count('contract_id', distinct=True))['t']
 
-            cache.set(cache_key, data['nav_contracts'], 120)
+            # Aggregate ready industry jobs
+            jobs = IndustryJob.objects.filter(
+                Q(character__in=character_ids, corporation=None)
+                |
+                Q(corporation__in=corporation_ids)
+            )
+            jobs = jobs.filter(completed=False, end_time__lte=utcnow)
+            data['nav_industryjobs'] = jobs.aggregate(t=Count('id'))['t']
 
-        # Aggregate ready industry jobs
-        jobs = IndustryJob.objects.filter(
-            Q(character__in=character_ids, corporation=None)
-            |
-            Q(corporation__in=corporation_ids)
-        )
-        jobs = jobs.filter(completed=False, end_time__lte=utcnow)
-        data['nav_industryjobs'] = jobs.aggregate(t=Count('id'))['t']
+            # Cache data
+            cache_data = (data['nav_contracts'], data['nav_industryjobs'])
+            cache.set(cache_key, cache_data, 120)
 
     return render_to_response(template, data, RequestContext(request))
 
