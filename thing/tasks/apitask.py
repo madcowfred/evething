@@ -135,16 +135,16 @@ class APITask(Task):
         Update the TaskState to the 'ready' state and set next_time to a suitable
         value.
         """
-        now = datetime.datetime.utcnow()
+        utcnow = datetime.datetime.utcnow()
         self._taskstate.state = TaskState.READY_STATE
-        self._taskstate.mod_time = now
+        self._taskstate.mod_time = utcnow
 
         # If we received valid data, _cache_delta - use that to calculate next_time
         if self._cache_delta is not None:
-            self._taskstate.next_time = now + self._cache_delta + datetime.timedelta(seconds=20)
+            self._taskstate.next_time = utcnow + self._cache_delta + datetime.timedelta(seconds=20)
         # No valid data? Try delaying for 30 minutes.
         else:
-            self._taskstate.next_time = now + datetime.timedelta(minutes=30)
+            self._taskstate.next_time = utcnow + datetime.timedelta(minutes=30)
 
         self._taskstate.save()
 
@@ -244,7 +244,7 @@ class APITask(Task):
                     self.apikey.invalidate()
 
                     # Log an error
-                    self.log_error('fetch_api: API key with keyID %d marked invalid!', self.apikey.keyid)
+                    self.log_error('[fetch_api] API key with keyID %d marked invalid!', self.apikey.keyid)
 
                     # Log an error event for the user
                     text = "Your API key #%d was marked invalid: %s %s" % (
