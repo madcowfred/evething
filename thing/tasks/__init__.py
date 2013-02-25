@@ -1,4 +1,5 @@
 # Internal tasks
+from purgeapikey import purge_api_key
 from tablecleaner import table_cleaner
 from taskspawner import task_spawner
 

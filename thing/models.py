@@ -173,7 +173,7 @@ class APIKey(models.Model):
         self.invalidate()
 
         from celery.execute import send_task
-        send_task('thing.tasks.purge_data', args=[self.id], kwargs={}, queue='et_high')
+        send_task('thing.purge_api_key', args=[self.id], kwargs={}, queue='et_high')
 
 # ---------------------------------------------------------------------------
 # APIKey permanent failure log
