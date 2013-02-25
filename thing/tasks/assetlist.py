@@ -102,7 +102,6 @@ class AssetList(APITask):
         #         # Fetch the API data
         #         params['IDs'] = ','.join(map(str, ids))
         #         if self.fetch_api(LOCATIONS_URL, params) is False or self.root is None:
-        #             self.completed()
         #             return
 
         #         # Build a map of assetID:assetName

@@ -34,7 +34,6 @@ class Contracts(APITask):
 
         params = { 'characterID': character_id }
         if self.fetch_api(url, params) is False or self.root is None:
-            self.failed()
             return
 
 
@@ -260,7 +259,6 @@ class Contracts(APITask):
         # for contract in c_filter.filter(retrieved_items=False).exclude(type='Courier'):
         #     params['contractID'] = contract.contract_id
         #     if self.fetch_api(items_url, params) is False or self.root is None:
-        #         self.failed()
         #         return
 
         #     for row in self.root.findall('result/rowset/row'):
