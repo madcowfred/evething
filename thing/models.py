@@ -189,11 +189,9 @@ class APIKeyFailure(models.Model):
 class TaskState(models.Model):
     READY_STATE = 0
     QUEUED_STATE = 1
-    ACTIVE_STATE = 2
     STATES = (
         (READY_STATE, 'Ready'),
         (QUEUED_STATE, 'Queued'),
-        (ACTIVE_STATE, 'Active'),
     )
 
     keyid = models.IntegerField(db_index=True)

@@ -87,12 +87,6 @@ class APITask(Task):
         else:
             self.apikey = None
 
-        # Right, we're ready to go
-        if self._taskstate is not None:
-            self._taskstate.state = TaskState.ACTIVE_STATE
-            self._taskstate.mod_time = datetime.datetime.utcnow()
-            self._taskstate.save()
-
     # -----------------------------------------------------------------------
 
     def on_failure(self, exc, task_id, args, kwargs, einfo):
