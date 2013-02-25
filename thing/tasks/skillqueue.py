@@ -54,7 +54,6 @@ class SkillQueue(APITask):
             ))
 
         # Delete the old queue
-        #SkillQueueModel.objects.filter(character=character).delete()
         cursor = self.get_cursor()
         cursor.execute(queries.skillqueue_delete, [character_id])
         cursor.close()
