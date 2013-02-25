@@ -153,3 +153,10 @@ DELETE
 FROM    thing_asset
 WHERE   corporation_id = %s
 """
+
+# skillqueue stuff
+skillqueue_delete = """
+DELETE
+FROM    thing_skillqueue
+WHERE   character_id = %s
+"""

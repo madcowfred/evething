@@ -1,5 +1,6 @@
 from .apitask import APITask
 
+from thing import queries
 from thing.models import Character, Skill
 from thing.models import SkillQueue as SkillQueueModel
 
@@ -53,7 +54,10 @@ class SkillQueue(APITask):
             ))
 
         # Delete the old queue
-        SkillQueueModel.objects.filter(character=character).delete()
+        #SkillQueueModel.objects.filter(character=character).delete()
+        cursor = self.get_cursor()
+        cursor.execute(queries.skillqueue_delete, [character_id])
+        cursor.close()
 
         # Create any new SkillQueue objects
         if new:
