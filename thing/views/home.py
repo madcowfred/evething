@@ -225,12 +225,15 @@ def home(request):
     first = [char for char in char_list if char.z_training and char.id not in hide_characters]
     last = [char for char in char_list if not char.z_training and char.id not in hide_characters]
 
+    tt.add_time('training')
+
     # Get corporations this user has APIKeys for
     corp_ids = APIKey.objects.select_related().filter(user=request.user.id).exclude(corp_character=None).values_list('corp_character__corporation', flat=True)
     corporations = Corporation.objects.prefetch_related('corpwallet_set').filter(pk__in=corp_ids)
-
     for corp in corporations:
         corp.wallets = corp.corpwallet_set.all()
+
+    tt.add_time('corps')
 
     # Get old event stats for staff users
     if request.user.is_staff:
