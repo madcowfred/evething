@@ -9,7 +9,7 @@ try:
 except:
     import xml.etree.ElementTree as ET
 
-#from django.conf import settings
+from django.core.cache import cache
 from django.db.models import Count, Q
 from django.template import RequestContext
 
@@ -23,21 +23,32 @@ def render_page(template, data, request, character_ids=None, corporation_ids=Non
     utcnow = datetime.datetime.utcnow()
     
     if request.user.is_authenticated():
-        if character_ids is None:
-            character_ids = list(Character.objects.filter(apikeys__user=request.user.id).values_list('id', flat=True))
+        cache_key = '%s:contracts' % (request.user.id)
+        cc = cache.get(cache_key)
 
-        if corporation_ids is None:
-            #corporation_ids = list(Corporation.objects.filter(pk__in=APIKey.objects.filter(user=request.user).exclude(corp_character=None).values('corp_character__corporation')).values_list('id', flat=True))
-            corporation_ids = list(APIKey.objects.filter(user=request.user).exclude(corp_character=None).values_list('corp_character__corporation', flat=True))
+        if cc:
+            data['nav_contracts'] = cc
+        else:
+            if character_ids is None:
+                character_ids = list(Character.objects.filter(apikeys__user=request.user.id).values_list('id', flat=True))
 
-        # Aggregate outstanding contracts
-        contracts = Contract.objects.filter(
-            Q(assignee_id__in=character_ids)
-            |
-            Q(assignee_id__in=corporation_ids)
-        )
-        contracts = contracts.filter(status='Outstanding')
-        data['nav_contracts'] = contracts.aggregate(t=Count('id'))['t']
+            if corporation_ids is None:
+                #corporation_ids = list(Corporation.objects.filter(pk__in=APIKey.objects.filter(user=request.user).exclude(corp_character=None).values('corp_character__corporation')).values_list('id', flat=True))
+                corporation_ids = list(APIKey.objects.filter(user=request.user).exclude(corp_character=None).values_list('corp_character__corporation', flat=True))
+
+            # Aggregate outstanding contracts
+            contracts = Contract.objects.filter(
+                Q(character__in=character_ids, corporation__isnull=True)
+                |
+                Q(corporation__in=corporation_ids)
+            )
+            contracts = contracts.filter(status='Outstanding')
+            #contracts = contracts.values('contract_id')
+            #contracts = contracts.distinct()
+
+            data['nav_contracts'] = contracts.aggregate(t=Count('contract_id', distinct=True))['t']
+
+            cache.set(cache_key, data['nav_contracts'], 120)
 
         # Aggregate ready industry jobs
         jobs = IndustryJob.objects.filter(
