@@ -123,8 +123,7 @@ class AssetList(APITask):
     def _find_assets(self, data, rowset, location_id=0, parent_id=0):
         for row in rowset.findall('row'):
             # No container_id (parent)
-            if location_id == 0:
-                #if 'locationID' in row.attrib:
+            if 'locationID' in row.attrib:
                 location_id = int(row.attrib['locationID'])
 
                 # :ccp: as fuck
@@ -135,9 +134,6 @@ class AssetList(APITask):
                     location_id -= 6000000
 
                 data['locations'].add(location_id)
-
-            #else:
-            #    location_id = None
 
             asset_id = int(row.attrib['itemID'])
 
