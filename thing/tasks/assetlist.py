@@ -76,7 +76,7 @@ class AssetList(APITask):
                 singleton=singleton,
             )
             if self.apikey.corp_character:
-                asset.corporation = self.apikey.corp_character.corporation
+                asset.corporation_id = self.apikey.corp_character.corporation.id
 
             assets.append(asset)
 
