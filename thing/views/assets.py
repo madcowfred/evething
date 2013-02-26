@@ -20,13 +20,9 @@ def assets(request):
 
     # apply our initial set of filters
     assets = Asset.objects.filter(
-        Q(character__in=character_ids)
-        &
-        (
-            Q(corporation_id__isnull=True)
-            |
-            Q(corporation_id__in=corporation_ids)
-        )
+        Q(character__in=character_ids, corporation_id__isnull=True)
+        |
+        Q(corporation_id__in=corporation_ids)
     )
     assets = assets.prefetch_related('item__item_group__category', 'inv_flag', 'system', 'station')
     #assets = assets.distinct()
@@ -132,7 +128,9 @@ def assets(request):
             k = asset.system_or_station()
 
             # system/station asset
-            if k is not None:
+            #if k is not None:
+            # base asset, always add
+            if asset.parent == 0:
                 asset.z_k = k
                 asset.z_indent = 0
 
