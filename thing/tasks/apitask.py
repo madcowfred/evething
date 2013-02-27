@@ -291,7 +291,7 @@ class APITask(Task):
 
                 # Something very bad has happened
                 elif error.attrib['code'] == '904':
-                    logger.error('Received 904 error, killing workers!')
+                    self.log_error('Received 904 error, killing workers!')
                     broadcast('shutdown')
 
                 return False
