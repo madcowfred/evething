@@ -32,6 +32,20 @@ from thing.stuff import total_seconds
 PENALTY_TIME = 12 * 60 * 60
 PENALTY_MULT = 0.2
 
+KEY_ERRORS = set([
+    '202', # API key authentication failure.
+    '203', # Authentication failure.
+    '204', # Authentication failure.
+    '205', # Authentication failure (final pass).
+    '207', # Not available for NPC corporations.
+    '210', # Authentication failure.
+    '211', # Login denied by account status.
+    '212', # Authentication failure (final pass).
+    '220', # Invalid Corporation Key. Key owner does not fullfill role requirements anymore.
+    '222', # Key has expired. Contact key owner for access renewal.
+    '223', # Authentication failure. Legacy API keys can no longer be used. Please create a new key on support.eveonline.com and make sure your application supports Customizable API Keys.
+])
+
 # ---------------------------------------------------------------------------
 
 class APITask(Task):
@@ -237,7 +251,7 @@ class APITask(Task):
                     self.log_error('%s: %s | %s -> %s', error.attrib['code'], error.text, current, until)
 
                 # Permanent key errors
-                if error.attrib['code'] in ('202', '203', '204', '205', '210', '212', '207', '220', '222', '223'):
+                if error.attrib['code'] in KEY_ERRORS:
                     now = datetime.datetime.now()
 
                     # Mark the key as invalid
@@ -286,7 +300,7 @@ class APITask(Task):
                         )
 
                 # Website is broken errors, trigger sleep
-                elif error.attrib['code'] in ('901', '902', '1001'):
+                elif error.attrib['code'].startswith('5') or error.attrib['code'] in ('901', '902', '1001'):
                     self._increment_backoff('API server seems broken')
 
                 # Something very bad has happened
