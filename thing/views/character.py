@@ -16,8 +16,9 @@ from thing.stuff import *
 # ---------------------------------------------------------------------------
 # Display a character page
 def character(request, character_name):
-    queryset = Character.objects.select_related('config', 'details', 'corporation__alliance')
-    char = get_object_or_404(queryset, name=character_name)
+    characters = Character.objects.select_related('config', 'details', 'corporation__alliance')
+    characters = characters.filter(apikeys__valid=True)
+    char = get_object_or_404(characters, name=character_name)
 
     # Check access
     public = True
