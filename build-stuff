@@ -7,8 +7,6 @@ cat js/bootstrap-alert.js js/bootstrap-button.js js/bootstrap-collapse.js js/boo
 cat js/jquery-1.9.*.js js/jquery.tablesorter.js js/bootstrap.js js/evething.js > static/js/evething.js
 uglifyjs -c static/js/evething.js > static/js/evething.min.js
 
-exit
-
 echo Building theme-default...
 recess --compress less/theme-default/bootstrap.less > static/css/theme-default.min.css
 
