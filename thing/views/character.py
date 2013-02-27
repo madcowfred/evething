@@ -18,6 +18,7 @@ from thing.stuff import *
 def character(request, character_name):
     characters = Character.objects.select_related('config', 'details', 'corporation__alliance')
     characters = characters.filter(apikeys__valid=True)
+    characters = characters.distinct()
     char = get_object_or_404(characters, name=character_name)
 
     # Check access
