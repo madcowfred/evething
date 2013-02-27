@@ -25,7 +25,9 @@ class IndustryJobs(APITask):
             ij_filter = IndustryJob.objects.filter(corporation=character.corporation)
         # Initialise for other keys
         else:
-            ij_filter = IndustryJob.objects.filter(corporation=None, character=character)
+            ij_filter = IndustryJob.objects.filter(corporation__isnull=True, character=character)
+
+        ij_filter = ij_filter.select_related('character', 'corporation')
 
         # Fetch the API data
         params = { 'characterID': character_id }
@@ -44,6 +46,7 @@ class IndustryJobs(APITask):
         system_ids = set()
 
         rows = []
+        new_events = []
         for row in self.root.findall('result/rowset/row'):
             job_id = int(row.attrib['jobID'])
             
@@ -66,18 +69,22 @@ class IndustryJobs(APITask):
                         ij.save()
 
                 # Job is now complete, issue an event
-                elif row.attrib['completed'] and not ij.completed:
+                elif not ij.completed:
                     ij.completed = True
                     ij.completed_status = row.attrib['completedStatus']
                     ij.save()
 
-                    text = 'Industry Job #%s (%s, %s) has been delivered' % (ij.job_id, ij.system.name, ij.get_activity_display())
-                    event = Event(
+                    text = '%s: industry job #%s (%s) has been delivered' % (ij.system.name, ij.job_id, ij.get_activity_display())
+                    if self.apikey.corp_character:
+                        text = '%s ([%s] %s)' % (text, ij.corporation.ticker, ij.corporation.name)
+                    else:
+                        text = '%s (%s)' % (text, ij.character.name)
+
+                    new_events.append(Event(
                         user_id=self.apikey.user.id,
                         issued=now,
                         text=text,
-                    )
-                    event.save()
+                    ))
 
             # Doesn't exist, save data for later
             else:
@@ -88,6 +95,9 @@ class IndustryJobs(APITask):
                 system_ids.add(int(row.attrib['installedInSolarSystemID']))
 
                 rows.append(row)
+
+        # Create any new events
+        Event.objects.bulk_create(new_events)
 
         # Bulk query data
         flag_map = InventoryFlag.objects.in_bulk(flag_ids)
