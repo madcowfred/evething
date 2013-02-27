@@ -339,13 +339,14 @@ class Importer:
     def import_item(self):
         added = 0
         
-        self.cursor.execute('SELECT typeID, typeName, groupID, marketGroupID, portionSize, volume, basePrice FROM invTypes WHERE marketGroupID IS NOT NULL')
+        self.cursor.execute('SELECT typeID, typeName, groupID, marketGroupID, portionSize, volume, basePrice FROM invTypes')
         
         bulk_data = {}
         mg_ids = set()
         for row in self.cursor:
             bulk_data[int(row[0])] = row[1:]
-            mg_ids.add(int(row[3]))
+            if row[3] is not None:
+                mg_ids.add(int(row[3]))
         
         data_map = Item.objects.in_bulk(bulk_data.keys())
         mg_map = MarketGroup.objects.in_bulk(mg_ids)
@@ -355,10 +356,13 @@ class Importer:
             if not data[0] or not data[1]:
                 continue
             
-            mg_id = int(data[2])
-            if mg_id not in mg_map:
-                print '==> Invalid marketGroupID %s' % (mg_id)
-                continue
+            if data[2] is None:
+                mg_id = None
+            else:
+                mg_id = int(data[2])
+                if mg_id not in mg_map:
+                    print '==> Invalid marketGroupID %s' % (mg_id)
+                    continue
 
             portion_size = Decimal(data[3])
             volume = PACKAGED.get(data[1], Decimal(str(data[4])))
@@ -406,7 +410,6 @@ class Importer:
             INNER JOIN invTypes AS t
             ON      b.blueprintTypeID = t.typeID
             WHERE   t.published = 1
-                    AND t.marketGroupID IS NOT NULL
         """)
         bulk_data = {}
         for row in self.cursor:
