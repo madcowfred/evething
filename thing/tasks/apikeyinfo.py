@@ -31,56 +31,67 @@ class APIKeyInfo(APITask):
         # Update key type
         self.apikey.key_type = key_node.attrib['type']
 
-
-        # Loop over each character
-        seen_chars = {}
+        # Gather data
+        characters = {}
+        corporations = {}
         for row in key_node.findall('rowset/row'):
-            # Get or create a Corporation object
-            corporation, created = Corporation.objects.get_or_create(
-                pk=row.attrib['corporationID'],
-                defaults={
-                    'name': row.attrib['corporationName'],
-                },
-            )
+            characters[int(row.attrib['characterID'])] = (row.attrib['characterName'], int(row.attrib['corporationID']))
+            corporations[int(row.attrib['corporationID'])] = row.attrib['corporationName']
 
-            # Get or create a Character object
-            character, created = Character.objects.select_related('config', 'corporation', 'details').get_or_create(
-                pk=row.attrib['characterID'],
-                defaults={
-                    'name': row.attrib['characterName'],
-                    'corporation': corporation,
-                },
-            )
+        # Bulk query data
+        char_map = Character.objects.select_related('config', 'corporation', 'details').in_bulk(characters.keys())
+        corp_map = Corporation.objects.in_bulk(corporations.keys())
 
-            seen_chars[character.id] = character
+        # Create any new Corporation objects
+        new_corps = []
+        for corp_id, corp_name in corporations.items():
+            if corp_id not in corp_map:
+                new_corps.append(Corporation(
+                    id=corp_id,
+                    name=corp_name,
+                ))
 
-            # Account/Character key
-            if self.apikey.key_type in (APIKey.ACCOUNT_TYPE, APIKey.CHARACTER_TYPE):
-                self.apikey.corporation = None
+        Corporation.objects.bulk_create(new_corps)
 
-                # Character was created, create the related models
-                if created:
-                    cc = CharacterConfig.objects.create(character=character)
-                    cd = CharacterDetails.objects.create(character=character)
+        # Create any new Character objects
+        new_chars = []
+        new_configs = []
+        new_details = []
+        for char_id, (char_name, corp_id) in characters.items():
+            if char_id not in char_map:
+                new_chars.append(Character(
+                    id=char_id,
+                    name=char_name,
+                    corporation_id=corp_id,
+                ))
+                new_configs.append(CharacterConfig(character_id=char_id))
+                new_details.append(CharacterDetails(character_id=char_id))
 
-                # Character already existed, maybe create/update things
-                else:
-                    if character.config is None:
-                        cc = CharacterConfig.objects.create(character=character)
-                    if character.details is None:
-                        cd = CharacterDetails.objects.create(character=character)
+        # Fix any existing Character objects with missing Config/Details
+        for char_id, char in char_map.items():
+            if char.config is None:
+                new_configs.append(CharacterConfig(character_id=char_id))
+            if char.details is None:
+                new_details.append(CharacterDetails(character_id=char_id))
 
-                    # Handle character renames and corporation changes
-                    if character.name != row.attrib['characterName'] or character.corporation != corporation:
-                        character.name = row.attrib['characterName']
-                        character.corporation = corporation
-                        character.save()
+            # Handle name/corporation changes
+            if char.name != characters[char.id][0] or char.corporation_id != characters[char.id][1]:
+                char.name = characters[char.id][0]
+                char.corporation_id = characters[char.id][1]
+                char.save()
 
-            # Corporation key
-            elif self.apikey.key_type == APIKey.CORPORATION_TYPE:
-                self.apikey.corporation = corporation
+        Character.objects.bulk_create(new_chars)
+        CharacterConfig.objects.bulk_create(new_configs)
+        CharacterDetails.objects.bulk_create(new_details)
 
-                self.apikey.corp_character = character
+
+        # Account/Character key
+        if self.apikey.key_type in (APIKey.ACCOUNT_TYPE, APIKey.CHARACTER_TYPE):
+            self.apikey.corp_character = None
+
+        # Corporation key
+        elif self.apikey.key_type == APIKey.CORPORATION_TYPE:
+            self.apikey.corp_character_id = characters.keys()[0]
 
         # Save any APIKey changes
         self.apikey.save()
@@ -88,10 +99,12 @@ class APIKeyInfo(APITask):
         # Iterate over all APIKeys with this (keyid, vcode) combo
         for ak in APIKey.objects.filter(keyid=self.apikey.keyid, vcode=self.apikey.vcode):
             # Add characters to this APIKey
-            ak.characters.add(*seen_chars.values())
+            ak.characters.add(*characters.keys())
 
             # Remove any missing characters from the APIKey
-            ak.characters.exclude(pk__in=seen_chars.keys()).delete()
+            for char in ak.characters.all():
+                if char.id not in characters:
+                    ak.characters.remove(char)
 
         return True
 
