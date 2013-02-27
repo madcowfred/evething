@@ -140,8 +140,9 @@ class MarketOrders(APITask):
             MarketOrder.objects.bulk_create(new)
 
         # Any orders we didn't see need to be deleted - issue events first
-        to_delete = mo_filter.exclude(pk__in=seen)
         now = datetime.datetime.now()
+        to_delete = mo_filter.exclude(pk__in=seen)
+        new_events = []
         for order in to_delete.select_related():
             if order.buy_order:
                 buy_sell = 'buy'
@@ -154,21 +155,26 @@ class MarketOrders(APITask):
                 order_type = 'personal'
 
             url = '%s?ft=item&fc=eq&fv=%s' % (reverse('thing.views.transactions'), order.item.name)
-            text = '%s: %s %s order for <a href="%s">%s</a> completed/expired (%s)' % (
+            text = '%s: %s %s order for <a href="%s">%s</a> completed/expired' % (
                 order.station.short_name,
                 order_type,
                 buy_sell,
                 url, 
                 order.item.name,
-                order.character.name,
             )
+            if order.corp_wallet:
+                text = '%s ([%s] %s)' % (text, order.corp_wallet.corporation.ticker, order.corp_wallet.description)
+            else:
+                text = '%s (%s)' % (text, order.character.name)
 
-            event = Event(
+            new_events.append(Event(
                 user_id=self.apikey.user.id,
                 issued=now,
                 text=text,
-            )
-            event.save()
+            ))
+
+        # Bulk create new events
+        Event.objects.bulk_create(new_events)
 
         # Then delete
         to_delete.delete()
