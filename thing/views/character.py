@@ -19,7 +19,10 @@ def character(request, character_name):
     characters = Character.objects.select_related('config', 'details', 'corporation__alliance')
     characters = characters.filter(apikeys__valid=True)
     characters = characters.distinct()
+    
     char = get_object_or_404(characters, name=character_name)
+    print char.config
+    print char.details
 
     # Check access
     public = True
@@ -66,70 +69,82 @@ def character_common(request, char, public=True, anonymous=False):
     queue_duration = None
 
     if show['queue']:
-        queue = list(SkillQueue.objects.select_related('skill__item', 'character__corporation').filter(character=char, end_time__gte=utcnow).order_by('end_time'))
+        queue = list(SkillQueue.objects.select_related('skill__item', 'character__corporation', 'character__details').filter(character=char, end_time__gte=utcnow).order_by('end_time'))
         if queue:
             training_id = queue[0].skill.item.id
             training_level = queue[0].to_level
             queue_duration = total_seconds(queue[-1].end_time - utcnow)
+            queue[0].z_complete = queue[0].get_complete_percentage()
 
     tt.add_time('skill queue')
 
-    # Retrieve the list of skills and group them by market group
-    skills = OrderedDict()
-    skill_totals = {}
-    cur = None
+    # Try retrieving skill data from cache
+    cache_key = 'character:skills:%s' % (char.id)
+    skill_data = cache.get(cache_key)
+    # Not cached, fetch from database and cache
+    if skill_data is None:
+        # Retrieve the list of skills and group them by market group
+        skills = OrderedDict()
+        cur = None
 
-    # Fake MarketGroup for unpublished skills
-    total_sp = 0
+        # Fake MarketGroup for unpublished skills
+        total_sp = 0
 
-    unpub_mg = MarketGroup(id=0, name="Unpublished")
-    unpub_mg.z_total_sp = 0
-    skills[unpub_mg] = []
+        unpub_mg = MarketGroup(id=0, name="Unpublished")
+        unpub_mg.z_total_sp = 0
+        skills[unpub_mg] = []
 
-    css = CharacterSkill.objects.filter(character=char)
-    css = css.select_related('skill__item__market_group')
-    css = css.order_by('skill__item__market_group__name', 'skill__item__name')
+        css = CharacterSkill.objects.filter(character=char)
+        css = css.select_related('skill__item__market_group')
+        css = css.order_by('skill__item__market_group__name', 'skill__item__name')
 
-    for cs in css:
-        mg = cs.skill.item.market_group or unpub_mg
-        if mg != cur:
-            cur = mg
-            cur.z_total_sp = 0
-            skills[cur] = []
+        for cs in css:
+            mg = cs.skill.item.market_group or unpub_mg
+            if mg != cur:
+                cur = mg
+                cur.z_total_sp = 0
+                skills[cur] = []
 
-        cs.z_icons = []
-        # level 5 skill = 5 special icons
-        if cs.level == 5:
-            cs.z_icons.extend(['fives'] * 5)
-            cs.z_class = "level5"
-        # 0-4 = n icons
-        else:
-            cs.z_icons.extend(['trained'] * cs.level)
+            cs.z_icons = []
+            # level 5 skill = 5 special icons
+            if cs.level == 5:
+                cs.z_icons.extend(['fives'] * 5)
+                cs.z_class = "level5"
+            # 0-4 = n icons
+            else:
+                cs.z_icons.extend(['trained'] * cs.level)
 
-        # training skill can have a training icon
-        if show['queue'] and cs.skill.item.id == training_id:
-            cs.z_icons.append('partial')
-            cs.z_training = True
-            cs.z_class = "training-highlight"
+            # training skill can have a training icon
+            if show['queue'] and cs.skill.item.id == training_id:
+                cs.z_icons.append('partial')
+                cs.z_training = True
+                cs.z_class = "training-highlight"
 
-            # add partially trained SP to the total
-            total_sp += int(queue[0].get_completed_sp(cs, utcnow))
+                # add partially trained SP to the total
+                total_sp += int(queue[0].get_completed_sp(cs, utcnow))
 
-        # partially trained skills get a partial icon
-        elif cs.points > cs.skill.get_sp_at_level(cs.level):
-            cs.z_icons.append('partial')
+            # partially trained skills get a partial icon
+            elif cs.points > cs.skill.get_sp_at_level(cs.level):
+                cs.z_icons.append('partial')
 
-        # then fill out the rest with empty icons
-        cs.z_icons.extend(['untrained'] * (5 - len(cs.z_icons)))
+            # then fill out the rest with empty icons
+            cs.z_icons.extend(['untrained'] * (5 - len(cs.z_icons)))
 
-        skills[cur].append(cs)
-        cur.z_total_sp += cs.points
-        total_sp += cs.points
+            skills[cur].append(cs)
+            cur.z_total_sp += cs.points
+            total_sp += cs.points
 
-    # Move the fake MarketGroup to the end if it has any skills
-    k, v = skills.popitem(False)
-    if v:
-        skills[k] = v
+        # Move the fake MarketGroup to the end if it has any skills
+        k, v = skills.popitem(False)
+        if v:
+            skills[k] = v
+
+        skill_data = (total_sp, skills)
+        cache.set(cache_key, skill_data, 300)
+
+    # Data was cached
+    else:
+        total_sp, skills = skill_data
 
     tt.add_time('skill group')
 
@@ -170,8 +185,18 @@ def character_common(request, char, public=True, anonymous=False):
     tt.add_time('skill plans')
 
     if show['standings']:
-        faction_standings = list(char.factionstanding_set.select_related().all())
-        corp_standings = list(char.corporationstanding_set.select_related().all())
+        # Try retrieving standings data from cache
+        cache_key = 'character:standings:%s' % (char.id)
+        standings_data = cache.get(cache_key)
+        # Not cached, fetch from database and cache
+        if standings_data is None:
+            faction_standings = list(char.factionstanding_set.select_related().all())
+            corp_standings = list(char.corporationstanding_set.select_related().all())
+            standings_data = (faction_standings, corp_standings)
+            cache.set(cache_key, standings_data, 300)
+        # Data was cached
+        else:
+            faction_standings, corp_standings = standings_data
     else:
         faction_standings = []
         corp_standings = []
@@ -186,7 +211,6 @@ def character_common(request, char, public=True, anonymous=False):
             'show': show,
             'total_sp': total_sp,
             'skills': skills,
-            'skill_totals': skill_totals,
             'queue': queue,
             'queue_duration': queue_duration,
             'user_plans': user_plans,

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load cache %}
 {% load thing_extras %}
 
 {% block title %}{% if anonymous %}Anonymized Character: {{ char.config.anon_key }}{% else %}Character: {{ char.name }}{% endif %}{% endblock %}
@@ -129,7 +130,7 @@
                   <div class="pull-right">{{ queue.0.end_time|date("Y-m-d H:i:s") }} UTC</div>
                   <div style="width: 100%">
                     <div class="progress progress-striped{% if queue_duration < 86400 %} progress-danger{% endif%} margin-half-top">
-                      <div class="bar" style="width: {{ queue.0.get_complete_percentage() }}%">{{ queue.0.get_complete_percentage() }}%</div>
+                      <div class="bar" style="width: {{ queue.0.z_complete }}%">{{ queue.0.z_complete }}%</div>
                     </div>
                   </div>
                 </div>
@@ -154,6 +155,7 @@
 
             <div class="tab-content">
               <div class="tab-pane active" id="skills">
+                {% cache 300 character_skills char.id %}
                 {% for mg, css in skills.items() -%}
                 <span class="char-skill-group">{{ mg.name }}</span>
                 --
@@ -179,6 +181,7 @@
                   {%- endfor %}
                 </table>
                 {%- endfor %}
+                {% endcache %}
               </div>
 
               {% if show.standings %}
