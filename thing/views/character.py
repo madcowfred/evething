@@ -149,7 +149,7 @@ def character_common(request, char, public=True, anonymous=False):
     tt.add_time('skill group')
 
     # Retrieve skillplans
-    user_ids = APIKey.objects.filter(characters__name=char.name).values_list('user_id', flat=True)
+    #user_ids = APIKey.objects.filter(characters__name=char.name).values_list('user_id', flat=True)
 
     if anonymous is False and request.user.is_authenticated():
         plans = SkillPlan.objects.filter(
@@ -165,6 +165,8 @@ def character_common(request, char, public=True, anonymous=False):
         # )
     else:
         plans = SkillPlan.objects.filter(visibility=SkillPlan.GLOBAL_VISIBILITY)
+
+    plans = plans.select_related('user')
 
     # Sort out the plans and apply icon states
     user_plans = []
