@@ -26,7 +26,7 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </a>
-          <a class="brand" href="{% url home %}">EVEthing</a>
+          <a class="brand" href="{% url thing.views.home %}">EVEthing</a>
           <div class="nav-collapse collapse">
             <ul class="nav" id="nav-list">
               {% if user.is_authenticated() -%}
