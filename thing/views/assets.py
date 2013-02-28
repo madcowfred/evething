@@ -126,12 +126,12 @@ def assets(request):
 
             # work out if this is a system or station asset
             k = asset.system_or_station()
+            asset.z_k = k
 
             # system/station asset
             #if k is not None:
             # base asset, always add
             if asset.parent == 0:
-                asset.z_k = k
                 asset.z_indent = 0
 
                 if k not in systems:
@@ -143,7 +143,8 @@ def assets(request):
 
             # asset is inside something, assign it to parent
             else:
-                parent = asset_lookup.get(asset.parent, None)
+                # parent doesn't exist yet
+                parent = asset_lookup.get(asset.parent)
                 if parent is None:
                     continue
 
@@ -151,7 +152,6 @@ def assets(request):
                 parent.z_contents.append(asset)
 
                 # set various things from parent
-                asset.z_k = parent.z_k
                 asset.z_indent = parent.z_indent + 1
 
                 # add this to the parent entry in loc_totals
