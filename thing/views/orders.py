@@ -13,10 +13,10 @@ from thing.stuff import *
 # ---------------------------------------------------------------------------
 
 ORDER_SLOT_SKILLS = {
-    'Trade': 4,
-    'Retail': 8,
-    'Wholesale': 16,
-    'Tycoon': 32,
+    3443: 4,  # Trade
+    3444: 8,  # Retail
+    16596: 16,# Wholesale
+    18580: 32,# Tycoon
 }
 
 # ---------------------------------------------------------------------------
@@ -32,15 +32,13 @@ def orders(request):
         char_orders[row['creator_character_id']] = row
 
     # Retrieve trade skills that we're interested in
-    order_cs = CharacterSkill.objects.filter(character__apikeys__user=request.user, skill__item__name__in=ORDER_SLOT_SKILLS.keys())
-    order_cs = order_cs.select_related('character__apikey', 'skill__item')
-
+    order_cs = CharacterSkill.objects.filter(character__apikeys__user=request.user, skill__in=ORDER_SLOT_SKILLS)
     for cs in order_cs:
-        char_id = cs.character.id
+        char_id = cs.character_id
         if char_id not in char_orders:
             continue
 
-        char_orders[char_id]['slots'] += (cs.level * ORDER_SLOT_SKILLS.get(cs.skill.item.name, 0))
+        char_orders[char_id]['slots'] += (cs.level * ORDER_SLOT_SKILLS.get(cs.skill_id, 0))
 
     # Calculate free slots
     for row in char_orders.values():
@@ -59,16 +57,17 @@ def orders(request):
     }
 
     # Retrieve all orders
-    character_ids = list(Character.objects.filter(apikeys__user=request.user.id).distinct().values_list('id', flat=True))
-    corporation_ids = list(APIKey.objects.filter(user=request.user).exclude(corp_character=None).values_list('corp_character__corporation__id', flat=True))
+    #character_ids = list(Character.objects.filter(apikeys__user=request.user.id).distinct().values_list('id', flat=True))
+    #corporation_ids = list(APIKey.objects.filter(user=request.user).exclude(corp_character=None).values_list('corp_character__corporation__id', flat=True))
+    character_ids = Character.objects.filter(apikeys__user=request.user.id).distinct().values('id')
+    corporation_ids = APIKey.objects.filter(user=request.user).exclude(corp_character=None).values('corp_character__corporation__id')
 
     orders = MarketOrder.objects.filter(
         Q(character__in=character_ids, corp_wallet__isnull=True)
         |
         Q(corp_wallet__corporation__in=corporation_ids)
     )
-    orders = orders.select_related('item', 'station', 'character')
-    orders = orders.prefetch_related('corp_wallet__corporation')
+    orders = orders.select_related('item', 'station', 'character', 'corp_wallet__corporation')
     orders = orders.order_by('station__name', '-buy_order', 'item__name')
 
     creator_ids = set()
@@ -93,8 +92,6 @@ def orders(request):
             'total_row': total_row,
         },
         request,
-        character_ids,
-        corporation_ids,
     )
 
 # ---------------------------------------------------------------------------
