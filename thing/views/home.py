@@ -1,5 +1,10 @@
 import datetime
 
+try:
+    from collections import OrderedDict
+except ImportError:
+    from ordereddict import OrderedDict
+
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q, Avg, Count, Max, Min, Sum
@@ -39,11 +44,19 @@ def home(request):
     training = set()
     chars = {}
     ship_item_ids = set()
-
-    characters = Character.objects.filter(apikeys__user=request.user, apikeys__key_type__in=(APIKey.ACCOUNT_TYPE, APIKey.CHARACTER_TYPE))
-    characters = characters.prefetch_related('apikeys')
-    characters = characters.select_related('config', 'details')
-    characters = characters.distinct()
+    
+    # Try retrieving characters from cache
+    cache_key = 'home:characters:%d' % (request.user.id)
+    characters = cache.get(cache_key)
+    # Not cached, fetch from database and cache
+    if characters is None:
+        characters = Character.objects.filter(apikeys__user=request.user, apikeys__key_type__in=(APIKey.ACCOUNT_TYPE, APIKey.CHARACTER_TYPE))
+        characters = characters.prefetch_related('apikeys')
+        characters = characters.select_related('config', 'details')
+        characters = characters.annotate(total_sp=Sum('characterskill__points'))
+        characters = characters.distinct()
+        characters = list(characters)
+        cache.set(cache_key, characters, 300)
 
     for character in characters:
         char_keys = [ak for ak in character.apikeys.all() if ak.user_id == request.user.id]
@@ -53,24 +66,19 @@ def home(request):
         character.z_apikey = char_keys[0]
         character.z_training = {}
 
-        # Check for CharacterConfig, creating an empty one if it does not exist
-        if character.config is None:
-            config = CharacterConfig(character=character)
-            config.save()
-
-        # Check for CharacterDetails, creating an empty one if it does not exist
-        if character.details is None:
-            details = CharacterDetails(character=character)
-            details.save()
-            character.details = details
-
         total_balance += character.details.wallet_balance
         if character.details.ship_item_id is not None:
             ship_item_ids.add(character.details.ship_item_id)
 
-    tt.add_time('apikeys')
+    tt.add_time('characters')
 
-    ship_map = Item.objects.in_bulk(ship_item_ids)
+    # Try retrieving ship map from cache
+    cache_key = 'home:ship_map:%d' % (request.user.id)
+    ship_map = cache.get(cache_key)
+    # Not cached, fetch from database and cache
+    if ship_map is None:
+        ship_map = Item.objects.in_bulk(ship_item_ids)
+        cache.set(cache_key, ship_map, 300)
 
     tt.add_time('ship_items')
 
@@ -101,13 +109,12 @@ def home(request):
         for cs in CharacterSkill.objects.filter(reduce(q_reduce_or, skill_qs)):
             chars[cs.character_id].z_tskill = cs
 
+    tt.add_time('training skills')
+
     # Do total skill point aggregation
     total_sp = 0
-    for cs in CharacterSkill.objects.select_related().filter(character__in=chars).values('character').annotate(total_sp=Sum('points')):
-        char = chars[cs['character']]
-        char.z_total_sp = cs['total_sp']
-
-        # Current skill training
+    for char in characters:
+        char.z_total_sp = char.total_sp
         if 'sq' in char.z_training and hasattr(char, 'z_tskill'):
             char.z_total_sp += int(char.z_training['sq'].get_completed_sp(char.z_tskill, now))
 
@@ -227,11 +234,22 @@ def home(request):
 
     tt.add_time('training')
 
-    # Get corporations this user has APIKeys for
-    corp_ids = APIKey.objects.select_related().filter(user=request.user.id).exclude(corp_character=None).values_list('corp_character__corporation', flat=True)
-    corporations = Corporation.objects.prefetch_related('corpwallet_set').filter(pk__in=corp_ids)
-    for corp in corporations:
-        corp.wallets = corp.corpwallet_set.all()
+    # Try retrieving corporations from cache
+    cache_key = 'home:corporations:%d' % (request.user.id)
+    corporations = cache.get(cache_key)
+    # Not cached, fetch from database and cache
+    if corporations is None:
+        corp_ids = APIKey.objects.filter(user=request.user.id).exclude(corp_character=None).values('corp_character__corporation')
+        corp_map = OrderedDict()
+        for corp_wallet in CorpWallet.objects.select_related().filter(corporation__in=corp_ids):
+            if corp_wallet.corporation_id not in corp_map:
+                corp_map[corp_wallet.corporation_id] = corp_wallet.corporation
+                corp_map[corp_wallet.corporation_id].wallets = []
+            
+            corp_map[corp_wallet.corporation_id].wallets.append(corp_wallet)
+
+        corporations = corp_map.values()
+        cache.set(cache_key, corporations, 300)
 
     tt.add_time('corps')
 
