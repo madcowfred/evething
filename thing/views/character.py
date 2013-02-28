@@ -260,24 +260,24 @@ def character_settings(request, character_name):
 # ---------------------------------------------------------------------------
 # Display a SkillPlan for a character
 def character_skillplan(request, character_name, skillplan_id):
-    user_ids = APIKey.objects.filter(characters__name=character_name).values_list('user_id', flat=True)
-
     public = True
 
     # If the user is logged in, check if the character belongs to them
     if request.user.is_authenticated():
-        chars = Character.objects.filter(name=character_name, apikeys__user=request.user).select_related('config', 'details').distinct()
-        if chars.count() == 1:
-            character = chars[0]
+        try:
+            character = Character.objects.select_related('config', 'details').distinct().get(name=character_name, apikeys__user=request.user)
+        except Character.DoesNotExist:
+            pass
+        else:
             public = False
-            qs = Q(visibility=SkillPlan.GLOBAL_VISIBILITY) | Q(user=request.user) | (Q(user__in=user_ids) & Q(visibility=SkillPlan.PUBLIC_VISIBILITY))
+            qs = Q(visibility=SkillPlan.GLOBAL_VISIBILITY) | Q(user=request.user)
             skillplan = get_object_or_404(SkillPlan.objects.prefetch_related('entries'), qs, pk=skillplan_id)
 
     # Not logged in or character does not belong to user
     if public is True:
         character = get_object_or_404(Character.objects.select_related('config', 'details'), name=character_name, config__is_public=True)
         
-        qs = Q(visibility=SkillPlan.GLOBAL_VISIBILITY) | (Q(user__in=user_ids) & Q(visibility=SkillPlan.PUBLIC_VISIBILITY))
+        qs = Q(visibility=SkillPlan.GLOBAL_VISIBILITY)
         if request.user.is_authenticated():
             qs |= Q(user=request.user)
         skillplan = get_object_or_404(SkillPlan.objects.prefetch_related('entries'), qs, pk=skillplan_id)
@@ -311,10 +311,15 @@ def character_skillplan_common(request, character, skillplan, public=True, anony
 
     tt.add_time('init')
 
-    # Build a CharacterSkill lookup dictionary
-    learned = {}
-    for cs in CharacterSkill.objects.filter(character=character).select_related('skill__item'):
-        learned[cs.skill.item.id] = cs
+    # Try retrieving learned data from cache
+    cache_key = 'character_skillplan:learned:%s' % (character.id)
+    learned = cache.get(cache_key)
+    # Not cached, fetch from database and cache
+    if learned is None:
+        learned = {}
+        for cs in CharacterSkill.objects.filter(character=character).select_related('skill__item'):
+            learned[cs.skill.item.id] = cs
+        cache.set(cache_key, learned, 300)
 
     tt.add_time('char skills')
 
