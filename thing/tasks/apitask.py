@@ -18,6 +18,7 @@ except ImportError:
 from celery import Task
 from celery.task.control import broadcast
 from celery.utils.log import get_task_logger
+from django import get_version
 from django.conf import settings
 from django.core.cache import cache
 from django.db import connections
@@ -50,6 +51,8 @@ KEY_ERRORS = set([
 
 class APITask(Task):
     abstract = True
+
+    _django_version = get_version()
 
     # Logger instance
     _logger = get_task_logger(__name__)
@@ -160,7 +163,10 @@ class APITask(Task):
         else:
             self._taskstate.next_time = utcnow + datetime.timedelta(minutes=30)
 
-        self._taskstate.save()
+        if self._django_version >= '1.5':
+            self._taskstate.save(update_fields=('state', 'mod_time', 'next_time'))
+        else:
+            self._taskstate.save()
 
     # ---------------------------------------------------------------------------
     
@@ -289,7 +295,10 @@ class APITask(Task):
                         # Disable their ability to add keys
                         profile = self.apikey.user.get_profile()
                         profile.can_add_keys = False
-                        profile.save()
+                        if self._django_version >= '1.5':
+                            profile.save(update_fields=('can_add_keys'))
+                        else:
+                            profile.save()
 
                         # Log that we did so
                         text = "Limit of %d API key failures per 7 days exceeded, you may no longer add keys." % (limit)
