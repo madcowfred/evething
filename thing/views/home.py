@@ -55,7 +55,7 @@ def home(request):
         characters = characters.select_related('config', 'details')
         characters = characters.annotate(total_sp=Sum('characterskill__points'))
         characters = characters.distinct()
-        characters = [c for c in characters if character.details is not None]
+        characters = [c for c in characters if c.details is not None]
         cache.set(cache_key, characters, 300)
 
     for character in characters:
