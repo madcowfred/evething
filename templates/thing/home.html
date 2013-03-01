@@ -82,7 +82,7 @@
           <span class="divider">/</span>
           {%- endif %}
           <a href="#" onclick="screenshot_mode();">
-            <i class="icons-screenshot" title="Screenshot sanitised mode"></i>
+            <i class="icon-picture" title="Screenshot sanitised mode"></i>
           </a>
         </span>
       </div>
@@ -139,9 +139,9 @@
           {%- endif %}
 
           {% if character.z_notifications %}
-          <div class="margin-half-top smaller">
+          <div class="home-notifications">
             {% for notif in character.z_notifications %}
-            <i class="icons-{{ notif.icon }}" rel="tooltip" title="{{ notif.tooltip }}"></i>
+            {% if loop.index > 1 %}&nbsp;{% endif %}<i class="icon-{{ notif.icon }}" rel="tooltip" title="{{ notif.tooltip }}"></i>
             {% if notif.span_class %}<span class="{{ notif.span_class }}">{% endif %}
             {{ notif.text }}
             {% if notif.span_class %}</span>{% endif %}
