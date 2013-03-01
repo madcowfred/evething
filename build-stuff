@@ -4,7 +4,7 @@
 
 echo Combining and minifying JavaScript...
 cat js/bootstrap-alert.js js/bootstrap-button.js js/bootstrap-collapse.js js/bootstrap-dropdown.js js/bootstrap-modal.js js/bootstrap-tooltip.js js/bootstrap-popover.js js/bootstrap-tab.js > js/bootstrap.js
-cat js/jquery-1.9.*.js js/jquery.tablesorter.js js/bootstrap.js js/evething.js > static/js/evething.js
+cat js/jquery-1.9.*.js js/jquery.tablesorter.js js/bootstrap.js js/bootstrap-datepicker.js js/evething.js > static/js/evething.js
 uglifyjs -c static/js/evething.js > static/js/evething.min.js
 
 echo Building theme-default...
