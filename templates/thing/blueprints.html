@@ -119,8 +119,8 @@
                 <td>{{ bpi.z_unit_profit_sell|humanize|balance }}</td>
                 <td class="c"><input type="checkbox" name="bpi" value="{{ bpi.pk }}"></td>
                 <td>
-                  <i class="icons-edit bp-edit"></i>
-                  <i class="icons-delete bp-delete"></i>
+                  <i class="icon-edit bp-edit"></i>
+                  <i class="icon-trash bp-delete"></i>
                 </td>
               </tr>
               {% else %}
@@ -145,7 +145,7 @@
       
       <div class="modal hide" id="add-blueprint">
         <div class="modal-header">
-          <a class="close" data-dismiss="modal"><i class="icons-close"></i></a>
+          <a class="close" data-dismiss="modal"><i class="icon-remove"></i></a>
           <h3>Add Blueprint</h3>
         </div>
         <form action="{% url thing.views.blueprints_add %}" method="GET" class="form-horizontal nomargin">
@@ -192,7 +192,7 @@
 
       <div class="modal hide" id="edit-blueprint">
         <div class="modal-header">
-          <a class="close" data-dismiss="modal"><i class="icons-close"></i></a>
+          <a class="close" data-dismiss="modal"><i class="icon-remove"></i></a>
           <h3>Edit Blueprint</h3>
         </div>
         <form action="{% url thing.views.blueprints_edit %}" class="form-horizontal nomargin">
@@ -228,7 +228,7 @@
 
       <div class="modal hide" id="del-blueprint">
         <div class="modal-header">
-          <a class="close" data-dismiss="modal"><i class="icons-close"></i></a>
+          <a class="close" data-dismiss="modal"><i class="icon-remove"></i></a>
           <h3>Delete Confirmation</h3>
         </div>
         <form action="{% url thing.views.blueprints_del %}" class="nomargin">

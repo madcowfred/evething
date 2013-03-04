@@ -9,3 +9,21 @@
 {% macro alliance() -%}
 <i class="icon-hospital" rel="tooltip" title="Alliance"></i>
 {%- endmacro %}
+
+{% macro success_fail(success=True) -%}
+<i class="icon-{% if success %}ok pos{% else %}remove neg{% endif %}"></i>
+{%- endmacro %}
+
+{% macro contract_status(status) -%}
+{%- if status.startswith('Completed') -%}
+<i class="icon-ok pos"></i>
+{%- elif status == 'InProgress' -%}
+<i class="icon-truck"></i>
+{%- elif status in ('Cancelled', 'Deleted', 'Failed', 'Rejected') -%}
+<i class="icon-remove neg"></i>
+{%- elif status == 'Outstanding' -%}
+<i class="icon-time"></i>
+{%- else -%}
+<i class="icon-question-sign"></i>
+{%- endif -%}
+{%- endmacro %}

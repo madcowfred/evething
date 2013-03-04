@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% import 'macros/icons.html' as icons %}
 {% load thing_extras %}
   
 {% block title %}Contracts{% endblock %}
@@ -38,39 +39,39 @@
                 <td class="con-date">{{ contract.date_issued }}</td>
                 <td class="con-issuer">
                   {% if contract.for_corp -%}
-                  <i class="icons-corporation"></i>
+                  {{ icons.corporation() }}
                   {{ contract.issuer_corp.name }}
                   {%- else -%}
-                  <i class="icons-player"></i>
+                  {{ icons.player() }}
                   {{ contract.issuer_char.name }}
                   {%- endif %}
                 </td>
                 <td class="c con-type">{{ contract.type }}</td>
                 <td class="con-status">
-                  <i class="icons-contract-{{ contract.z_status_icon }}"></i>
+                  {{ icons.contract_status(contract.status) }}
                   {{ contract.status }}
                 </td>
                 <td class="con-issuer">
                   {% if contract.z_assignee_alliance -%}
-                  <i class="icons-alliance"></i>
+                  {{ icons.alliance() }}
                   {{ contract.z_assignee_alliance.name }}
                   {%- elif contract.z_assignee_corp -%}
-                  <i class="icons-corporation"></i>
+                  {{ icons.corporation() }}
                   {{ contract.z_assignee_corp.name }}
                   {%- elif contract.z_assignee_char -%}
-                  <i class="icons-player"></i>
+                  {{ icons.player() }}
                   {{ contract.z_assignee_char.name }}
                   {%- else -%}
-                  <i class="icons-contract-public"></i>
+                  <i class="icon-globe"></i>
                   Public
                   {%- endif %}
                 </td>
                 <td class="con-issuer">
                   {% if contract.z_acceptor_corp -%}
-                  <i class="icons-corporation"></i>
+                  {{ icons.corporation() }}
                   {{ contract.z_acceptor_corp.name }}
                   {%- elif contract.z_acceptor_char -%}
-                  <i class="icons-player"></i>
+                  {{ icons.player() }}
                   {{ contract.z_acceptor_char.name }}
                   {%- else -%}
                   --

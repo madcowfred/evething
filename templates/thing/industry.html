@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% import 'macros/icons.html' as icons %}
 {% load thing_extras %}
 
 {% block extra_js %}
@@ -59,16 +60,16 @@
                       <td class="industry-jobid">{{ job.job_id }}</td>
                       <td>
                         {% if job.corporation -%}
-                        <i class="icons-corporation"></i>
+                        {{ icons.corporation() }}
                         [<span class="tip" rel="tooltip" title="{{ job.corporation.name }}">{{ job.corporation.ticker }}</span>]
                         {%- else -%}
-                        <i class="icons-player"></i>
+                        {{ icons.player() }}
                         {{ job.character.name }}
                         {%- endif %}
                       </td>
                       <td>
                         {% if job.z_installer -%}
-                        <i class="icons-{% if not job.z_installer_mine %}other-{% endif%}player"></i>
+                        {{ icons.player(job.z_installer_mine) }}
                         {{ job.z_installer }}
                         {%- else -%}
                         Unknown installerID: {{ job.installer_id }}
@@ -90,7 +91,7 @@
                       <td class="journal-date">{{ job.begin_time|date("Y-m-d H:i") }}</td>
                       <td class="journal-date">{{ job.end_time|date("Y-m-d H:i") }}</td>
                       <td class="industry-ready">
-                        <i class="icons-{% if job.z_ready %}success{% else %}failure{% endif %}"></i>
+                        {{ icons.success_fail(job.z_ready) }}
                       </td>
                     </tr>
                     {%- endfor %}
@@ -126,16 +127,16 @@
                       <td class="industry-jobid">{{ job.job_id }}</td>
                       <td>
                         {% if job.corporation -%}
-                        <i class="icons-corporation"></i>
+                        {{ icons.corporation() }}
                         [<span class="tip" rel="tooltip" title="{{ job.corporation.name }}">{{ job.corporation.ticker }}</span>]
                         {%- else -%}
-                        <i class="icons-player"></i>
+                        {{ icons.player() }}
                         {{ job.character.name }}
                         {%- endif %}
                       </td>
                       <td>
                         {% if job.z_installer -%}
-                        <i class="icons-{% if not job.z_installer_mine %}other-{% endif%}player"></i>
+                        {{ icons.player(job.z_installer_mine) }}
                         {{ job.z_installer }}
                         {%- else -%}
                         Unknown installerID: {{ job.installer_id }}
