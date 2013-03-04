@@ -31,7 +31,6 @@ class UserProfile(models.Model):
 
     # Global options
     theme = models.CharField(max_length=32, default='default')
-    icon_theme = models.CharField(max_length=32, default='default')
     show_clock = models.BooleanField(default=True)
     show_assets = models.BooleanField(default=True)
     show_blueprints = models.BooleanField(default=True)
