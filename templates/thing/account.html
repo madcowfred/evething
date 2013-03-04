@@ -542,7 +542,7 @@
                 {% csrf_token %}
                 <input type="hidden" name="apikey_id" value="a" id="purge-keyid-input">
                 <div class="modal-header">
-                  <a class="close" data-dismiss="modal"><i class="icon-remove"></i></a>
+                  <a class="close" data-dismiss="modal">{{ icons.close_modal() }}</a>
                   <h3>Purge Confirmation</h3>
                 </div>
                 <div class="modal-body">
@@ -567,7 +567,7 @@
                 {% csrf_token %}
                 <input type="hidden" name="apikey_id" value="a" id="delete-keyid-input">
                 <div class="modal-header">
-                  <a class="close" data-dismiss="modal"><i class="icon-remove"></i></a>
+                  <a class="close" data-dismiss="modal">{{ icons.close_modal() }}</a>
                   <h3>Delete Confirmation</h3>
                 </div>
                 <div class="modal-body">
@@ -592,7 +592,7 @@
                 {% csrf_token %}
                 <input type="hidden" name="skillplan_id" value="" id="edit-skillplan-id">
                 <div class="modal-header">
-                  <a class="close" data-dismiss="modal"><i class="icon-remove"></i></a>
+                  <a class="close" data-dismiss="modal">{{ icons.close_modal() }}</a>
                   <h3>Edit Skill Plan</h3>
                 </div>
                 <div class="modal-body">
@@ -631,7 +631,7 @@
                 {% csrf_token %}
                 <input type="hidden" name="skillplan_id" value="" id="delete-skillplan-id">
                 <div class="modal-header">
-                  <a class="close" data-dismiss="modal"><i class="icon-remove"></i></a>
+                  <a class="close" data-dismiss="modal">{{ icons.close_modal() }}</a>
                   <h3>Delete Confirmation</h3>
                 </div>
                 <div class="modal-body">
