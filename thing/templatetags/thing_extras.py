@@ -148,9 +148,13 @@ def tablecols(data, cols):
     return rows
 
 
+roman_list = ['', 'I', 'II', 'III', 'IV', 'V']
+
 @register.filter
-def roman(s):
-    if s.isdigit():
-        return ['', 'I', 'II', 'III', 'IV', 'V'][int(s)]
+def roman(num):
+    if isinstance(num, str) or isinstance(num, unicode):
+        return roman_list[int(num)]
+    elif isinstance(num, int):
+        return roman_list[num]
     else:
         return ''
