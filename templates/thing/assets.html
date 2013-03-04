@@ -73,33 +73,28 @@
         var $this = $(this);
         var data_target = $('i:nth-child(1)', $this.parent()).attr('data-target');
 
-        var parts = $.trim($(this).parent().text()).split(' - ');
-        var ship_type = $.trim(parts[0]);
-        if (parts.length == 2) {
-          ship_name = $.trim(parts[1]);
-        }
-        else {
-          ship_name = "From Assets";
-        }
-
-        $('#eft-textarea').empty();
-        $('#eft-textarea').append('[' + ship_type + ', ' + ship_name + ']\n');
+        var ship_type = $('.asset-ship-type', $this.parent()).text();
+        var ship_name = $('.asset-ship-name', $this.parent()).text();
+        if (! ship_name)
+          ship_name = 'From Assets';
 
         var last_slot = null;
+        var text = '[' + ship_type + ', ' + ship_name + ']\n';
 
         $(data_target).each(function() {
           var slot = $.trim($('td:nth-child(4)', $(this)).text());
           if (slot.substr(-4) == "Slot") {
             if (last_slot && last_slot != slot) {
-              $('#eft-textarea').append('\n');
+              text += '\n';
             }
             last_slot = slot;
 
             var name = $.trim($('td:nth-child(2)', $(this)).text());
-            $('#eft-textarea').append(name + '\n');
-            //console.log("%s: %s", slot, name);
+            text += name + '\n';
           }
         });
+
+        $('#eft-textarea').val(text);
 
         $('#eft-modal').modal('show');
       });
@@ -175,10 +170,10 @@
                   {% if show_item_icons -%}
                   <img src="http://image.eveonline.com/Type/{{ asset.item.id }}_32.png" height="20" width="20">
                   {%- endif %}
-                  {{ asset.item.name }}
-                  {%- if asset.name %} - <i>{{ asset.name }}</i>{% endif %}
+                  <span class="asset-ship-type">{{ asset.item.name }}</span>
+                  {%- if asset.name %} - <i class="asset-ship-name">{{ asset.name }}</i>{% endif %}
                   {% if asset.z_contents and asset.item.item_group.category.name == 'Ship' -%}
-                  <i class="icon-plane pull-right asset-eft"></i>
+                  <i class="icon-plane pull-right asset-eft" rel="tooltip" title="Show EFT fitting block"></i>
                   {%- endif %}
                   {% if asset.z_blueprint == -1 -%}
                   <i class="icon-file pull-right" rel="tooltip" title="Blueprint original, valued at NPC base price"></i>
@@ -251,7 +246,7 @@
         <div class="modal-body">
           <div class="row-fluid">
             <div class="span12">
-              <textarea id="eft-textarea" rows="18" style="width: 98%;">
+              <textarea id="eft-textarea" rows="18" style="width: 98%">
               </textarea>
             </div>
           </div>
