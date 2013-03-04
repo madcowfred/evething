@@ -1,0 +1,11 @@
+{% macro player(mine=False) -%}
+<i class="icon-user{% if mine %} my-character{% endif %}"></i>
+{%- endmacro %}
+
+{% macro corporation() -%}
+<i class="icon-group" rel="tooltip" title="Corporation"></i>
+{%- endmacro %}
+
+{% macro alliance() -%}
+<i class="icon-hospital" rel="tooltip" title="Alliance"></i>
+{%- endmacro %}

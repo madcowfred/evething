@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% import 'macros/icons.html' as icons %}
 {% load thing_extras %}
 
 {% block title %}Wallet Journal{% endblock %}
@@ -42,12 +43,12 @@
       $('.skill-hover').popover({ animation: false, trigger: 'hover' });
 
       // click event for add icon
-      $('.icons-add').on('click', function() {
+      $('.icon-plus').on('click', function() {
         $('#filters').append(filter_build(expected));
       });
 
       // click event for delete icon
-      $('#filters').on('click', '.icons-delete', function() {
+      $('#filters').on('click', '.icon-trash', function() {
         $(this).parent().remove();
       });
 
@@ -73,7 +74,7 @@
           <form id="filter-form" class="well well-small" action="{% url thing.views.wallet_journal %}" method="GET">
             <div class="margin-half-bot">
               <strong class="large">Filters</strong>
-              <i class="icons-add"></i>
+              <i class="icon-plus"></i>
             </div>
             <p>
               Apply filters to the results here. Filters of different types are queried using AND while filters of
@@ -139,11 +140,13 @@
                 <td class="journal-date">{{ entry.date|date("Y-m-d H:i") }}</td>
                 <td>
                   {% if entry.corp_wallet -%}
-                  <i class="icons-corporation"></i>
+                  {#<i class="icon-group"></i>#}
+                  {{ icons.corporation() }}
                   [<span class="tip" rel="tooltip" title="{{ entry.corp_wallet.corporation.name }}">{{ entry.corp_wallet.corporation.ticker }}</span>]
                   {{ entry.corp_wallet.description }}
                   {%- else -%}
-                  <i class="icons-player"></i>
+                  {#<i class="icon-user"></i>#}
+                  {{ icons.player() }}
                   {{ entry.character.name }}
                   {% endif %}
                 </td>
@@ -152,17 +155,17 @@
                 </td>
                 <td>
                   {% if entry.z_owner1_char -%}
-                  <i class="icons-{% if not entry.z_owner1_mine %}other-{% endif %}player"></i>
+                  {{ icons.player(entry.z_owner1_mine) }}
                   <a href="?{{ entry.z_owner1_filter }}">{{ entry.z_owner1_char }}</a>
                   {%- elif entry.z_owner1_corp -%}
-                  <i class="icons-corporation"></i>
+                  {{ icons.corporation() }}
                   {% if entry.z_owner1_corp.ticker -%}
                   [<span class="tip" rel="tooltip" title="{{ entry.z_owner1_corp.name }}"><a href="?{{ entry.z_owner1_filter }}">{{ entry.z_owner1_corp.ticker }}</a></span>]
                   {%- else -%}
                   <a href="?{{ entry.z_owner1_filter }}">{{ entry.z_owner1_corp.name }}</a>
                   {%- endif %}
                   {%- elif entry.z_owner1_alliance -%}
-                  <i class="icons-alliance"></i>
+                  {{ icons.alliance() }}
                   <a href="?{{ entry.z_owner1_filter }}">{{ entry.z_owner1_alliance }}</a>
                   {%- elif entry.owner1_id > 0 -%}
                   Unknown ID: {{ entry.owner1_id }}
@@ -170,17 +173,17 @@
                 </td>
                 <td>
                   {% if entry.z_owner2_char -%}
-                  <i class="icons-{% if not entry.z_owner2_mine %}other-{% endif %}player"></i>
+                  {{ icons.player(entry.z_owner2_mine) }}
                   <a href="?{{ entry.z_owner2_filter }}">{{ entry.z_owner2_char }}</a>
                   {%- elif entry.z_owner2_corp -%}
-                  <i class="icons-corporation"></i>
+                  {{ icons.corporation() }}
                   {% if entry.z_owner2_corp.ticker -%}
                   [<span class="tip" rel="tooltip" title="{{ entry.z_owner2_corp.name }}"><a href="?{{ entry.z_owner2_filter }}">{{ entry.z_owner2_corp.ticker }}</a></span>]
                   {%- else -%}
                   <a href="?{{ entry.z_owner2_filter }}">{{ entry.z_owner2_corp.name }}</a>
                   {%- endif %}
                   {%- elif entry.z_owner2_alliance -%}
-                  <i class="icons-alliance"></i>
+                  {{ icons.alliance() }}
                   <a href="?{{ entry.z_owner2_filter }}">{{ entry.z_owner2_alliance }}</a>
                   {%- elif entry.owner2_id > 0 -%}
                   Unknown ID: {{ entry.owner2_id }}
