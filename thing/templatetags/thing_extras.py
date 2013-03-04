@@ -150,4 +150,7 @@ def tablecols(data, cols):
 
 @register.filter
 def roman(s):
-    return ['', 'I', 'II', 'III', 'IV', 'V'][int(s)]
+    if s.isdigit():
+        return ['', 'I', 'II', 'III', 'IV', 'V'][int(s)]
+    else:
+        return ''
