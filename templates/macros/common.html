@@ -1,0 +1,3 @@
+{% macro skill_hover(skill, level='', extra_class='') -%}
+<span class="skill-hover {{ extra_class}}" rel="popover" title="{{ skill.item.name }}" data-content="{{ skill }}">{{ skill.item.name }}{% if level %} {{ level|roman }}{% endif %}</span>
+{%- endmacro %}

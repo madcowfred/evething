@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% import 'macros/common.html' as common %}
 {% load cache %}
 {% load thing_extras %}
 
@@ -164,10 +165,8 @@
                   {% for cs in css -%}
                   <tr>
                     <td>
-                      {%- if cs.z_training %}<i class="icon-flag"></i>{% endif %}
-                      <span class="skill-hover{% if cs.z_class %} {{ cs.z_class }}{% endif %}" rel="popover" title="{{ cs.skill.item.name }}" data-content="{{ cs.skill }}">
-                        {{ cs.skill.item.name }} {{ cs.get_roman_level() }}
-                      </span>
+                      {%- if cs.z_training %}<i class="icon-flag {{ cs.z_class }}"></i>{% endif %}
+                      {{ common.skill_hover(cs.skill, cs.level, cs.z_class) }}
                     </td>
                     <td class="skill-rank">Rank {{ cs.skill.rank }}</td>
                     <td class="skill-sp">{{ cs.points|commas }} /</td>

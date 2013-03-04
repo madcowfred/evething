@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% import 'macros/common.html' as common %}
 {% import 'macros/icons.html' as icons %}
 
 {% block title %}Skill Plan: {% if anonymous %}{{ char.config.anon_key }}{% else %}{{ char.name }}{% endif %}, {{ skillplan.name }}{% endblock %}
@@ -82,9 +83,7 @@
                   {%- endif %}
                 </td>
                 <td class="l{% if entry.z_training %} training-highlight{% endif %}">
-                  <span class="skill-hover" rel="popover" title="{{ entry.sp_skill.skill.item.name }}" data-content="{{ entry.sp_skill.skill }}">
-                    {{ entry.sp_skill.skill.item.name }} {{ entry.sp_skill.level|roman }}
-                  </span>
+                  {{ common.skill_hover(entry.sp_skill.skill, entry.sp_skill.level)}}
                   {% if entry.z_injected -%}
                   <i class="icon-book pull-right" rel="tooltip" title="Skillbook is injected"</i>
                   {%- elif entry.z_buy %}
