@@ -108,15 +108,15 @@ def character_common(request, char, public=True, anonymous=False):
             cs.z_icons = []
             # level 5 skill = 5 special icons
             if cs.level == 5:
-                cs.z_icons.extend(['fives'] * 5)
+                cs.z_icons.extend(['star level5'] * 5)
                 cs.z_class = "level5"
             # 0-4 = n icons
             else:
-                cs.z_icons.extend(['trained'] * cs.level)
+                cs.z_icons.extend(['star'] * cs.level)
 
             # training skill can have a training icon
             if show['queue'] and cs.skill.item.id == training_id:
-                cs.z_icons.append('partial')
+                cs.z_icons.append('star training-highlight')
                 cs.z_training = True
                 cs.z_class = "training-highlight"
 
@@ -125,10 +125,10 @@ def character_common(request, char, public=True, anonymous=False):
 
             # partially trained skills get a partial icon
             elif cs.points > cs.skill.get_sp_at_level(cs.level):
-                cs.z_icons.append('partial')
+                cs.z_icons.append('star-empty training-highlight')
 
             # then fill out the rest with empty icons
-            cs.z_icons.extend(['untrained'] * (5 - len(cs.z_icons)))
+            cs.z_icons.extend(['star-empty'] * (5 - len(cs.z_icons)))
 
             skills[cur].append(cs)
             cur.z_total_sp += cs.points
@@ -173,11 +173,11 @@ def character_common(request, char, public=True, anonymous=False):
     public_plans = []
     for sp in plans:
         if sp.visibility == SkillPlan.PRIVATE_VISIBILITY:
-            sp.z_icon = 'private'
+            sp.z_icon = 'lock'
         elif sp.visibility == SkillPlan.PUBLIC_VISIBILITY:
-            sp.z_icon = 'public'
+            sp.z_icon = 'eye-open'
         elif sp.visibility == SkillPlan.GLOBAL_VISIBILITY:
-            sp.z_icon = 'global'
+            sp.z_icon = 'globe'
 
         if sp.user_id == request.user.id:
             user_plans.append(sp)

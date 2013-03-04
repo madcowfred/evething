@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% import 'macros/icons.html' as icons %}
 {% load thing_extras %}
 
 {% block title %}Assets{% endblock %}
@@ -57,12 +58,12 @@
       $(".asset-expand").on('click', function() {
         var $this = $(this);
         
-        if ($this.hasClass('icons-expand')) {
-          $this.addClass('icons-collapse').removeClass('icons-expand');
+        if ($this.hasClass('icon-chevron-right')) {
+          $this.addClass('icon-chevron-down').removeClass('icon-chevron-right');
           $($this.attr('data-target')).show();
         }
         else {
-          $this.addClass('icons-expand').removeClass('icons-collapse');
+          $this.addClass('icon-chevron-right').removeClass('icon-chevron-down');
           $($this.attr('data-target')).hide();
         }
       });
@@ -162,14 +163,14 @@
               <tr>
                 <td class="assets-character">
                   {% if asset.z_corporation -%}
-                  <i class="icons-corporation"></i> {{ asset.z_corporation.name }}
+                  {{ icons.corporation() }} {{ asset.z_corporation.name }}
                   {%- else %}
-                  <i class="icons-player"></i> {{ asset.z_character.name }}
+                  {{ icons.player() }} {{ asset.z_character.name }}
                   {%- endif %}
                 </td>
                 <td class="assets-item">
                   {% if asset.z_contents -%}
-                  <i class="icons-collapse asset-expand" data-target=".asset-{{ asset.id }}"></i>
+                  <i class="icon-chevron-down asset-expand pos" data-target=".asset-{{ asset.id }}"></i>
                   {%- endif %}
                   {% if show_item_icons -%}
                   <img src="http://image.eveonline.com/Type/{{ asset.item.id }}_32.png" height="20" width="20">
@@ -177,12 +178,12 @@
                   {{ asset.item.name }}
                   {%- if asset.name %} - <i>{{ asset.name }}</i>{% endif %}
                   {% if asset.z_contents and asset.item.item_group.category.name == 'Ship' -%}
-                  <i class="icons-asset-eft pull-right asset-eft"></i>
+                  <i class="icon-plane pull-right asset-eft"></i>
                   {%- endif %}
                   {% if asset.z_blueprint == -1 -%}
-                  <i class="icons-asset-bpo pull-right" rel="tooltip" title="Blueprint original, valued at NPC base price"></i>
+                  <i class="icon-file pull-right" rel="tooltip" title="Blueprint original, valued at NPC base price"></i>
                   {%- elif asset.z_blueprint == -2 %}
-                  <i class="icons-asset-bpc pull-right" rel="tooltip" title="Blueprint copy, valued at 0 for now"></i>
+                  <i class="icon-copy pull-right" rel="tooltip" title="Blueprint copy, valued at 0 for now"></i>
                   {%- endif -%}
                 </td>
                 <td class="assets-group">{{ asset.item.item_group.category.name }}</td>
@@ -190,7 +191,7 @@
                 <td class="assets-quantity">{{ asset.quantity|commas }}</td>
                 <td class="assets-volume">{{ asset.z_volume|commas }} m<sup>3</sup></td>
                 <td class="assets-value">
-                  {%- if asset.z_capital %}<i class="icons-information pull-left" rel="tooltip" title="ME2 hull, ME50 component, minerals from buys"></i>{% endif %}
+                  {%- if asset.z_capital %}<i class="icon-info-sign pull-left" rel="tooltip" title="ME2 hull, ME50 component, minerals from buys"></i>{% endif %}
                   {{ asset.z_price|commas }}
                 </td>
                 <td class="assets-value">{{ asset.z_total|commas }}</td>
@@ -201,17 +202,17 @@
                 <td></td>
                 <td>
                   {% for i in range(content.z_indent) -%}
-                  <i class="icons-indent"></i>
+                  <i class="icon-arrow-right small"></i>
                   {%- endfor %}
-                  {%- if content.z_locked %}<i class="icons-asset-locked"></i>{% endif %}
+                  {%- if content.z_locked %}<i class="icon-lock"></i>{% endif %}
                   {% if show_item_icons -%}
                   <img src="http://image.eveonline.com/Type/{{ content.item.id }}_32.png" height="16" width="16">
                   {%- endif %}
                   {{ content.item.name }}
                   {%- if content.z_blueprint == -1 %}
-                  <i class="icons-asset-bpo pull-right" rel="tooltip" title="Blueprint original, valued at NPC base price"></i>
+                  <i class="icon-file pull-right" rel="tooltip" title="Blueprint original, valued at NPC base price"></i>
                   {%- elif content.z_blueprint == -2 %}
-                  <i class="icons-asset-bpc pull-right" rel="tooltip" title="Blueprint copy, valued at 0 for now"></i>
+                  <i class="icon-copy pull-right" rel="tooltip" title="Blueprint copy, valued at 0 for now"></i>
                   {%- endif %}
                 </td>
                 <td class="assets-group">{{ content.item.item_group.category.name }}</td>
@@ -219,7 +220,7 @@
                 <td class="assets-quantity">{{ content.quantity|commas }}</td>
                 <td class="assets-volume">{{ content.z_volume|commas }} m<sup>3</sup></td>
                 <td class="assets-value">
-                  {%- if content.z_capital %}<i class="icons-information pull-left" rel="tooltip" title="ME2 hull, ME50 component, minerals from buys"></i>{% endif %}
+                  {%- if content.z_capital %}<i class="icon-info-sign pull-left" rel="tooltip" title="ME2 hull, ME50 component, minerals from buys"></i>{% endif %}
                   {{ content.z_price|commas }}
                 </td>
                 <td class="assets-value">{{ content.z_total|commas }}</td>
@@ -244,7 +245,7 @@
 
       <div class="modal hide" id="eft-modal">
         <div class="modal-header">
-          <button type="button" class="close" data-dismiss="modal"><i class="icons-close"></i></button>
+          <button type="button" class="close" data-dismiss="modal"><i class="icon-remove"></i></button>
           <h3>EFT Fitting</h3>
         </div>
         <div class="modal-body">

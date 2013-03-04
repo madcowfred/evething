@@ -36,23 +36,6 @@ div.image {
   margin-bottom: 20px;
 }
 
-/* icon definitions borrowed from Bootstrap */
-[class^="icons-"],
-[class*=" icons-"] {
-  display: inline-block;
-  width: 16px;
-  height: 16px;
-  *margin-right: .3em;
-  line-height: 16px;
-  vertical-align: text-top;
-  background-repeat: no-repeat;
-}
-
-[class^="icons-"]:last-child,
-[class*=" icons-"]:last-child {
-  *margin-left: 0;
-}
-
 /* table alignment, urgh */
 tr.c th,
 tr.c td { text-align: center; }
@@ -77,6 +60,12 @@ tr.l td.r,
 tr.c th.r,
 tr.c td.r,
 td.r { text-align: right; }
+
+/* home stuff */
+.home-notifications {
+  .margin-half-top;
+  font-size: 0.9em;
+}
 
 /* assets layout */
 td.assets-location {
@@ -173,16 +162,17 @@ td.bpc-large {
   border-bottom: 1px dotted;
 }
 td.skill-rank {
-  width: 4em;
+  width: 3.5em;
   font-size: 0.9em;
 }
 td.skill-sp {
-  width: 6.5em;
+  width: 6.2em;
   text-align: right;
 }
 td.skill-icons {
-  width: 7em;
+  width: 6.5em;
   text-align: right;
+  letter-spacing: 2px;
 }
 
 /* contracts layout */

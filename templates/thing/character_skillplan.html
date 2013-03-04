@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% import 'macros/icons.html' as icons %}
 
 {% block title %}Skill Plan: {% if anonymous %}{{ char.config.anon_key }}{% else %}{{ char.name }}{% endif %}, {{ skillplan.name }}{% endblock %}
 
@@ -64,7 +65,7 @@
                 {% if entry.sp_remap -%}
                 <td></td>
                 <td class="l" colspan="6">
-                  <i class="icons-skillplan-remap"></i> Remap to
+                  <i class="icon-user"></i> Remap to
                   <strong>{{ entry.sp_remap.int_stat }}</strong> Int /
                   <strong>{{ entry.sp_remap.mem_stat }}</strong> Mem /
                   <strong>{{ entry.sp_remap.per_stat }}</strong> Per /
@@ -75,11 +76,9 @@
                 {%- else %}
                 <td class="sp-trained">
                   {% if entry.z_training -%}
-                  <i class="icons-skill-training"></i>
-                  {%- elif entry.z_trained -%}
-                  <i class="icons-success"></i>
+                  <i class="icon-flag"></i>
                   {%- else -%}
-                  <i class="icons-failure"></i>
+                  {{ icons.success_fail(entry.z_trained) }}
                   {%- endif %}
                 </td>
                 <td class="l{% if entry.z_training %} training-highlight{% endif %}">
@@ -87,9 +86,9 @@
                     {{ entry.sp_skill.skill.item.name }} {{ entry.sp_skill.level|roman }}
                   </span>
                   {% if entry.z_injected -%}
-                  <i class="icons-skillplan-injected pull-right" rel="tooltip" title="Skillbook is injected"</i>
+                  <i class="icon-book pull-right" rel="tooltip" title="Skillbook is injected"</i>
                   {%- elif entry.z_buy %}
-                  <i class="icons-skillplan-unowned pull-right" rel="tooltip" title="Skillbook is not injected"</i>
+                  <i class="icon-shopping-cart pull-right" rel="tooltip" title="Skillbook is not injected"</i>
                   {%- endif %}
                 </td>
                 <td class="sp-group">{{ entry.sp_skill.skill.item.item_group }}</td>

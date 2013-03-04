@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% import 'macros/icons.html' as icons %}
 {% load thing_extras %}
 
 {% block title %}Transactions{% endblock %}
@@ -36,12 +37,12 @@
       });
 
       // click event for add icon
-      $('.icons-add').on('click', function() {
+      $('.icon-plus').on('click', function() {
         $('#filters').append(filter_build(expected));
       });
 
       // click event for delete icon
-      $('#filters').on('click', '.icons-delete', function() {
+      $('#filters').on('click', '.icon-trash', function() {
         $(this).parent().remove();
       });
 
@@ -67,7 +68,7 @@
           <form id="filter-form" class="well well-small" action="{% url thing.views.transactions %}" method="GET">
             <div class="margin-half-bot">
               <strong class="large">Filters</strong>
-              <i class="icons-add"></i>
+              <i class="icon-plus"></i>
             </div>
             <p>
               Apply filters to the results here. Filters of different types are queried using AND while filters of
@@ -117,11 +118,11 @@
                 <td class="journal-date">{{ transaction.date|date("Y-m-d H:i") }}</td>
                 <td>
                   {% if transaction.corp_wallet -%}
-                  <i class="icons-corporation"></i>
+                  {{ icons.corporation() }}
                   [<span class="tip" rel="tooltip" title="{{ transaction.corp_wallet.corporation.name }}">{{ transaction.corp_wallet.corporation.ticker }}</span>]
                   {{ transaction.corp_wallet.description }}
                   {%- else -%}
-                  <i class="icons-player"></i>
+                  {{ icons.player() }}
                   {{ transaction.character.name }}
                   {%- endif %}
                 </td>
@@ -130,10 +131,10 @@
                 </td>
                 <td>
                   {% if transaction.other_char -%}
-                  <i class="icons-other-player"></i>
+                  {{ icons.player() }}
                   <a href="?{{ transaction.z_client_filter }}">{{ transaction.other_char.name }}</a>
                   {%- elif transaction.other_corp -%}
-                  <i class="icons-corporation"></i>
+                  {{ icons.corporation() }}
                   <a href="?{{ transaction.z_client_filter }}">{{ transaction.other_corp.name }}</a>
                   {%- endif %}
                 </td>

@@ -135,7 +135,7 @@ def home(request):
 
             if timediff < 0:
                 char.z_notifications.append({
-                    'icon': 'time-warning',
+                    'icon': 'time',
                     'text': 'Expired',
                     'tooltip': 'Game time has expired!',
                     'span_class': 'low-game-time',
@@ -143,7 +143,7 @@ def home(request):
 
             elif timediff < EXPIRE_WARNING:
                 char.z_notifications.append({
-                    'icon': 'time-warning',
+                    'icon': 'time',
                     'text': shortduration(timediff),
                     'tooltip': 'Remaining game time is low!',
                     'span_class': 'low-game-time',
@@ -154,7 +154,7 @@ def home(request):
             timediff = total_seconds(char.z_apikey.expires - now)
             if timediff < EXPIRE_WARNING:
                 char.z_notifications.append({
-                    'icon': 'api-warning',
+                    'icon': 'key',
                     'text': shortduration(timediff),
                     'tooltip': 'API key is close to expiring!',
                 })
@@ -162,7 +162,7 @@ def home(request):
         # Empty skill queue
         if char.z_apikey in not_training:
             char.z_notifications.append({
-                'icon': 'queue-empty',
+                'icon': 'list-ol',
                 'text': 'Empty!',
                 'tooltip': 'Skill queue is empty!',
             })
@@ -172,7 +172,7 @@ def home(request):
             if char.z_training['queue_duration'] < ONE_DAY:
                 timediff = ONE_DAY - char.z_training['queue_duration']
                 char.z_notifications.append({
-                    'icon': 'queue-space',
+                    'icon': 'list-ol',
                     'text': shortduration(timediff),
                     'tooltip': 'Skill queue is not full!',
                 })
@@ -192,7 +192,7 @@ def home(request):
                     t.append(skill.get_secondary_attribute_display())
 
                 char.z_notifications.append({
-                    'icon': 'missing-implants',
+                    'icon': 'lightbulb',
                     'text': ', '.join(t),
                     'tooltip': 'Missing stat implants for currently training skill!',
                 })
@@ -200,8 +200,8 @@ def home(request):
         # Insufficient clone
         if hasattr(char, 'z_total_sp') and char.z_total_sp > char.details.clone_skill_points:
             char.z_notifications.append({
-                'icon': 'inadequate-clone',
-                'text': '%s SP' % (commas(char.details.clone_skill_points)),
+                'icon': 'user-md',
+                'text': '%s' % (commas(char.details.clone_skill_points)),
                 'tooltip': 'Insufficient clone!',
             })
 

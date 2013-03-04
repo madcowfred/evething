@@ -130,7 +130,7 @@ var filter_comps = { 'eq': '==', 'ne': '!=', 'gt': '>', 'gte': '>=', 'lt': '<', 
 
 function filter_build(expected, data, ft, fc, fv) {
     var html = '<div class="control-group" style="margin: 0;">';
-    html += '<i class="icons-delete"></i> ';
+    html += '<i class="icon-trash"></i> ';
     html += '<select name="ft" class="filter-type input-medium">';
     html += '<option value=""></option>';
 
