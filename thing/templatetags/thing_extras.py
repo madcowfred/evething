@@ -154,7 +154,7 @@ roman_list = ['', 'I', 'II', 'III', 'IV', 'V']
 def roman(num):
     if isinstance(num, str) or isinstance(num, unicode):
         return roman_list[int(num)]
-    elif isinstance(num, int):
+    elif isinstance(num, int) or isinstance(num, long):
         return roman_list[num]
     else:
         return ''
