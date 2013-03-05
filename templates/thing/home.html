@@ -123,7 +123,7 @@
 
             {%- if character.z_training %}
             <div class="margin-half-top">
-              {{ common.skill_hover(character.z_training.sq.skill, character.z_training.sq.level) }}
+              {{ common.skill_hover(character.z_training.sq.skill, character.z_training.sq.to_level) }}
               <span class="small">(Rank {{ character.z_training.sq.skill.rank }})</span>
               <br>
               <em class="small">{{ character.z_training.skill_duration|shortduration }} @ {{ character.z_training.sp_per_hour }} SP/hr</em>
