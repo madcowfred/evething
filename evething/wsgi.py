@@ -1,3 +1,18 @@
+"""
+WSGI config for evething project.
+
+This module contains the WSGI application used by Django's development server
+and any production WSGI deployments. It should expose a module-level variable
+named ``application``. Django's ``runserver`` and ``runfcgi`` commands discover
+this application via the ``WSGI_APPLICATION`` setting.
+
+Usually you will have the standard Django WSGI application here, but it also
+might make sense to replace the whole Django WSGI application with a custom one
+that later delegates to the Django one. For example, you could introduce WSGI
+middleware here, or combine a Django application with an application of another
+framework.
+
+"""
 import os
 import sys
 
@@ -9,17 +24,18 @@ except ImportError:
 else:
     sys.modules["decimal"] = cdecimal
 
-#sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-#os.environ['DJANGO_SETTINGS_MODULE'] = 'evething.settings'
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'evething.settings')
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "evething.settings")
 
+# Celery thing
 import djcelery
 djcelery.setup_loader()
 
-#import django.core.handlers.wsgi
-#application = django.core.handlers.wsgi.WSGIHandler()
-
-# This application object is used by the development server
-# as well as any WSGI server configured to use this file.
+# This application object is used by any WSGI server configured to use this
+# file. This includes Django's development server, if the WSGI_APPLICATION
+# setting points here.
 from django.core.wsgi import get_wsgi_application
 application = get_wsgi_application()
+
+# Apply WSGI middleware here.
+# from helloworld.wsgi import HelloWorldApplication
+# application = HelloWorldApplication(application)
