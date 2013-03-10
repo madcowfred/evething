@@ -109,27 +109,27 @@ class IndustryJobs(APITask):
         for row in rows:
             installed_item = item_map.get(int(row.attrib['installedItemTypeID']))
             if installed_item is None:
-                logger.warn("industry_jobs: No matching Item %s", row.attrib['installedItemTypeID'])
+                self.log_warn("industry_jobs: No matching Item %s", row.attrib['installedItemTypeID'])
                 continue
 
             installed_flag = flag_map.get(int(row.attrib['installedItemFlag']))
             if installed_flag is None:
-                logger.warn("industry_jobs: No matching InventoryFlag %s", row.attrib['installedItemFlag'])
+                self.log_warn("industry_jobs: No matching InventoryFlag %s", row.attrib['installedItemFlag'])
                 continue
 
             output_item = item_map.get(int(row.attrib['outputTypeID']))
             if output_item is None:
-                logger.warn("industry_jobs: No matching Item %s", row.attrib['outputTypeID'])
+                self.log_warn("industry_jobs: No matching Item %s", row.attrib['outputTypeID'])
                 continue
 
             output_flag = flag_map.get(int(row.attrib['outputFlag']))
             if output_flag is None:
-                logger.warn("industry_jobs: No matching InventoryFlag %s", row.attrib['outputFlag'])
+                self.log_warn("industry_jobs: No matching InventoryFlag %s", row.attrib['outputFlag'])
                 continue
 
             system = system_map.get(int(row.attrib['installedInSolarSystemID']))
             if system is None:
-                logger.warn("industry_jobs: No matching System %s", row.attrib['installedInSolarSystemID'])
+                self.log_warn("industry_jobs: No matching System %s", row.attrib['installedInSolarSystemID'])
                 continue
 
             # Create the new job object
