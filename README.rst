@@ -177,10 +177,10 @@ You will need to install Apache and `mod_wsgi <http://code.google.com/p/modwsgi/
           Allow from all
       </DIrectory>
 
-      WSGIDaemonProcess evething threads=2 user=nobody
+      WSGIDaemonProcess evething threads=2 user=nobody python-path=/path/to/evething:/path/to/virtualenv/lib/python2.7/site-packages
       WSGIProcessGroup evething
 
-      WSGIScriptAlias / /path/to/evething/wsgi.py
+      WSGIScriptAlias / /path/to/evething/evething/wsgi.py
 
       <Directory /path/to/evething>
           <Files wsgi.py>
@@ -192,5 +192,5 @@ You will need to install Apache and `mod_wsgi <http://code.google.com/p/modwsgi/
 #. Reload Apache config.
 #. Run ``python manage.py collectstatic``, answer 'yes'.
 #. Open http://whatever/ in a web browser.
-#. To force an EVEthing reload later (updated code or changed config) simply ``touch wsgi.py``
+#. To force an EVEthing reload later (updated code or changed config) run ``touch evething/wsgi.py``
    in the EVEthing directory.
