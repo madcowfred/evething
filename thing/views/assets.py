@@ -125,21 +125,18 @@ def assets(request):
             asset.z_volume = (asset.quantity * asset.item.volume).quantize(Decimal('0.01'))
 
             # work out if this is a system or station asset
-            k = asset.system_or_station()
-            asset.z_k = k
+            asset.z_k = asset.system_or_station()
 
-            # system/station asset
-            #if k is not None:
             # base asset, always add
             if asset.parent == 0:
                 asset.z_indent = 0
 
-                if k not in systems:
-                    loc_totals[k] = 0
-                    systems[k] = []
+                if asset.z_k not in systems:
+                    loc_totals[asset.z_k] = 0
+                    systems[asset.z_k] = []
                 
-                loc_totals[k] += asset.z_total
-                systems[k].append(asset)
+                loc_totals[asset.z_k] += asset.z_total
+                systems[asset.z_k].append(asset)
 
             # asset is inside something, assign it to parent
             else:
@@ -151,12 +148,12 @@ def assets(request):
                 # add to parent contents
                 parent.z_contents.append(asset)
 
-                # set various things from parent
-                asset.z_indent = parent.z_indent + 1
-
                 # add this to the parent entry in loc_totals
                 loc_totals[asset.z_k] += asset.z_total
                 parent.z_total += asset.z_total
+
+                # guess at what indent level this should be
+                asset.z_indent = getattr(parent, 'z_indent', 0) + 1
 
                 # Celestials (containers) need some special casing
                 if parent.item.item_group.category.name == 'Celestial':
