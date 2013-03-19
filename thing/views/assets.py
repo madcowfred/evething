@@ -126,14 +126,13 @@ def assets(request):
 
             # work out if this is a system or station asset
             asset.z_k = asset.system_or_station()
+            if asset.z_k not in systems:
+                loc_totals[asset.z_k] = 0
+                systems[asset.z_k] = []
 
             # base asset, always add
             if asset.parent == 0:
                 asset.z_indent = 0
-
-                if asset.z_k not in systems:
-                    loc_totals[asset.z_k] = 0
-                    systems[asset.z_k] = []
                 
                 loc_totals[asset.z_k] += asset.z_total
                 systems[asset.z_k].append(asset)
