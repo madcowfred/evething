@@ -59,7 +59,7 @@ def orders(request):
     # Retrieve all orders
     #character_ids = list(Character.objects.filter(apikeys__user=request.user.id).distinct().values_list('id', flat=True))
     #corporation_ids = list(APIKey.objects.filter(user=request.user).exclude(corp_character=None).values_list('corp_character__corporation__id', flat=True))
-    character_ids = Character.objects.filter(apikeys__user=request.user.id).distinct().values('id')
+    character_ids = Character.objects.filter(apikeys__user=request.user.id).values('id').distinct()
     corporation_ids = APIKey.objects.filter(user=request.user).exclude(corp_character=None).values('corp_character__corporation__id')
 
     orders = MarketOrder.objects.filter(
@@ -67,9 +67,10 @@ def orders(request):
         |
         Q(corp_wallet__corporation__in=corporation_ids)
     )
-    orders = orders.select_related('item', 'station', 'character', 'corp_wallet__corporation')
+    orders = orders.prefetch_related('item', 'station', 'character', 'corp_wallet__corporation')
     orders = orders.order_by('station__name', '-buy_order', 'item__name')
 
+    # Fetch creator characters as they're not a FK relation
     creator_ids = set()
     utcnow = datetime.datetime.utcnow()
     for order in orders:
