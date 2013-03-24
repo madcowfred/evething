@@ -174,6 +174,7 @@ JINJA2_CACHE_ENABLED = True
 JINJA2_CACHE_BACKEND = 'locmem://'
 JINJA2_CACHE_MSTAT_DISABLED = True
 
+
 # Celery setup
 import djcelery
 djcelery.setup_loader()
