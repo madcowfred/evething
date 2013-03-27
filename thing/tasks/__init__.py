@@ -25,6 +25,7 @@ from wallettransactions import WalletTransactions
 from alliancelist import AllianceList
 from conquerablestationlist import ConquerableStationList
 from reftypes import RefTypes
+from serverstatus import ServerStatus
 
 # Periodic tasks
 from historyupdater import HistoryUpdater
