@@ -5,6 +5,7 @@ and explosions.
 
 import datetime
 import hashlib
+import logging
 import os
 import requests
 import sys
@@ -15,6 +16,7 @@ try:
 except ImportError:
     import xml.etree.ElementTree as ET
 
+from billiard import current_process
 from celery import Task
 from celery.task.control import broadcast
 from celery.utils.log import get_task_logger
@@ -49,6 +51,8 @@ KEY_ERRORS = set([
 
 # ---------------------------------------------------------------------------
 
+this_process = None
+
 class APITask(Task):
     abstract = True
 
@@ -73,6 +77,14 @@ class APITask(Task):
         Tasks should call this in their run() method to initialise stuff.
         Returns False if anything bad happens.
         """
+
+        # Sleep for staggered worker startup
+        global this_process
+        if this_process is None:
+            this_process = int(current_process()._name.split('-')[1])
+            sleep_for = (this_process - 1) * 2
+            self._logger.warning('Worker #%d staggered startup: sleeping for %d seconds', this_process, sleep_for)
+            time.sleep(sleep_for)
 
         # Clear the current query information so we don't bloat
         if settings.DEBUG:
@@ -429,19 +441,19 @@ class APITask(Task):
     # -----------------------------------------------------------------------
     # Logging shortcut functions :v
     def log_error(self, text, *args):
-        text = '[%s] %s' % (self.__class__.__name__, text)
+        text = '[%d/%s] %s' % (this_process, self.__class__.__name__, text)
         self._logger.error(text, *args)
     
     def log_warn(self, text, *args):
-        text = '[%s] %s' % (self.__class__.__name__, text)
+        text = '[%d/%s] %s' % (this_process, self.__class__.__name__, text)
         self._logger.warn(text, *args)
     
     def log_info(self, text, *args):
-        text = '[%s] %s' % (self.__class__.__name__, text)
+        text = '[%d/%s] %s' % (this_process, self.__class__.__name__, text)
         self._logger.info(text, *args)
     
     def log_debug(self, text, *args):
-        text = '[%s] %s' % (self.__class__.__name__, text)
+        text = '[%d/%s] %s' % (this_process, self.__class__.__name__, text)
         self._logger.debug(text, *args)
 
 # ---------------------------------------------------------------------------
