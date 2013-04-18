@@ -50,11 +50,12 @@ def home(request):
     characters = cache.get(cache_key)
     # Not cached, fetch from database and cache
     if characters is None:
-        characters = Character.objects.filter(apikeys__user=request.user, apikeys__key_type__in=(APIKey.ACCOUNT_TYPE, APIKey.CHARACTER_TYPE))
-        characters = characters.prefetch_related('apikeys')
-        characters = characters.select_related('config', 'details')
-        characters = characters.annotate(total_sp=Sum('characterskill__points'))
-        characters = characters.distinct()
+        characters = Character.objects.\
+            filter(apikeys__user=request.user, apikeys__key_type__in=(APIKey.ACCOUNT_TYPE, APIKey.CHARACTER_TYPE)).\
+            prefetch_related('apikeys').\
+            select_related('config', 'details').\
+            annotate(total_sp=Sum('characterskill__points')).\
+            distinct()
         characters = [c for c in characters if c.details is not None]
         cache.set(cache_key, characters, 300)
 
