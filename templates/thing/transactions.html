@@ -1,6 +1,7 @@
 {% extends "base.html" %}
-{% import 'macros/icons.html' as icons %}
+{% load url from future %}
 {% load thing_extras %}
+{% import 'macros/icons.html' as icons %}
 
 {% block title %}Transactions{% endblock %}
 
@@ -65,7 +66,7 @@
         <div class="span12">
           <h2>Transactions</h2>
           
-          <form id="filter-form" class="well well-small" action="{% url thing.views.transactions %}" method="GET">
+          <form id="filter-form" class="well well-small" action="{% url 'thing.views.transactions' %}" method="GET">
             <div class="margin-half-bot">
               <strong class="large">Filters</strong>
               <i class="icon-plus"></i>
@@ -78,7 +79,7 @@
             <fieldset id="filters">
             </fieldset>
             <button type="submit" class="btn btn-success">Apply filters</button>
-            <a id="clear-button" href="{% url thing.views.transactions %}" class="btn btn-danger">Clear filters</a>
+            <a id="clear-button" href="{% url 'thing.views.transactions' %}" class="btn btn-danger">Clear filters</a>
           </form>
 
           <div class="pagination pagination-centered">

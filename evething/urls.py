@@ -70,14 +70,3 @@ urlpatterns += patterns('thing.views',
 
     (r'^wjthing/', 'wjthing'),
 )
-
-# Redirects
-urlpatterns += patterns('django.views.generic.simple',
-    ('^transactions/(?P<item_id>all|\d+)/$', 'redirect_to', { 'url': '/transactions/%(item_id)s/all/', 'permanent': False }),
-)
-
-# If we're running under DEBUG, serve static media files
-#if settings.DEBUG:
-#    urlpatterns += patterns('',
-#        (r'^raidthing_media/(?P<path>.*)$', 'django.views.static.serve', {'document_root': settings.MEDIA_ROOT}),
-#    )

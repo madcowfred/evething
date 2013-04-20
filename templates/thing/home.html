@@ -1,6 +1,6 @@
 {% extends "base.html" %}
-{% import 'macros/common.html' as common %}
 {% load thing_extras %}
+{% import 'macros/common.html' as common %}
 
 {% block title %}Home{% endblock %}
 
@@ -99,7 +99,7 @@
                 {%- if character.name == '*UNKNOWN' %}
                 {{ character.name }}
                 {%- else %}
-                <a href="{% url thing.views.character character.name %}" class="sensitive character-name">
+                <a href="{% url 'thing.views.character' character.name %}" class="sensitive character-name">
                   {{ character.name }}
                 </a>
                 {%- endif %}
@@ -188,7 +188,7 @@
           <li>{{ event.get_age()|duration }} ago <strong>/</strong> {{ event.text|safe }}</li>
           {%- endfor %}
         </ul>
-        <a href="{% url thing.views.events %}">See all</a>
+        <a href="{% url 'thing.views.events' %}">See all</a>
       </div>
       {%- endif %}
 {% endblock %}
