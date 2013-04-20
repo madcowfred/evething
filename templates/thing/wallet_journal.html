@@ -1,6 +1,7 @@
 {% extends "base.html" %}
-{% import 'macros/icons.html' as icons %}
+{% load url from future %}
 {% load thing_extras %}
+{% import 'macros/icons.html' as icons %}
 
 {% block title %}Wallet Journal{% endblock %}
 
@@ -71,7 +72,7 @@
         <div class="span12">
           <h2>Wallet Journal</h2>
 
-          <form id="filter-form" class="well well-small" action="{% url thing.views.wallet_journal %}" method="GET">
+          <form id="filter-form" class="well well-small" action="{% url 'thing.views.wallet_journal' %}" method="GET">
             <div class="margin-half-bot">
               <strong class="large">Filters</strong>
               <i class="icon-plus"></i>
