@@ -115,6 +115,13 @@ def balance(s):
     else:
         return mark_safe('<span class="pos">%s</span>' % (s))
 
+@register.filter
+def balance_class(n):
+    if n < 0:
+        return 'neg'
+    else:
+        return 'pos'
+
 # Conditionally wrap some text in a span if it matches a condition. Ugh.
 @register.filter
 def spanif(value, arg):
