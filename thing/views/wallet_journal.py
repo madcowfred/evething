@@ -386,34 +386,6 @@ class WJAggregator(object):
 
 # ---------------------------------------------------------------------------
 
-def wjthing(request):
-    character_ids = list(Character.objects.filter(apikeys__user=request.user.id).values_list('id', flat=True))
-    corporation_ids = list(APIKey.objects.filter(user=request.user).exclude(corp_character=None).values_list('corp_character__corporation__id', flat=True))
-
-    summaries = JournalSummary.objects.filter(
-        (
-            Q(character__in=character_ids)
-            &
-            Q(corp_wallet__isnull=True)
-        )
-        |
-        Q(corp_wallet__corporation__in=corporation_ids)
-    )
-
-    months = summaries.values('year','month').annotate(sum_in=Sum('total_in'), sum_out=Sum('total_out'), sum_bal=Sum('balance')).order_by('-year', '-month')
-
-    return render_page(
-        'thing/wjthing.html',
-        {
-            'months': months,
-        },
-        request,
-        character_ids,
-        corporation_ids,
-    )
-
-# ---------------------------------------------------------------------------
-
 def _journal_queryset(request, character_ids, corporation_ids):
     journal_ids = JournalEntry.objects.filter(
         (

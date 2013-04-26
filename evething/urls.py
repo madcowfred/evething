@@ -69,7 +69,5 @@ urlpatterns += patterns('thing.views',
     (r'^wallet_journal/$', 'wallet_journal'),
     (r'^wallet_journal/aggregate/$', 'wallet_journal_aggregate'),
 
-    (r'^wjthing/', 'wjthing'),
-
     (r'^gsfapi/', include('gsfapi.urls')),
 )
