@@ -165,3 +165,8 @@ def roman(num):
         return roman_list[num]
     else:
         return ''
+
+MONTHS = [None, 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+@register.filter
+def month_name(num):
+    return MONTHS[num]
