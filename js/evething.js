@@ -189,3 +189,12 @@ function filter_build_value(data, ft, fc, fv) {
 
     return html;
 }
+
+function bind_aggregate_button() {
+    $('#aggregate-form').submit(function() {
+        var action = $(this).attr('action');
+        var data = $('#filter-form, #aggregate-form').serialize();
+        window.location.href = action + '?' + data;
+        return false;
+    });
+}

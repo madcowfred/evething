@@ -1,0 +1,54 @@
+          <div class="well well-small">
+            <form id="filter-form" action="{% url 'thing.views.wallet_journal' %}" method="GET">
+              <div class="margin-half-bot">
+                <strong class="large">Filters</strong>
+                <i class="icon-plus"></i>
+              </div>
+              <p>
+                Apply filters to the results here. Filters of different types are queried using AND while filters of
+                the same type are queried using OR, for example "Character == Bob, Item == Pants, Item == Hats" will
+                turn into something like "WHERE Character == Bob AND (Item == Pants OR Item == Hats)".
+              </p>
+              <fieldset id="filters">
+              </fieldset>
+              <fieldset>
+                <div class="control-group nomargin">
+                  # of days
+                  <input type="text" name="days" class="input-small" value="{{ days }}">
+                </div>
+                <div class="control-group">
+                  <input type="checkbox" name="ignoreself" class="input-small"{% if ignoreself %} checked{% endif %}>
+                  Ignore transactions between my own characters
+                </div>
+              </fieldset>
+              <button type="submit" class="btn btn-success">Apply filters</button>
+              <a id="clear-button" href="{% url thing.views.wallet_journal %}" class="btn btn-danger">Clear filters</a>
+            </form>
+
+            <form id="aggregate-form" class="nomargin" action="{% url 'thing.views.wallet_journal_aggregate' %}" method="GET">
+              <p>
+                <strong>NOTE</strong>: grouping by owner 1/owner 2 can and will be incredibly slow on large data sets.
+              </p>
+              <fieldset>
+                <label class="radio inline">
+                  <input type="radio" name="group_by_date" value="year" class="input-small"{% if group_by_date != 'month' %} checked{% endif %}>
+                  Group by year
+                </label>
+                <label class="radio inline">
+                  <input type="radio" name="group_by_date" value="month" class="input-small"{% if group_by_date == 'month' %} checked{% endif %}>
+                  Group by month
+                </label>
+              </fieldset>
+              <fieldset class="margin-half-bot">
+                <label class="checkbox inline">
+                  <input type="checkbox" name="group_by_owner1" class="input-small"{% if group_by_owner1 %} checked{% endif %}>
+                  Group by Owner 1
+                </label>
+                <label class="checkbox inline">
+                  <input type="checkbox" name="group_by_owner2" class="input-small"{% if group_by_owner2 %} checked{% endif %}>
+                  Group by Owner 2
+                </label>
+              </fieldset>
+              <button id="aggregate-button" type="submit" class="btn btn-info">Aggregate!</button>
+            </form>
+          </div>
