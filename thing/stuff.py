@@ -22,6 +22,11 @@ def render_page(template, data, request, character_ids=None, corporation_ids=Non
 
     utcnow = datetime.datetime.utcnow()
     
+    data['server_open'] = cache.get('server_open')
+    data['online_players'] = cache.get('online_players')
+
+    print data
+
     if request.user.is_authenticated():
         cache_key = 'nav_counts:%s' % (request.user.id)
         cc = cache.get(cache_key)

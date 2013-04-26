@@ -60,6 +60,13 @@
 
             <ul class="nav pull-right">
               {%- if user.is_authenticated() %}
+              <li class="navbar-text visible-desktop server-status">
+                {%- if server_open %}
+                <i class="icon-thumbs-up" rel="tooltip" data-placement="bottom" title="Server is online - {{ online_players|commas }} players"></i>
+                {%- else %}
+                <i class="icon-thumbs-down" rel="tooltip" data-placement="bottom" title="Server is offline"></i>
+                {%- endif %}
+              </li>
               <li class="navbar-text visible-desktop"{% if not user.get_profile().show_clock %} style="display: none"{% endif %}>
                 <span id="utc-time"></span> EVE
               </li>
