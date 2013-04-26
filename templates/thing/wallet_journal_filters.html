@@ -1,0 +1,25 @@
+          <form id="filter-form" class="well well-small" action="{% url 'thing.views.wallet_journal' %}" method="GET">
+            <div class="margin-half-bot">
+              <strong class="large">Filters</strong>
+              <i class="icon-plus"></i>
+            </div>
+            <p>
+              Apply filters to the results here. Filters of different types are queried using AND while filters of
+              the same type are queried using OR, for example "Character == Bob, Item == Pants, Item == Hats" will
+              turn into something like "WHERE Character == Bob AND (Item == Pants OR Item == Hats)".
+            </p>
+            <fieldset id="filters">
+            </fieldset>
+            <fieldset>
+              <div class="control-group nomargin">
+                # of days
+                <input type="text" name="days" class="input-small" value="{{ days }}">
+              </div>
+              <div class="control-group">
+                <input type="checkbox" name="ignoreself" class="input-small"{% if ignoreself %} checked{% endif %}>
+                Ignore transactions between my own characters
+              </div>
+            </fieldset>
+            <button type="submit" class="btn btn-success">Apply filters</button>
+            <a id="clear-button" href="{% url thing.views.wallet_journal %}" class="btn btn-danger">Clear filters</a>
+          </form>
