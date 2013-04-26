@@ -82,21 +82,15 @@
               </tr>
             </thead>
             <tbody>
-              {%- for date_data, group_data, entry in agg_data %}
-              <tr{%- if last_date != date_data %}{% set last_date = date_data %} class="divider-row"{% endif %}>
-                <td class="wja-date">
-                  {%- if date_data|length == 1 %}
-                  {{ date_data.0 }}
-                  {%- else %}
-                  {{ date_data.0 }}-{{ date_data.1|stringformat("02d") }}
-                  {%- endif %}
-                </td>
+              {%- for date, group_data, entry in agg_data %}
+              <tr{%- if last_date != date %}{% set last_date = date %} class="divider-row"{% endif %}>
+                <td class="wja-date">{{ date }}</td>
                 {%- for group_thing in group_data[::2] %}
                 <td class="wja-groupby">
                   {{ group_thing }}
                 </td>
                 {%- endfor %}
-                <td class="wja-entries">{{ entry.entries }}</td>
+                <td class="wja-entries">{{ entry.entries|commas }}</td>
                 <td class="wja-amount {{ entry.total_amount|balance_class }}">{{ entry.total_amount|commas }}</td>
               </tr>
               {%- else %}

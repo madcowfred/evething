@@ -339,11 +339,10 @@ class WJAggregator(object):
         self.__entries.append(entry)
 
     def __cmp_func(self, a, b):
-        # date tuple, groupby tuple, entry
-        for i in range(len(a[0])):
-            c = cmp(a[0][i], b[0][i])
-            if c != 0:
-                return c * -1
+        # date, groupby tuple, entry
+        c = cmp(a[0], b[0])
+        if c != 0:
+            return c * -1
         
         return cmp(a[1], b[1])
 
@@ -355,9 +354,10 @@ class WJAggregator(object):
 
         # Build a horrifying sorted entries list I gues
         for entry in self.__entries:
-            date_data = [int(entry['year'])]
             if 'month' in entry:
-                date_data.append(int(entry['month']))
+                date = '%04d-%02d' % (int(entry['year']), int(entry['month']))
+            else:
+                date = '%04d' % (int(entry['year']))
 
             group_data = [ref_map[entry['ref_type']].name]
             if self.__group_by_owner1:
@@ -377,7 +377,7 @@ class WJAggregator(object):
                     group_data.extend(['Unknown ID: %s' % (owner2_id), None])
 
             self.data.append((
-                date_data,
+                date,
                 group_data,
                 entry,
             ))
