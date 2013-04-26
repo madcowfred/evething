@@ -77,13 +77,13 @@
                 {%- if group_by_owner2 %}
                 <th>Owner 2</th>
                 {%- endif %}
-                <th>#</th>
+                <th>Entries</th>
                 <th>Balance</th>
               </tr>
             </thead>
             <tbody>
               {%- for date_data, group_data, entry in agg_data %}
-              <tr>
+              <tr{%- if last_date != date_data %}{% set last_date = date_data %} class="divider-row"{% endif %}>
                 <td class="wja-date">
                   {%- if date_data|length == 1 %}
                   {{ date_data.0 }}
