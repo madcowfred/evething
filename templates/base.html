@@ -54,10 +54,6 @@
               {% if profile.show_trade %}<li><a href="{% url 'thing.views.trade' %}">Trade</a></li>{% endif %}
               {% if profile.show_transactions %}<li><a href="{% url 'thing.views.transactions' %}">Transactions</a></li>{% endif %}
               {% if profile.show_wallet_journal %}<li><a href="{% url 'thing.views.wallet_journal' %}">Wallet Journal</a></li>{% endif %}
-              {% if profile.show_market_scan -%}
-              <li class="divider-vertical visible-desktop"></li>
-              <li class="visible-desktop"><a href="{% url 'thing.views.market_scan' %}">Market Scan</a></li>
-              {%- endif %}
               {%- endwith %}
               {%- endif %}
             </ul>

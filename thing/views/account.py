@@ -110,7 +110,6 @@ def account_settings(request):
     profile.show_trade = (request.POST.get('show_trade', '') == 'on')
     profile.show_transactions = (request.POST.get('show_transactions', '') == 'on')
     profile.show_wallet_journal = (request.POST.get('show_wallet_journal', '') == 'on')
-    profile.show_market_scan = (request.POST.get('show_market_scan', '') == 'on')
 
     profile.show_item_icons = (request.POST.get('show_item_icons', '') == 'on')
 

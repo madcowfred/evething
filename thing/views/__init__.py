@@ -7,7 +7,6 @@ from character import *
 from contracts import *
 from events import *
 from industry import *
-from market_scan import *
 from orders import *
 from trade import *
 from transactions import *
