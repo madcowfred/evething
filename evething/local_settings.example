@@ -9,6 +9,11 @@ DEBUG = False
 # http://www.miniwebtool.com/django-secret-key-generator/
 # SECRET_KEY = ""
 
+# these people will get e-mails with traceback information
+ADMINS = (
+    #('Freddie', 'freddie@wafflemonster.org'),
+)
+
 # database configuration
 DATABASES = {
     'default': {
