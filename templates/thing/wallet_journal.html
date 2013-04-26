@@ -64,6 +64,9 @@
         var $fc = $ft.next();
         $ft.parent().append(filter_build_value(data, $ft.val(), $fc.val(), ''));
       });
+
+      // bind aggregate button
+      bind_aggregate_button();
     </script>
 {% endblock %}
 
