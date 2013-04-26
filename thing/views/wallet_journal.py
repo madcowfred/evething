@@ -1,5 +1,7 @@
 import json
 
+from collections import OrderedDict
+
 #from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator, EmptyPage, InvalidPage, PageNotAnInteger
@@ -52,114 +54,8 @@ def wallet_journal(request):
     corporations = Corporation.objects.filter(pk__in=APIKey.objects.filter(user=request.user).exclude(corp_character=None).values('corp_character__corporation'))
     corporation_ids = [c.id for c in corporations]
 
-    journal_ids = JournalEntry.objects.filter(
-        (
-            Q(character__in=character_ids)
-            &
-            Q(corp_wallet__isnull=True)
-        )
-        |
-        Q(corp_wallet__corporation__in=corporation_ids)
-    )
-
-    # Parse and apply filters
-    filters = parse_filters(request, JOURNAL_EXPECTED)
-
-    if 'amount' in filters:
-        qs = []
-        for fc, fv in filters['amount']:
-            if fc == 'eq':
-                qs.append(Q(amount=fv))
-            elif fc == 'ne':
-                qs.append(~Q(amount=fv))
-            elif fc == 'gt':
-                qs.append(Q(amount__gt=fv))
-            elif fc == 'gte':
-                qs.append(Q(amount__gte=fv))
-            elif fc == 'lt':
-                qs.append(Q(amount__lt=fv))
-            elif fc == 'lte':
-                qs.append(Q(amount__lte=fv))
-        journal_ids = journal_ids.filter(reduce(q_reduce_or, qs))
-
-    if 'char' in filters:
-        qs = []
-        for fc, fv in filters['char']:
-            if fc == 'eq':
-                qs.append(Q(character=fv))
-            elif fc == 'ne':
-                qs.append(~Q(character=fv))
-        journal_ids = journal_ids.filter(reduce(q_reduce_or, qs))
-
-    if 'corp' in filters:
-        qs = []
-        for fc, fv in filters['corp']:
-            if fc == 'eq':
-                qs.append(Q(corp_wallet__corporation=fv))
-            elif fc == 'ne':
-                qs.append(~Q(corp_wallet__corporation=fv))
-        journal_ids = journal_ids.filter(reduce(q_reduce_or, qs))
-
-    if 'reftype' in filters:
-        qs = []
-        for fc, fv in filters['reftype']:
-            if fc == 'eq':
-                qs.append(Q(ref_type=fv))
-            elif fc == 'ne':
-                qs.append(~Q(ref_type=fv))
-        journal_ids = journal_ids.filter(reduce(q_reduce_or, qs))
-
-    # Owners is a special case that requires some extra queries
-    if 'owners' in filters:
-        qs = []
-        for fc, fv in filters['owners']:
-            if fc == 'eq':
-                qs.append(Q(name=fv))
-            elif fc == 'ne':
-                qs.append(~Q(name=fv))
-            elif fc == 'in':
-                qs.append(Q(name__icontains=fv))
-
-        qs_reduced = reduce(q_reduce_or, qs)
-
-        o_chars = Character.objects.filter(qs_reduced)
-        o_corps = Corporation.objects.filter(qs_reduced)
-        o_alliances = Alliance.objects.filter(qs_reduced)
-
-        owner_ids = set()
-        for char in o_chars:
-            owner_ids.add(char.id)
-        for corp in o_corps:
-            owner_ids.add(corp.id)
-        for alliance in o_alliances:
-            owner_ids.add(alliance.id)
-
-        journal_ids = journal_ids.filter(
-            Q(owner1_id__in=owner_ids)
-            |
-            Q(owner2_id__in=owner_ids)
-        )
-
-    # Apply days limit
-    days = request.GET.get('days', '')
-    if days.isdigit() and int(days) >= 0:
-        days = int(days)
-    else:
-        days = 0
-    
-    if days > 0:
-        limit = datetime.datetime.utcnow() - datetime.timedelta(days)
-        journal_ids = journal_ids.filter(date__gte=limit)
-
-    # Apply ignoreself
-    if 'ignoreself' in request.GET:
-        journal_ids = journal_ids.filter(
-            ~(
-                Q(owner1_id__in=character_ids)
-                &
-                Q(owner2_id__in=character_ids)
-            )
-        )
+    # Parse filters and apply magic
+    filters, journal_ids, days = _journal_queryset(request, character_ids, corporation_ids)
 
     # Calculate a total value
     total_amount = journal_ids.aggregate(t=Sum('amount'))['t']
@@ -335,6 +231,161 @@ def wallet_journal(request):
 
 # ---------------------------------------------------------------------------
 
+def wallet_journal_aggregate(request):
+    characters = Character.objects.filter(apikeys__user=request.user.id)
+    character_ids = [c.id for c in characters]
+
+    corporations = Corporation.objects.filter(pk__in=APIKey.objects.filter(user=request.user).exclude(corp_character=None).values('corp_character__corporation'))
+    corporation_ids = [c.id for c in corporations]
+
+    # Parse filters and apply magic
+    filters, journal_ids, days = _journal_queryset(request, character_ids, corporation_ids)
+
+    # Build a horrifying ORM query
+    group_by_date = request.GET.get('group_by_date', 'year')
+    if group_by_date == 'month':
+        extras = {
+            'year': 'EXTRACT(year FROM date)',
+            'month': 'EXTRACT(month FROM date)',
+        }
+        values = ['year', 'month', 'ref_type']
+        orders = ['-year', '-month']
+
+    else:
+        group_by_date = 'year'
+        extras = {
+            'year': 'EXTRACT(year FROM date)',
+        }
+        values = ['year', 'ref_type']
+        orders = ['-year']
+
+    group_by_owner1 = request.GET.get('group_by_owner1')
+    group_by_owner2 = request.GET.get('group_by_owner2')
+    empty_colspan = 4
+    if group_by_owner1:
+        empty_colspan += 1
+    if group_by_owner2:
+        empty_colspan += 1
+    
+    if group_by_owner1:
+        values.append('owner1_id')
+    if group_by_owner2:
+        values.append('owner2_id')
+
+    journal_ids = journal_ids.extra(
+        select=extras,
+    ).values(
+        *values
+    ).annotate(
+        entries=Count('id'),
+        total_amount=Sum('amount'),
+    ).order_by(
+        *orders
+    )
+
+    # Aggregate!
+    wja = WJAggregator(group_by_owner1, group_by_owner2)
+
+    for entry in journal_ids:
+        wja.add_entry(entry)
+
+    wja.finalise()
+
+    # Ready template things
+    json_expected = json.dumps(JOURNAL_EXPECTED)
+    values = {
+        'chars': characters,
+        'corps': corporations,
+        'reftypes': RefType.objects.exclude(name='').exclude(id__gte=1000),
+    }
+
+    # Render template
+    return render_page(
+        'thing/wallet_journal_aggregate.html',
+        {
+            'json_expected': json_expected,
+            'values': values,
+            'filters': filters,
+            'agg_data': wja.data,
+            'group_by_date': group_by_date,
+            'group_by_owner1': group_by_owner1,
+            'group_by_owner2': group_by_owner2,
+            'empty_colspan': empty_colspan,
+        },
+        request,
+    )
+
+# ---------------------------------------------------------------------------
+
+class WJAggregator(object):
+    def __init__(self, group_by_owner1, group_by_owner2):
+        self.__entries = []
+        self.__owners = set()
+        self.__reftypes = set()
+        self.data = []
+
+        self.__group_by_owner1 = group_by_owner1
+        self.__group_by_owner2 = group_by_owner2
+
+    def add_entry(self, entry):
+        self.__reftypes.add(entry['ref_type'])
+
+        if self.__group_by_owner1:
+            self.__owners.add(entry['owner1_id'])
+
+        if self.__group_by_owner2:
+            self.__owners.add(entry['owner2_id'])
+
+        self.__entries.append(entry)
+
+    def __cmp_func(self, a, b):
+        # date tuple, groupby tuple, entry
+        for i in range(len(a[0])):
+            c = cmp(a[0][i], b[0][i])
+            if c != 0:
+                return c * -1
+        
+        return cmp(a[1], b[1])
+
+    def finalise(self):
+        ref_map = RefType.objects.in_bulk(self.__reftypes)
+        char_map = Character.objects.in_bulk(self.__owners)
+        corp_map = Corporation.objects.in_bulk(self.__owners)
+        alliance_map = Alliance.objects.in_bulk(self.__owners)
+
+        # Build a horrifying sorted entries list I gues
+        for entry in self.__entries:
+            date_data = [int(entry['year'])]
+            if 'month' in entry:
+                date_data.append(int(entry['month']))
+
+            group_data = [ref_map[entry['ref_type']].name]
+            if self.__group_by_owner1:
+                owner1_id = entry['owner1_id']
+                owner1 = char_map.get(owner1_id, corp_map.get(owner1_id, alliance_map.get(owner1_id)))
+                if owner1 is not None:
+                    group_data.extend([owner1.name, owner1])
+                else:
+                    group_data.extend(['Unknown ID: %s' % (owner1_id), None])
+
+            if self.__group_by_owner2:
+                owner2_id = entry['owner2_id']
+                owner2 = char_map.get(owner2_id, corp_map.get(owner2_id, alliance_map.get(owner2_id)))
+                if owner2 is not None:
+                    group_data.extend([owner2.name, owner2])
+                else:
+                    group_data.extend(['Unknown ID: %s' % (owner2_id), None])
+
+            self.data.append((
+                date_data,
+                group_data,
+                entry,
+            ))
+
+        self.data.sort(cmp=self.__cmp_func)
+
+# ---------------------------------------------------------------------------
+
 def wjthing(request):
     character_ids = list(Character.objects.filter(apikeys__user=request.user.id).values_list('id', flat=True))
     corporation_ids = list(APIKey.objects.filter(user=request.user).exclude(corp_character=None).values_list('corp_character__corporation__id', flat=True))
@@ -360,5 +411,120 @@ def wjthing(request):
         character_ids,
         corporation_ids,
     )
+
+# ---------------------------------------------------------------------------
+
+def _journal_queryset(request, character_ids, corporation_ids):
+    journal_ids = JournalEntry.objects.filter(
+        (
+            Q(character__in=character_ids)
+            &
+            Q(corp_wallet__isnull=True)
+        )
+        |
+        Q(corp_wallet__corporation__in=corporation_ids)
+    )
+
+    # Parse and apply filters
+    filters = parse_filters(request, JOURNAL_EXPECTED)
+
+    if 'amount' in filters:
+        qs = []
+        for fc, fv in filters['amount']:
+            if fc == 'eq':
+                qs.append(Q(amount=fv))
+            elif fc == 'ne':
+                qs.append(~Q(amount=fv))
+            elif fc == 'gt':
+                qs.append(Q(amount__gt=fv))
+            elif fc == 'gte':
+                qs.append(Q(amount__gte=fv))
+            elif fc == 'lt':
+                qs.append(Q(amount__lt=fv))
+            elif fc == 'lte':
+                qs.append(Q(amount__lte=fv))
+        journal_ids = journal_ids.filter(reduce(q_reduce_or, qs))
+
+    if 'char' in filters:
+        qs = []
+        for fc, fv in filters['char']:
+            if fc == 'eq':
+                qs.append(Q(character=fv))
+            elif fc == 'ne':
+                qs.append(~Q(character=fv))
+        journal_ids = journal_ids.filter(reduce(q_reduce_or, qs))
+
+    if 'corp' in filters:
+        qs = []
+        for fc, fv in filters['corp']:
+            if fc == 'eq':
+                qs.append(Q(corp_wallet__corporation=fv))
+            elif fc == 'ne':
+                qs.append(~Q(corp_wallet__corporation=fv))
+        journal_ids = journal_ids.filter(reduce(q_reduce_or, qs))
+
+    if 'reftype' in filters:
+        qs = []
+        for fc, fv in filters['reftype']:
+            if fc == 'eq':
+                qs.append(Q(ref_type=fv))
+            elif fc == 'ne':
+                qs.append(~Q(ref_type=fv))
+        journal_ids = journal_ids.filter(reduce(q_reduce_or, qs))
+
+    # Owners is a special case that requires some extra queries
+    if 'owners' in filters:
+        qs = []
+        for fc, fv in filters['owners']:
+            if fc == 'eq':
+                qs.append(Q(name=fv))
+            elif fc == 'ne':
+                qs.append(~Q(name=fv))
+            elif fc == 'in':
+                qs.append(Q(name__icontains=fv))
+
+        qs_reduced = reduce(q_reduce_or, qs)
+
+        o_chars = Character.objects.filter(qs_reduced)
+        o_corps = Corporation.objects.filter(qs_reduced)
+        o_alliances = Alliance.objects.filter(qs_reduced)
+
+        owner_ids = set()
+        for char in o_chars:
+            owner_ids.add(char.id)
+        for corp in o_corps:
+            owner_ids.add(corp.id)
+        for alliance in o_alliances:
+            owner_ids.add(alliance.id)
+
+        journal_ids = journal_ids.filter(
+            Q(owner1_id__in=owner_ids)
+            |
+            Q(owner2_id__in=owner_ids)
+        )
+
+    # Apply days limit
+    try:
+        days = int(request.GET.get('days', '0'))
+    except ValueError:
+        days = 0
+    else:
+        days = max(0, min(days, 9999))
+    
+    if days > 0:
+        limit = datetime.datetime.utcnow() - datetime.timedelta(days)
+        journal_ids = journal_ids.filter(date__gte=limit)
+
+    # Apply ignoreself
+    if 'ignoreself' in request.GET:
+        journal_ids = journal_ids.filter(
+            ~(
+                Q(owner1_id__in=character_ids)
+                &
+                Q(owner2_id__in=character_ids)
+            )
+        )
+
+    return filters, journal_ids, days
 
 # ---------------------------------------------------------------------------
