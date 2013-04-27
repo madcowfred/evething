@@ -274,8 +274,21 @@ class CorpWallet(models.Model):
     class Meta:
         ordering = ('corporation', 'account_id')
     
+    def __html__(self):
+        if self.corporation.ticker:
+            return '[<span class="tip" rel="tooltip" title="%s">%s</span>] %s' % (
+                self.corporation.name,
+                self.corporation.ticker,
+                self.description,
+            )
+        else:
+            return self.__unicode__()
+
     def __unicode__(self):
-        return '%s [%s] %s' % (self.corporation.name, self.account_key, self.description)
+        if self.corporation.ticker:
+            return '[%s] %s' % (self.corporation.ticker, self.description)
+        else:
+            return '%s [%s] %s' % (self.corporation.name, self.account_key, self.description)
 
 # ---------------------------------------------------------------------------
 # Characters
