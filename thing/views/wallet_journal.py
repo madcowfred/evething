@@ -241,36 +241,52 @@ def wallet_journal_aggregate(request):
     # Parse filters and apply magic
     filters, journal_ids, days = _journal_queryset(request, character_ids, corporation_ids)
 
+    # Group by
+    group_by = {
+        'date': request.GET.get('group_by_date', 'year'),
+        'owner1': request.GET.get('group_by_owner1'),
+        'owner2': request.GET.get('group_by_owner2'),
+        'reftype': request.GET.get('group_by_reftype'),
+        'source': request.GET.get('group_by_source'),
+    }
+
     # Build a horrifying ORM query
-    group_by_date = request.GET.get('group_by_date', 'year')
-    if group_by_date == 'month':
+    if group_by['date'] == 'day':
+        extras = {
+            'year': 'EXTRACT(year FROM date)',
+            'month': 'EXTRACT(month FROM date)',
+            'day': 'EXTRACT(day FROM date)',
+        }
+        values = ['year', 'month', 'day']
+
+    elif group_by['date'] == 'month':
         extras = {
             'year': 'EXTRACT(year FROM date)',
             'month': 'EXTRACT(month FROM date)',
         }
-        values = ['year', 'month', 'ref_type']
-        orders = ['-year', '-month']
+        values = ['year', 'month']
 
     else:
         group_by_date = 'year'
         extras = {
             'year': 'EXTRACT(year FROM date)',
         }
-        values = ['year', 'ref_type']
-        orders = ['-year']
+        values = ['year']
 
-    group_by_owner1 = request.GET.get('group_by_owner1')
-    group_by_owner2 = request.GET.get('group_by_owner2')
-    empty_colspan = 4
-    if group_by_owner1:
-        empty_colspan += 1
-    if group_by_owner2:
-        empty_colspan += 1
+    empty_colspan = 3
+    for k, v in group_by.items():
+        if v:
+            empty_colspan += 1
     
-    if group_by_owner1:
+    if group_by['owner1']:
         values.append('owner1_id')
-    if group_by_owner2:
+    if group_by['owner2']:
         values.append('owner2_id')
+    if group_by['reftype']:
+        values.append('ref_type')
+    if group_by['source']:
+        values.append('character')
+        values.append('corp_wallet')
 
     journal_ids = journal_ids.extra(
         select=extras,
@@ -280,13 +296,14 @@ def wallet_journal_aggregate(request):
         entries=Count('id'),
         total_amount=Sum('amount'),
     ).order_by(
-        *orders
+    #    *orders
     )
 
     # Aggregate!
-    wja = WJAggregator(group_by_owner1, group_by_owner2)
+    wja = WJAggregator(group_by)
 
     for entry in journal_ids:
+        print entry
         wja.add_entry(entry)
 
     wja.finalise()
@@ -307,9 +324,7 @@ def wallet_journal_aggregate(request):
             'values': values,
             'filters': filters,
             'agg_data': wja.data,
-            'group_by_date': group_by_date,
-            'group_by_owner1': group_by_owner1,
-            'group_by_owner2': group_by_owner2,
+            'group_by': group_by,
             'empty_colspan': empty_colspan,
         },
         request,
@@ -318,22 +333,28 @@ def wallet_journal_aggregate(request):
 # ---------------------------------------------------------------------------
 
 class WJAggregator(object):
-    def __init__(self, group_by_owner1, group_by_owner2):
+    def __init__(self, group_by):
         self.__entries = []
-        self.__owners = set()
-        self.__reftypes = set()
         self.data = []
 
-        self.__group_by_owner1 = group_by_owner1
-        self.__group_by_owner2 = group_by_owner2
+        self.__characters = set()
+        self.__corp_wallets = set()
+        self.__owners = set()
+        self.__reftypes = set()
+
+        self.__group_by = group_by
 
     def add_entry(self, entry):
-        self.__reftypes.add(entry['ref_type'])
+        if self.__group_by['source']:
+            self.__characters.add(entry['character'])
+            self.__corp_wallets.add(entry['corp_wallet'])
 
-        if self.__group_by_owner1:
+        if self.__group_by['reftype']:
+            self.__reftypes.add(entry['ref_type'])
+
+        if self.__group_by['owner1']:
             self.__owners.add(entry['owner1_id'])
-
-        if self.__group_by_owner2:
+        if self.__group_by['owner2']:
             self.__owners.add(entry['owner2_id'])
 
         self.__entries.append(entry)
@@ -343,41 +364,65 @@ class WJAggregator(object):
         c = cmp(a[0], b[0])
         if c != 0:
             return c * -1
-        
-        return cmp(a[1], b[1])
+
+        c = cmp(a[1], b[1])
+        if c != 0:
+            return c * -1
+
+        return cmp(a[2], b[2])
 
     def finalise(self):
         ref_map = RefType.objects.in_bulk(self.__reftypes)
-        char_map = Character.objects.in_bulk(self.__owners)
+        char_map = Character.objects.in_bulk(self.__owners | self.__characters)
         corp_map = Corporation.objects.in_bulk(self.__owners)
         alliance_map = Alliance.objects.in_bulk(self.__owners)
+        wallet_map = CorpWallet.objects.select_related('corporation').in_bulk(self.__corp_wallets)
 
         # Build a horrifying sorted entries list I gues
         for entry in self.__entries:
-            if 'month' in entry:
+            if 'day' in entry:
+                date = '%04d-%02d-%02d' % (entry['year'], int(entry['month']), int(entry['day']))
+            elif 'month' in entry:
                 date = '%04d-%02d' % (int(entry['year']), int(entry['month']))
             else:
                 date = '%04d' % (int(entry['year']))
 
-            group_data = [ref_map[entry['ref_type']].name]
-            if self.__group_by_owner1:
+            group_data = []
+
+            if self.__group_by['source']:
+                cw = wallet_map.get(entry['corp_wallet'])
+                if cw is not None:
+                    group_data.extend([cw.corporation.name, cw])
+                else:
+                    char = char_map.get(entry['character'])
+                    if char is not None:
+                        group_data.extend([char.name, char])
+                    else:
+                        group_data.extend([None, 'Unknown ID: %s' % (entry['character'])])
+
+            if self.__group_by['reftype']:
+                ref_name = ref_map[entry['ref_type']].name
+                group_data.extend([ref_name, ref_name])
+
+            if self.__group_by['owner1']:
                 owner1_id = entry['owner1_id']
                 owner1 = char_map.get(owner1_id, corp_map.get(owner1_id, alliance_map.get(owner1_id)))
                 if owner1 is not None:
                     group_data.extend([owner1.name, owner1])
                 else:
-                    group_data.extend(['Unknown ID: %s' % (owner1_id), None])
+                    group_data.extend([None, 'Unknown ID: %s' % (owner1_id)])
 
-            if self.__group_by_owner2:
+            if self.__group_by['owner2']:
                 owner2_id = entry['owner2_id']
                 owner2 = char_map.get(owner2_id, corp_map.get(owner2_id, alliance_map.get(owner2_id)))
                 if owner2 is not None:
                     group_data.extend([owner2.name, owner2])
                 else:
-                    group_data.extend(['Unknown ID: %s' % (owner2_id), None])
+                    group_data.extend([None, 'Unknown ID: %s' % (owner2_id)])
 
             self.data.append((
                 date,
+                entry['total_amount'],
                 group_data,
                 entry,
             ))

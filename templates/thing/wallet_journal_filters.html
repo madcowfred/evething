@@ -31,21 +31,33 @@
               </p>
               <fieldset>
                 <label class="radio inline">
-                  <input type="radio" name="group_by_date" value="year" class="input-small"{% if group_by_date != 'month' %} checked{% endif %}>
+                  <input type="radio" name="group_by_date" value="year" class="input-small"{% if group_by.date == 'year' %} checked{% endif %}>
                   Group by year
                 </label>
                 <label class="radio inline">
-                  <input type="radio" name="group_by_date" value="month" class="input-small"{% if group_by_date == 'month' %} checked{% endif %}>
+                  <input type="radio" name="group_by_date" value="month" class="input-small"{% if group_by.date == 'month' %} checked{% endif %}>
                   Group by month
+                </label>
+                <label class="radio inline">
+                  <input type="radio" name="group_by_date" value="day" class="input-small"{% if group_by.date == 'day' %} checked{% endif %}>
+                  Group by day
                 </label>
               </fieldset>
               <fieldset class="margin-half-bot">
                 <label class="checkbox inline">
-                  <input type="checkbox" name="group_by_owner1" class="input-small"{% if group_by_owner1 %} checked{% endif %}>
+                  <input type="checkbox" name="group_by_source" class="input-small"{% if group_by.source %} checked{% endif %}>
+                  Group by Source
+                </label>
+                <label class="checkbox inline">
+                  <input type="checkbox" name="group_by_reftype" class="input-small"{% if group_by.reftype %} checked{% endif %}>
+                  Group by RefType
+                </label>
+                <label class="checkbox inline">
+                  <input type="checkbox" name="group_by_owner1" class="input-small"{% if group_by.owner1 %} checked{% endif %}>
                   Group by Owner 1
                 </label>
                 <label class="checkbox inline">
-                  <input type="checkbox" name="group_by_owner2" class="input-small"{% if group_by_owner2 %} checked{% endif %}>
+                  <input type="checkbox" name="group_by_owner2" class="input-small"{% if group_by.owner2 %} checked{% endif %}>
                   Group by Owner 2
                 </label>
               </fieldset>
