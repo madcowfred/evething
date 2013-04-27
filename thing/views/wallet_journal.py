@@ -223,6 +223,7 @@ def wallet_journal(request):
             'next': next,
             'prev': prev,
             'ignoreself': 'ignoreself' in request.GET,
+            'group_by': {},
         },
         request,
         character_ids,
@@ -475,9 +476,15 @@ def _journal_queryset(request, character_ids, corporation_ids):
         qs = []
         for fc, fv in filters['corp']:
             if fc == 'eq':
-                qs.append(Q(corp_wallet__corporation=fv))
+                if fv == -1:
+                    qs.append(Q(corp_wallet__corporation__isnull=False))
+                else:
+                    qs.append(Q(corp_wallet__corporation=fv))
             elif fc == 'ne':
-                qs.append(~Q(corp_wallet__corporation=fv))
+                if fv == -1:
+                    qs.append(Q(corp_wallet__corporation__isnull=True))
+                else:
+                    qs.append(~Q(corp_wallet__corporation=fv))
         journal_ids = journal_ids.filter(reduce(q_reduce_or, qs))
 
     if 'reftype' in filters:
