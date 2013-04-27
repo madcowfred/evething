@@ -14,6 +14,7 @@
       data['char'] = {};
       {% for char in values.chars %}data['char'][{{ char.id }}] = '{{ char.name }}';{% endfor %}
       data['corp'] = {};
+      data['corp'][-1] = '*ANY*';
       {% for corp in values.corps %}data['corp'][{{ corp.id }}] = '{{ corp.name }}';{% endfor %}
       data['reftype'] = {};
       {% for reftype in values.reftypes %}data['reftype'][{{ reftype.id }}] = '{{ reftype.name }}';{% endfor %}
@@ -75,7 +76,7 @@
         <div class="span12">
           <h2>Wallet Journal</h2>
 
-          {% include 'thing/wallet_journal_filters.html' %}
+          {% include 'includes/wallet_journal_filters.html' %}
 
           <strong>Balance for this filter set</strong>: {{ total_amount|commas }} ISK
         </div>
