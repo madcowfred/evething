@@ -232,6 +232,7 @@ def wallet_journal(request):
 
 # ---------------------------------------------------------------------------
 
+@login_required
 def wallet_journal_aggregate(request):
     characters = Character.objects.filter(apikeys__user=request.user.id)
     character_ids = [c.id for c in characters]
