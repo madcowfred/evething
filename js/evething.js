@@ -118,11 +118,12 @@ function sorted_keys(obj) {
     var keys = [];
     for (var key in obj)
         keys.push(key);
-    return keys.sort(function (a,b) {
+    return keys.sort();
+    /*(function (a,b) {
         if (obj[a] < obj[b]) return -1;
         if (obj[a] > obj[b]) return 1;
         return 0;
-    });
+    });*/
 }
 
 
