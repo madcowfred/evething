@@ -157,11 +157,6 @@ THEMES = [
     ('cyborg', 'Cyborg'),
     ('slate', 'Slate'),
 ]
-# Icon themes
-ICON_THEMES = [
-    ('default', '<Default>'),
-    ('fugue-stars', 'Fugue/Stars'),
-]
 
 
 # load local settings

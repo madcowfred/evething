@@ -158,16 +158,6 @@
                     </div>
                   </div>
                   <div class="control-group">
-                    <label class="control-label" for="theme">Icon Theme</label>
-                    <div class="controls">
-                      <select name="icon_theme">
-                        {% for value, display in icon_themes -%}
-                        <option value="{{ value }}"{% if profile.icon_theme == value %} selected{% endif %}>{{ display }}</option>
-                        {% endfor %}
-                      </select>
-                    </div>
-                  </div>
-                  <div class="control-group">
                     <label class="control-label" for="show_clock">Show EVE clock</label>
                     <div class="controls">
                       <label class="checkbox">

@@ -43,7 +43,6 @@ def account(request):
             'characters': characters,
             'home_hide_characters': home_hide_characters,
             'themes': settings.THEMES,
-            'icon_themes': settings.ICON_THEMES,
             'apikeys': APIKey.objects.filter(user=request.user).order_by('-valid', 'key_type', 'name'),
             'skillplans': SkillPlan.objects.filter(user=request.user),
             'visibilities': SkillPlan.VISIBILITY_CHOICES,
@@ -96,10 +95,6 @@ def account_settings(request):
     theme = request.POST.get('theme', 'theme-default')
     if [t for t in settings.THEMES if t[0] == theme]:
         profile.theme = theme
-    
-    icon_theme = request.POST.get('icon_theme', 'icons-default')
-    if [t for t in settings.ICON_THEMES if t[0] == icon_theme]:
-        profile.icon_theme = icon_theme
 
     profile.show_clock = (request.POST.get('show_clock', '') == 'on')
     profile.show_assets = (request.POST.get('show_assets', '') == 'on')
