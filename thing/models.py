@@ -139,9 +139,6 @@ class APIKey(models.Model):
     def __unicode__(self):
         return '#%s, keyId: %s (%s)' % (self.id, self.keyid, self.key_type)
 
-    def get_key_info(self):
-        return '%s,%s' % (self.keyid, self.vcode)
-
     def get_masked_vcode(self):
         return '%s%s%s' % (self.vcode[:4], '*' * 16, self.vcode[-4:])
 
