@@ -123,8 +123,8 @@ class APIKey(models.Model):
     
     valid = models.BooleanField(default=True)
 
-    access_mask = models.BigIntegerField(null=True, blank=True)
-    key_type = models.CharField(max_length=16, null=True, blank=True)
+    access_mask = models.BigIntegerField(default=-1)
+    key_type = models.CharField(max_length=16, default='')
     expires = models.DateTimeField(null=True, blank=True)
     paid_until = models.DateTimeField(null=True, blank=True)
     
