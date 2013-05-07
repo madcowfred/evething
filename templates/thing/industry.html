@@ -94,6 +94,10 @@
                         {{ icons.success_fail(job.z_ready) }}
                       </td>
                     </tr>
+                    {%- else %}
+                    <tr>
+                      <td colspan="13">There are no active industry jobs.</td>
+                    </tr>
                     {%- endfor %}
                   </tbody>
                 </table>
