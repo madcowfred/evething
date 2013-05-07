@@ -117,16 +117,16 @@ class APIKey(models.Model):
 
     user = models.ForeignKey(User)
     
+    name = models.CharField(max_length=64)
     keyid = models.IntegerField(verbose_name='Key ID')
     vcode = models.CharField(max_length=64, verbose_name='Verification code')
-    name = models.CharField(max_length=64)
-    
-    valid = models.BooleanField(default=True)
-
-    access_mask = models.BigIntegerField(default=-1)
+    access_mask = models.BigIntegerField(default=0)
+    override_mask = models.BigIntegerField(default=0)
     key_type = models.CharField(max_length=16, default='')
     expires = models.DateTimeField(null=True, blank=True)
     paid_until = models.DateTimeField(null=True, blank=True)
+    
+    valid = models.BooleanField(default=True)
     
     characters = models.ManyToManyField('Character', related_name='apikeys')
     
@@ -149,12 +149,18 @@ class APIKey(models.Model):
             return 0
 
     def get_masks(self):
-        if self.access_mask is None:
+        if self.access_mask == 0:
             return []
         elif self.key_type in (APIKey.ACCOUNT_TYPE, APIKey.CHARACTER_TYPE):
-            return [mask for mask in self.MASKS_CHAR if self.access_mask & mask == mask]
+            if self.override_mask > 0:
+                return [mask for mask in self.MASKS_CHAR if self.override_mask & mask == mask]
+            else:
+                return [mask for mask in self.MASKS_CHAR if self.access_mask & mask == mask]
         elif self.key_type == APIKey.CORPORATION_TYPE:
-            return [mask for mask in self.MASKS_CORP if self.access_mask & mask == mask]
+            if self.override_mask > 0:
+                return [mask for mask in self.MASKS_CORP if self.override_mask & mask == mask]
+            else:
+                return [mask for mask in self.MASKS_CORP if self.access_mask & mask == mask]
         else:
             return []
 
