@@ -902,6 +902,20 @@ class Asset(models.Model):
 #        return '%s' % (self.name)
 
 # ---------------------------------------------------------------------------
+
+class AssetSummary(models.Model):
+    character = models.ForeignKey(Character, blank=True, null=True)
+    corporation_id = models.IntegerField(blank=True, null=True)
+    system = models.ForeignKey(System)
+    station = models.ForeignKey(Station, blank=True, null=True)
+
+    total_items = models.BigIntegerField()
+    # 1,234,567,890.12
+    total_volume = models.DecimalField(max_digits=12, decimal_places=2)
+    # 1,234,567,890,123,456.78
+    total_value = models.DecimalField(max_digits=18, decimal_places=2)
+
+# ---------------------------------------------------------------------------
 # Contracts
 class Contract(models.Model):
     character = models.ForeignKey(Character)
