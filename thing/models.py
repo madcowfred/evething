@@ -880,6 +880,24 @@ class Asset(models.Model):
         else:
             return None
 
+    def is_blueprint(self):
+        if self.item.item_group.category.name == 'Blueprint':
+            return min(-1, self.raw_quantity)
+        else:
+            return 0
+
+    def get_sell_price(self):
+        blueprint = self.is_blueprint()
+        
+        if blueprint == 0:
+            return self.item.sell_price
+        # BPOs use the base (NPC) price
+        elif blueprint == -1:
+            return self.item.base_price
+        # BPCs count as 0 value for now
+        else:
+            return 0
+
 #    def __unicode__(self):
 #        return '%s' % (self.name)
 
