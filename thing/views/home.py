@@ -255,12 +255,11 @@ def home(request):
     tt.add_time('corps')
 
     # Get old event stats for staff users
-    if request.user.is_staff:
-        task_count = TaskState.objects.filter(state=TaskState.QUEUED_STATE).aggregate(Count('id'))['id__count']
-    else:
-        task_count = 0
+    #if request.user.is_staff:
+    #else:
+    #    task_count = 0
 
-    tt.add_time('misc junk')
+    #tt.add_time('misc junk')
 
     out = render_page(
         'thing/home.html',
@@ -273,7 +272,7 @@ def home(request):
             'characters': first + last,
             'events': list(Event.objects.filter(user=request.user)[:10]),
             'ship_map': ship_map,
-            'task_count': task_count,
+            #'task_count': task_count,
         },
         request,
         chars.keys(),

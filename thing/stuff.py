@@ -18,7 +18,7 @@ from coffin.shortcuts import render_to_response
 # ---------------------------------------------------------------------------
 # Wrapper around render_to_response
 def render_page(template, data, request, character_ids=None, corporation_ids=None):
-    from thing.models import Character, Corporation, Contract, APIKey, IndustryJob
+    from thing.models import APIKey, Character, Corporation, Contract, IndustryJob, TaskState
 
     utcnow = datetime.datetime.utcnow()
     
@@ -28,6 +28,7 @@ def render_page(template, data, request, character_ids=None, corporation_ids=Non
     print data
 
     if request.user.is_authenticated():
+        # Get Contracts/Industry Jobs data
         cache_key = 'nav_counts:%s' % (request.user.id)
         cc = cache.get(cache_key)
 
@@ -63,6 +64,12 @@ def render_page(template, data, request, character_ids=None, corporation_ids=Non
             # Cache data
             cache_data = (data['nav_contracts'], data['nav_industryjobs'])
             cache.set(cache_key, cache_data, 120)
+
+        # Get queue length data
+        data['task_count'] = cache.get('task_count')
+        if data['task_count'] is None:
+            data['task_count'] = TaskState.objects.filter(state=TaskState.QUEUED_STATE).aggregate(Count('id'))['id__count']
+            cache.set('task_count', data['task_count'], 60)
 
     return render_to_response(template, data, RequestContext(request))
 

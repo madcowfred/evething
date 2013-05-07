@@ -78,10 +78,6 @@
           <span class="divider">/</span>
           <span><strong>Total SP:</strong> {{ total_sp|commas }}</span>
           <span class="pull-right">
-            {%- if user.is_staff %}
-            <strong>Queued task{{ task_count|pluralize }}:</strong> {{ task_count|commas }}
-            <span class="divider">/</span>
-            {%- endif %}
             <a href="#" onclick="screenshot_mode();">
               <i class="icon-picture" title="Screenshot sanitised mode"></i>
             </a>
