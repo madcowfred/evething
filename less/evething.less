@@ -1,10 +1,31 @@
-body {
-    padding-top: 50px;
+html, body {
+  height: 100%;
 }
 @media (max-width: 767px) {
   body {
     padding-top: 0px;
   }
+}
+
+/* wrapper for page content to push down footer */
+#wrap {
+  min-height: 100%;
+  height: auto !important;
+  height: 100%;
+  margin: 0 auto -40px;
+}
+#wrap > .container-fluid {
+  padding-top: 50px;
+}
+/* footer */
+#footer, #push {
+  height: 40px;
+}
+#footer {
+  background-color: @navbarBackground;
+}
+#footer > .container-fluid {
+  padding-top: 8px;
 }
 
 .pos { color: #009800; }
