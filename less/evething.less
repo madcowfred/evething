@@ -1,11 +1,6 @@
 html, body {
   height: 100%;
 }
-@media (max-width: 767px) {
-  body {
-    padding-top: 0px;
-  }
-}
 
 /* wrapper for page content to push down footer */
 #wrap {
@@ -17,6 +12,12 @@ html, body {
 #wrap > .container-fluid {
   padding-top: 50px;
 }
+@media (max-width: 767px) {
+  #wrap > .container-fluid {
+    padding-top: 0px;
+  }
+}
+
 /* footer */
 #footer, #push {
   height: 40px;
