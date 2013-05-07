@@ -46,13 +46,18 @@ class AssetList(APITask):
 
         # Bulk query data
         item_map = Item.objects.in_bulk(data['items'])
-        station_map = Station.objects.in_bulk(data['locations'])
+        station_map = Station.objects.select_related('system').in_bulk(data['locations'])
         system_map = System.objects.in_bulk(data['locations'])
         flag_map = InventoryFlag.objects.in_bulk(data['flags'])
 
         # Build new Asset objects for each row
         assets = []
         for asset_id, location_id, parent_id, item_id, flag_id, quantity, rawQuantity, singleton in data['assets']:
+            system = system_map.get(location_id)
+            station = station_map.get(location_id)
+            if system is None:
+                system = station.system
+
             item = item_map.get(item_id)
             if item is None:
                 self.log_warn('Invalid item_id %s', item_id)
@@ -67,8 +72,8 @@ class AssetList(APITask):
                 asset_id=asset_id,
                 parent=parent_id,
                 character=character,
-                system=system_map.get(location_id),
-                station=station_map.get(location_id),
+                system=system,
+                station=station,
                 item=item,
                 inv_flag=inv_flag,
                 quantity=quantity,
