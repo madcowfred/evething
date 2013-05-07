@@ -66,6 +66,7 @@ urlpatterns += patterns('thing.views',
 
     (r'^wallet_journal/$', 'wallet_journal'),
     (r'^wallet_journal/aggregate/$', 'wallet_journal_aggregate'),
-
-    (r'^gsfapi/', include('gsfapi.urls')),
 )
+
+if getattr(settings, 'ENABLE_GSFAPI', None):
+    urlpatterns += patterns('', (r'^gsfapi/', include('gsfapi.urls')))
