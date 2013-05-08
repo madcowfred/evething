@@ -69,9 +69,10 @@ def assets_summary(request):
         overall_total['value'] += summary.total_value
         overall_total['volume'] += summary.total_volume
 
-        totals.setdefault((summary.system.name, station_name), dict(items=0, value=0, volume=0))['items'] += summary.total_items
-        totals[(summary.system.name, station_name)]['value'] += summary.total_value
-        totals[(summary.system.name, station_name)]['volume'] += summary.total_volume
+        k = (summary.system.name, station_name, summary.system_id, summary.station_id)
+        totals.setdefault(k, dict(items=0, value=0, volume=0))['items'] += summary.total_items
+        totals[k]['value'] += summary.total_value
+        totals[k]['volume'] += summary.total_volume
 
         if summary.z_corporation:
             k = (summary.z_corporation.name, summary.character.name)
@@ -295,7 +296,7 @@ def assets_filter(request):
     tt.add_time('sort contents')
 
     out = render_page(
-        'thing/assets.html',
+        'thing/assets_filter.html',
         {
             'characters': characters,
             'corporations': corporations,

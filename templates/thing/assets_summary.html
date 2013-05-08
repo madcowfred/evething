@@ -121,8 +121,10 @@
           </ul>
         </div>
 
+        <div class="anchor" id="total"></div>
         <div class="span9 anchor" id="total">
           <table class="table table-striped table-bordered table-condensed">
+            <caption>All characters and corporations</caption>
             <thead>
               <tr class="c">
                 <th>Location</th>
@@ -133,15 +135,27 @@
             </thead>
             <tbody>
               <tr class="r">
-                <td class="l">[All locations]</td>
+                <td class="l">
+                  <a href="{% url 'thing.views.assets_filter' %}">
+                    [All locations]
+                  </a>
+                </td>
                 <td>{{ overall_total['items']|commas }}</td>
                 <td>{{ overall_total.volume|commas }}m<sup>3</sup></td>
-                <td>{{ overall_total.value|commas }}</td>
+                <td>1{{ overall_total.value|commas }}</td>
               </tr>
-              {%- for (system, station), totals in total_data %}
-              <tr{#{% if system_changed %} class="divider-row"{% endif %}#}>
+              {%- for (system_name, station_name, system_id, station_id), totals in total_data %}
+              <tr>
                 <td>
-                  {% if station %}{{ station }}{% else %}{{ system }}{% endif %}
+                  {%- if station_name %}
+                  <a href="{% url 'thing.views.assets_filter' %}?ft=station&fc=eq&fv={{ station_id }}">
+                    {{ station_name }}
+                  </a>
+                  {%- else %}
+                  <a href="{% url 'thing.views.assets_filter' %}?ft=system&fc=eq&fv={{ system_id }}">
+                    {{ system_name }}
+                  </a>
+                  {%- endif %}
                 </td>
                 <td class="r">{{ totals['items']|commas }}</td>
                 <td class="r">{{ totals.volume|commas }}m<sup>3</sup></td>
