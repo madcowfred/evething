@@ -1,3 +1,6 @@
+import json
+import operator
+
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q, Avg, Count, Max, Min, Sum
@@ -9,11 +12,6 @@ from thing.stuff import *
 # ---------------------------------------------------------------------------
 
 ASSETS_EXPECTED = {
-    'amount': {
-        'label': 'Amount',
-        'comps': ['eq', 'ne', 'gt', 'gte', 'lt', 'lte'],
-        'number': True,
-    },
     'char': {
         'label': 'Character',
         'comps': ['eq', 'ne'],
@@ -24,10 +22,14 @@ ASSETS_EXPECTED = {
         'comps': ['eq', 'ne'],
         'number': True,
     },
-    'location': {
-        'label': 'Location',
+    'station': {
+        'label': 'Station',
         'comps': ['eq', 'ne', 'in'],
-    }
+    },
+    'system': {
+        'label': 'System',
+        'comps': ['eq', 'ne', 'in'],
+    },
 }
 
 # ---------------------------------------------------------------------------
@@ -36,12 +38,19 @@ ASSETS_EXPECTED = {
 def assets_summary(request):
     tt = TimerThing('assets_summary')
 
-    #character_ids = list(Character.objects.filter(apikeys__user=request.user.id).values_list('id', flat=True))
     characters = Character.objects.filter(apikeys__user=request.user.id).distinct()
-    character_ids = [c.id for c in characters]
+    character_ids = []
+    character_map = {}
+    for character in characters:
+        character_ids.append(character.id)
+        character_map[character.id] = character
     
-    corporation_ids = list(APIKey.objects.filter(user=request.user).exclude(corp_character=None).values_list('corp_character__corporation__id', flat=True))
-    corporations = Corporation.objects.in_bulk(corporation_ids)
+    corporations = Corporation.objects.filter(pk__in=APIKey.objects.filter(user=request.user).exclude(corp_character=None).values('corp_character__corporation'))
+    corporation_ids = []
+    corporation_map = {}
+    for corporation in corporations:
+        corporation_ids.append(corporation.id)
+        corporation_map[corporation.id] = corporation
 
     tt.add_time('init')
 
@@ -59,7 +68,7 @@ def assets_summary(request):
     totals = {}
     summary_data = {}
     for summary in summary_qs:
-        summary.z_corporation = corporations.get(summary.corporation_id)
+        summary.z_corporation = corporation_map.get(summary.corporation_id)
         if summary.station:
             station_name = summary.station.name
         else:
@@ -92,10 +101,20 @@ def assets_summary(request):
     summary_list.sort()
 
     tt.add_time('sort data')
+    
+    # Ready template things
+    json_expected = json.dumps(ASSETS_EXPECTED)
+    values = {
+        'chars': characters,
+        'corps': corporations,
+    }
 
+    # Render template
     out = render_page(
         'thing/assets_summary.html',
         {
+            'json_expected': json_expected,
+            'values': values,
             'characters': characters,
             'corporations': corporations,
             'overall_total': overall_total,
@@ -118,15 +137,23 @@ def assets_summary(request):
 def assets_filter(request):
     tt = TimerThing('assets')
 
-    character_ids = list(Character.objects.filter(apikeys__user=request.user.id).values_list('id', flat=True))
-    characters = Character.objects.in_bulk(character_ids)
+    characters = Character.objects.filter(apikeys__user=request.user.id).distinct()
+    character_ids = []
+    character_map = {}
+    for character in characters:
+        character_ids.append(character.id)
+        character_map[character.id] = character
     
-    corporation_ids = list(APIKey.objects.filter(user=request.user).exclude(corp_character=None).values_list('corp_character__corporation__id', flat=True))
-    corporations = Corporation.objects.in_bulk(corporation_ids)
+    corporations = Corporation.objects.filter(pk__in=APIKey.objects.filter(user=request.user).exclude(corp_character=None).values('corp_character__corporation'))
+    corporation_ids = []
+    corporation_map = {}
+    for corporation in corporations:
+        corporation_ids.append(corporation.id)
+        corporation_map[corporation.id] = corporation
 
     # apply our initial set of filters
     assets = Asset.objects.filter(
-        Q(character__in=character_ids, corporation_id__isnull=True)
+        Q(character__in=character_ids, corporation_id=0)
         |
         Q(corporation_id__in=corporation_ids)
     )
@@ -135,37 +162,66 @@ def assets_filter(request):
 
     tt.add_time('init')
 
-    # retrieve any supplied filter values
-    f_types = request.GET.getlist('type')
-    f_comps = request.GET.getlist('comp')
-    f_values = request.GET.getlist('value')
+    # Parse and apply filters
+    filters = parse_filters(request, ASSETS_EXPECTED)
 
-    # run.
-    filters = []
-    if len(f_types) == len(f_comps) == len(f_values):
-        # type, comparison, value
-        for ft, fc, fv in zip(f_types, f_comps, f_values):
-            # character
-            if ft == 'char' and fv.isdigit():
-                if fc == 'eq':
-                    assets = assets.filter(character_id=fv, corporation_id__isnull=True)
-                elif fc == 'ne':
-                    assets = assets.exclude(character_id=fv, corporation_id__isnull=True)
+    if 'char' in filters:
+        qs = []
+        for fc, fv in filters['char']:
+            if fc == 'eq':
+                qs.append(Q(character=fv))
+            elif fc == 'ne':
+                qs.append(~Q(character=fv))
+        assets = assets.filter(reduce(operator.ior, qs))
 
-                filters.append((ft, fc, int(fv)))
+    if 'corp' in filters:
+        qs = []
+        for fc, fv in filters['corp']:
+            if fc == 'eq':
+                if fv == -1:
+                    qs.append(Q(corporation_id__gt=0))
+                else:
+                    qs.append(Q(corporation_id=fv))
+            elif fc == 'ne':
+                if fv == -1:
+                    qs.append(Q(corporation_id=0))
+                else:
+                    qs.append(~Q(corporation_id=fv))
+        assets = assets.filter(reduce(operator.ior, qs))
 
-            # corporation
-            elif ft == 'corp' and fv.isdigit():
-                if fc == 'eq':
-                    assets = assets.filter(corporation_id=fv)
-                elif fc == 'ne':
-                    assets = assets.exclude(corporation_id=fv)
+    if 'station' in filters:
+        qs = []
+        for fc, fv in filters['station']:
+            if fc == 'eq':
+                if fv.isdigit():
+                    qs.append(Q(station=fv))
+                else:
+                    qs.append(Q(station__name=fv))
+            elif fc == 'ne':
+                if fv.isdigit():
+                    qs.append(~Q(station=fv))
+                else:
+                    qs.append(~Q(station__name=fv))
+            elif fc == 'in':
+                qs.append(Q(station__name__icontains=fv))
+        assets = assets.filter(reduce(operator.ior, qs))
 
-                filters.append((ft, fc, int(fv)))
-
-    # if no valid filters were found, add a dummy one
-    if not filters:
-        filters.append(('', '', ''))
+    if 'system' in filters:
+        qs = []
+        for fc, fv in filters['system']:
+            if fc == 'eq':
+                if fv.isdigit():
+                    qs.append(Q(system=fv))
+                else:
+                    qs.append(Q(system__name=fv))
+            elif fc == 'ne':
+                if fv.isdigit():
+                    qs.append(~Q(system=fv))
+                else:
+                    qs.append(~Q(system__name=fv))
+            elif fc == 'in':
+                qs.append(Q(system__name__icontains=fv))
+        assets = assets.filter(reduce(operator.ior, qs))
 
     tt.add_time('filters')
 
@@ -201,12 +257,12 @@ def assets_filter(request):
             del asset_map[asset.asset_id]
 
             # skip missing character ids
-            if asset.character_id not in characters:
+            if asset.character_id not in character_map:
                 continue
 
             # character and corporation
-            asset.z_character = characters[asset.character_id]
-            asset.z_corporation = corporations.get(asset.corporation_id)
+            asset.z_character = character_map.get(asset.character_id)
+            asset.z_corporation = corporation_map.get(asset.corporation_id)
 
             # zz blueprints
             if asset.item.item_group.category.name == 'Blueprint':
@@ -294,10 +350,21 @@ def assets_filter(request):
             _content_sort(asset)
 
     tt.add_time('sort contents')
+    
+    # Ready template things
+    json_expected = json.dumps(ASSETS_EXPECTED)
+    values = {
+        'chars': characters,
+        'corps': corporations,
+    }
 
+    # Render template
     out = render_page(
         'thing/assets_filter.html',
         {
+            'json_expected': json_expected,
+            'values': values,
+            'filters': filters,
             'characters': characters,
             'corporations': corporations,
             'filters': filters,
