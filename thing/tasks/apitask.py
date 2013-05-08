@@ -203,7 +203,7 @@ class APITask(Task):
             # Sleep now if we have to
             sleep_for = self._get_backoff()
             if sleep_for > 0:
-                self.log_warn('Sleeping for %d seconds', sleep_for)
+                #self.log_warn('Sleeping for %d seconds', sleep_for)
                 time.sleep(sleep_for)
             
             # Add the vCode to params now
@@ -396,11 +396,8 @@ class APITask(Task):
             return 0
 
         # Calculate the sleep value and return it
-        sleep_for = 3
-        for i in range(min(6, backoff_count)):
-            sleep_for *= 2
-
-        return sleep_for
+        return 0.5 * (2 ** min(6, backoff_count - 1))
+        #return sleep_for
 
     def _increment_backoff(self, e):
         """
@@ -413,14 +410,15 @@ class APITask(Task):
 
         now = time.time()
         # if it hasn't been 5 minutes, increment the wait value
-        if (now - cache.get('backoff_last')) < 300:
+        backoff_last = cache.get('backoff_last')
+        if backoff_last and (now - backoff_last) < 300:
             cache.incr('backoff_count')
         else:
-            cache.set('backoff_count', 0)
+            cache.set('backoff_count', 1)
 
         cache.set('backoff_last', now)
 
-        self.log_warn('Backoff value increased: %s', e)
+        self.log_warn('Backoff value increased to %.1fs: %s', self._get_backoff(), e)
 
     # -----------------------------------------------------------------------
 
