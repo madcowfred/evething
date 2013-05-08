@@ -5,7 +5,7 @@ from decimal import *
 from .apitask import APITask
 
 from thing import queries
-from thing.models import Asset, Character, InventoryFlag, Item, Station, System
+from thing.models import Asset, AssetSummary, Character, InventoryFlag, Item, Station, System
 
 # ---------------------------------------------------------------------------
 
@@ -45,14 +45,29 @@ class AssetList(APITask):
         self._find_assets(data, self.root.find('result/rowset'))
 
         # Bulk query data
-        item_map = Item.objects.in_bulk(data['items'])
-        station_map = Station.objects.in_bulk(data['locations'])
+        item_map = Item.objects.select_related('item_group__category').in_bulk(data['items'])
+        station_map = Station.objects.select_related('system').in_bulk(data['locations'])
         system_map = System.objects.in_bulk(data['locations'])
         flag_map = InventoryFlag.objects.in_bulk(data['flags'])
 
+        # Corporation ID
+        if self.apikey.corp_character:
+            corporation_id = self.apikey.corp_character.corporation.id
+        else:
+            corporation_id = 0
+
         # Build new Asset objects for each row
         assets = []
+        totals = {}
         for asset_id, location_id, parent_id, item_id, flag_id, quantity, rawQuantity, singleton in data['assets']:
+            system = system_map.get(location_id)
+            station = station_map.get(location_id)
+            if system is None:
+                system = station.system
+
+            if (system, station) not in totals:
+                totals[(system, station)] = dict(items=0, volume=0, value=0)
+
             item = item_map.get(item_id)
             if item is None:
                 self.log_warn('Invalid item_id %s', item_id)
@@ -67,30 +82,53 @@ class AssetList(APITask):
                 asset_id=asset_id,
                 parent=parent_id,
                 character=character,
-                system=system_map.get(location_id),
-                station=station_map.get(location_id),
+                corporation_id=corporation_id,
+                system=system,
+                station=station,
                 item=item,
                 inv_flag=inv_flag,
                 quantity=quantity,
                 raw_quantity=rawQuantity,
                 singleton=singleton,
             )
-            if self.apikey.corp_character:
-                asset.corporation_id = self.apikey.corp_character.corporation.id
-
             assets.append(asset)
+
+            # Update totals
+            totals[(system, station)]['items'] += quantity
+            totals[(system, station)]['volume'] += quantity * item.volume
+            totals[(system, station)]['value'] += quantity * asset.get_sell_price()
+
+        # Create summary objects
+        summaries = []
+        for (system, station), data in totals.items():
+            summary = AssetSummary(
+                character=character,
+                system=system,
+                station=station,
+                total_items=data['items'],
+                total_value=data['value'],
+                total_volume=data['volume'],
+            )
+            if self.apikey.corp_character:
+                summary.corporation_id = self.apikey.corp_character.corporation.id
+
+            summaries.append(summary)
 
         # Delete existing assets, it's way too painful trying to deal with changes
         cursor = self.get_cursor()
         if self.apikey.corp_character:
             cursor.execute(queries.asset_delete_corp, [self.apikey.corp_character.corporation.id])
+            cursor.execute(queries.assetsummary_delete_corp, [self.apikey.corp_character.corporation.id])
         else:
             cursor.execute(queries.asset_delete_char, [character_id])
-        cursor.close()
+            cursor.execute(queries.assetsummary_delete_char, [character_id])
 
         # Bulk insert new assets
         Asset.objects.bulk_create(assets)
+        AssetSummary.objects.bulk_create(summaries)
 
+        # Clean up
+        cursor.close()
 
         # Fetch names (via Locations API) for assets
         # if self.apikey.corp_character is None and APIKey.CHAR_LOCATIONS_MASK in self.apikey.get_masks():

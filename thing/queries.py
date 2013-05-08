@@ -154,6 +154,19 @@ FROM    thing_asset
 WHERE   corporation_id = %s
 """
 
+assetsummary_delete_char = """
+DELETE
+FROM    thing_assetsummary
+WHERE   character_id = %s
+        AND corporation_id = 0
+"""
+
+assetsummary_delete_corp = """
+DELETE
+FROM    thing_assetsummary
+WHERE   corporation_id = %s
+"""
+
 # skillqueue stuff
 skillqueue_delete = """
 DELETE

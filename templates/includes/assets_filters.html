@@ -1,0 +1,17 @@
+          <div class="well well-small">
+            <form id="filter-form" action="{% url 'thing.views.assets_filter' %}" method="GET">
+              <div class="margin-half-bot">
+                <strong class="large">Filters</strong>
+                <i class="icon-plus clickable"></i>
+              </div>
+              <p>
+                Apply filters to the results here. Filters of different types are queried using AND while filters of
+                the same type are queried using OR, for example "Character == Bob, Item == Pants, Item == Hats" will
+                turn into something like "WHERE Character == Bob AND (Item == Pants OR Item == Hats)".
+              </p>
+              <fieldset id="filters">
+              </fieldset>
+              <button type="submit" class="btn btn-success">Apply filters</button>
+              <a id="clear-button" href="{% url thing.views.wallet_journal %}" class="btn btn-danger">Clear filters</a>
+            </form>
+          </div>

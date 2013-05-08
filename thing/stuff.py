@@ -25,8 +25,6 @@ def render_page(template, data, request, character_ids=None, corporation_ids=Non
     data['server_open'] = cache.get('server_open')
     data['online_players'] = cache.get('online_players')
 
-    print data
-
     if request.user.is_authenticated():
         # Get Contracts/Industry Jobs data
         cache_key = 'nav_counts:%s' % (request.user.id)

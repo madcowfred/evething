@@ -880,8 +880,40 @@ class Asset(models.Model):
         else:
             return None
 
+    def is_blueprint(self):
+        if self.item.item_group.category.name == 'Blueprint':
+            return min(-1, self.raw_quantity)
+        else:
+            return 0
+
+    def get_sell_price(self):
+        blueprint = self.is_blueprint()
+        
+        if blueprint == 0:
+            return self.item.sell_price
+        # BPOs use the base (NPC) price
+        elif blueprint == -1:
+            return self.item.base_price
+        # BPCs count as 0 value for now
+        else:
+            return 0
+
 #    def __unicode__(self):
 #        return '%s' % (self.name)
+
+# ---------------------------------------------------------------------------
+
+class AssetSummary(models.Model):
+    character = models.ForeignKey(Character)
+    corporation_id = models.IntegerField(default=0)
+    system = models.ForeignKey(System)
+    station = models.ForeignKey(Station, blank=True, null=True)
+
+    total_items = models.BigIntegerField()
+    # 1,234,567,890.12
+    total_volume = models.DecimalField(max_digits=12, decimal_places=2)
+    # 1,234,567,890,123,456.78
+    total_value = models.DecimalField(max_digits=18, decimal_places=2)
 
 # ---------------------------------------------------------------------------
 # Contracts
