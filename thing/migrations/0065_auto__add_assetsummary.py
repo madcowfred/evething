@@ -11,8 +11,8 @@ class Migration(SchemaMigration):
         # Adding model 'AssetSummary'
         db.create_table(u'thing_assetsummary', (
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('character', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['thing.Character'], null=True, blank=True)),
-            ('corporation_id', self.gf('django.db.models.fields.IntegerField')(null=True, blank=True)),
+            ('character', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['thing.Character'])),
+            ('corporation_id', self.gf('django.db.models.fields.IntegerField')(default=0)),
             ('system', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['thing.System'])),
             ('station', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['thing.Station'], null=True, blank=True)),
             ('total_items', self.gf('django.db.models.fields.BigIntegerField')()),
@@ -112,8 +112,8 @@ class Migration(SchemaMigration):
         },
         u'thing.assetsummary': {
             'Meta': {'object_name': 'AssetSummary'},
-            'character': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['thing.Character']", 'null': 'True', 'blank': 'True'}),
-            'corporation_id': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
+            'character': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['thing.Character']"}),
+            'corporation_id': ('django.db.models.fields.IntegerField', [], {'default': '0'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'station': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['thing.Station']", 'null': 'True', 'blank': 'True'}),
             'system': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['thing.System']"}),

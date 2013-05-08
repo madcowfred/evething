@@ -904,8 +904,8 @@ class Asset(models.Model):
 # ---------------------------------------------------------------------------
 
 class AssetSummary(models.Model):
-    character = models.ForeignKey(Character, blank=True, null=True)
-    corporation_id = models.IntegerField(blank=True, null=True)
+    character = models.ForeignKey(Character)
+    corporation_id = models.IntegerField(default=0)
     system = models.ForeignKey(System)
     station = models.ForeignKey(Station, blank=True, null=True)
 

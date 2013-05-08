@@ -50,6 +50,12 @@ class AssetList(APITask):
         system_map = System.objects.in_bulk(data['locations'])
         flag_map = InventoryFlag.objects.in_bulk(data['flags'])
 
+        # Corporation ID
+        if self.apikey.corp_character:
+            corporation_id = self.apikey.corp_character.corporation.id
+        else:
+            corporation_id = 0
+
         # Build new Asset objects for each row
         assets = []
         totals = {}
@@ -78,6 +84,7 @@ class AssetList(APITask):
                 asset_id=asset_id,
                 parent=parent_id,
                 character=character,
+                corporation_id=corporation_id,
                 system=system,
                 station=station,
                 item=item,
@@ -86,9 +93,6 @@ class AssetList(APITask):
                 raw_quantity=rawQuantity,
                 singleton=singleton,
             )
-            if self.apikey.corp_character:
-                asset.corporation_id = self.apikey.corp_character.corporation.id
-
             assets.append(asset)
 
             # Update totals
