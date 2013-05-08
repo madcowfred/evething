@@ -111,7 +111,7 @@
         <div class="span6">
           <h2>Assets</h2>
 
-          <form class="well well-small" action="{% url 'thing.views.assets' %}" method="GET">
+          <form class="well well-small" action="{% url 'thing.views.assets_filter' %}" method="GET">
             <h4>Filters</h4>
             <fieldset>
               {% for f_type, f_comp, f_value in filters -%}
@@ -132,7 +132,7 @@
               {%- endfor %}
             </fieldset>
             <button type="submit" class="btn btn-primary">Apply filters</button>
-            <a href="{% url 'thing.views.assets' %}" class="btn btn-danger">Clear filters</a>
+            <a href="{% url 'thing.views.assets_filter' %}" class="btn btn-danger">Clear filters</a>
           </form>
         </div>
       </div>
