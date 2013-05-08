@@ -65,8 +65,6 @@ class AssetList(APITask):
             if system is None:
                 system = station.system
 
-            if station and (system, None) not in totals:
-                totals[(system, None)] = dict(items=0, volume=0, value=0)
             if (system, station) not in totals:
                 totals[(system, station)] = dict(items=0, volume=0, value=0)
 
@@ -99,11 +97,6 @@ class AssetList(APITask):
             totals[(system, station)]['items'] += quantity
             totals[(system, station)]['volume'] += quantity * item.volume
             totals[(system, station)]['value'] += quantity * asset.get_sell_price()
-
-            if station:
-                totals[(system, None)]['items'] += quantity
-                totals[(system, None)]['volume'] += quantity * item.volume
-                totals[(system, None)]['value'] += quantity * asset.get_sell_price()
 
         # Create summary objects
         summaries = []
