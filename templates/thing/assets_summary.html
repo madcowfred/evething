@@ -57,7 +57,7 @@
                   </a>
                 </td>
                 <td>{{ overall_total['items']|commas }}</td>
-                <td>{{ overall_total.volume|commas }}m<sup>3</sup></td>
+                <td>{{ overall_total.volume|commas }} m<sup>3</sup></td>
                 <td>{{ overall_total.value|commas }}</td>
               </tr>
               {%- for (system_name, station_name, system_id, station_id), totals in totals_list %}
@@ -74,7 +74,7 @@
                   {%- endif %}
                 </td>
                 <td class="r">{{ totals['items']|commas }}</td>
-                <td class="r">{{ totals.volume|commas }}m<sup>3</sup></td>
+                <td class="r">{{ totals.volume|commas }} m<sup>3</sup></td>
                 <td class="r">{{ totals.value|commas }}</td>
               </tr>
               {%- endfor %}
@@ -103,15 +103,15 @@
               </tr>
             </thead>
             <tbody>
-              <tr class="r">
-                <td class="l">
+              <tr>
+                <td>
                   <a href="{% url 'thing.views.assets_filter' %}?{{ fragment }}">
                     [All locations]
                   </a>
                 </td>
-                <td>{{ total_data[corp_id or char_id]['items']|commas }}</td>
-                <td>{{ total_data[corp_id or char_id].volume|commas }}m<sup>3</sup></td>
-                <td>{{ total_data[corp_id or char_id].value|commas }}</td>
+                <td class="assets-summary-items">{{ total_data[corp_id or char_id]['items']|commas }}</td>
+                <td class="assets-summary-volume">{{ total_data[corp_id or char_id].volume|commas }} m<sup>3</sup></td>
+                <td class="assets-summary-value">{{ total_data[corp_id or char_id].value|commas }}</td>
               </tr>
               {%- for system_name, station_name, summary in summary_data %}
               <tr>
@@ -126,9 +126,9 @@
                   </a>
                   {%- endif %}
                 </td>
-                <td class="r">{{ summary.total_items|commas }}</td>
-                <td class="r">{{ summary.total_volume|commas }}m<sup>3</sup></td>
-                <td class="r">{{ summary.total_value|commas }}</td>
+                <td class="assets-summary-items">{{ summary.total_items|commas }}</td>
+                <td class="assets-summary-volume">{{ summary.total_volume|commas }} m<sup>3</sup></td>
+                <td class="assets-summary-value">{{ summary.total_value|commas }}</td>
               </tr>
               {%- endfor %}
             </tbody>
