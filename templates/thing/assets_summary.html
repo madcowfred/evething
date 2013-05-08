@@ -58,9 +58,9 @@
                 </td>
                 <td>{{ overall_total['items']|commas }}</td>
                 <td>{{ overall_total.volume|commas }}m<sup>3</sup></td>
-                <td>1{{ overall_total.value|commas }}</td>
+                <td>{{ overall_total.value|commas }}</td>
               </tr>
-              {%- for (system_name, station_name, system_id, station_id), totals in total_data %}
+              {%- for (system_name, station_name, system_id, station_id), totals in totals_list %}
               <tr>
                 <td>
                   {%- if station_name %}
@@ -84,6 +84,11 @@
       </div>
 
       {%- for (corp_name, char_name, corp_id, char_id), summary_data in summary_list %}
+      {%- if corp_id %}
+      {%- set fragment = 'ft=corp&fc=eq&fv=%s' % (corp_id) %}
+      {%- else %}
+      {%- set fragment = 'ft=char&fc=eq&fv=%s' % (char_id) %}
+      {%- endif %}
       <div class="anchor" id="{{ corp_id|default(char_id) }}"></div>
       <div class="row-fluid">
         <div class="span9 offset3">
@@ -98,23 +103,25 @@
               </tr>
             </thead>
             <tbody>
+              <tr class="r">
+                <td class="l">
+                  <a href="{% url 'thing.views.assets_filter' %}?{{ fragment }}">
+                    [All locations]
+                  </a>
+                </td>
+                <td>{{ total_data[corp_id or char_id]['items']|commas }}</td>
+                <td>{{ total_data[corp_id or char_id].volume|commas }}m<sup>3</sup></td>
+                <td>{{ total_data[corp_id or char_id].value|commas }}</td>
+              </tr>
               {%- for system_name, station_name, summary in summary_data %}
               <tr>
                 <td>
                   {%- if station_name %}
-                  {%- if corp_id %}
-                  <a href="{% url 'thing.views.assets_filter' %}?ft=corp&fc=eq&fv={{ corp_id }}&ft=station&fc=eq&fv={{ summary.station.id }}">
-                  {%- else %}
-                  <a href="{% url 'thing.views.assets_filter' %}?ft=char&fc=eq&fv={{ char_id }}&ft=station&fc=eq&fv={{ summary.station.id }}">
-                  {%- endif %}
+                  <a href="{% url 'thing.views.assets_filter' %}?{{ fragment }}&ft=station&fc=eq&fv={{ summary.station.id }}">
                     {{ station_name }}
                   </a>
                   {%- else %}
-                  {%- if corp_id %}
-                  <a href="{% url 'thing.views.assets_filter' %}?ft=corp&fc=eq&fv={{ corp_id }}&ft=system&fc=eq&fv={{ summary.system.id }}">
-                  {%- else %}
-                  <a href="{% url 'thing.views.assets_filter' %}?ft=char&fc=eq&fv={{ char_id }}&ft=system&fc=eq&fv={{ summary.system.id }}">
-                  {%- endif %}
+                  <a href="{% url 'thing.views.assets_filter' %}?{{ fragment }}&ft=system&fc=eq&fv={{ summary.system.id }}">
                     {{ system_name }}
                   </a>
                   {%- endif %}

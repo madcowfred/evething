@@ -66,6 +66,7 @@ def assets_summary(request):
 
     overall_total = dict(items=0, value=0, volume=0)
     totals = {}
+    total_data = {}
     summary_data = {}
     for summary in summary_qs:
         summary.z_corporation = corporation_map.get(summary.corporation_id)
@@ -83,6 +84,11 @@ def assets_summary(request):
         totals[k]['value'] += summary.total_value
         totals[k]['volume'] += summary.total_volume
 
+        k = summary.corporation_id or summary.character_id
+        total_data.setdefault(k, dict(items=0, value=0, volume=0))['items'] += summary.total_items
+        total_data[k]['value'] += summary.total_value
+        total_data[k]['volume'] += summary.total_volume
+
         if summary.z_corporation:
             k = (summary.z_corporation.name, summary.character.name, summary.corporation_id, summary.character_id)
         else:
@@ -91,7 +97,7 @@ def assets_summary(request):
 
     tt.add_time('organise data')
 
-    total_data = sorted(totals.items())
+    totals_list = sorted(totals.items())
     #summary_data.sort()
 
     for k, v in summary_data.items():
@@ -118,6 +124,7 @@ def assets_summary(request):
             'characters': characters,
             'corporations': corporations,
             'overall_total': overall_total,
+            'totals_list': totals_list,
             'total_data': total_data,
             'summary_list': summary_list,
         },
