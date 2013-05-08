@@ -84,9 +84,9 @@ def assets_summary(request):
         totals[k]['volume'] += summary.total_volume
 
         if summary.z_corporation:
-            k = (summary.z_corporation.name, summary.character.name)
+            k = (summary.z_corporation.name, summary.character.name, summary.corporation_id, summary.character_id)
         else:
-            k = (None, summary.character.name)
+            k = (None, summary.character.name, None, summary.character_id)
         summary_data.setdefault(k, []).append([summary.system.name, station_name, summary])
 
     tt.add_time('organise data')
@@ -169,9 +169,9 @@ def assets_filter(request):
         qs = []
         for fc, fv in filters['char']:
             if fc == 'eq':
-                qs.append(Q(character=fv))
+                qs.append(Q(character=fv, corporation_id=0))
             elif fc == 'ne':
-                qs.append(~Q(character=fv))
+                qs.append(~Q(character=fv, corporation_id=0))
         assets = assets.filter(reduce(operator.ior, qs))
 
     if 'corp' in filters:
