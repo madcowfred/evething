@@ -29,7 +29,7 @@
               <ul class="nav" id="nav-list">
                 {% if user.is_authenticated() -%}
                 {%- with user.get_profile() as profile -%}
-                {% if profile.show_assets %}<li><a href="{% url 'thing.views.assets' %}">Assets</a></li>{% endif %}
+                {% if profile.show_assets %}<li><a href="{% url 'thing.views.assets_summary' %}">Assets</a></li>{% endif %}
                 {% if profile.show_blueprints %}<li><a href="{% url 'thing.views.blueprints' %}">Blueprints</a></li>{% endif %}
                 {% if profile.show_contracts -%}
                 <li>

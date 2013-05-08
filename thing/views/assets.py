@@ -7,9 +7,114 @@ from thing.models import *
 from thing.stuff import *
 
 # ---------------------------------------------------------------------------
+
+ASSETS_EXPECTED = {
+    'amount': {
+        'label': 'Amount',
+        'comps': ['eq', 'ne', 'gt', 'gte', 'lt', 'lte'],
+        'number': True,
+    },
+    'char': {
+        'label': 'Character',
+        'comps': ['eq', 'ne'],
+        'number': True,
+    },
+    'corp': {
+        'label': 'Corporation',
+        'comps': ['eq', 'ne'],
+        'number': True,
+    },
+    'location': {
+        'label': 'Location',
+        'comps': ['eq', 'ne', 'in'],
+    }
+}
+
+# ---------------------------------------------------------------------------
+# Assets!
+@login_required
+def assets_summary(request):
+    tt = TimerThing('assets_summary')
+
+    #character_ids = list(Character.objects.filter(apikeys__user=request.user.id).values_list('id', flat=True))
+    characters = Character.objects.filter(apikeys__user=request.user.id).distinct()
+    character_ids = [c.id for c in characters]
+    
+    corporation_ids = list(APIKey.objects.filter(user=request.user).exclude(corp_character=None).values_list('corp_character__corporation__id', flat=True))
+    corporations = Corporation.objects.in_bulk(corporation_ids)
+
+    tt.add_time('init')
+
+    summary_qs = AssetSummary.objects.filter(
+        Q(character__in=character_ids, corporation_id=0)
+        |
+        Q(corporation_id__in=corporation_ids)
+    ).select_related(
+        'character',
+        'system',
+        'station',
+    )
+
+    overall_total = dict(items=0, value=0, volume=0)
+    totals = {}
+    summary_data = {}
+    for summary in summary_qs:
+        summary.z_corporation = corporations.get(summary.corporation_id)
+        if summary.station:
+            station_name = summary.station.name
+        else:
+            station_name = None
+
+        overall_total['items'] += summary.total_items
+        overall_total['value'] += summary.total_value
+        overall_total['volume'] += summary.total_volume
+
+        totals.setdefault((summary.system.name, station_name), dict(items=0, value=0, volume=0))['items'] += summary.total_items
+        totals[(summary.system.name, station_name)]['value'] += summary.total_value
+        totals[(summary.system.name, station_name)]['volume'] += summary.total_volume
+
+        if summary.z_corporation:
+            k = (summary.z_corporation.name, summary.character.name)
+        else:
+            k = (None, summary.character.name)
+        summary_data.setdefault(k, []).append([summary.system.name, station_name, summary])
+
+    tt.add_time('organise data')
+
+    total_data = sorted(totals.items())
+    #summary_data.sort()
+
+    for k, v in summary_data.items():
+        v.sort()
+
+    summary_list = summary_data.items()
+    summary_list.sort()
+
+    tt.add_time('sort data')
+
+    out = render_page(
+        'thing/assets_summary.html',
+        {
+            'characters': characters,
+            'corporations': corporations,
+            'overall_total': overall_total,
+            'total_data': total_data,
+            'summary_list': summary_list,
+        },
+        request,
+        character_ids,
+        corporation_ids,
+    )
+
+    tt.add_time('template')
+    if settings.DEBUG:
+        tt.finished()
+
+    return out
+
 # Assets
 @login_required
-def assets(request):
+def assets_filter(request):
     tt = TimerThing('assets')
 
     character_ids = list(Character.objects.filter(apikeys__user=request.user.id).values_list('id', flat=True))
