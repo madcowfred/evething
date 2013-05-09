@@ -24,8 +24,7 @@ ASSETS_EXPECTED = {
     },
     'invflag': {
         'label': 'Inventory Flag',
-        'comps': ['eq', 'ne'],
-        'number': True,
+        'comps': ['eq', 'ne', 'in'],
     },
     'item': {
         'label': 'Item',
@@ -215,10 +214,12 @@ def assets_filter(request):
     if 'invflag' in filters:
         qs = []
         for fc, fv in filters['invflag']:
-            if fc == 'eq':
+            if fc == 'eq' and fv.isdigit():
                 qs.append(Q(inv_flag_id=fv))
-            elif fc == 'ne':
+            elif fc == 'ne' and fv.isdigit():
                 qs.append(~Q(inv_flag_id=fv))
+            elif fc == 'in':
+                qs.append(Q(inv_flag__name__icontains=fv))
         assets = assets.filter(reduce(operator.ior, qs))
 
     if 'item' in filters:
