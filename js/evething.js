@@ -119,11 +119,16 @@ function sorted_keys(obj) {
     for (var key in obj)
         keys.push(key);
     return keys.sort();
-    /*(function (a,b) {
+}
+function sorted_keys_by_value(obj) {
+    var keys = [];
+    for (var key in obj)
+        keys.push(key);
+    return keys.sort(function (a,b) {
         if (obj[a] < obj[b]) return -1;
         if (obj[a] > obj[b]) return 1;
         return 0;
-    });*/
+    });
 }
 
 
@@ -174,7 +179,7 @@ function filter_build_value(data, ft, fc, fv) {
     if (data[ft]) {
         html += '<select name="fv" class="filter-value input-xlarge">';
 
-        $.each(sorted_keys(data[ft]), function(i, d_id) {
+        $.each(sorted_keys_by_value(data[ft]), function(i, d_id) {
             var d_name = data[ft][d_id];
             if (d_id == fv)
                 html += '<option value="' + d_id + '" selected>' + d_name + '</option>';
