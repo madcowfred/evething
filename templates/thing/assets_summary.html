@@ -7,6 +7,17 @@
 
 {% block extra_js %}
 {% include 'includes/assets_js.html' %}
+    <script type="text/javascript">
+      var sidenav_offset = {
+        top: function() {
+          return $('#total').offset().top;
+        }
+      }
+
+      $('#sidenav').affix({
+        offset: sidenav_offset,
+      });
+    </script>
 {% endblock %}
 
 {% block content %}
@@ -19,8 +30,8 @@
       </div>
 
       <div class="row-fluid">
-        <div class="span3" id="sidenav">
-          <ul class="nav nav-list assets-sidenav span3" data-spy="affix" data-offset-top="100">
+        <div class="span3">
+          <ul class="nav nav-list assets-sidenav span3" id="sidenav">
             <li><a href="#total"><i class="icon-chevron-right"></i> Total</a></li>
             {%- if characters %}
             <li class="divider"></li>
