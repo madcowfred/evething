@@ -6,7 +6,7 @@ BOOTSTRAP_SRC="static/js/bootstrap-alert.js static/js/bootstrap-button.js static
 echo Combining and minifying JavaScript...
 cat $BOOTSTRAP_SRC > static/js/bootstrap.js
 #cat static/js/bootstrap-alert.js static/js/bootstrap-button.js static/js/bootstrap-collapse.js static/js/bootstrap-dropdown.js static/js/bootstrap-modal.js static/js/bootstrap-tooltip.js static/js/bootstrap-popover.js static/js/bootstrap-tab.js static/js/bootstrap-scrollspy.js static/js/bootstrap-affix.js > static/js/bootstrap.js
-cat static/js/jquery-1.9.*.js static/js/jquery.tablesorter.js static/js/bootstrap.js static/js/bootstrap-datepicker.js static/js/evething.js > static/js/evething-combined.js
+cat static/js/jquery-2.*.js static/js/jquery.tablesorter.js static/js/bootstrap.js static/js/bootstrap-datepicker.js static/js/evething.js > static/js/evething-combined.js
 uglifyjs static/js/evething-combined.js -c > static/js/evething-combined.min.js
 
 echo Building theme-default...
