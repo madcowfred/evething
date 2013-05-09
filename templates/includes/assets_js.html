@@ -21,25 +21,6 @@
       $('#filters').append(filter_build(expected));
       {%- endif %}
       
-      // click event for add icon
-      $('body').on('click', '.icon-plus', function() {
-        $('#filters').append(filter_build(expected));
-      });
-
-      // click event for delete icon
-      $('body').on('click', '.icon-trash', function() {
-        $(this).parent().remove();
-      });
-
-      // change event for filter-type selects
-      $('body').on('change', '.filter-type', function () {
-        var $ft = $(this);
-        // clear any other select/input in this line
-        $ft.siblings('select, input').remove();
-        // add the comparison box
-        $ft.parent().append(filter_build_comp(expected, $ft.val(), undefined));
-        // add the value box
-        var $fc = $ft.next();
-        $ft.parent().append(filter_build_value(data, $ft.val(), $fc.val(), ''));
-      });
+      // bind filter events
+      filter_bind();
     </script>

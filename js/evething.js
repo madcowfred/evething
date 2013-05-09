@@ -136,7 +136,6 @@ var filter_comps = { 'eq': '==', 'ne': '!=', 'gt': '>', 'gte': '>=', 'lt': '<', 
 
 function filter_build(expected, data, ft, fc, fv) {
     var html = '<div class="control-group" style="margin: 0;">';
-    html += '<i class="icon-trash clickable"></i> ';
     html += '<select name="ft" class="filter-type input-medium">';
     html += '<option value=""></option>';
 
@@ -153,6 +152,8 @@ function filter_build(expected, data, ft, fc, fv) {
         html += filter_build_value(data, ft, fc, fv);
     }
 
+    html += '<i class="icon-plus clickable filter-icon"></i>';
+    html += '<i class="icon-trash clickable filter-icon"></i>';
     html += '</div>';
 
     return html;
@@ -194,6 +195,33 @@ function filter_build_value(data, ft, fc, fv) {
     }
 
     return html;
+}
+
+function filter_bind() {
+    // click event for add icon
+    $('body').on('click', '.icon-plus', function() {
+        $('#filters').append(filter_build(expected));
+    });
+
+    // click event for delete icon
+    $('body').on('click', '.icon-trash', function() {
+        $(this).parent().remove();
+        if ($('.filter-type').length == 0) {
+            $('#filters').append(filter_build(expected));
+        }
+    });
+
+    // change event for filter-type selects
+    $('body').on('change', '.filter-type', function () {
+        var $ft = $(this);
+        // clear any other select/input in this line
+        $ft.siblings('select, input').remove();
+        // add the comparison box
+        $ft.after(filter_build_comp(expected, $ft.val(), undefined));
+        // add the value box
+        var $fc = $ft.next();
+        $fc.after(filter_build_value(data, $ft.val(), $fc.val(), ''));
+    });
 }
 
 function bind_aggregate_button() {
