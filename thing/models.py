@@ -857,12 +857,12 @@ class InventoryFlag(models.Model):
 # ---------------------------------------------------------------------------
 # Assets
 class Asset(models.Model):
-    asset_id = models.BigIntegerField()
-    parent = models.BigIntegerField(blank=True, null=True)
+    asset_id = models.BigIntegerField(db_index=True)
+    parent = models.BigIntegerField(default=0)
 
-    character = models.ForeignKey(Character, blank=True, null=True)
-    corporation_id = models.IntegerField(blank=True, null=True)
-    system = models.ForeignKey(System, blank=True, null=True)
+    character = models.ForeignKey(Character)
+    corporation_id = models.IntegerField(default=0, db_index=True)
+    system = models.ForeignKey(System)
     station = models.ForeignKey(Station, blank=True, null=True)
 
     item = models.ForeignKey(Item)
