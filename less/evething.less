@@ -125,6 +125,13 @@ td.r { text-align: right; }
 .assets-sidenav.affix {
   top: 50px;
 }
+@media (max-width: 767px) {
+  .assets-sidenav.affix {
+    position: static;
+    width: auto;
+    top: 0;
+  }
+}
 .assets-sidenav > .divider {
   background-color: @tableBorder;
   border-bottom: 1px solid @tableBorder;
