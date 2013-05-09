@@ -27,8 +27,8 @@
         var $this = $(this);
         var data_target = $('i:nth-child(1)', $this.parent()).attr('data-target');
 
-        var ship_type = $('.asset-ship-type', $this.parent()).text();
-        var ship_name = $('.asset-ship-name', $this.parent()).text();
+        var ship_type = $.trim($('.asset-ship-type', $this.parent()).text());
+        var ship_name = $.trim($('.asset-ship-name', $this.parent()).text());
         if (! ship_name)
           ship_name = 'From Assets';
 
