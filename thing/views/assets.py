@@ -22,6 +22,15 @@ ASSETS_EXPECTED = {
         'comps': ['eq', 'ne'],
         'number': True,
     },
+    'invflag': {
+        'label': 'Inventory Flag',
+        'comps': ['eq', 'ne'],
+        'number': True,
+    },
+    'item': {
+        'label': 'Item',
+        'comps': ['eq', 'ne', 'in'],
+    },
     'station': {
         'label': 'Station',
         'comps': ['eq', 'ne', 'in'],
@@ -33,7 +42,7 @@ ASSETS_EXPECTED = {
 }
 
 # ---------------------------------------------------------------------------
-# Assets!
+# Assets summary
 @login_required
 def assets_summary(request):
     tt = TimerThing('assets_summary')
@@ -64,6 +73,7 @@ def assets_summary(request):
         'station',
     )
 
+    # Calculate totals and organise data
     overall_total = dict(items=0, value=0, volume=0)
     totals = {}
     total_data = {}
@@ -75,20 +85,24 @@ def assets_summary(request):
         else:
             station_name = None
 
+        # Overall totals
         overall_total['items'] += summary.total_items
         overall_total['value'] += summary.total_value
         overall_total['volume'] += summary.total_volume
 
+        # Per system/station totals
         k = (summary.system.name, station_name, summary.system_id, summary.station_id)
         totals.setdefault(k, dict(items=0, value=0, volume=0))['items'] += summary.total_items
         totals[k]['value'] += summary.total_value
         totals[k]['volume'] += summary.total_volume
 
+        # Per character/corporation totals
         k = summary.corporation_id or summary.character_id
         total_data.setdefault(k, dict(items=0, value=0, volume=0))['items'] += summary.total_items
         total_data[k]['value'] += summary.total_value
         total_data[k]['volume'] += summary.total_volume
 
+        # Organise summary data
         if summary.z_corporation:
             k = (summary.z_corporation.name, summary.character.name, summary.corporation_id, summary.character_id)
         else:
@@ -97,8 +111,8 @@ def assets_summary(request):
 
     tt.add_time('organise data')
 
+    # Sort data!
     totals_list = sorted(totals.items())
-    #summary_data.sort()
 
     for k, v in summary_data.items():
         v.sort()
@@ -113,6 +127,7 @@ def assets_summary(request):
     values = {
         'chars': characters,
         'corps': corporations,
+        'invflags': InventoryFlag.objects.order_by('name'),
     }
 
     # Render template
@@ -139,7 +154,8 @@ def assets_summary(request):
 
     return out
 
-# Assets
+# ---------------------------------------------------------------------------
+# Assets filter
 @login_required
 def assets_filter(request):
     tt = TimerThing('assets')
@@ -194,6 +210,26 @@ def assets_filter(request):
                     qs.append(Q(corporation_id=0))
                 else:
                     qs.append(~Q(corporation_id=fv))
+        assets = assets.filter(reduce(operator.ior, qs))
+
+    if 'invflag' in filters:
+        qs = []
+        for fc, fv in filters['invflag']:
+            if fc == 'eq':
+                qs.append(Q(inv_flag_id=fv))
+            elif fc == 'ne':
+                qs.append(~Q(inv_flag_id=fv))
+        assets = assets.filter(reduce(operator.ior, qs))
+
+    if 'item' in filters:
+        qs = []
+        for fc, fv in filters['item']:
+            if fc == 'eq':
+                qs.append(Q(item__name=fv))
+            elif fc == 'ne':
+                qs.append(~Q(item__name=fv))
+            elif fc == 'in':
+                qs.append(Q(item__name__icontains=fv))
         assets = assets.filter(reduce(operator.ior, qs))
 
     if 'station' in filters:
@@ -363,6 +399,7 @@ def assets_filter(request):
     values = {
         'chars': characters,
         'corps': corporations,
+        'invflags': InventoryFlag.objects.order_by('name'),
     }
 
     # Render template

@@ -6,6 +6,7 @@
       data['char'] = { {% for char in values.chars %}{{ char.id }}: '{{ char.name }}',{% endfor %} };
       data['corp'] = { {% for corp in values.corps %}{{ corp.id }}: '{{ corp.name }}',{% endfor %} };
       data['corp'][-1] = '*ANY*';
+      data['invflag'] = { {% for invflag in values.invflags %}{{ invflag.id }}: '{{ invflag.name }}',{% endfor %} };
 
       {%- if filters %}
       // add provided filters
