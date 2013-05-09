@@ -145,7 +145,7 @@ asset_delete_char = """
 DELETE
 FROM    thing_asset
 WHERE   character_id = %s
-        AND corporation_id IS NULL
+        AND corporation_id = 0
 """
 
 asset_delete_corp = """
