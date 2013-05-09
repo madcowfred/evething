@@ -33,6 +33,7 @@
 * tasks.api_key_info:
   - When a key is successfully updated, check the APICache for any 221 "derp check access" errors. If any are found, purge
     them from the cache and also the related TaskState object.
+    = This is rather more non-trivial with the new cache backend, may not be possible at all.
 
 * tasks.price_updater:
   - Add support for other sources of market data (EVE-Central, EVEMarketData?)
@@ -60,18 +61,6 @@
         % UPDATE thing_entry SET position = 2 WHERE id = n
       # Complex updating - deal with pre-requisites, urgh
 
-* views.assets:
-  - Improve search features:
-    = Types:
-      # Value
-      # Total value
-      # Containers only toggle?
-      # Item group
-      # Station name
-      # System name
-    = Magical JS buttons to add/remove extra search filters
-      # Steal from successful Wallet Journal implementation
-
 * views.blueprints:
   - Work out a sane way to be able to say "I want to make 100 Blackbirds and 300 rigs to go on them" and get
     a BPCalc summary page out of it.
@@ -91,9 +80,3 @@
 
 * views.home:
   - Add options to hide corp wallet/event log sections
-
-* views.market_scan:
-  - Add different scan types (assets+blueprints can take forever):
-    = Assets
-    = Blueprints
-    = [All]
