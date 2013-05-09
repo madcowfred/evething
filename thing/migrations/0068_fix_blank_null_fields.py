@@ -8,22 +8,8 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Fix up CharacterConfig.anon_key
-        db.execute("UPDATE thing_characterconfig SET anon_key = '' WHERE anon_key IS NULL")
-        #for cc in orm.CharacterConfig.objects.all():
-        #    if cc.anon_key is None:
-        #        cc.anon_key = ''
-        #        cc.save()
-
         # Changing field 'CharacterConfig.anon_key'
         db.alter_column(u'thing_characterconfig', 'anon_key', self.gf('django.db.models.fields.CharField')(max_length=16))
-
-        # Fix up Asset.name
-        db.execute("UPDATE thing_asset SET name = '' WHERE name IS NULL");
-        # for asset in orm.Asset.objects.all():
-        #     if asset.name is None:
-        #         asset.name = ''
-        #         asset.save()
 
         # Changing field 'Asset.name'
         db.alter_column(u'thing_asset', 'name', self.gf('django.db.models.fields.CharField')(max_length=128))
