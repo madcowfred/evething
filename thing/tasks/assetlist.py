@@ -2,10 +2,11 @@ import datetime
 
 from decimal import *
 
-from .apitask import APITask
+from celery.execute import send_task
 
+from .apitask import APITask
 from thing import queries
-from thing.models import Asset, AssetSummary, Character, InventoryFlag, Item, Station, System
+from thing.models import APIKey, Asset, AssetSummary, Character, InventoryFlag, Item, Station, System
 
 # ---------------------------------------------------------------------------
 
@@ -28,7 +29,7 @@ class AssetList(APITask):
             a_filter = Asset.objects.filter(character=character, corporation_id=self.apikey.corp_character.corporation.id)
         # Initialise for character query
         else:
-            a_filter = Asset.objects.filter(character=character, corporation_id__isnull=True)
+            a_filter = Asset.objects.filter(character=character, corporation_id=0)
 
         # Fetch the API data
         params = { 'characterID': character.id }
@@ -131,31 +132,21 @@ class AssetList(APITask):
         cursor.close()
 
         # Fetch names (via Locations API) for assets
-        # if self.apikey.corp_character is None and APIKey.CHAR_LOCATIONS_MASK in self.apikey.get_masks():
-        #     a_filter = a_filter.filter(singleton=True, item__item_group__category__name__in=('Celestial', 'Ship'))
+        if self.apikey.corp_character is None and APIKey.CHAR_LOCATIONS_MASK in self.apikey.get_masks():
+            a_filter = a_filter.filter(
+                singleton=True,
+                item__item_group__category__name='Ship'
+            )
 
-        #     # Get ID list
-        #     ids = map(str, a_filter.values_list('asset_id', flat=True))
-        #     if ids:
-        #         # Fetch the API data
-        #         params['IDs'] = ','.join(map(str, ids))
-        #         if self.fetch_api(LOCATIONS_URL, params) is False or self.root is None:
-        #             return
-
-        #         # Build a map of assetID:assetName
-        #         bulk_data = {}
-        #         for row in self.root.findall('result/rowset/row'):
-        #             bulk_data[int(row.attrib['itemID'])] = row.attrib['itemName']
-
-        #         # Bulk query them
-        #         for asset in a_filter.filter(asset_id__in=bulk_data.keys()):
-        #             asset_name = bulk_data.get(asset.asset_id)
-        #             if asset.name is None or asset.name != asset_name:
-        #                 asset.name = asset_name
-        #                 asset.save()
+            for asset in a_filter:
+                send_task(
+                    'thing.locations',
+                    args=(apikey_id, character_id, asset.asset_id),
+                    kwargs={},
+                    queue='et_medium',
+                )
 
         return True
-
 
     # Recursively visit the assets tree and gather data
     def _find_assets(self, data, rowset, location_id=0, parent_id=0):

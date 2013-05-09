@@ -13,6 +13,7 @@ from charactersheet import CharacterSheet
 from contracts import Contracts
 from corporationsheet import CorporationSheet
 from industryjobs import IndustryJobs
+from locations import Locations
 from marketorders import MarketOrders
 # from membertracking import MemberTracking
 # from shareholders import Shareholders
