@@ -244,17 +244,17 @@ class Alliance(models.Model):
 class Corporation(models.Model):
     id = models.IntegerField(primary_key=True)
     name = models.CharField(max_length=64)
-    ticker = models.CharField(max_length=5, blank=True, null=True)
+    ticker = models.CharField(max_length=5, default='')
 
     alliance = models.ForeignKey(Alliance, blank=True, null=True)
 
-    division1 = models.CharField(max_length=64, blank=True, null=True)
-    division2 = models.CharField(max_length=64, blank=True, null=True)
-    division3 = models.CharField(max_length=64, blank=True, null=True)
-    division4 = models.CharField(max_length=64, blank=True, null=True)
-    division5 = models.CharField(max_length=64, blank=True, null=True)
-    division6 = models.CharField(max_length=64, blank=True, null=True)
-    division7 = models.CharField(max_length=64, blank=True, null=True)
+    division1 = models.CharField(max_length=64, default='')
+    division2 = models.CharField(max_length=64, default='')
+    division3 = models.CharField(max_length=64, default='')
+    division4 = models.CharField(max_length=64, default='')
+    division5 = models.CharField(max_length=64, default='')
+    division6 = models.CharField(max_length=64, default='')
+    division7 = models.CharField(max_length=64, default='')
 
     class Meta:
         ordering = ('name',)
@@ -347,7 +347,7 @@ class CharacterConfig(models.Model):
     show_skill_queue = models.BooleanField(default=False)
     show_standings = models.BooleanField(default=False)
     show_wallet = models.BooleanField(default=False)
-    anon_key = models.CharField(max_length=16, blank=True, null=True, default='')
+    anon_key = models.CharField(max_length=16, default='')
 
     def __unicode__(self):
         return self.character.name
@@ -531,7 +531,7 @@ def roman_to_int(n):
 class Station(models.Model):
     id = models.IntegerField(primary_key=True)
     name = models.CharField(max_length=128)
-    short_name = models.CharField(max_length=64, blank=True, null=True)
+    short_name = models.CharField(max_length=64, default='')
     
     system = models.ForeignKey(System)
     
@@ -866,7 +866,7 @@ class Asset(models.Model):
     station = models.ForeignKey(Station, blank=True, null=True)
 
     item = models.ForeignKey(Item)
-    name = models.CharField(max_length=128, blank=True, null=True)
+    name = models.CharField(max_length=128, default='')
     inv_flag = models.ForeignKey(InventoryFlag)
     quantity = models.IntegerField()
     raw_quantity = models.IntegerField()
@@ -925,8 +925,8 @@ class Contract(models.Model):
 
     issuer_char = models.ForeignKey(Character, blank=True, null=True, related_name="contract_issuers")
     issuer_corp = models.ForeignKey(Corporation, related_name="contract_issuers")
-    assignee_id = models.IntegerField(blank=True, null=True)
-    acceptor_id = models.IntegerField(blank=True, null=True)
+    assignee_id = models.IntegerField(default=0)
+    acceptor_id = models.IntegerField(default=0)
 
     start_station = models.ForeignKey(Station, blank=True, null=True, related_name="contract_starts")
     end_station = models.ForeignKey(Station, blank=True, null=True, related_name="contract_ends")
