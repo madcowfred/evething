@@ -274,6 +274,34 @@ def assets_filter(request):
 
     tt.add_time('asset map')
 
+    # do parent checks now, ugh
+    recurse_you_fool = True
+    recurse_assets = assets
+    while recurse_you_fool:
+        parents = set()
+        for asset in recurse_assets:
+            if asset.parent not in asset_map:
+                parents.add(asset.parent)
+
+        # found some orphan children, better go fetch some more assets
+        if parents:
+            recurse_assets = Asset.objects.filter(
+                asset_id__in=parents,
+            ).prefetch_related(
+                'item__item_group__category',
+                'inv_flag',
+                'system',
+                'station',
+            )
+
+            for asset in recurse_assets:
+                asset.z_muted = True
+                asset_map[asset.asset_id] = asset
+
+        # No more orphans, escape
+        else:
+            recurse_you_fool = False
+
     # initialise data structures
     asset_lookup = {}
     loc_totals = {}
