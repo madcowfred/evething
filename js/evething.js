@@ -160,7 +160,7 @@ function filter_build(expected, data, ft, fc, fv) {
 }
 
 function filter_build_comp(expected, ft, fc) {
-    html = ' <select name="fc" class="input-small">';
+    html = ' <select name="fc" class="filter-comp input-small">';
 
     for (var k in expected[ft].comps) {
         var v = expected[ft].comps[k];
@@ -176,8 +176,9 @@ function filter_build_comp(expected, ft, fc) {
 
 function filter_build_value(data, ft, fc, fv) {
     html = ' ';
+    console.log(fc);
 
-    if (data[ft]) {
+    if (data[ft] && fc != 'in') {
         html += '<select name="fv" class="filter-value input-xlarge">';
 
         $.each(sorted_keys_by_value(data[ft]), function(i, d_id) {
@@ -212,7 +213,7 @@ function filter_bind() {
     });
 
     // change event for filter-type selects
-    $('body').on('change', '.filter-type', function () {
+    $('body').on('change', '.filter-type', function() {
         var $ft = $(this);
         // clear any other select/input in this line
         $ft.siblings('select, input').remove();
@@ -221,6 +222,18 @@ function filter_bind() {
         // add the value box
         var $fc = $ft.next();
         $fc.after(filter_build_value(data, $ft.val(), $fc.val(), ''));
+    });
+
+    // change event for filter-comp selects
+    $('body').on('change', '.filter-comp', function() {
+        var $ft = $(this).prev();
+        var $fc = $(this);
+        var $fv = $fc.next();
+        
+        if ( ($fc.val() === 'in' && $fv.is('select') ) || ($fc.val() !== 'in' && $fv.is('input')) ) {
+            $fv.remove();
+            $fc.after(filter_build_value(data, $ft.val(), $fc.val(), ''));
+        }
     });
 }
 
