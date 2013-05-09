@@ -14,12 +14,12 @@ MONTHS = (None, 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', '
 FILTER_EXPECTED = {
     'char': {
         'label': 'Character',
-        'comps': ['eq', 'ne'],
+        'comps': ['eq', 'ne', 'in'],
         'number': True,
     },
     'corp': {
         'label': 'Corporation',
-        'comps': ['eq', 'ne'],
+        'comps': ['eq', 'ne', 'in'],
         'number': True,
     },
     'client': {

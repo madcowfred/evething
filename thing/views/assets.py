@@ -14,12 +14,12 @@ from thing.stuff import *
 ASSETS_EXPECTED = {
     'char': {
         'label': 'Character',
-        'comps': ['eq', 'ne'],
+        'comps': ['eq', 'ne', 'in'],
         'number': True,
     },
     'corp': {
         'label': 'Corporation',
-        'comps': ['eq', 'ne'],
+        'comps': ['eq', 'ne', 'in'],
         'number': True,
     },
     'invflag': {
