@@ -1,31 +1,25 @@
 #!/bin/sh
 
-# cat js/bootstrap-transition.js js/bootstrap-alert.js js/bootstrap-button.js js/bootstrap-carousel.js js/bootstrap-collapse.js js/bootstrap-dropdown.js js/bootstrap-modal.js js/bootstrap-tooltip.js js/bootstrap-popover.js js/bootstrap-scrollspy.js js/bootstrap-tab.js js/bootstrap-typeahead.js js/bootstrap-affix.js > js/bootstrap.js
+# cat static/js/bootstrap-transition.js static/js/bootstrap-alert.js static/js/bootstrap-button.js static/js/bootstrap-carousel.js static/js/bootstrap-collapse.js static/js/bootstrap-dropdown.js static/js/bootstrap-modal.js static/js/bootstrap-tooltip.js static/js/bootstrap-popover.js static/js/bootstrap-scrollspy.js static/js/bootstrap-tab.js static/js/bootstrap-typeahead.js static/js/bootstrap-affix.js > static/js/bootstrap.js
+BOOTSTRAP_SRC="static/js/bootstrap-alert.js static/js/bootstrap-button.js static/js/bootstrap-collapse.js static/js/bootstrap-dropdown.js static/js/bootstrap-modal.js static/js/bootstrap-tooltip.js static/js/bootstrap-popover.js static/js/bootstrap-tab.js static/js/bootstrap-scrollspy.js static/js/bootstrap-affix.js"
 
 echo Combining and minifying JavaScript...
-cat js/bootstrap-alert.js js/bootstrap-button.js js/bootstrap-collapse.js js/bootstrap-dropdown.js js/bootstrap-modal.js js/bootstrap-tooltip.js js/bootstrap-popover.js js/bootstrap-tab.js js/bootstrap-scrollspy.js js/bootstrap-affix.js > js/bootstrap.js
-cat js/jquery-1.9.*.js js/jquery.tablesorter.js js/bootstrap.js js/bootstrap-datepicker.js js/evething.js > static/js/evething.js
-uglifyjs static/js/evething.js -c > static/js/evething.min.js
+cat $BOOTSTRAP_SRC > static/js/bootstrap.js
+#cat static/js/bootstrap-alert.js static/js/bootstrap-button.js static/js/bootstrap-collapse.js static/js/bootstrap-dropdown.js static/js/bootstrap-modal.js static/js/bootstrap-tooltip.js static/js/bootstrap-popover.js static/js/bootstrap-tab.js static/js/bootstrap-scrollspy.js static/js/bootstrap-affix.js > static/js/bootstrap.js
+cat static/js/jquery-1.9.*.js static/js/jquery.tablesorter.js static/js/bootstrap.js static/js/bootstrap-datepicker.js static/js/evething.js > static/js/evething-combined.js
+uglifyjs static/js/evething-combined.js -c > static/js/evething-combined.min.js
 
 echo Building theme-default...
-recess --compress less/theme-default/bootstrap.less > static/css/theme-default.min.css
+recess --compress static/less/theme-default/bootstrap.less > static/css/theme-default.min.css
 
 echo Building theme-darkthing...
-recess --compress less/theme-darkthing/bootstrap.less > static/css/theme-darkthing.min.css
+recess --compress static/less/theme-darkthing/bootstrap.less > static/css/theme-darkthing.min.css
 
 echo Building theme-slate...
-recess --compress less/theme-slate/bootstrap.less > static/css/theme-slate.min.css
+recess --compress static/less/theme-slate/bootstrap.less > static/css/theme-slate.min.css
 
 echo Building theme-cyborg...
-recess --compress less/theme-cyborg/bootstrap.less > static/css/theme-cyborg.min.css
+recess --compress static/less/theme-cyborg/bootstrap.less > static/css/theme-cyborg.min.css
 
 echo Building theme-cerulean...
-recess --compress less/theme-cerulean/bootstrap.less > static/css/theme-cerulean.min.css
-
-#for f in icons-default.css icons-fugue-stars.css
-#do
-#	spritemapper icons/$f
-#	sed 's#/static##g' static/css/sprite-$f > /tmp/$f
-#	recess --compress /tmp/$f > static/css/sprite-$f
-#	rm /tmp/$f
-#done
+recess --compress static/less/theme-cerulean/bootstrap.less > static/css/theme-cerulean.min.css
