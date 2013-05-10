@@ -25,18 +25,22 @@ JOURNAL_EXPECTED = {
         'comps': ['eq', 'ne', 'in'],
         'number': True,
     },
-    'reftype': {
-        'label': 'Ref Type',
-        'comps': ['eq', 'ne', 'in'],
+    'amount': {
+        'label': 'Amount',
+        'comps': ['eq', 'ne', 'gt', 'gte', 'lt', 'lte'],
         'number': True,
+    },
+    'date': {
+        'label': 'Date',
+        'comps': ['eq', 'bt'],
     },
     'owners': {
         'label': 'Owners',
         'comps': ['eq', 'ne', 'in'],
     },
-    'amount': {
-        'label': 'Amount',
-        'comps': ['eq', 'ne', 'gt', 'gte', 'lt', 'lte'],
+    'reftype': {
+        'label': 'Ref Type',
+        'comps': ['eq', 'ne', 'in'],
         'number': True,
     },
 }
@@ -447,23 +451,6 @@ def _journal_queryset(request, character_ids, corporation_ids):
     # Parse and apply filters
     filters = parse_filters(request, JOURNAL_EXPECTED)
 
-    if 'amount' in filters:
-        qs = []
-        for fc, fv in filters['amount']:
-            if fc == 'eq':
-                qs.append(Q(amount=fv))
-            elif fc == 'ne':
-                qs.append(~Q(amount=fv))
-            elif fc == 'gt':
-                qs.append(Q(amount__gt=fv))
-            elif fc == 'gte':
-                qs.append(Q(amount__gte=fv))
-            elif fc == 'lt':
-                qs.append(Q(amount__lt=fv))
-            elif fc == 'lte':
-                qs.append(Q(amount__lte=fv))
-        journal_ids = journal_ids.filter(reduce(q_reduce_or, qs))
-
     if 'char' in filters:
         qs = []
         for fc, fv in filters['char']:
@@ -488,13 +475,43 @@ def _journal_queryset(request, character_ids, corporation_ids):
                     qs.append(~Q(corp_wallet__corporation=fv))
         journal_ids = journal_ids.filter(reduce(q_reduce_or, qs))
 
-    if 'reftype' in filters:
+    if 'amount' in filters:
         qs = []
-        for fc, fv in filters['reftype']:
+        for fc, fv in filters['amount']:
             if fc == 'eq':
-                qs.append(Q(ref_type=fv))
+                qs.append(Q(amount=fv))
             elif fc == 'ne':
-                qs.append(~Q(ref_type=fv))
+                qs.append(~Q(amount=fv))
+            elif fc == 'gt':
+                qs.append(Q(amount__gt=fv))
+            elif fc == 'gte':
+                qs.append(Q(amount__gte=fv))
+            elif fc == 'lt':
+                qs.append(Q(amount__lt=fv))
+            elif fc == 'lte':
+                qs.append(Q(amount__lte=fv))
+        journal_ids = journal_ids.filter(reduce(q_reduce_or, qs))
+
+    if 'date' in filters:
+        qs = []
+        for fc, fv in filters['date']:
+            if fc == 'eq':
+                try:
+                    start = datetime.datetime.strptime(fv, '%Y-%m-%d')
+                    end = datetime.datetime.strptime('%s 23:59:59' % (fv), '%Y-%m-%d %H:%M:%S')
+                    qs.append(Q(date__range=(start, end)))
+                except ValueError:
+                    pass
+            elif fc == 'bt':
+                parts = fv.split(',')
+                if len(parts) == 2:
+                    try:
+                        start = datetime.datetime.strptime(parts[0], '%Y-%m-%d')
+                        end = datetime.datetime.strptime('%s 23:59:59' % (parts[1]), '%Y-%m-%d %H:%M:%S')
+                        if start < end:
+                            qs.append(Q(date__range=(start, end)))
+                    except ValueError:
+                        pass
         journal_ids = journal_ids.filter(reduce(q_reduce_or, qs))
 
     # Owners is a special case that requires some extra queries
@@ -527,6 +544,15 @@ def _journal_queryset(request, character_ids, corporation_ids):
             |
             Q(owner2_id__in=owner_ids)
         )
+
+    if 'reftype' in filters:
+        qs = []
+        for fc, fv in filters['reftype']:
+            if fc == 'eq':
+                qs.append(Q(ref_type=fv))
+            elif fc == 'ne':
+                qs.append(~Q(ref_type=fv))
+        journal_ids = journal_ids.filter(reduce(q_reduce_or, qs))
 
     # Apply days limit
     try:
