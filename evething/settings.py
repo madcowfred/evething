@@ -154,6 +154,7 @@ THEMES = [
     ('default', '<Default>'),
     ('darkthing', 'DarkThing *beta*'),
     ('cerulean', 'Cerulean'),
+    ('cosmo', 'Cosmo'),
     ('cyborg', 'Cyborg'),
     ('slate', 'Slate'),
 ]

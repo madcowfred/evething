@@ -23,3 +23,6 @@ recess --compress static/less/theme-cyborg/bootstrap.less > static/css/theme-cyb
 
 echo Building theme-cerulean...
 recess --compress static/less/theme-cerulean/bootstrap.less > static/css/theme-cerulean.min.css
+
+echo Building theme-cosmo...
+recess --compress static/less/theme-cosmo/bootstrap.less > static/css/theme-cosmo.min.css
