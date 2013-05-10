@@ -36,7 +36,8 @@ html {
 
 body {
 	min-height: 100%;
-	#gradient > .vertical (@bodyBackground, #252A30);
+	#gradient > .vertical (@bodyBackground, lighten(@bodyBackground, 5%));
+	background-attachment: fixed;
 }
 
 .page-header {
