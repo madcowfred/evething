@@ -11,7 +11,7 @@ $(document).ready(function() {
         }
     });
 
-    // activate bootstraptooltips
+    // activate bootstrap tooltips
     $("[rel=tooltip]").tooltip();
     // activate bootstrap dropdowns
     $('.dropdown-toggle').dropdown();
@@ -132,7 +132,16 @@ function sorted_keys_by_value(obj) {
 }
 
 
-var filter_comps = { 'eq': '==', 'ne': '!=', 'gt': '>', 'gte': '>=', 'lt': '<', 'lte': '<=', 'in': 'contains' }
+var filter_comps = {
+    'eq': '==',
+    'ne': '!=',
+    'gt': '>',
+    'gte': '>=',
+    'lt': '<',
+    'lte': '<=',
+    'in': 'contains',
+    'bt': 'between',
+}
 
 function filter_build(expected, data, ft, fc, fv) {
     var html = '<div class="control-group" style="margin: 0;">';
@@ -152,7 +161,7 @@ function filter_build(expected, data, ft, fc, fv) {
         html += filter_build_value(data, ft, fc, fv);
     }
 
-    html += '<i class="icon-plus clickable filter-icon"></i>';
+    html += ' <i class="icon-plus clickable filter-icon"></i>';
     html += '<i class="icon-trash clickable filter-icon"></i>';
     html += '</div>';
 
@@ -176,9 +185,30 @@ function filter_build_comp(expected, ft, fc) {
 
 function filter_build_value(data, ft, fc, fv) {
     html = ' ';
-    console.log(fc);
 
-    if (data[ft] && fc != 'in') {
+    if (fc == 'in') {
+        html += '<input name="fv" class="filter-value input-xlarge" type="text" value="' + fv + '">';
+    }
+    else if (ft == 'date') {
+        dates = fv.split(',');
+        for (var i = dates.length; i < 2; i++) {
+            dates.push('');
+        }
+
+        html += '<span>';
+        html += '<div class="input-append date" data-date="' + dates[0] + '" data-date-format="yyyy-mm-dd">';
+        html += '<input type="text" class="input-small" value="' + dates[0] + '" readonly>';
+        html += '<span class="add-on"><i class="icon-calendar"></i></span></div>';
+        if (fc == 'bt') {
+            html += ' and ';
+            html += '<div class="input-append date" data-date="' + dates[1] + '" data-date-format="yyyy-mm-dd">';
+            html += '<input type="text" class="input-small" value="' + dates[1] + '" readonly>';
+            html += '<span class="add-on"><i class="icon-calendar"></i></span></div>';
+        }
+        html += '<input type="hidden" name="fv" value="">';
+        html += '</span>';
+    }
+    else if (data[ft]) {
         html += '<select name="fv" class="filter-value input-xlarge">';
 
         $.each(sorted_keys_by_value(data[ft]), function(i, d_id) {
@@ -194,7 +224,6 @@ function filter_build_value(data, ft, fc, fv) {
     else {
         html += '<input name="fv" class="filter-value input-xlarge" type="text" value="' + fv + '">';
     }
-
     return html;
 }
 
@@ -202,6 +231,7 @@ function filter_bind() {
     // click event for add icon
     $('body').on('click', '.icon-plus', function() {
         $('#filters').append(filter_build(expected));
+        $('.date').datepicker();
     });
 
     // click event for delete icon
@@ -222,6 +252,7 @@ function filter_bind() {
         // add the value box
         var $fc = $ft.next();
         $fc.after(filter_build_value(data, $ft.val(), $fc.val(), ''));
+        $('.date').datepicker();
     });
 
     // change event for filter-comp selects
@@ -230,11 +261,29 @@ function filter_bind() {
         var $fc = $(this);
         var $fv = $fc.next();
         
-        if ( ($fc.val() === 'in' && $fv.is('select') ) || ($fc.val() !== 'in' && $fv.is('input')) ) {
+        var val = $fc.val();
+        if (
+            (val === 'in' && ! $fv.is('input')) ||
+            (val === 'bt') ||
+            (val !== 'in' && val !== 'bt' && ! $fv.is('select'))
+        ) {
             $fv.remove();
             $fc.after(filter_build_value(data, $ft.val(), $fc.val(), ''));
+            $('.date').datepicker();
         }
     });
+
+    // change event for datepicker disasters
+    $('body').on('changeDate', '.date', function(ev) {
+        var $span = $('span:first', $(this).parent().parent());
+        var dates = [];
+        $.each($('input[type="text"]', $span), function(index, input) {
+            dates.push($(input).val());
+        });
+        $('input[type="hidden"]', $span).val(dates.join());
+    });
+
+    $('.date').datepicker();
 }
 
 function bind_aggregate_button() {
