@@ -74,9 +74,11 @@
 {% block content %}
       <div class="row-fluid">
         <div class="span12">
+          <span><strong>Total SP:</strong> {{ total_sp|commas }}</span>
+          <span class="divider">/</span>
           <span><strong>Total Balance:</strong> {{ total_balance|commas }} ISK</span>
           <span class="divider">/</span>
-          <span><strong>Total SP:</strong> {{ total_sp|commas }}</span>
+          <span><strong>Total Assets:</strong> {{ total_assets|commas }} ISK</span>
           <span class="pull-right">
             <a href="#" onclick="screenshot_mode();">
               <i class="icon-picture" title="Screenshot sanitised mode"></i>

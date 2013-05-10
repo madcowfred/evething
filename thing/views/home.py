@@ -50,13 +50,18 @@ def home(request):
     characters = cache.get(cache_key)
     # Not cached, fetch from database and cache
     if characters is None:
-        characters = Character.objects.\
-            filter(apikeys__user=request.user, apikeys__key_type__in=(APIKey.ACCOUNT_TYPE, APIKey.CHARACTER_TYPE)).\
-            prefetch_related('apikeys').\
-            select_related('config', 'details').\
-            annotate(total_sp=Sum('characterskill__points')).\
-            distinct()
-        characters = [c for c in characters if c.details is not None]
+        character_qs = Character.objects.filter(
+            apikeys__user=request.user,
+            apikeys__key_type__in=(APIKey.ACCOUNT_TYPE, APIKey.CHARACTER_TYPE),
+        ).prefetch_related(
+            'apikeys',
+        ).select_related(
+            'config',
+            'details',
+        ).annotate(
+            total_sp=Sum('characterskill__points'),
+        ).distinct()
+        characters = [c for c in character_qs if c.details is not None]
         cache.set(cache_key, characters, 300)
 
     for character in characters:
@@ -122,6 +127,14 @@ def home(request):
         total_sp += char.z_total_sp
 
     tt.add_time('total_sp')
+
+    # Do total asset value aggregation
+    total_assets = AssetSummary.objects.filter(
+        character__in=chars.keys(),
+        corporation_id=0,
+    ).aggregate(
+        t=Sum('total_value'),
+    )['t']
 
     # Work out who is and isn't training
     not_training = api_keys - training
@@ -254,13 +267,6 @@ def home(request):
 
     tt.add_time('corps')
 
-    # Get old event stats for staff users
-    #if request.user.is_staff:
-    #else:
-    #    task_count = 0
-
-    #tt.add_time('misc junk')
-
     out = render_page(
         'thing/home.html',
         {
@@ -268,6 +274,7 @@ def home(request):
             'not_training': not_training,
             'total_balance': total_balance,
             'total_sp': total_sp,
+            'total_assets': total_assets,
             'corporations': corporations,
             'characters': first + last,
             'events': list(Event.objects.filter(user=request.user)[:10]),
