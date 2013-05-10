@@ -26,6 +26,10 @@ FILTER_EXPECTED = {
         'label': 'Client',
         'comps': ['eq', 'ne', 'in'],
     },
+    'date': {
+        'label': 'Date',
+        'comps': ['eq', 'bt'],
+    },
     'item': {
         'label': 'Item',
         'comps': ['eq', 'ne', 'in'],
@@ -78,6 +82,79 @@ def transactions(request):
 
     # Parse and apply filters
     filters = parse_filters(request, FILTER_EXPECTED)
+
+    if 'char' in filters:
+        qs = []
+        for fc, fv in filters['char']:
+            if fc == 'eq':
+                qs.append(Q(character=fv))
+            elif fc == 'ne':
+                qs.append(~Q(character=fv))
+        transaction_ids = transaction_ids.filter(reduce(q_reduce_or, qs))
+
+    if 'corp' in filters:
+        qs = []
+        for fc, fv in filters['corp']:
+            if fc == 'eq':
+                qs.append(Q(corp_wallet__corporation=fv))
+            elif fc == 'ne':
+                qs.append(~Q(corp_wallet__corporation=fv))
+        transaction_ids = transaction_ids.filter(reduce(q_reduce_or, qs))
+
+    # Client is a special case that requires some extra queries
+    if 'client' in filters:
+        qs = []
+        for fc, fv in filters['client']:
+            if fc == 'eq':
+                qs.append(Q(name=fv))
+            elif fc == 'ne':
+                qs.append(~Q(name=fv))
+            elif fc == 'in':
+                qs.append(Q(name__icontains=fv))
+
+        qs_reduced = reduce(q_reduce_or, qs)
+
+        char_ids = list(Character.objects.filter(qs_reduced).values_list('id', flat=True))
+        corp_ids = list(Corporation.objects.filter(qs_reduced).values_list('id', flat=True))
+
+        transaction_ids = transaction_ids.filter(
+            Q(other_char_id__in=char_ids)
+            |
+            Q(other_corp_id__in=corp_ids)
+        )
+
+    if 'date' in filters:
+        qs = []
+        for fc, fv in filters['date']:
+            if fc == 'eq':
+                try:
+                    start = datetime.datetime.strptime(fv, '%Y-%m-%d')
+                    end = datetime.datetime.strptime('%s 23:59:59' % (fv), '%Y-%m-%d %H:%M:%S')
+                    qs.append(Q(date__range=(start, end)))
+                except ValueError:
+                    pass
+            elif fc == 'bt':
+                parts = fv.split(',')
+                if len(parts) == 2:
+                    try:
+                        start = datetime.datetime.strptime(parts[0], '%Y-%m-%d')
+                        end = datetime.datetime.strptime('%s 23:59:59' % (parts[1]), '%Y-%m-%d %H:%M:%S')
+                        if start < end:
+                            qs.append(Q(date__range=(start, end)))
+                    except ValueError:
+                        pass
+        transaction_ids = transaction_ids.filter(reduce(q_reduce_or, qs))
+
+    if 'item' in filters:
+        qs = []
+        for fc, fv in filters['item']:
+            if fc == 'eq':
+                qs.append(Q(item__name=fv))
+            elif fc == 'ne':
+                qs.append(~Q(item__name=fv))
+            elif fc == 'in':
+                qs.append(Q(item__name__icontains=fv))
+        transaction_ids = transaction_ids.filter(reduce(q_reduce_or, qs))
 
     if 'total' in filters:
         qs = []
@@ -132,57 +209,6 @@ def transactions(request):
                     qs.append(Q(buy_transaction=True, total_price__gte=abs(fv)))
 
         transaction_ids = transaction_ids.filter(reduce(q_reduce_or, qs))
-
-    if 'char' in filters:
-        qs = []
-        for fc, fv in filters['char']:
-            if fc == 'eq':
-                qs.append(Q(character=fv))
-            elif fc == 'ne':
-                qs.append(~Q(character=fv))
-        transaction_ids = transaction_ids.filter(reduce(q_reduce_or, qs))
-
-    if 'corp' in filters:
-        qs = []
-        for fc, fv in filters['corp']:
-            if fc == 'eq':
-                qs.append(Q(corp_wallet__corporation=fv))
-            elif fc == 'ne':
-                qs.append(~Q(corp_wallet__corporation=fv))
-        transaction_ids = transaction_ids.filter(reduce(q_reduce_or, qs))
-
-    if 'item' in filters:
-        qs = []
-        for fc, fv in filters['item']:
-            if fc == 'eq':
-                qs.append(Q(item__name=fv))
-            elif fc == 'ne':
-                qs.append(~Q(item__name=fv))
-            elif fc == 'in':
-                qs.append(Q(item__name__icontains=fv))
-        transaction_ids = transaction_ids.filter(reduce(q_reduce_or, qs))
-
-    # Client is a special case that requires some extra queries
-    if 'client' in filters:
-        qs = []
-        for fc, fv in filters['client']:
-            if fc == 'eq':
-                qs.append(Q(name=fv))
-            elif fc == 'ne':
-                qs.append(~Q(name=fv))
-            elif fc == 'in':
-                qs.append(Q(name__icontains=fv))
-
-        qs_reduced = reduce(q_reduce_or, qs)
-
-        char_ids = list(Character.objects.filter(qs_reduced).values_list('id', flat=True))
-        corp_ids = list(Corporation.objects.filter(qs_reduced).values_list('id', flat=True))
-
-        transaction_ids = transaction_ids.filter(
-            Q(other_char_id__in=char_ids)
-            |
-            Q(other_corp_id__in=corp_ids)
-        )
 
     tt.add_time('filters')
 
