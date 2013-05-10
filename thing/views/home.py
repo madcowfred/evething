@@ -219,6 +219,14 @@ def home(request):
                 'tooltip': 'Insufficient clone!',
             })
 
+        # Sort out well class here ugh
+        if char.z_apikey in not_training:
+            char.z_well_class = ' alert-error'
+        elif char.z_notifications and profile.home_highlight_notifications:
+            char.z_well_class = ' alert-warn'
+        elif not char.z_notifications and profile.home_highlight_no_notifications:
+            char.z_well_class = ' alert-success'
+
     tt.add_time('notifications')
 
     # Work out sort order

@@ -50,6 +50,8 @@ class UserProfile(models.Model):
     home_sort_descending = models.BooleanField(default=False)
     home_hide_characters = models.TextField(default='')
     home_show_locations = models.BooleanField(default=True)
+    home_highlight_no_notifications = models.BooleanField(default=True)
+    home_highlight_notifications = models.BooleanField(default=True)
 
 # Magical hook so this gets called when a new user is created
 def create_user_profile(sender, instance, created, **kwargs):

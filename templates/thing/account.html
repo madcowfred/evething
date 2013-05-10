@@ -255,6 +255,24 @@
                     </div>
                   </div>
                   <div class="control-group">
+                    <label class="control-label" for="home_highlight_no_notifications">Highlight no notifications</label>
+                    <div class="controls">
+                      <label class="checkbox">
+                        <input type="checkbox" name="home_highlight_no_notifications"{% if profile.home_highlight_no_notifications %} checked{% endif %}>
+                      </label>
+                      <p class="help-block">Highlight character boxes when they have no notifications</p>
+                    </div>
+                  </div>
+                  <div class="control-group">
+                    <label class="control-label" for="home_highlight_notifications">Highlight notifications</label>
+                    <div class="controls">
+                      <label class="checkbox">
+                        <input type="checkbox" name="home_highlight_notifications"{% if profile.home_highlight_notifications %} checked{% endif %}>
+                      </label>
+                      <p class="help-block">Highlight character boxes when they have notifications</p>
+                    </div>
+                  </div>
+                  <div class="control-group">
                     <label class="control-label" for="home_hide_characters">Hide characters</label>
                     <div class="controls">
                       {% for character in characters -%}
