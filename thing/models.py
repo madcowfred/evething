@@ -1,13 +1,14 @@
+import datetime
+import math
+import time
+from decimal import *
+from xml.sax.saxutils import unescape
+
 from django.contrib.auth.models import User
 from django.db import models
 from django.db.models import Q, Avg, Sum
 from django.db.models.signals import post_save
 from mptt.models import MPTTModel, TreeForeignKey
-
-import datetime
-import math
-import time
-from decimal import *
 
 from thing.stuff import total_seconds
 
@@ -771,6 +772,12 @@ class JournalEntry(models.Model):
 
     class Meta:
         ordering = ('-date',)
+
+    def get_unescaped_reason(self):
+        if len(self.reason) > 0:
+            return unescape(self.reason)
+        else:
+            return self.reason
 
 # ---------------------------------------------------------------------------
 # Wallet transactions

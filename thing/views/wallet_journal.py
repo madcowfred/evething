@@ -166,7 +166,7 @@ def wallet_journal(request):
             entry.z_description = entry.reason
         # Player Donation/Corporation Account Withdrawal
         elif entry.ref_type_id in (10, 37) and entry.reason != '':
-            entry.z_description = '"%s"' % (entry.reason[5:].strip())
+            entry.z_description = '"%s"' % (entry.get_unescaped_reason()[5:].strip())
         # Insurance, arg_name is the item_id of the ship that exploded
         elif entry.ref_type_id == 19:
             if entry.amount >= 0:
