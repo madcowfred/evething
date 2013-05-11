@@ -16,7 +16,7 @@
 
           {% include 'includes/wallet_journal_filters.html' %}
 
-          <strong>Balance for this filter set</strong>: {{ total_amount|commas }} ISK
+          <strong>Balance for this filter set</strong>: {{ total_amount|default('0.00')|commas }} ISK
         </div>
       </div>
 
