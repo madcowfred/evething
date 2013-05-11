@@ -187,7 +187,7 @@ function filter_build_value(data, ft, fc, fv) {
     html = ' ';
 
     if (fc == 'in') {
-        html += '<input name="fv" class="filter-value input-xlarge" type="text" value="' + fv + '">';
+        html += '<input name="fv" class="filter-value span2" type="text" value="' + fv + '">';
     }
     else if (ft == 'date') {
         dates = fv.split(',');
@@ -209,7 +209,7 @@ function filter_build_value(data, ft, fc, fv) {
         html += '</span>';
     }
     else if (data[ft]) {
-        html += '<select name="fv" class="filter-value input-xlarge">';
+        html += '<select name="fv" class="filter-value span2">';
 
         $.each(sorted_keys_by_value(data[ft]), function(i, d_id) {
             var d_name = data[ft][d_id];
@@ -222,7 +222,7 @@ function filter_build_value(data, ft, fc, fv) {
         html += '</select>';
     }
     else {
-        html += '<input name="fv" class="filter-value input-xlarge" type="text" value="' + fv + '">';
+        html += '<input name="fv" class="filter-value span2" type="text" value="' + fv + '">';
     }
     return html;
 }
