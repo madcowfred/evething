@@ -129,6 +129,7 @@ class APIKey(models.Model):
     expires = models.DateTimeField(null=True, blank=True)
     paid_until = models.DateTimeField(null=True, blank=True)
     
+    created_at = models.DateTimeField(auto_now=True)
     valid = models.BooleanField(default=True)
     
     characters = models.ManyToManyField('Character', related_name='apikeys')
