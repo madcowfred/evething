@@ -131,6 +131,7 @@ def assets_summary(request):
         'chars': characters,
         'corps': corporations,
         'invflags': InventoryFlag.objects.order_by('name'),
+        'itemcats': ItemCategory.objects.order_by('name'),
     }
 
     # Render template
@@ -241,9 +242,15 @@ def assets_filter(request):
         qs = []
         for fc, fv in filters['itemcat']:
             if fc == 'eq':
-                qs.append(Q(item__item_group__category__name=fv))
+                if fv.isdigit():
+                    qs.append(Q(item__item_group__category=fv))
+                else:
+                    qs.append(Q(item__item_group__category__name=fv))
             elif fc == 'ne':
-                qs.append(~Q(item__item_group__category__name=fv))
+                if fv.isdigit():
+                    qs.append(~Q(item__item_group__category=fv))
+                else:
+                    qs.append(~Q(item__item_group__category__name=fv))
             elif fc == 'in':
                 qs.append(Q(item__item_group__category__name__icontains=fv))
         assets = assets.filter(reduce(operator.ior, qs))
@@ -444,6 +451,7 @@ def assets_filter(request):
         'chars': characters,
         'corps': corporations,
         'invflags': InventoryFlag.objects.order_by('name'),
+        'itemcats': ItemCategory.objects.order_by('name'),
     }
 
     # Render template
