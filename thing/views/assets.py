@@ -30,6 +30,10 @@ ASSETS_EXPECTED = {
         'label': 'Item',
         'comps': ['eq', 'ne', 'in'],
     },
+    'itemcat': {
+        'label': 'Item Category',
+        'comps': ['eq', 'ne', 'in'],
+    },
     'station': {
         'label': 'Station',
         'comps': ['eq', 'ne', 'in'],
@@ -231,6 +235,17 @@ def assets_filter(request):
                 qs.append(~Q(item__name=fv))
             elif fc == 'in':
                 qs.append(Q(item__name__icontains=fv))
+        assets = assets.filter(reduce(operator.ior, qs))
+
+    if 'itemcat' in filters:
+        qs = []
+        for fc, fv in filters['itemcat']:
+            if fc == 'eq':
+                qs.append(Q(item__item_group__category__name=fv))
+            elif fc == 'ne':
+                qs.append(~Q(item__item_group__category__name=fv))
+            elif fc == 'in':
+                qs.append(Q(item__item_group__category__name__icontains=fv))
         assets = assets.filter(reduce(operator.ior, qs))
 
     if 'station' in filters:
