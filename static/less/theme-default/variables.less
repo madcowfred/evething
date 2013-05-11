@@ -290,13 +290,13 @@
 
 // Fluid grid
 // -------------------------
-@fluidGridColumnWidth:    percentage(@gridColumnWidth/@gridRowWidth);
-@fluidGridGutterWidth:    percentage(@gridGutterWidth/@gridRowWidth);
+@fluidGridColumnWidth:    percentage(floor(@gridColumnWidth/@gridRowWidth*10000)/10000);
+@fluidGridGutterWidth:    percentage(floor(@gridGutterWidth/@gridRowWidth*10000)/10000);
 
 // 1200px min
-@fluidGridColumnWidth1200:     percentage(@gridColumnWidth1200/@gridRowWidth1200);
-@fluidGridGutterWidth1200:     percentage(@gridGutterWidth1200/@gridRowWidth1200);
+@fluidGridColumnWidth1200:     percentage(floor(@gridColumnWidth1200/@gridRowWidth1200*10000)/10000);
+@fluidGridGutterWidth1200:     percentage(floor(@gridGutterWidth1200/@gridRowWidth1200*10000)/10000);
 
 // 768px-979px
-@fluidGridColumnWidth768:      percentage(@gridColumnWidth768/@gridRowWidth768);
-@fluidGridGutterWidth768:      percentage(@gridGutterWidth768/@gridRowWidth768);
+@fluidGridColumnWidth768:      percentage(floor(@gridColumnWidth768/@gridRowWidth768*10000)/10000);
+@fluidGridGutterWidth768:      percentage(floor(@gridGutterWidth768/@gridRowWidth768*10000)/10000);
