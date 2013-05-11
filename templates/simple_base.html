@@ -10,38 +10,41 @@
   </head>
   
   <body>
-    <div class="navbar navbar-fixed-top">
-      <div class="navbar-inner">
-        <div class="container-fluid">
-          <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
-          <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-          </a>
-          <a class="brand" href="{% url 'thing.views.home' %}">EVEthing</a>
-          <div class="nav-collapse">
-            <ul class="nav pull-right">
-              <li>
-                <a href="{% url 'auth_login' %}">Login</a>
-              </li>
-            </ul>
+    <div id="wrap">
+      <div class="navbar navbar-fixed-top">
+        <div class="navbar-inner">
+          <div class="container-fluid">
+            <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+            <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </a>
+            <a class="brand" href="{% url 'thing.views.home' %}">EVEthing</a>
+            <div class="nav-collapse">
+              <ul class="nav pull-right">
+                <li>
+                  <a href="{% url 'auth_login' %}">Login</a>
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
       </div>
+      
+      <div class="container-fluid" id="container">
+        {% block content %}{% endblock %}
+      </div>
+
+      <div id="push"></div>
     </div>
-    
-    <div class="container-fluid" id="container">
-      {% block content %}{% endblock %}
-      <hr class="nomargin">
-      <footer class="small">
-        <p>
+
+    <div id="footer">
+      <div class="container-fluid">
+        <p class="pull-left">
           <a href="https://github.com/madcowfred/evething/tree/develop#readme">EVEthing</a> &copy; Freddie (EVE: Tazuki Falorn) 2012-2013
-          <span class="pull-right">
-            Oink.
-          </span>
         </p>
-      </footer>
+      </div>
     </div>
 
     <script src="{{ STATIC_URL }}js/evething-combined.min.js"></script>
