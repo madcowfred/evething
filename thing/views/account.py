@@ -12,6 +12,7 @@ from django.core.urlresolvers import reverse
 from django.shortcuts import redirect
 from django.views.decorators.debug import sensitive_post_parameters, sensitive_variables
 
+from core.util import get_minimum_keyid
 from thing.forms import UploadSkillPlanForm
 from thing.models import *
 from thing.stuff import *
@@ -153,14 +154,17 @@ def account_apikey_add(request):
     elif len(vcode) != 64:
         request.session['message_type'] = 'error'
         request.session['message'] = 'vCode must be 64 characters long!'
+    elif int(keyid) < get_minimum_keyid():
+        request.session['message_type'] = 'error'
+        request.session['message'] = 'This key was created more than 30 minutes ago, make a new one for each app!'
     else:
-        if APIKey.objects.filter(user=request.user, keyid=request.POST.get('keyid', 0)).count():
-            request.session['message_type'] = 'error'
-            request.session['message'] = 'You already have an API key with that KeyID!'
-
-        elif request.user.get_profile().can_add_keys is False:
+        if request.user.get_profile().can_add_keys is False:
             request.session['message_type'] = 'error'
             request.session['message'] = 'You are not allowed to add API keys!'
+
+        elif APIKey.objects.filter(user=request.user, keyid=request.POST.get('keyid', 0)).count():
+            request.session['message_type'] = 'error'
+            request.session['message'] = 'You already have an API key with that KeyID!'
 
         else:
             apikey = APIKey(

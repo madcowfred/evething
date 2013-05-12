@@ -16,13 +16,18 @@ def get_minimum_keyid():
     if not getattr(settings, 'ONLY_NEW_APIKEYS', True):
         return 0
 
-    check_time = datetime.datetime.now() - datetime.timedelta(minutes=30)
-    apikey_qs = APIKey.objects.filter(
-        valid=True,
-        created_at__lte=check_time,
-    ).aggregate(
-        m=Max('keyid'),
-    )
-    return apikey_qs['m']
+    minimum_keyid = cache.get('minimum_keyid')
+    if minimum_keyid is None:
+        check_time = datetime.datetime.now() - datetime.timedelta(minutes=30)
+        apikey_qs = APIKey.objects.filter(
+            valid=True,
+            created_at__lte=check_time,
+        ).aggregate(
+            m=Max('keyid'),
+        )
+        minimum_keyid = apikey_qs['m']
+        cache.set('minimum_keyid', minimum_keyid, 60)
+
+    return minimum_keyid
 
 # ---------------------------------------------------------------------------
