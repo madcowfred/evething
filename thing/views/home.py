@@ -93,7 +93,8 @@ def home(request):
     skill_qs = []
 
     queues = SkillQueue.objects.filter(character__in=chars, end_time__gte=now)
-    queues = queues.select_related('character__details', 'skill__item')
+    #queues = queues.select_related('character__details', 'skill__item')
+    queues = queues.select_related('skill__item')
     for sq in queues:
         char = chars[sq.character_id]
         if 'sq' not in char.z_training:
@@ -101,7 +102,7 @@ def home(request):
             char.z_training['skill_duration'] = total_seconds(sq.end_time - now)
             # if char.details:
             char.z_training['sp_per_hour'] = int(sq.skill.get_sp_per_minute(char) * 60)
-            char.z_training['complete_per'] = sq.get_complete_percentage(now)
+            char.z_training['complete_per'] = sq.get_complete_percentage(now, char)
             training.add(char.z_apikey)
 
             skill_qs.append(Q(character=char, skill=sq.skill))
@@ -122,19 +123,26 @@ def home(request):
     for char in characters:
         char.z_total_sp = char.total_sp or 0
         if 'sq' in char.z_training and hasattr(char, 'z_tskill'):
-            char.z_total_sp += int(char.z_training['sq'].get_completed_sp(char.z_tskill, now))
+            char.z_total_sp += int(char.z_training['sq'].get_completed_sp(char.z_tskill, now, char))
 
         total_sp += char.z_total_sp
 
     tt.add_time('total_sp')
 
-    # Do total asset value aggregation
-    total_assets = AssetSummary.objects.filter(
-        character__in=chars.keys(),
-        corporation_id=0,
-    ).aggregate(
-        t=Sum('total_value'),
-    )['t']
+    # Try retrieving total asset value from cache
+    cache_key = 'home:total_assets:%d' % (request.user.id)
+    total_assets = cache.get(cache_key)
+    # Not cached, fetch from database and cache
+    if total_assets is None:
+        total_assets = AssetSummary.objects.filter(
+            character__in=chars.keys(),
+            corporation_id=0,
+        ).aggregate(
+            t=Sum('total_value'),
+        )['t']
+        cache.set(cache_key, total_assets, 300)
+
+    tt.add_time('total_assets')
 
     # Work out who is and isn't training
     not_training = api_keys - training
@@ -198,13 +206,13 @@ def home(request):
             pri_bonus = getattr(char.details, pri_attrs[1])
             sec_bonus = getattr(char.details, sec_attrs[1])
 
-            if pri_bonus == 0 or sec_bonus == 0:
-                t = []
-                if pri_bonus == 0:
-                    t.append(skill.get_primary_attribute_display())
-                if sec_bonus == 0:
-                    t.append(skill.get_secondary_attribute_display())
+            t = []
+            if pri_bonus == 0:
+                t.append(skill.get_primary_attribute_display())
+            if sec_bonus == 0:
+                t.append(skill.get_secondary_attribute_display())
 
+            if t:
                 char.z_notifications.append({
                     'icon': 'lightbulb',
                     'text': ', '.join(t),

@@ -429,21 +429,21 @@ class SkillQueue(models.Model):
     class Meta:
         ordering = ('start_time',)
     
-    def get_complete_percentage(self, now=None):
+    def get_complete_percentage(self, now=None, character=None):
         if now is None:
             now = datetime.datetime.utcnow()
         remaining = total_seconds(self.end_time - now)
-        remain_sp = remaining / 60.0 * self.skill.get_sp_per_minute(self.character)
+        remain_sp = remaining / 60.0 * self.skill.get_sp_per_minute(character or self.character)
         required_sp = self.skill.get_sp_at_level(self.to_level) - self.skill.get_sp_at_level(self.to_level - 1)
 
         return round(100 - (remain_sp / required_sp * 100), 1)
 
-    def get_completed_sp(self, charskill, now=None):
+    def get_completed_sp(self, charskill, now=None, character=None):
         if now is None:
             now = datetime.datetime.utcnow()
         
         remaining = total_seconds(self.end_time - now)
-        remain_sp = remaining / 60.0 * self.skill.get_sp_per_minute(self.character)
+        remain_sp = remaining / 60.0 * self.skill.get_sp_per_minute(character or self.character)
         required_sp = self.skill.get_sp_at_level(self.to_level) - self.skill.get_sp_at_level(self.to_level - 1)
 
         base_sp = self.skill.get_sp_at_level(charskill.level)
