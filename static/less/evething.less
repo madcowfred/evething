@@ -8,10 +8,10 @@ html, body {
   height: auto !important;
   height: 100%;
   margin: 0 auto -40px;
-  padding-bottom: 5px;
 }
 #wrap > .container-fluid {
   padding-top: 55px;
+  padding-bottom: 5px;
 }
 @media (max-width: 767px) {
   #wrap > .container-fluid {
@@ -53,16 +53,16 @@ html, body {
 }
 
 .border-warn {
-  border: 3px solid @warningBackground !important;
+  border: 2px solid @warningBackground !important;
 }
 .border-error {
-  border: 3px solid @errorBackground !important;
+  border: 2px solid @errorBackground !important;
 }
 .border-success {
-  border: 3px solid @successBackground !important;
+  border: 2px solid @successBackground !important;
 }
 .border-info {
-  border: 3px solid @infoBackground !important;
+  border: 2px solid @infoBackground !important;
 }
 
 thead td.head {
@@ -126,6 +126,10 @@ td.r { text-align: right; }
 }
 
 /* home stuff */
+.home-character hr {
+  margin: 7px -6px 5px;
+  border-bottom: 1px solid @textColor;
+}
 .home-notifications {
   .margin-half-top;
   font-size: 0.9em;
@@ -142,7 +146,7 @@ td.r { text-align: right; }
   width: 100%;
 }
 .assets-sidenav.affix {
-  top: 50px;
+  top: 55px;
 }
 @media (max-width: 767px) {
   .assets-sidenav.affix {

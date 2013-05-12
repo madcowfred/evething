@@ -22,16 +22,16 @@
   color: #df001f;
 }
 .border-warn {
-  border: 2px solid darken(@warningText, 20%) !important;
+  border: 2px solid darken(@warningText, 40%) !important;
 }
 .border-error {
-  border: 2px solid darken(@errorText, 30%) !important;
+  border: 2px solid darken(@errorText, 50%) !important;
 }
 .border-success {
-  border: 2px solid darken(@successText, 30%) !important;
+  border: 2px solid darken(@successText, 50%) !important;
 }
 .border-info {
-  border: 3px solid darken(@infoText, 30%) !important;
+  border: 3px solid darken(@infoText, 50%) !important;
 }
 
 // DATEPICKER
@@ -65,13 +65,20 @@
 .progress {
   #gradient > .vertical(rgba(65, 65, 65, 0.2), rgba(75, 75, 75, 0.2));
 }
+.progress .bar {
+  background: rgb(40, 80, 120);
+}
+.progress-danger .bar {
+  background: rgb(120, 40, 40);
+}
+/*.progress .bar {
 .progress-striped .bar {
   #gradient > .striped(rgb(60, 120, 160));
   .background-size(40px 40px);
 }
 .progress-danger.progress-striped .bar, .progress-striped .bar-danger {
-  #gradient > .striped(rgb(180, 80, 80));
-}
+  #gradient > .striped(rgb(160, 40, 40));
+}*/
 
 
 // ALERTS
