@@ -10,7 +10,12 @@
     <script type="text/javascript">
       var sidenav_offset = {
         top: function() {
-          return $('#total').offset().top;
+          var window_h = $(window).height();
+          var sidenav_h = $('#sidenav').height();
+          if (window_h >= (sidenav_h + 75))
+            return $('#total').offset().top;
+          else
+            return 999999;
         }
       }
 
