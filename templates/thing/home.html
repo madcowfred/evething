@@ -87,7 +87,12 @@
         </div>
       </div>
       
-      {%- for chars in characters|batch(profile.home_chars_per_row) %}
+      {%- for char_list in characters %}
+      <hr class="margin-half-top">
+      {%- if char_list.0.z_apikey.group_name %}
+      <p class="home-group">{{ char_list.0.z_apikey.group_name }}</p>
+      {%- endif %}
+      {%- for chars in char_list|batch(profile.home_chars_per_row) %}
       <div class="row-fluid">
         {%- for character in chars %}
         <div class="span{{ 12 // profile.home_chars_per_row }}">
@@ -149,6 +154,7 @@
         </div>
         {%- endfor %}
       </div>
+      {%- endfor %}
       {%- endfor %}
       
       {%- if corporations %}

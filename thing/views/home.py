@@ -237,32 +237,37 @@ def home(request):
 
     tt.add_time('notifications')
 
-    # Work out sort order
+    # Decorate/sort based on settings, ugh
     char_list = chars.values()
     if profile.home_sort_order == 'apiname':
-        temp = [(c.z_apikey.name, c.name.lower(), c) for c in char_list]
+        temp = [(c.z_apikey.group_name or 'ZZZ', c.z_apikey.name, c.name.lower(), c) for c in char_list]
     elif profile.home_sort_order == 'charname':
-        temp = [(c.name.lower(), c) for c in char_list]
+        temp = [(c.z_apikey.group_name or 'ZZZ', c.name.lower(), c) for c in char_list]
     elif profile.home_sort_order == 'corpname':
-        temp = [(c.corporation.name.lower(), c.name.lower(), c) for c in char_list]
+        temp = [(c.z_apikey.group_name or 'ZZZ', c.corporation.name.lower(), c.name.lower(), c) for c in char_list]
     elif profile.home_sort_order == 'totalsp':
-        temp = [(getattr(c, 'z_total_sp', 0), c) for c in char_list]
+        temp = [(c.z_apikey.group_name or 'ZZZ', getattr(c, 'z_total_sp', 0), c) for c in char_list]
     elif profile.home_sort_order == 'wallet':
-        temp = [(c.details and c.details.wallet_balance, c.name.lower(), c) for c in char_list]
+        temp = [(c.z_apikey.group_name or 'ZZZ', c.details and c.details.wallet_balance, c.name.lower(), c) for c in char_list]
 
     temp.sort()
     if profile.home_sort_descending:
         temp.reverse()
 
-    char_list = [s[-1] for s in temp]
-    
     tt.add_time('sort')
 
-    # Make separate lists of training and not training characters
-    first = [char for char in char_list if char.z_training and char.id not in hide_characters]
-    last = [char for char in char_list if not char.z_training and char.id not in hide_characters]
+    # Now group based on group_name
+    bleh = OrderedDict()
+    for temp_data in temp:
+        bleh.setdefault(temp_data[0], []).append(temp_data[-1])
+    
+    char_lists = []
+    for char_list in bleh.values():
+        first = [char for char in char_list if char.z_training and char.id not in hide_characters]
+        last = [char for char in char_list if not char.z_training and char.id not in hide_characters]
+        char_lists.append(first + last)
 
-    tt.add_time('training')
+    tt.add_time('group')
 
     # Try retrieving corporations from cache
     cache_key = 'home:corporations:%d' % (request.user.id)
@@ -292,7 +297,8 @@ def home(request):
             'total_sp': total_sp,
             'total_assets': total_assets,
             'corporations': corporations,
-            'characters': first + last,
+            #'characters': first + last,
+            'characters': char_lists,
             'events': list(Event.objects.filter(user=request.user)[:10]),
             'ship_map': ship_map,
             #'task_count': task_count,

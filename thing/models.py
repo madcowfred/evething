@@ -120,7 +120,6 @@ class APIKey(models.Model):
 
     user = models.ForeignKey(User)
     
-    name = models.CharField(max_length=64)
     keyid = models.IntegerField(verbose_name='Key ID')
     vcode = models.CharField(max_length=64, verbose_name='Verification code')
     access_mask = models.BigIntegerField(default=0)
@@ -129,6 +128,9 @@ class APIKey(models.Model):
     expires = models.DateTimeField(null=True, blank=True)
     paid_until = models.DateTimeField(null=True, blank=True)
     
+    name = models.CharField(max_length=64, default='')
+    group_name = models.CharField(max_length=32, default='')
+
     created_at = models.DateTimeField(auto_now=True)
     valid = models.BooleanField(default=True)
     
