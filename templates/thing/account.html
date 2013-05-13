@@ -68,14 +68,20 @@
           savedTD = $(this).parent();
           savedHTML = savedTD.html();
 
-          var fieldname = 'name';
-          if ($(this).hasClass('js-edit-group-name'))
-            fieldname = 'group_name';
+          if ($(this).hasClass('js-edit-group-name')) {
+            var fieldname = 'group_name';
+            var dont_edit = 'name';
+          }
+          else {
+            var fieldname = 'name';
+            var dont_edit = 'group_name';
+          }
 
           var html = [];
           html.push('<form action="{% url 'thing.views.account_apikey_edit' %}" method="POST" class="form-inline nomargin">');
           html.push("{% csrf_token %}");
           html.push('<input type="hidden" class="nomargin" name="apikey_id" value="' + keyid + '">');
+          html.push('<input type="hidden" class="nomargin" name="dont_edit" value="' + dont_edit + '">');
           html.push('<input type="text" class="nomargin input-medium" name="' + fieldname + '" id="magic_keyname" value="' + $.trim(keyname) + '">');
           html.push('</form>');
 

@@ -222,8 +222,13 @@ def account_apikey_edit(request):
 
         apikey_name = request.POST.get('name', '')
         apikey_group_name = request.POST.get('group_name', '')
-        if apikey.name != apikey_name or apikey.group_name != apikey_group_name:
+        dont_edit = request.POST.get('dont_edit', '')
+
+        if apikey.name != apikey_name and dont_edit != 'name':
             apikey.name = apikey_name
+            apikey.save()
+
+        elif apikey.group_name != apikey_group_name and dont_edit != 'group_name':
             apikey.group_name = apikey_group_name
             apikey.save()
 
