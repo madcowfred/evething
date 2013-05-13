@@ -228,12 +228,13 @@ def home(request):
             })
 
         # Sort out well class here ugh
-        if char.z_apikey in not_training:
-            char.z_well_class = ' border-error'
-        elif char.z_notifications and profile.home_highlight_notifications:
-            char.z_well_class = ' border-warn'
-        elif not char.z_notifications and profile.home_highlight_no_notifications:
-            char.z_well_class = ' border-success'
+        if profile.home_show_borders:
+            if char.z_apikey in not_training:
+                char.z_well_class = ' border-error'
+            elif char.z_notifications:
+                char.z_well_class = ' border-warn'
+            else:
+                char.z_well_class = ' border-success'
 
     tt.add_time('notifications')
 
