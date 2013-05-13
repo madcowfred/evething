@@ -53,48 +53,54 @@
           window.location.hash = e.target.hash.replace('#', '#' + prefix);
         });
 
-        // Bind apikey edit icons
-        $('#key-table').on('click', 'a.apikey-edit', function(event) {
-          var keyid = $('td:nth-child(3)', $(this).parents('tr')).attr('data-id');
-          var keyname = $('td:nth-child(5)', $(this).parents('tr')).text();
+        // Bind apikey edit name icon
+        $('#key-table').on('click', '.js-edit-name, .js-edit-group-name', function(event) {
+          $('#key-table form').remove();
+
+          var keyid = $(this).parents('tr').attr('data-id');
+          var keyname = $(this).parent().text();
 
           if (savedTD) {
             $(savedTD).html(savedHTML);
             savedTD = null;
             savedHTML = null;
           }
-          savedTD = $('td:nth-child(4)', $(this).parents('tr'));
+          savedTD = $(this).parent();
           savedHTML = savedTD.html();
+
+          var fieldname = 'name';
+          if ($(this).hasClass('js-edit-group-name'))
+            fieldname = 'group_name';
 
           var html = [];
           html.push('<form action="{% url 'thing.views.account_apikey_edit' %}" method="POST" class="form-inline nomargin">');
           html.push("{% csrf_token %}");
-          html.push('<input type="hidden" class="nomargin" name="apikey_id" value="' + keyid + '">')
-          html.push('<input type="text" class="edit-name nomargin input-medium" name="name" id="magic_keyname" value="' + $.trim(keyname) + '">');
+          html.push('<input type="hidden" class="nomargin" name="apikey_id" value="' + keyid + '">');
+          html.push('<input type="text" class="nomargin input-medium" name="' + fieldname + '" id="magic_keyname" value="' + $.trim(keyname) + '">');
           html.push('</form>');
 
-          $('td:nth-child(5)', $(this).parents('tr')).html(html.join(''));
+          $(this).parent().html(html.join(''));
           $('#magic_keyname').focus();
         });
         
-        // Bind apikey purge icons
-        $('#key-table').on('click', 'a.apikey-purge', function(event) {
-          var keyid = $('td:nth-child(3)', $(this).parents('tr')).attr('data-id');
-          var keyname = $.trim($('td:nth-child(5)', $(this).parents('tr')).text());
-          $('#purge-keyid-input').val(keyid);
-          $('#purge-keyid').text(keyid);
-          $('#purge-keyname').text(keyname);
-        });
-
         // Bind apikey delete icons
-        $('#key-table').on('click', 'a.apikey-delete', function(event) {
-          var keyid = $('td:nth-child(3)', $(this).parents('tr')).attr('data-id');
+        $('#key-table').on('click', '.js-delete', function(event) {
+          var keyid = $(this).parents('tr').attr('data-id');
           var keyname = $.trim($('td:nth-child(5)', $(this).parents('tr')).text());
           $('#delete-keyid-input').val(keyid);
           $('#delete-keyid').text(keyid);
           $('#delete-keyname').text(keyname);
         });
         
+        // Bind apikey purge icons
+        $('#key-table').on('click', '.js-purge', function(event) {
+          var keyid = $(this).parents('tr').attr('data-id');
+          var keyname = $.trim($('td:nth-child(5)', $(this).parents('tr')).text());
+          $('#purge-keyid-input').val(keyid);
+          $('#purge-keyid').text(keyid);
+          $('#purge-keyname').text(keyname);
+        });
+
         // Bind skillplan edit icons
         $('.edit-skillplan').on('click', function(event) {
           var sp_id = $(this).parents('tr').attr('data-id');
@@ -127,7 +133,7 @@
         <div class="span12">
           <h2>Account Management</h2>
           
-          {% if message -%}
+          {%- if message %}
           <div class="alert alert-{{ message_type }}">
             <strong>{{ message_type|capfirst }}:</strong> {{ message }}
           </div>
@@ -137,7 +143,9 @@
             <li class="active"><a href="#settings" data-toggle="tab">Settings</a></li>
             <li><a href="#apikeys" data-toggle="tab">API Keys</a></li>
             <li><a href="#skillplans" data-toggle="tab">Skill Plans</a></li>
-            {% if not disable_password %}<li><a href="#password" data-toggle="tab">Change Password</a></li>{% endif %}
+            {%- if not disable_password %}
+            <li><a href="#password" data-toggle="tab">Change Password</a></li>
+            {%- endif %}
           </ul>
 
           <div class="tab-content">
@@ -151,9 +159,9 @@
                     <label class="control-label" for="theme">Theme</label>
                     <div class="controls">
                       <select name="theme">
-                        {% for value, display in themes -%}
+                        {%- for value, display in themes %}
                         <option value="{{ value }}"{% if profile.theme == value %} selected{% endif %}>{{ display }}</option>
-                        {% endfor %}
+                        {%- endfor %}
                       </select>
                     </div>
                   </div>
@@ -208,7 +216,7 @@
                     <label class="control-label" for="entries_per_page">Entries per page</label>
                     <div class="controls">
                       <select name="entries_per_page">
-                        {% for n in (100, 200, 300, 400, 500) -%}
+                        {%- for n in (100, 200, 300, 400, 500) %}
                         <option value="{{ n }}"{% if n == profile.entries_per_page %} selected{% endif %}>{{ n }}</option>
                         {%- endfor %}
                       </select>
@@ -222,9 +230,9 @@
                     <label class="control-label" for="home_chars_per_row">Characters per row</label>
                     <div class="controls">
                       <select name="home_chars_per_row">
-                        {% for n in home_chars_per_row -%}
+                        {%- for n in home_chars_per_row %}
                         <option value="{{ n }}"{% if profile.home_chars_per_row == n %} selected{% endif %}>{{ n }}</option>
-                        {% endfor %}
+                        {%- endfor %}
                       </select>
                     </div>
                   </div>
@@ -232,9 +240,9 @@
                     <label class="control-label" for="home_sort_order">Sort order</label>
                     <div class="controls">
                       <select name="home_sort_order">
-                        {% for value, name in home_sort_orders -%}
+                        {%- for value, name in home_sort_orders %}
                         <option value="{{ value }}"{% if profile.home_sort_order == value %} selected{% endif %}>{{ name }}</option>
-                        {% endfor %}
+                        {%- endfor %}
                       </select>
                     </div>
                   </div>
@@ -275,7 +283,7 @@
                   <div class="control-group">
                     <label class="control-label" for="home_hide_characters">Hide characters</label>
                     <div class="controls">
-                      {% for character in characters -%}
+                      {%- for character in characters %}
                       <label class="checkbox inline">
                         <input type="checkbox" name="home_hide_characters" value="{{ character.id }}"{% if character.id in home_hide_characters %} checked{% endif %}>{{ character.name }}</input>
                       </label>
@@ -301,77 +309,77 @@
                       <th>Valid</th>
                       <th>keyID</th>
                       <th>vCode</th>
-                      <th>Name</th>
                       <th>Type</th>
                       <th>Mask</th>
-                      <th>Key Expires</th>
-                      <th>Account Time</th>
+                      <th>Expires</th>
+                      <th>Game Time</th>
+                      <th>Name</th>
+                      <th>Group Name</th>
                       <th></th>
                     </tr>
                   </thead>
                   <tbody>
-                    {% for apikey in apikeys %}
-                    <tr>
+                    {%- for apikey in apikeys %}
+                    <tr data-id="{{ apikey.id }}">
                       <td class="r api-id">{{ apikey.id }}</td>
                       <td class="c api-valid">
                         {{ icons.success_fail(apikey.valid) }}
                       </td>
-                      <td class="r api-keyid" data-id="{{ apikey.id }}">{{ apikey.keyid }}</td>
+                      <td class="r api-keyid">{{ apikey.keyid }}</td>
                       <td class="c fixed api-vcode">{{ apikey.get_masked_vcode() }}</td>
-                      <td>
-                        {{ apikey.name }}
-                        <a href="#" class="apikey-edit"><i class="icon-edit pull-right"></i></a>
-                      </td>
                       <td class="c api-type">{{ apikey.key_type }}</td>
                       <td class="r api-mask">{{ apikey.access_mask }}</td>
                       <td class="c api-expires">
-                        {% if apikey.expires -%}
+                        {%- if apikey.expires %}
                         {{ apikey.expires|date("Y-m-d") }}
                         {%- else %}
                         Never
                         {%- endif %}
                       </td>
-                      <td class="r api-time">
-                        {% if apikey.valid and apikey.key_type == 'Account' -%}
-                        {%- with apikey.get_remaining_time() as remaining -%}
-                        {%- if remaining < 864000 -%}
-                        <i class="icon-time pull-left" rel="tooltip" title="Warning: low game time remaining!"></i>
+                      <td class="c api-time">
+                        {%- if apikey.valid and apikey.key_type == 'Account' %}
+                        {%- with apikey.get_remaining_time() as remaining %}
+                        {%- if remaining < 864000 %}
                         <span class="low-game-time">
-                          {% if remaining <= 0 -%}
+                          {%- if remaining <= 0 %}
                           Expired!
-                          {%- else -%}
-                          {{ remaining|duration_right }}
+                          {%- else %}
+                          {{ remaining|shortduration }}
                           {%- endif %}
                         </span>
-                        {%- else -%}
-                        {{ remaining|duration_right }}
-                        {%- endif -%}
-                        {%- endwith -%}
+                        {%- else %}
+                        {{ remaining|shortduration }}
+                        {%- endif %}
+                        {%- endwith %}
                         {%- endif %}
                       </td>
+                      <td class="api-name">
+                        {{ apikey.name }}
+                        <i class="js-edit-name icon-edit pull-right clickable"></i>
+                      </td>
+                      <td class="api-name">
+                        {{ apikey.group_name }}
+                        <i class="js-edit-group-name icon-edit pull-right clickable"></i>
+                      </td>
                       <td class="c api-icons">
-                        <a class="apikey-delete" data-toggle="modal" href="#delete-apikey-modal" rel="tooltip" title="Delete API key">
-                          <i class="icon-trash"></i>
-                        </a>
+                        <i class="js-delete icon-trash clickable" data-toggle="modal" href="#delete-apikey-modal" rel="tooltip" title="Delete API key"></i>
                         &nbsp;
-                        <a class="apikey-purge" data-toggle="modal" href="#purge-apikey-modal" rel="tooltip" title="Purge API key data">
-                          <i class="icon-warning-sign neg"></i>
-                        </a>
+                        <i class="js-purge icon-warning-sign neg clickable" data-toggle="modal" href="#purge-apikey-modal" rel="tooltip" title="Purge API key data"></i>
                       </td>
                     </tr>
-                    {% endfor %}
+                    {%- endfor %}
                   </tbody>
                 </table>
 
-                {% if profile.can_add_keys -%}
+                {%- if profile.can_add_keys %}
                 <form action="{% url 'thing.views.account_apikey_add' %}" method="POST" class="form-inline">
                   {% csrf_token %}
-                  <input type="text" name="name" class="input-medium" placeholder="Name" rel="tooltip" title="This is to help you remember what this key is for. It will be displayed on the Home screen.">
                   <input type="text" name="keyid" class="input-small" placeholder="KeyID">
                   <input type="text" name="vcode" class="input-xlarge" placeholder="vCode">
+                  <input type="text" name="name" class="input-medium" placeholder="Name" rel="tooltip" title="This is to help you remember what this key is for. It will be displayed on the Home screen.">
                   <button type="submit" class="btn btn-success">Add Key</button>
                 </form>
-                {%- else -%}
+                {%- else %}
                 <div class="alert alert-error">
                   Due to multiple permanent API key failures your ability to add keys has been revoked, please contact an admin if you wish to
                   have your access reinstated.
@@ -452,7 +460,7 @@
                     </tr>
                   </thead>
                   <tbody>
-                    {% for skillplan in skillplans -%}
+                    {%- for skillplan in skillplans %}
                     <tr data-id="{{ skillplan.id }}" data-vis="{{ skillplan.visibility }}">
                       <td class="r sp-trained">{{ skillplan.id }}</td>
                       <td>{{ skillplan.name }}</td>
@@ -490,7 +498,7 @@
                       <label class="control-label" for="visibility">Visibility</label>
                       <div class="controls">
                         <select name="visibility">
-                          {% for value, text in visibilities -%}
+                          {%- for value, text in visibilities %}
                           <option value="{{ value }}">{{ text }}</option>
                           {%- endfor %}
                         </select>
@@ -613,7 +621,7 @@
                       <label class="control-label" for="ml">Visibility</label>
                       <div class="controls">
                         <select id="edit-skillplan-visibility" name="visibility">
-                          {% for value, text in visibilities -%}
+                          {%- for value, text in visibilities %}
                           <option value="{{ value }}">{{ text }}</option>
                           {%- endfor %}
                         </select>
