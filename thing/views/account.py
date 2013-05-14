@@ -141,7 +141,7 @@ def account_settings(request):
 @login_required
 def account_apikey_add(request):
     keyid = request.POST.get('keyid', '0')
-    vcode = request.POST.get('vcode', '')
+    vcode = request.POST.get('vcode', '').strip()
     name = request.POST.get('name', '')
 
     if not keyid.isdigit():
