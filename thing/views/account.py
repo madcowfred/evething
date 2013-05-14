@@ -124,7 +124,8 @@ def account_settings(request):
 
     profile.home_sort_descending = (request.POST.get('home_sort_descending', '') == 'on')
     profile.home_show_locations = (request.POST.get('home_show_locations', '') == 'on')
-    profile.home_show_borders = (request.POST.get('home_show_borders', '') == 'on')
+    profile.home_highlight_backgrounds = (request.POST.get('home_highlight_backgrounds', '') == 'on')
+    profile.home_highlight_borders = (request.POST.get('home_highlight_borders', '') == 'on')
 
     # hide characters
     profile.home_hide_characters = ','.join(c for c in request.POST.getlist('home_hide_characters') if c.isdigit())
@@ -143,13 +144,14 @@ def account_apikey_add(request):
     keyid = request.POST.get('keyid', '0')
     vcode = request.POST.get('vcode', '').strip()
     name = request.POST.get('name', '')
+    group_name = request.POST.get('group_name', '')
 
     if not keyid.isdigit():
         request.session['message_type'] = 'error'
         request.session['message'] = 'KeyID is not an integer!'
-    elif int(keyid) < 1:
+    elif int(keyid) < 1 or int(keyid) > 2**31:
         request.session['message_type'] = 'error'
-        request.session['message'] = 'KeyID must be >= 1!'
+        request.session['message'] = 'Invalid KeyID!'
     elif len(vcode) != 64:
         request.session['message_type'] = 'error'
         request.session['message'] = 'vCode must be 64 characters long!'
@@ -171,6 +173,7 @@ def account_apikey_add(request):
                 keyid=keyid,
                 vcode=vcode,
                 name=name,
+                group_name=group_name,
             )
             apikey.save()
 

@@ -222,14 +222,28 @@ def home(request):
                 'tooltip': 'Insufficient clone!',
             })
 
-        # Sort out well class here ugh
-        if profile.home_show_borders:
-            if char.z_apikey in not_training:
-                char.z_well_class = ' border-error'
-            elif char.z_notifications:
-                char.z_well_class = ' border-warn'
-            else:
-                char.z_well_class = ' border-success'
+        # Sort out well classes here ugh
+        classes = []
+        if char.z_apikey in not_training:
+            if profile.home_highlight_backgrounds:
+                classes.append('background-error')
+            if profile.home_highlight_borders:
+                classes.append('border-error')
+        elif char.z_notifications:
+            if profile.home_highlight_backgrounds:
+                classes.append('background-warn')
+            if profile.home_highlight_borders:
+                classes.append('border-warn')
+        else:
+            if profile.home_highlight_backgrounds:
+                classes.append('background-success')
+            if profile.home_highlight_borders:
+                classes.append('border-success')
+
+        if classes:
+            char.z_well_class = ' %s' % (' '.join(classes))
+        else:
+            char.z_well_class = ''
 
     tt.add_time('notifications')
 

@@ -269,12 +269,21 @@
                     </div>
                   </div>
                   <div class="control-group">
-                    <label class="control-label" for="home_show_borders">Show borders</label>
+                    <label class="control-label" for="home_highlight_backgrounds">Highlight backgrounds</label>
                     <div class="controls">
                       <label class="checkbox">
-                        <input type="checkbox" name="home_show_borders"{% if profile.home_show_borders %} checked{% endif %}>
+                        <input type="checkbox" name="home_highlight_backgrounds"{% if profile.home_highlight_backgrounds %} checked{% endif %}>
                       </label>
-                      <p class="help-block">Highlight character boxes with a border to signify status</p>
+                      <p class="help-block">Highlight character boxes with a background color to signify their status</p>
+                    </div>
+                  </div>
+                  <div class="control-group">
+                    <label class="control-label" for="home_highlight_borders">Highlight borders</label>
+                    <div class="controls">
+                      <label class="checkbox">
+                        <input type="checkbox" name="home_highlight_borders"{% if profile.home_highlight_borders %} checked{% endif %}>
+                      </label>
+                      <p class="help-block">Highlight character boxes with a border color to signify their status</p>
                     </div>
                   </div>
                   <div class="control-group">
@@ -374,6 +383,7 @@
                   <input type="text" name="keyid" class="input-small" placeholder="KeyID">
                   <input type="text" name="vcode" class="input-xlarge" placeholder="vCode">
                   <input type="text" name="name" class="input-medium" placeholder="Name" rel="tooltip" title="This is to help you remember what this key is for. It will be displayed on the Home screen.">
+                  <input type="text" name="group_name" class="input-medium" placeholder="Group Name" rel="tooltip" title="This is to help you to group keys. Keys with a Group Name will be in a separate section per group on the Home screen.">
                   <button type="submit" class="btn btn-success">Add Key</button>
                 </form>
                 {%- else %}
