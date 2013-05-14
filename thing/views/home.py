@@ -1,4 +1,5 @@
 import datetime
+import operator
 
 try:
     from collections import OrderedDict
@@ -25,11 +26,11 @@ def home(request):
     tt = TimerThing('home')
 
     # Create the user's profile if it doesn't already exist
-    try:
-        profile = request.user.get_profile()
-    except UserProfile.DoesNotExist:
-        profile = UserProfile(user=request.user)
-        profile.save()
+    # try:
+    profile = request.user.get_profile()
+    # except UserProfile.DoesNotExist:
+    # profile = UserProfile(user=request.user)
+    # profile.save()
 
     tt.add_time('profile')
 
@@ -78,14 +79,8 @@ def home(request):
 
     tt.add_time('characters')
 
-    # Try retrieving ship map from cache
-    cache_key = 'home:ship_map:%d' % (request.user.id)
-    ship_map = cache.get(cache_key)
-    # Not cached, fetch from database and cache
-    if ship_map is None:
-        ship_map = Item.objects.in_bulk(ship_item_ids)
-        cache.set(cache_key, ship_map, 300)
-
+    # Retrieve ship information
+    ship_map = Item.objects.in_bulk(ship_item_ids)
     tt.add_time('ship_items')
 
     # Do skill training check - this can't be in the model because it
@@ -93,27 +88,27 @@ def home(request):
     skill_qs = []
 
     queues = SkillQueue.objects.filter(character__in=chars, end_time__gte=now)
-    #queues = queues.select_related('character__details', 'skill__item')
     queues = queues.select_related('skill__item')
     for sq in queues:
         char = chars[sq.character_id]
+        duration = total_seconds(sq.end_time - now)
+        
         if 'sq' not in char.z_training:
             char.z_training['sq'] = sq
-            char.z_training['skill_duration'] = total_seconds(sq.end_time - now)
-            # if char.details:
+            char.z_training['skill_duration'] = duration
             char.z_training['sp_per_hour'] = int(sq.skill.get_sp_per_minute(char) * 60)
             char.z_training['complete_per'] = sq.get_complete_percentage(now, char)
             training.add(char.z_apikey)
 
             skill_qs.append(Q(character=char, skill=sq.skill))
         
-        char.z_training['queue_duration'] = total_seconds(sq.end_time - now)
+        char.z_training['queue_duration'] = duration
 
     tt.add_time('training')
 
     # Retrieve training skill information
     if skill_qs:
-        for cs in CharacterSkill.objects.filter(reduce(q_reduce_or, skill_qs)):
+        for cs in CharacterSkill.objects.filter(reduce(operator.ior, skill_qs)):
             chars[cs.character_id].z_tskill = cs
 
     tt.add_time('training skills')
