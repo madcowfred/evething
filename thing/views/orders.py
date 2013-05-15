@@ -32,7 +32,11 @@ def orders(request):
         char_orders[row['creator_character_id']] = row
 
     # Retrieve trade skills that we're interested in
-    order_cs = CharacterSkill.objects.filter(character__apikeys__user=request.user, skill__in=ORDER_SLOT_SKILLS)
+    order_cs = CharacterSkill.objects.filter(
+        character__apikeys__user=request.user,
+        character__apikeys__corp_character__isnull=True,
+        skill__in=ORDER_SLOT_SKILLS,
+    )
     for cs in order_cs:
         char_id = cs.character_id
         if char_id not in char_orders:
