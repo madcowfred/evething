@@ -274,7 +274,10 @@
                       <label class="checkbox">
                         <input type="checkbox" name="home_highlight_backgrounds"{% if profile.home_highlight_backgrounds %} checked{% endif %}>
                       </label>
-                      <p class="help-block">Highlight character boxes with a background color to signify their status</p>
+                      <p class="help-block">
+                        Highlight character boxes with a background color to signify their status (green = fine, orange = notifications,
+                        red = nothing training on this account)
+                      </p>
                     </div>
                   </div>
                   <div class="control-group">
@@ -283,7 +286,16 @@
                       <label class="checkbox">
                         <input type="checkbox" name="home_highlight_borders"{% if profile.home_highlight_borders %} checked{% endif %}>
                       </label>
-                      <p class="help-block">Highlight character boxes with a border color to signify their status</p>
+                      <p class="help-block">Highlight character boxes with a border color to signify their status (see above)</p>
+                    </div>
+                  </div>
+                  <div class="control-group">
+                    <label class="control-label" for="home_show_separators">Show separators</label>
+                    <div class="controls">
+                      <label class="checkbox">
+                        <input type="checkbox" name="home_show_separators"{% if profile.home_show_separators %} checked{% endif %}>
+                      </label>
+                      <p class="help-block">Show separator lines between sections of the character boxes</p>
                     </div>
                   </div>
                   <div class="control-group">

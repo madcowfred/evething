@@ -116,8 +116,10 @@
             </div>
 
             {%- if profile.home_show_locations and character.details.last_known_location %}
+            {%- if profile.home_show_separators %}
             <hr>
-            <div class="sensitive character-location">
+            {%- endif %}
+            <div class="sensitive character-location{% if not profile.home_show_separators %} margin-half-top{% endif %}">
               {{ character.details.last_known_location }}
               {%- if character.details.ship_item_id %}
               -- {{ ship_map[character.details.ship_item_id] }}
@@ -126,8 +128,10 @@
             {%- endif %}
 
             {%- if character.z_training %}
+            {%- if profile.home_show_separators %}
             <hr>
-            <div>
+            {%- endif %}
+            <div{% if not profile.home_show_separators %} class="margin-half-top"{% endif %}>
               {{ common.skill_hover(character.z_training.sq.skill, character.z_training.sq.to_level) }}
               <span class="small">(Rank {{ character.z_training.sq.skill.rank }})</span>
               <br>
@@ -142,7 +146,9 @@
             {%- endif %}
 
             {%- if character.z_notifications %}
+            {%- if profile.home_show_separators %}
             <hr>
+            {%- endif %}
             <div class="home-notifications">
               {%- for notif in character.z_notifications %}
               {% if loop.index > 1 %}&nbsp;{% endif %}<i class="icon-{{ notif.icon }}" rel="tooltip" title="{{ notif.tooltip }}"></i>

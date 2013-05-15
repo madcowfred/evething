@@ -53,6 +53,7 @@ class UserProfile(models.Model):
     home_show_locations = models.BooleanField(default=True)
     home_highlight_backgrounds = models.BooleanField(default=True)
     home_highlight_borders = models.BooleanField(default=True)
+    home_show_separators = models.BooleanField(default=True)
 
 # Magical hook so this gets called when a new user is created
 def create_user_profile(sender, instance, created, **kwargs):
