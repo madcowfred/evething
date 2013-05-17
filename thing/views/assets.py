@@ -405,7 +405,12 @@ def assets_filter(request):
 
                 # add this to the parent entry in loc_totals
                 loc_totals[asset.z_k] += asset.z_total
-                parent.z_total += asset.z_total
+
+                # add the total value to every parent of this asset
+                p = parent
+                while p is not None:
+                    p.z_total += asset.z_total
+                    p = asset_lookup.get(p.parent)
 
                 # guess at what indent level this should be
                 asset.z_indent = getattr(parent, 'z_indent', 0) + 1
