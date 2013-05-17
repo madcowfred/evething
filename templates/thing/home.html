@@ -78,7 +78,7 @@
           <span class="divider">/</span>
           <span><strong>Total Balance:</strong> {{ total_balance|commas }} ISK</span>
           <span class="divider">/</span>
-          <span><strong>Total Assets:</strong> {{ total_assets|commas }} ISK</span>
+          <span><strong>Total Assets:</strong> {{ total_assets|default('0.00')|commas }} ISK</span>
           <span class="pull-right">
             <a href="#" onclick="screenshot_mode();">
               <i class="icon-picture" title="Screenshot sanitised mode"></i>
