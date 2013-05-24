@@ -3,6 +3,8 @@
     = Help link somewhere?
   - api_updater deprecated
   - http://www.readthedocs.org/
+  - Build a page for evething.org
+  -- Some sort of exciting exploration of features I guess!
 
 * features:
   - Industry jobs:
@@ -60,6 +62,9 @@
         % UPDATE thing_entry SET position = position + 1 WHERE skillplan_id = n AND (position >= 2 AND position <= 1)
         % UPDATE thing_entry SET position = 2 WHERE id = n
       # Complex updating - deal with pre-requisites, urgh
+
+* views.assets:
+  - Filter by unit price, < = > comparisons.
 
 * views.blueprints:
   - Work out a sane way to be able to say "I want to make 100 Blackbirds and 300 rigs to go on them" and get
