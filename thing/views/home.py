@@ -43,8 +43,7 @@ def home(request):
     
     # Try retrieving characters from cache
     cache_key = 'home:characters:%d' % (request.user.id)
-    #characters = cache.get(cache_key)
-    characters = None
+    characters = cache.get(cache_key)
     # Not cached, fetch from database and cache
     if characters is None:
         character_qs = Character.objects.filter(
