@@ -161,9 +161,9 @@ def transactions(request):
         for fc, fv in filters['total']:
             if fc == 'eq':
                 if fv < 0:
-                    qs.append(Q(buy_transction=True, total_price=abs(fv)))
+                    qs.append(Q(buy_transaction=True, total_price=abs(fv)))
                 else:
-                    qs.append(Q(buy_transction=False, total_price=fv))
+                    qs.append(Q(buy_transaction=False, total_price=fv))
 
             elif fc == 'ne':
                 qs.append(~Q(total_price=fv))
