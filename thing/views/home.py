@@ -43,7 +43,8 @@ def home(request):
     
     # Try retrieving characters from cache
     cache_key = 'home:characters:%d' % (request.user.id)
-    characters = cache.get(cache_key)
+    #characters = cache.get(cache_key)
+    characters = None
     # Not cached, fetch from database and cache
     if characters is None:
         character_qs = Character.objects.filter(
@@ -54,13 +55,12 @@ def home(request):
         ).select_related(
             'config',
             'details',
-        ).annotate(
-            total_sp=Sum('characterskill__points'),
         ).distinct()
 
         # Django 1.5 workaround for the stupid change from a non-existent reverse
         # relation returning None to it raising self.related.model.DoesNotExist :(
         characters = []
+        char_map = {}
         for c in character_qs:
             try:
                 blah = c.details is not None
@@ -68,8 +68,25 @@ def home(request):
                 pass
             else:
                 characters.append(c)
-        
+                char_map[c.id] = c
+
+        tt.add_time('c1')
+
+        # Fetch skill data now WITHOUT Unpublished SP
+        cskill_qs = CharacterSkill.objects.filter(
+            character__in=char_map.keys(),
+            skill__item__market_group__isnull=False,
+        ).values(
+            'character',
+        ).annotate(
+            total_sp=Sum('points'),
+        )
+        for cskill in cskill_qs:
+            char_map[cskill['character']].total_sp = cskill['total_sp']
+
         cache.set(cache_key, characters, 300)
+
+        tt.add_time('c2')
 
     for character in characters:
         char_keys = [ak for ak in character.apikeys.all() if ak.user_id == request.user.id]
