@@ -25,12 +25,7 @@ EXPIRE_WARNING = 10 * ONE_DAY
 def home(request):
     tt = TimerThing('home')
 
-    # Create the user's profile if it doesn't already exist
-    # try:
     profile = request.user.get_profile()
-    # except UserProfile.DoesNotExist:
-    # profile = UserProfile(user=request.user)
-    # profile.save()
 
     tt.add_time('profile')
 
@@ -62,7 +57,18 @@ def home(request):
         ).annotate(
             total_sp=Sum('characterskill__points'),
         ).distinct()
-        characters = [c for c in character_qs if c.details is not None]
+
+        # Django 1.5 workaround for the stupid change from a non-existent reverse
+        # relation returning None to it raising self.related.model.DoesNotExist :(
+        characters = []
+        for c in character_qs:
+            try:
+                blah = c.details is not None
+            except:
+                pass
+            else:
+                characters.append(c)
+        
         cache.set(cache_key, characters, 300)
 
     for character in characters:
