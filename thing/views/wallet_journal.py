@@ -512,7 +512,8 @@ def _journal_queryset(request, character_ids, corporation_ids):
                             qs.append(Q(date__range=(start, end)))
                     except ValueError:
                         pass
-        journal_ids = journal_ids.filter(reduce(q_reduce_or, qs))
+        if qs:
+            journal_ids = journal_ids.filter(reduce(q_reduce_or, qs))
 
     # Owners is a special case that requires some extra queries
     if 'owners' in filters:

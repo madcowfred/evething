@@ -143,7 +143,8 @@ def transactions(request):
                             qs.append(Q(date__range=(start, end)))
                     except ValueError:
                         pass
-        transaction_ids = transaction_ids.filter(reduce(q_reduce_or, qs))
+        if qs:
+            transaction_ids = transaction_ids.filter(reduce(q_reduce_or, qs))
 
     if 'item' in filters:
         qs = []
