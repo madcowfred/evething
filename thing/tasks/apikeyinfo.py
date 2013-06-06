@@ -69,10 +69,21 @@ class APIKeyInfo(APITask):
 
         # Fix any existing Character objects with missing Config/Details
         for char_id, char in char_map.items():
-            if char.config is None:
+            try:
+                config = char.config
+            except:
                 new_configs.append(CharacterConfig(character_id=char_id))
-            if char.details is None:
+            else:
+                if config is None:
+                    new_configs.append(CharacterConfig(character_id=char_id))
+
+            try:
+                details = char.details
+            except:
                 new_details.append(CharacterDetails(character_id=char_id))
+            else:
+                if details is None:
+                    new_details.append(CharacterDetails(character_id=char_id))
 
             # Handle name/corporation changes
             if char.name != characters[char.id][0] or char.corporation_id != characters[char.id][1]:
