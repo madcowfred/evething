@@ -138,7 +138,7 @@ def home(request):
     # Do total skill point aggregation
     total_sp = 0
     for char in characters:
-        char.z_total_sp = char.total_sp or 0
+        char.z_total_sp = getattr(char, 'total_sp', 0)
         if 'sq' in char.z_training and hasattr(char, 'z_tskill'):
             char.z_total_sp += int(char.z_training['sq'].get_completed_sp(char.z_tskill, now, char))
 
