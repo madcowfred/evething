@@ -132,7 +132,8 @@ def character_common(request, char, public=True, anonymous=False):
 
             skills[cur].append(cs)
             cur.z_total_sp += cs.points
-            total_sp += cs.points
+            if cur is not unpub_mg:
+                total_sp += cs.points
 
         # Move the fake MarketGroup to the end if it has any skills
         k, v = skills.popitem(False)
