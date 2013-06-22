@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% load url from future %}
+{% import 'macros/common.html' as common %}
+
+
+{% block extra_js %}
+{% endblock %}
+
+
+{% block title %}Skill Plan{% endblock %}
+
+{% block content %}    
+
+<div class="span10 well">
+    bla bla plan.
+</div>  
+<div class="span2 well accordion" id="skill_list">
+    {% for market_group, skills in skill_list.items() -%}
+    <div class="accordion-group">
+        <div class="accordion-heading">
+            <a class="accordion-toggle" data-toggle="collapse" data-parent="#skill_list" href="#mg-{{ market_group.id }}">
+                {{ market_group.name }}
+            </a>
+        </div>
+        <div id="mg-{{ market_group.id }}" class="accordion-body collapse in">
+            <div class="accordion-inner">
+              {% for skill in skills -%}
+                {{ common.skill_hover(skill, skill.level, '') }} (Rank {{ skill.rank }})<br />
+              {%- endfor %}
+            </div>
+        </div>
+    </div>
+    {%- endfor %}
+</div>       
+        
+        
+        {# todo : #}
+        {# - sortir la skill_list ordered by categorie #}
+        {# - fonction qui renvoie un xml / json des prerequis #}
+        {# -  #}
+        {#  #}
+        {#  #}
+{% endblock %}
+

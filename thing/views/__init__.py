@@ -11,3 +11,4 @@ from orders import *
 from trade import *
 from transactions import *
 from wallet_journal import *
+from skillplan import *

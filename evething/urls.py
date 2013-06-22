@@ -28,9 +28,13 @@ urlpatterns += patterns('thing.views',
     (r'^account/apikey/delete/$', 'account_apikey_delete'),
     (r'^account/apikey/edit/$', 'account_apikey_edit'),
     (r'^account/apikey/purge/$', 'account_apikey_purge'),
-    (r'^account/skillplan/add/$', 'account_skillplan_add'),
-    (r'^account/skillplan/delete/$', 'account_skillplan_delete'),
-    (r'^account/skillplan/edit/$', 'account_skillplan_edit'),
+    
+    (r'^skillplan/$', 'skillplan'),
+    (r'^skillplan/import/$', 'skillplan_import_emp'),
+    (r'^skillplan/delete/$', 'skillplan_delete'),
+    (r'^skillplan/edit/$', 'skillplan_edit'),
+    (r'^skillplan/create/$', 'skillplan_add'),
+
 
     (r'^assets/$', 'assets_summary'),
     (r'^assets/filter/$', 'assets_filter'),
