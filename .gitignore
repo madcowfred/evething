@@ -6,3 +6,5 @@ local_settings.py
 skill_graph.pickle
 static/js/bootstrap.js
 static/js/evething-combined.js
+
+.DS_Store
