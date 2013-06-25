@@ -2,6 +2,7 @@ from django.conf import settings
 #from django.conf.urls.defaults import *
 from coffin.conf.urls.defaults import *
 from django.contrib.auth.views import login, logout
+from django.http import HttpResponseRedirect
 
 
 # Uncomment the next two lines to enable the admin:
@@ -30,10 +31,12 @@ urlpatterns += patterns('thing.views',
     (r'^account/apikey/purge/$', 'account_apikey_purge'),
     
     (r'^skillplan/$', 'skillplan'),
+    (r'^skillplan/create/$', 'skillplan_add'),
     (r'^skillplan/import/$', 'skillplan_import_emp'),
     (r'^skillplan/delete/$', 'skillplan_delete'),
-    (r'^skillplan/edit/$', 'skillplan_edit'),
-    (r'^skillplan/create/$', 'skillplan_add'),
+    (r'^skillplan/edit/(?P<skillplan_id>\d+)$', 'skillplan_edit'),
+    (r'^skillplan/edit/$', lambda x: HttpResponseRedirect('/skillplan/')),
+    (r'^skillplan/info/edit/$', 'skillplan_info_edit'),
 
 
     (r'^assets/$', 'assets_summary'),
