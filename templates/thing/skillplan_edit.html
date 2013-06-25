@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% load url from future %}
+{% import 'macros/common.html' as common %}
+
+
+{% block extra_js %}
+{% endblock %}
+
+
+{% block title %}Skill Plan{% endblock %}
+
+{% block content %}    
+<div class="row-fluid">
+    <div class="span9">
+        <table class="table table-striped table-bordered table-condensed">
+            <thead>
+                <tr class="c">
+                    <th>#</th>
+                    <th>Skill</th>
+                    <th>Group</th>
+                    <th>Pri</th>
+                    <th>Sec</th>
+                    <th>SP/hr</th>
+                    <th>Time</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td colspan="9">You have no skill in this plan.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="span3">
+        <div class="well well-small sidebar-nav" id="skill_list">
+            <div class="input-prepend">
+                <span class="add-on"><i class="icon-search"></i></span>
+                <input id="searchSkill" type="text" placeholder="Search Skill">
+            </div>
+
+            {% for market_group, skills in skill_list.items() -%}
+            <ul class="nav nav-list">
+                <li class="nav-header collapsed" data-toggle="collapse" data-parent="#skill_list" data-target="#mg-{{ market_group.id }}"><i class="icon-chevron-right"></i> {{ market_group.name }}</li>
+                <li id="mg-{{ market_group.id }}" class="collapse">
+                    {% for skill in skills -%}
+                        {{ common.skill_hover(skill, skill.level, '') }}<br />
+                    {%- endfor %}  
+                </li>
+            </ul>
+            {%- endfor %}
+        </div>
+    </div>       
+</div>
+{% endblock %}
+

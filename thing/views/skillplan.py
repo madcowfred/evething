@@ -1,17 +1,21 @@
 import gzip
 
-try:
-    from collections import OrderedDict
-except ImportError:
-    from ordereddict import OrderedDict
-
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse
 from django.shortcuts import redirect
 from django.views.decorators.debug import sensitive_post_parameters, sensitive_variables
 
-from core.util import get_minimum_keyid
+try:
+    from collections import OrderedDict
+except ImportError:
+    from ordereddict import OrderedDict
+
+try:
+    import xml.etree.cElementTree as ET
+except ImportError:
+    import xml.etree.ElementTree as ET
+    
 from thing.forms import UploadSkillPlanForm
 from thing.models import *
 from thing.stuff import *
@@ -34,33 +38,49 @@ def skillplan(request):
 # ---------------------------------------------------------------------------
 # Create a skillplan
 @login_required
-def skillplan_create(request):
-    skill_list          = OrderedDict()
-    current_market_group= None
+def skillplan_edit(request, skillplan_id):
 
-    skills = Skill.objects.filter(item__market_group__isnull=False)
-    skills = skills.select_related('item__market_group')
-    skills = skills.order_by('item__market_group__name', 'item__name')
+    if skillplan_id.isdigit():
+        try:
+            skillplan = SkillPlan.objects.get(user=request.user, id=skillplan_id)
+        
+        except SkillPlan.DoesNotExist:
+            request.session['message_type'] = 'error'
+            request.session['message'] = 'You do not own that skill plan!'
+                
 
-    for skill in skills:
-        market_group = skill.item.market_group
-        if market_group != current_market_group:
-            current_market_group             = current_market_group
-            skill_list[current_market_group] = []
+        # Init the global skill list
+        skill_list           = OrderedDict()
+        current_market_group = None
 
-        # TODO : add char skill level for plan creation
-        # maybe create a liste with "allowed skill"
-        # and "not reached prerequisite" skills
-        skill_list[current_market_group].append(skill)
+        skills = Skill.objects.filter(item__market_group__isnull=False)
+        skills = skills.select_related('item__market_group')
+        skills = skills.order_by('item__market_group__name', 'item__name')
+        
+        for skill in skills:
+            market_group = skill.item.market_group
+            if market_group != current_market_group:
+                current_market_group = market_group
+                skill_list[current_market_group] = []
 
+            # TODO : add char skill level for plan creation
+            # maybe create a list with "allowed skill"
+            # and "not reached prerequisite" skills
+            
+            skill_list[current_market_group].append(skill)
+
+        #print(', '.join(skill_list))
+        return render_page(
+            'thing/skillplan_edit.html',
+            {
+                'skill_list': skill_list,
+            },
+            request,
+        )
+
+    else:
+        redirect('thing.views.skillplan')
     
-    return render_page(
-        'thing/skillplan_create.html',
-        {
-            'skill_list': skill_list,
-        },
-        request,
-    )
      
 # ---------------------------------------------------------------------------
 # Import a skillplan
@@ -83,7 +103,26 @@ def skillplan_import_emp(request):
 # ---------------------------------------------------------------------------
 # Create a skillplan
 def skillplan_add(request):
-    return
+
+    skillplan = SkillPlan.objects.create(
+        user=request.user,
+        name=request.POST['name'],
+        visibility=request.POST['visibility'],
+    )
+    
+    skillplan.save()
+    
+    return redirect('thing.views.skillplan')
+    
+# ---------------------------------------------------------------------------
+# Export Skillplan
+def skillplan_export(request, skillplan_id):
+    # path = os.expanduser('~/files/pdf/')
+    # f = open(path+filename, "r")
+    # response = HttpResponse(FileWrapper(f), content_type='application/x-gzip')
+    # response ['Content-Disposition'] = 'attachment; filename=yourFile.emp'
+    # f.close()
+    return response
 
 # ---------------------------------------------------------------------------
 # Delete a skillplan
@@ -119,7 +158,7 @@ def skillplan_delete(request):
 # ---------------------------------------------------------------------------
 # Edit a skillplan
 @login_required
-def skillplan_edit(request):
+def skillplan_info_edit(request):
     skillplan_id = request.POST.get('skillplan_id', '')
     if skillplan_id.isdigit():
         try:
