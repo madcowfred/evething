@@ -72,7 +72,8 @@ def skillplan_edit(request, skillplan_id):
         #print(', '.join(skill_list))
         return render_page(
             'thing/skillplan_edit.html',
-            {
+            {   
+                'skillplan' : skillplan,
                 'skill_list': skill_list,
             },
             request,
