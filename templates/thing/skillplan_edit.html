@@ -1,33 +1,58 @@
 {% extends "base.html" %}
 {% load url from future %}
 {% import 'macros/common.html' as common %}
+{% import 'macros/icons.html' as icons %}
 
 
 {% block extra_js %}
     <script type="text/javascript">
-        $(document).ready(function() {
+        $(function() {
+            // current skill popover displayed
+            var current_popover_id = false;
+        
             // hover thing for skill descriptions
             $('.skill-hover').popover({ 
                 animation: false, 
-                trigger: 'hover', 
+                trigger: 'click', 
                 html: true,
                 placement: 'left',
-                container: 'body',
-            });
-            
-            $('.skill').click(
+                container: 'body'
+            }).on('click', 
                 function() {
-                    addSkillInPlan($(this).attr('data-id'))
+                    // popover on click, but only display one popover.
+                    if(current_popover_id) {
+                        if(current_popover_id != $(this).attr('id')) {
+                            $('#'+current_popover_id).popover('hide');
+                            $(this).popover('show');
+                        }
+                    }
+                    current_popover_id=$(this).attr('id');
+                    
+                    // define click events on button in the popover        
+                    $('.btn-plan-skill').on('click',
+                        function() {
+                            var plan_to_level   = $(this).attr('data-level');
+                            var plan_skill_id   = $(this).attr('data-id');
+                            if(addSkillInPlan(plan_skill_id, plan_to_level)) {
+                                $('#'+current_popover_id).popover('hide');
+                            }
+                                                       
+                        }
+                    );
                 }
-            );
+            );;
+            
+
+            
         });
         
         function addRemapPoint() {
             return false;
         }
         
-        function addSkillInPlan(skill_id) {
-            //alert(skill_id);
+        function addSkillInPlan(skill_id, level) {
+            //alert(skill_id + " - " + level);
+            return true;
         }
         
         function optimizeAttributes() {
@@ -133,8 +158,20 @@
                     {{ market_group.name }}
                 </li>
                 {% for skill in skills -%}
-                <li class="mg-{{ market_group.id }} collapse skill" data-id="{{ skill.item.id }}">
-                    <a href="#">{{ common.skill_hover(skill) }}</a>
+                <li id="skill-{{ skill.item.id }}" class="mg-{{ market_group.id }} collapse skill" data-name="{{ skill.item.name }}" data-group="{{ market_group.name }}" data-prim="{{ skill.primary_attribute }}" data-sec="{{ skill.secondary_attribute }}" data-planned-to="0" data-skilled-to="0">
+                    <a href="#">
+                        <span class="skill-hover {{ extra_class}}" rel="popover" title="{{ skill.item.name }}" id="skill-hover-{{ skill.item.id }}" data-content="
+                            {{ skill }}
+                            <br><br>
+                            <strong>Plan to level:</strong> <br>
+                            <a href='#' data-level='1' data-id='{{ skill.item.id }}' class='btn btn-small btn-inverse btn-plan-skill'><strong>I</strong></a>&nbsp;
+                            <a href='#' data-level='2' data-id='{{ skill.item.id }}' class='btn btn-small btn-inverse btn-plan-skill'><strong>II</strong></a>&nbsp;
+                            <a href='#' data-level='3' data-id='{{ skill.item.id }}' class='btn btn-small btn-inverse btn-plan-skill'><strong>III</strong></a>&nbsp;
+                            <a href='#' data-level='4' data-id='{{ skill.item.id }}' class='btn btn-small btn-inverse btn-plan-skill'><strong>IV</strong></a>&nbsp;
+                            <a href='#' data-level='5' data-id='{{ skill.item.id }}' class='btn btn-small btn-inverse btn-plan-skill'><strong>V</strong></a>">
+                            {{ skill.item.name }}{% if level %} {{ level|roman }}{% endif %}
+                        </span>
+                    </a>
                 </li>
                 {%- endfor %}  
             </ul>
@@ -142,5 +179,7 @@
         </div>
     </div>       
 </div>
+
+
 {% endblock %}
 
