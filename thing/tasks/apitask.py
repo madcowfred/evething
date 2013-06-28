@@ -227,7 +227,12 @@ class APITask(Task):
 
             # If the status code is bad return False
             if not r.status_code == requests.codes.ok:
-                self._increment_backoff('Bad status code: %s' % (r.status_code))
+                # Forbidden? Delay for abitrary 4 hours
+                if r.status_code == '403':
+                    self._cache_delta = 4 * 60 * 60
+                # Increment backoff if it wasn't a 403 error
+                else:
+                    self._increment_backoff('Bad status code: %s' % (r.status_code))
                 return False
 
         # Data is cached, use that
