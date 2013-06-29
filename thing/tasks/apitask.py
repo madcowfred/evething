@@ -357,7 +357,7 @@ class APITask(Task):
             return False
 
         self._api_log.append((url, time.time() - start))
-        
+
         # If the status code is bad return False
         if not r.status_code == requests.codes.ok:
             #self._increment_backoff('Bad status code: %s' % (r.status_code))
