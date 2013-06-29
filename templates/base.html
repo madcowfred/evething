@@ -32,6 +32,7 @@
               <ul class="nav" id="nav-list">
 {% if authed %}
 {% set profile = user.get_profile() %}
+                <li><a href="{{ url ('thing.views.skillplan') }}">Skillplans</a></li>
                 {% if profile.show_assets %}<li><a href="{{ url('thing.views.assets_summary') }}">Assets</a></li>{% endif %}
                 {% if profile.show_blueprints %}<li><a href="{{ url('thing.views.blueprints') }}">Blueprints</a></li>{% endif %}
 {% if profile.show_contracts %}
