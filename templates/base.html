@@ -27,16 +27,16 @@
               <span class="icon-bar"></span>
               <span class="icon-bar"></span>
             </a>
-            <a class="brand" href="{% url 'thing.views.home' %}">EVEthing</a>
+            <a class="brand" href="{{ url('thing.views.home') }}">EVEthing</a>
             <div class="nav-collapse collapse">
               <ul class="nav" id="nav-list">
 {% if authed %}
 {% set profile = user.get_profile() %}
-                {% if profile.show_assets %}<li><a href="{% url 'thing.views.assets_summary' %}">Assets</a></li>{% endif %}
-                {% if profile.show_blueprints %}<li><a href="{% url 'thing.views.blueprints' %}">Blueprints</a></li>{% endif %}
+                {% if profile.show_assets %}<li><a href="{{ url('thing.views.assets_summary') }}">Assets</a></li>{% endif %}
+                {% if profile.show_blueprints %}<li><a href="{{ url('thing.views.blueprints') }}">Blueprints</a></li>{% endif %}
 {% if profile.show_contracts %}
                 <li>
-                  <a href="{% url 'thing.views.contracts' %}">
+                  <a href="{{ url('thing.views.contracts') }}">
                     Contracts
                     {% if nav_contracts %}<span class="text-success">[{{ nav_contracts }}]</span>{% endif %}
                   </a>
@@ -44,16 +44,16 @@
 {% endif %}{# profile.show_contracts #}
 {% if profile.show_industry %}
                 <li>
-                  <a href="{% url 'thing.views.industry' %}">
+                  <a href="{{ url('thing.views.industry') }}">
                     Industry
                     {% if nav_industryjobs %}<span class="text-success">[{{ nav_industryjobs }}]</span>{% endif %}
                   </a>
                 </li>
 {% endif %}{# profile.show_industry #}
-                {% if profile.show_orders %}<li><a href="{% url 'thing.views.orders' %}">Orders</a></li>{% endif %}
-                {% if profile.show_trade %}<li><a href="{% url 'thing.views.trade' %}">Trade</a></li>{% endif %}
-                {% if profile.show_transactions %}<li><a href="{% url 'thing.views.transactions' %}">Transactions</a></li>{% endif %}
-                {% if profile.show_wallet_journal %}<li><a href="{% url 'thing.views.wallet_journal' %}">Wallet Journal</a></li>{% endif %}
+                {% if profile.show_orders %}<li><a href="{{ url('thing.views.orders') }}">Orders</a></li>{% endif %}
+                {% if profile.show_trade %}<li><a href="{{ url('thing.views.trade') }}">Trade</a></li>{% endif %}
+                {% if profile.show_transactions %}<li><a href="{{ url('thing.views.transactions') }}">Transactions</a></li>{% endif %}
+                {% if profile.show_wallet_journal %}<li><a href="{{ url('thing.views.wallet_journal') }}">Wallet Journal</a></li>{% endif %}
 {% endif %}{# user.is_authenticated #}
               </ul>
 
@@ -75,19 +75,19 @@
                     <b class="caret"></b>
                   </a>
                   <ul class="dropdown-menu">
-                    <li><a href="{% url 'thing.views.account' %}">Account Management</a></li>
-                    <li><a href="{% url 'thing.views.events' %}">Event log</a></li>
+                    <li><a href="{{ url('thing.views.account') }}">Account Management</a></li>
+                    <li><a href="{{ url('thing.views.events') }}">Event log</a></li>
                     <li class="divider"></li>
 {% if user.is_staff %}
-                    <li><a href="{% url 'admin:index' %}">Site Administration</a></li>
+                    <li><a href="{{ url('admin:index') }}">Site Administration</a></li>
                     <li class="divider"></li>
 {% endif %}
-                    <li><a href="{% url 'auth_logout' %}">Logout</a>
+                    <li><a href="{{ url('auth_logout') }}">Logout</a>
                   </ul>
                 </li>
 {% else %}
                 <li>
-                  <a href="{% url 'auth_login' %}">Login</a>
+                  <a href="{{ url('auth_login') }}">Login</a>
                 </li>
 {% endif %}{# user.is_staff #}
               </ul>
