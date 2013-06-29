@@ -1,5 +1,7 @@
 import gzip
+import json
 
+from django.http import HttpResponse
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse
@@ -81,6 +83,42 @@ def skillplan_edit(request, skillplan_id):
 
     else:
         redirect('thing.views.skillplan')
+
+
+# ---------------------------------------------------------------------------
+# Add a given skill & prerequisites
+@login_required
+def skillplan_add_skill(request):
+    """
+    Add skill into a given plan
+    this function will add the prerequisites too and return
+    the whole list (in json) of the skills to add.
+    
+    POST:   skillplan_id : id of the plan
+            skill_id : skill to add 
+    """
+    
+    if request.is_ajax():
+        skill_id = request.POST.get('skill_id', '')
+        skillplan_id = request.POST.get('skillplan_id', '')
+        
+        if skill_id.isdigit() and skillplan_id.isdigit():
+            
+            skill = Skill.objects.get(item__id=skill_id)
+            skill_json = OrderedDict()
+            skill_json[skill.item.id] = {}
+            skill_json[skill.item.id]['skillname'] = skill.item.name
+            skill_json[skill.item.id]['skill_id']  = skill.item.id
+            
+            
+            return HttpResponse(json.dumps(skill_json), status=200)
+        
+        else:
+            return HttpResponse(content='Cannot add the skill : no skill or no skillplan provided', status=500)       
+    else:
+        return HttpResponse(content='test', status=403)
+
+    
     
      
 # ---------------------------------------------------------------------------
