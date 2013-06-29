@@ -3,8 +3,11 @@ BOOTSTRAP_JS=static/js/bootstrap-alert.js static/js/bootstrap-button.js static/j
 	static/js/bootstrap-modal.js static/js/bootstrap-tooltip.js static/js/bootstrap-popover.js static/js/bootstrap-tab.js \
 	static/js/bootstrap-scrollspy.js static/js/bootstrap-affix.js
 
+BOOTSTRAP_FILES := alert button collapse dropdown modal tooltip popover tab scrollspy affix datepicker
+BOOTSTRAP_JS := $(addsuffix .js,$(addprefix static/js/bootstrap-,$(BOOTSTRAP_FILES)))
+
 # All JS source files that we use
-ALL_JS=static/js/jquery-2.0.0.js static/js/jquery.tablesorter.js static/js/bootstrap.js static/js/bootstrap-datepicker.js static/js/evething.js
+ALL_JS := static/js/jquery.tablesorter.js static/js/bootstrap.js static/js/evething.js
 
 # Themes
 THEMES    := theme-cerulean theme-cosmo theme-cyborg theme-darkthing theme-default theme-slate
