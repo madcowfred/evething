@@ -39,7 +39,7 @@
     
     {%- if message %}
     <div class="alert alert-{{ message_type }}">
-        <strong>{{ message_type }}:</strong> {{ message }}
+        <strong>{{ message_type|capitalize }}:</strong> {{ message }}
     </div>
     {%- endif %}
     
