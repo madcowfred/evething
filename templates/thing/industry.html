@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-{% load thing_extras %}
 {% import 'macros/icons.html' as icons %}
 
 {% block extra_js %}
@@ -88,8 +87,8 @@
                       <td>{{ job.output_item }}</td>
                       <td class="industry-runs">{{ job.runs|commas }}</td>
                       <td class="industry-units">{{ job.z_units|commas }}</td>
-                      <td class="journal-date">{{ job.begin_time|date("Y-m-d H:i") }}</td>
-                      <td class="journal-date">{{ job.end_time|date("Y-m-d H:i") }}</td>
+                      <td class="journal-date">{{ job.begin_time }}</td>
+                      <td class="journal-date">{{ job.end_time }}</td>
                       <td class="industry-ready">
                         {{ icons.success_fail(job.z_ready) }}
                       </td>
@@ -159,8 +158,8 @@
                       <td>{{ job.output_item }}</td>
                       <td class="industry-runs">{{ job.runs|commas }}</td>
                       <td class="industry-units">{{ job.z_units|commas }}</td>
-                      <td class="journal-date">{{ job.begin_time|date("Y-m-d H:i") }}</td>
-                      <td class="journal-date">{{ job.end_time|date("Y-m-d H:i") }}</td>
+                      <td class="journal-date">{{ job.begin_time }}</td>
+                      <td class="journal-date">{{ job.end_time }}</td>
                       <td class="industry-status">{{ job.get_completed_status_display() }}</td>
                     </tr>
                     {%- endfor %}

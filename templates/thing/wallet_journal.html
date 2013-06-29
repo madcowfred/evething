@@ -1,6 +1,4 @@
 {% extends "base.html" %}
-{% load url from future %}
-{% load thing_extras %}
 {% import 'macros/icons.html' as icons %}
 
 {% block title %}Wallet Journal{% endblock %}
@@ -53,10 +51,10 @@
               </tr>
             </thead>
             <tbody>
-              {% with user.get_profile().show_item_icons as show_item_icons -%}
+              {% set show_item_icons = user.get_profile().show_item_icons -%}
               {% for entry in entries -%}
               <tr>
-                <td class="journal-date">{{ entry.date|date("Y-m-d H:i") }}</td>
+                <td class="journal-date">{{ entry.date }}</td>
                 <td>
                   {% if entry.corp_wallet -%}
                   {#<i class="icon-group"></i>#}
@@ -131,7 +129,6 @@
                 <td colspan="7">No matching journal entries.</td>
               </tr>
               {%- endfor %}
-              {%- endwith %}
             </tbody>
           </table>
           <div class="pagination pagination-centered">

@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-{% load thing_extras %}
 
 {% block title %}Trade: {{ timeframe }}{% endblock %}
 
@@ -70,9 +69,9 @@
                 <td>{{ item.t.sell_total|commas }}</td>
                 <td>{{ item.t.average_profit|commas }}</td>
                 <td>{{ item.t.average_profit_per }}%</td>
-                <td>{{ item.t.balance|commas|balance }}</td>
-                <td>{{ item.t.projected_average|commas|balance }}</td>
-                <td>{{ item.t.outstanding|commas|balance }}</td>
+                <td>{{ item.t.balance|commas|balance|safe }}</td>
+                <td>{{ item.t.projected_average|commas|balance|safe }}</td>
+                <td>{{ item.t.outstanding|commas|balance|safe }}</td>
               </tr>
               {% else %}
               <tr>

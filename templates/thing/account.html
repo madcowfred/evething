@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-{% load url from future %}
 {% import 'macros/icons.html' as icons %}
 
 {% block extra_js %}
@@ -78,8 +77,8 @@
           }
 
           var html = [];
-          html.push('<form action="{% url 'thing.views.account_apikey_edit' %}" method="POST" class="form-inline nomargin">');
-          html.push("{% csrf_token %}");
+          html.push('<form action="{{ url('thing.views.account_apikey_edit') }}" method="POST" class="form-inline nomargin">');
+          html.push("{{ csrf() }}");
           html.push('<input type="hidden" class="nomargin" name="apikey_id" value="' + keyid + '">');
           html.push('<input type="hidden" class="nomargin" name="dont_edit" value="' + dont_edit + '">');
           html.push('<input type="text" class="nomargin input-medium" name="' + fieldname + '" id="magic_keyname" value="' + $.trim(keyname) + '">');
@@ -141,7 +140,7 @@
           
           {%- if message %}
           <div class="alert alert-{{ message_type }}">
-            <strong>{{ message_type|capfirst }}:</strong> {{ message }}
+            <strong>{{ message_type|capitalize }}:</strong> {{ message }}
           </div>
           {%- endif %}
 
@@ -157,9 +156,9 @@
           <div class="tab-content">
             {# settings: content -#}
             <div class="tab-pane active" id="settings">
-              <form action="{% url 'thing.views.account_settings' %}" method="POST" class="form-horizontal">
+              <form action="{{ url('thing.views.account_settings') }}" method="POST" class="form-horizontal">
                 <fieldset>
-                  {% csrf_token %}
+                  {{ csrf() }}
                   <legend>Global</legend>
                   <div class="control-group">
                     <label class="control-label" for="theme">Theme</label>
@@ -349,14 +348,14 @@
                       <td class="r api-mask">{{ apikey.access_mask }}</td>
                       <td class="c api-expires">
                         {%- if apikey.expires %}
-                        {{ apikey.expires|date("Y-m-d") }}
+                        {{ apikey.expires }}
                         {%- else %}
                         Never
                         {%- endif %}
                       </td>
                       <td class="c api-time">
                         {%- if apikey.valid and apikey.key_type == 'Account' %}
-                        {%- with apikey.get_remaining_time() as remaining %}
+                        {%- set remaining = apikey.get_remaining_time() %}
                         {%- if remaining < 864000 %}
                         <span class="low-game-time">
                           {%- if remaining <= 0 %}
@@ -368,7 +367,6 @@
                         {%- else %}
                         {{ remaining|shortduration }}
                         {%- endif %}
-                        {%- endwith %}
                         {%- endif %}
                       </td>
                       <td class="api-name">
@@ -390,8 +388,8 @@
                 </table>
 
                 {%- if profile.can_add_keys %}
-                <form action="{% url 'thing.views.account_apikey_add' %}" method="POST" class="form-inline">
-                  {% csrf_token %}
+                <form action="{{ url('thing.views.account_apikey_add') }}" method="POST" class="form-inline">
+                  {{ csrf() }}
                   <input type="text" name="keyid" class="input-small" placeholder="KeyID">
                   <input type="text" name="vcode" class="input-xlarge" placeholder="vCode">
                   <input type="text" name="name" class="input-medium" placeholder="Name" rel="tooltip" title="This is to help you remember what this key is for. It will be displayed on the Home screen.">
@@ -498,8 +496,8 @@
                 </table>
                 
                 <h4>Add new skill plan</h4>
-                <form class="well form-horizontal" action="{% url 'thing.views.account_skillplan_add' %}" method="POST" enctype="multipart/form-data">
-                  {% csrf_token %}
+                <form class="well form-horizontal" action="{{ url('thing.views.account_skillplan_add') }}" method="POST" enctype="multipart/form-data">
+                  {{ csrf() }}
                   <fieldset>
                     <div class="control-group">
                       <label class="control-label" for="name">Plan name</label>
@@ -538,9 +536,9 @@
 
             {% if not disable_password %}{# password: content -#}
             <div class="tab-pane" id="password">
-              <form action="{% url 'thing.views.account_change_password' %}" method="POST" class="form-horizontal">
+              <form action="{{ url('thing.views.account_change_password') }}" method="POST" class="form-horizontal">
                 <fieldset>
-                  {% csrf_token %}
+                  {{ csrf() }}
                   <div class="control-group">
                     <label class="control-label" for="old_password">Old password</label>
                     <div class="controls">
@@ -571,8 +569,8 @@
                   
             {# apikeys: purge modal -#}
             <div class="modal hide" id="purge-apikey-modal">
-              <form action="{% url 'thing.views.account_apikey_purge' %}" method="POST" class="form-inline">
-                {% csrf_token %}
+              <form action="{{ url('thing.views.account_apikey_purge') }}" method="POST" class="form-inline">
+                {{ csrf() }}
                 <input type="hidden" name="apikey_id" value="a" id="purge-keyid-input">
                 <div class="modal-header">
                   <a class="close" data-dismiss="modal">{{ icons.close_modal() }}</a>
@@ -596,8 +594,8 @@
 
             {# apikeys: delete modal -#}
             <div class="modal hide" id="delete-apikey-modal">
-              <form action="{% url 'thing.views.account_apikey_delete' %}" method="POST" class="form-inline">
-                {% csrf_token %}
+              <form action="{{ url('thing.views.account_apikey_delete') }}" method="POST" class="form-inline">
+                {{ csrf() }}
                 <input type="hidden" name="apikey_id" value="a" id="delete-keyid-input">
                 <div class="modal-header">
                   <a class="close" data-dismiss="modal">{{ icons.close_modal() }}</a>
@@ -621,8 +619,8 @@
 
             {# skillplan: edit modal -#}
             <div class="modal hide" id="edit-skillplan-modal">
-              <form action="{% url 'thing.views.account_skillplan_edit' %}" method="POST" class="form-horizontal">
-                {% csrf_token %}
+              <form action="{{ url('thing.views.account_skillplan_edit') }}" method="POST" class="form-horizontal">
+                {{ csrf() }}
                 <input type="hidden" name="skillplan_id" value="" id="edit-skillplan-id">
                 <div class="modal-header">
                   <a class="close" data-dismiss="modal">{{ icons.close_modal() }}</a>
@@ -660,8 +658,8 @@
 
             {# skillplan: delete modal -#}
             <div class="modal hide" id="delete-skillplan-modal">
-              <form action="{% url 'thing.views.account_skillplan_delete' %}" method="POST" class="form-inline">
-                {% csrf_token %}
+              <form action="{{ url('thing.views.account_skillplan_delete') }}" method="POST" class="form-inline">
+                {{ csrf() }}
                 <input type="hidden" name="skillplan_id" value="" id="delete-skillplan-id">
                 <div class="modal-header">
                   <a class="close" data-dismiss="modal">{{ icons.close_modal() }}</a>

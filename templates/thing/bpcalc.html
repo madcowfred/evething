@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-{% load thing_extras %}
 
 {% block title %}BPCalc{% endblock %}
 
@@ -124,7 +123,7 @@
                 <th>Built</th>
                 <th>Sell</th>
                 <th>Total</th>
-                <th>{{ days }} day{{ days|pluralize }}</th>
+                <th>{{ days }} day(s)</th>
                 <th>%</th>
                 <th></th>
               </tr>
@@ -137,16 +136,16 @@
                 <td class="bpc-medium">{{ bpi.z_input_m3|humanize }}</td>
                 <td class="bpc-medium">{{ bpi.z_output_m3|humanize }}</td>
                 <td class="bpc-medium">{{ bpi.z_buy_build|humanize }}</td>
-                <td class="bpc-medium">{{ bpi.z_buy_profit|humanize|balance }}</td>
-                <td class="bpc-small">{{ bpi.z_buy_profit_per|spanif("neg < 7") }}%</td>
+                <td class="bpc-medium">{{ bpi.z_buy_profit|humanize|balance|safe }}</td>
+                <td class="bpc-small">{{ bpi.z_buy_profit_per|spanif("neg < 7")|safe }}%</td>
                 <td class="bpc-medium">{{ bpi.z_sell_build|humanize }}</td>
-                <td class="bpc-medium">{{ bpi.z_sell_profit|humanize|balance }}</td>
-                <td class="bpc-small">{{ bpi.z_sell_profit_per|spanif("neg < 7") }}%</td>
+                <td class="bpc-medium">{{ bpi.z_sell_profit|humanize|balance|safe }}</td>
+                <td class="bpc-small">{{ bpi.z_sell_profit_per|spanif("neg < 7")|safe }}%</td>
                 <td class="bpc-small">{{ bpi.z_built|commas }}</td>
                 <td class="bpc-medium">{{ bpi.blueprint.item.sell_price|humanize }}</td>
                 <td class="bpc-medium">{{ bpi.z_total_sell|humanize }}</td>
                 <td class="bpc-medium">{{ bpi.z_volume_week|humanize }}</td>
-                <td class="bpc-small">{{ bpi.z_volume_percent|spanif("neg > 10") }}%</td>
+                <td class="bpc-small">{{ bpi.z_volume_percent|spanif("neg > 10")|safe }}%</td>
                 <td class="bpc-tiny"><input type="checkbox"></td>
               </tr>
               {% else %}
@@ -157,15 +156,15 @@
             </tbody>
             <tfoot>
               <tr class="r bold">
-                <td colspan="2">{{ bpis|length }} slot{{ bpis|length|pluralize }} required</td>
+                <td colspan="2">{{ bpis|length }} slot(s) required</td>
                 <td>{{ bpi_totals.input_m3|humanize }}</td>
                 <td>{{ bpi_totals.output_m3|humanize }}</td>
                 <td>{{ bpi_totals.buy_build|humanize }}</td>
                 <td>{{ bpi_totals.buy_profit|humanize }}</td>
-                <td>{{ bpi_totals.buy_profit_per|spanif("neg < 7") }}%</td>
+                <td>{{ bpi_totals.buy_profit_per|spanif("neg < 7")|safe }}%</td>
                 <td>{{ bpi_totals.sell_build|humanize }}</td>
                 <td>{{ bpi_totals.sell_profit|humanize }}</td>
-                <td>{{ bpi_totals.sell_profit_per|spanif("neg < 7") }}%</td>
+                <td>{{ bpi_totals.sell_profit_per|spanif("neg < 7")|safe }}%</td>
                 <td colspan="2"></td>
                 <td>{{ bpi_totals.total_sell|humanize }}</td>
                 <td colspan="3"></td>

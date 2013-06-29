@@ -1,5 +1,5 @@
           <div class="well well-small">
-            <form id="filter-form" action="{% url 'thing.views.wallet_journal' %}" method="GET">
+            <form id="filter-form" action="{{ url('thing.views.wallet_journal') }}" method="GET">
               <div class="margin-half-bot">
                 <strong class="large">Filters</strong>
               </div>
@@ -21,10 +21,10 @@
                 </div>
               </fieldset>
               <button type="submit" class="btn btn-success">Apply filters</button>
-              <a id="clear-button" href="{% url thing.views.wallet_journal %}" class="btn btn-danger">Clear filters</a>
+              <a id="clear-button" href="{{ url('thing.views.wallet_journal') }}" class="btn btn-danger">Clear filters</a>
             </form>
 
-            <form id="aggregate-form" class="nomargin" action="{% url 'thing.views.wallet_journal_aggregate' %}" method="GET">
+            <form id="aggregate-form" class="nomargin" action="{{ url('thing.views.wallet_journal_aggregate') }}" method="GET">
               <p>
                 <strong>NOTE</strong>: grouping by owner 1/owner 2 can and will be incredibly slow on large data sets.
               </p>

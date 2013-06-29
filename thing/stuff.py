@@ -11,9 +11,8 @@ except:
 
 from django.core.cache import cache
 from django.db.models import Count, Q
+from django.shortcuts import render_to_response
 from django.template import RequestContext
-
-from coffin.shortcuts import render_to_response
 
 # ---------------------------------------------------------------------------
 # Wrapper around render_to_response

@@ -1,6 +1,4 @@
 {% extends "base.html" %}
-{% load url from future %}
-{% load thing_extras %}
 {% import 'macros/icons.html' as icons %}
 
 {% block title %}Orders{% endblock %}
@@ -108,7 +106,7 @@
                   {%- endif %}
                 </td>
                 <td>
-                  <a href="{% url 'thing.views.transactions' %}?ft=item&fc=eq&fv={{ order.item.name }}">{{ order.item.name }}</a>
+                  <a href="{{ url('thing.views.transactions') }}?ft=item&fc=eq&fv={{ order.item.name }}">{{ order.item.name }}</a>
                 </td>
                 <td class="r">{{ order.volume_remaining|humanize }}</td>
                 <td class="r">{{ order.volume_entered|humanize }}</td>
