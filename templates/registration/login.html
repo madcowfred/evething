@@ -1,34 +1,33 @@
-{% extends "simple_base.html" %}
-{% load url from future %}
+{% extends "base.html" %}
 
 {% block title %}Login{% endblock %}
 
 {% block content %}
-    <div class="row-fluid">
-      <div class="span12">
-        <form method="post" action="" class="form-horizontal">
-          <fieldset>
-            <legend>Login</legend>
-            <div class="control-group">
-              {% csrf_token %}
-              <input type="hidden" name="next" value="{{ next }}" />
-            </div>
-            {% for field in form %}
-            <div class="control-group{% if field.errors %} error{% endif %}">
-              <label class="control-label" for="{{ field.auto_id }}">{{ field.label }}</label>
-              <div class="controls">
-                {{ field }}
-                {% if field.errors %}
-                <span class="help-inline">{{ field.errors.0 }}</span>
-                {% endif %}
-              </div>
-            </div>
-            {% endfor %}
-            <div class="form-actions">
-              <input type="submit" value="Login" class="btn btn-primary">
-            </div>
-          </fieldset>
-        </form>
-      </div>
-    </div>
+        <div class="row-fluid">
+          <div class="span12">
+            <form method="post" action="" class="form-horizontal">
+              <fieldset>
+                <legend>Login</legend>
+                <div class="control-group">
+                  {{ csrf() }}
+                  <input type="hidden" name="next" value="{{ next }}" />
+                </div>
+                {% for field in form %}
+                <div class="control-group{% if form.errors %} error{% endif %}">
+                  <label class="control-label" for="{{ field.auto_id }}">{{ field.label }}</label>
+                  <div class="controls">
+                    {{ field|safe }}
+                    {% if loop.index == 1 and form.errors %}
+                    <span class="help-inline">Your username and/or password are incorrect, please check them and try again.</span>
+                    {% endif %}
+                  </div>
+                </div>
+                {% endfor %}
+                <div class="form-actions">
+                  <input type="submit" value="Login" class="btn btn-primary">
+                </div>
+              </fieldset>
+            </form>
+          </div>
+        </div>
 {% endblock %}
