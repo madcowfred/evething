@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-{% load thing_extras %}
 
 {% block title %}Event log{% endblock %}
 
@@ -19,7 +18,7 @@
             <tbody>
               {% for event in events.object_list %}
               <tr>
-                <td class="c">{{ event.issued|date("Y-m-d H:i") }}</td>
+                <td class="c">{{ event.issued }}</td>
                 <td class="r">{{ event.get_age()|duration }}</td>
                 <td>{{ event.text|safe }}</td>
               </tr>

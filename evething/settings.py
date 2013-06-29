@@ -71,6 +71,7 @@ SECRET_KEY = ')%)w42n83ndwvlrnj99-77@e0)(kcs!$zd%#pcy0&e5x0kwq01'
 
 # List of callables that know how to import templates from various sources.
 TEMPLATE_LOADERS = (
+    'jingo.Loader',
     'django.template.loaders.filesystem.Loader',
     'django.template.loaders.app_directories.Loader',
     # 'django.template.loaders.eggs.Loader',
@@ -106,8 +107,7 @@ INSTALLED_APPS = (
     'south',
     'djcelery',
     'mptt',
-    'jinja2cache',
-    'coffin',
+    'jingo',
     'thing',
 )
 
@@ -148,7 +148,6 @@ SERVER_EMAIL = 'evething@wafflemonster.org'
 # Auth profile thing
 AUTH_PROFILE_MODULE = 'thing.UserProfile'
 
-
 # Themes
 THEMES = [
     ('default', '<Default>'),
@@ -159,17 +158,16 @@ THEMES = [
     ('slate', 'Slate'),
 ]
 
+JINGO_EXCLUDE_APPS = (
+    'admin',
+    'admindocs',
+    'context_processors',
+)
 
 # load local settings
 from local_settings import *
 MANAGERS = ADMINS
 TEMPLATE_DEBUG = DEBUG
-
-
-# Jinja2 cache
-JINJA2_CACHE_ENABLED = True
-JINJA2_CACHE_BACKEND = 'locmem://'
-JINJA2_CACHE_MSTAT_DISABLED = True
 
 
 # Celery setup

@@ -1,7 +1,4 @@
 {% extends "base.html" %}
-{% load url from future %}
-{% load cache %}
-{% load thing_extras %}
 {% import 'macros/common.html' as common %}
 
 {% block title %}{% if anonymous %}Anonymized Character: {{ char.config.anon_key }}{% else %}Character: {{ char.name }}{% endif %}{% endblock %}
@@ -129,7 +126,7 @@
                 <div>
                   {{ queue.0.skill.item.name }} {{ queue.0.get_roman_level() }} (Rank {{ queue.0.skill.rank }}) --
                   {{ queue.0.get_remaining()|duration }} remaining
-                  <div class="pull-right">{{ queue.0.end_time|date("Y-m-d H:i:s") }} UTC</div>
+                  <div class="pull-right">{{ queue.0.end_time }} UTC</div>
                   <div style="width: 100%">
                     <div class="progress progress-striped{% if queue_duration < 86400 %} progress-danger{% endif%} margin-half-top">
                       <div class="bar" style="width: {{ queue.0.z_complete }}%">{{ queue.0.z_complete }}%</div>
@@ -141,7 +138,7 @@
                   {% for sq in queue[1:] %}
                   <div>
                     {{ sq.skill.item.name }} {{ sq.get_roman_level() }} (Rank {{ sq.skill.rank }})
-                    <div class="pull-right">{{ sq.end_time|date("Y-m-d H:i:s") }} UTC</div>
+                    <div class="pull-right">{{ sq.end_time }} UTC</div>
                   </div>
                   {% endfor %}
                 </div>
@@ -157,11 +154,10 @@
 
             <div class="tab-content">
               <div class="tab-pane active" id="skills">
-                {% cache 300 character_skills char.id %}
                 {% for mg, css in skills.items() -%}
                 <span class="char-skill-group">{{ mg.name }}</span>
                 --
-                <strong>{{ css|length }}</strong> skill{{ css|length|pluralize }} trained for <strong>{{ mg.z_total_sp|commas }}</strong> SP
+                <strong>{{ css|length }}</strong> skill(s) trained for <strong>{{ mg.z_total_sp|commas }}</strong> SP
                 <table class="table table-striped table-condensed table-hover">
                   {% for cs in css -%}
                   <tr>
@@ -181,7 +177,6 @@
                   {%- endfor %}
                 </table>
                 {%- endfor %}
-                {% endcache %}
               </div>
 
               {% if show.standings %}
@@ -235,8 +230,8 @@
         {%- if not public %}
         <div class="well well-small">
           <h4 class="nomargin">Settings</h4>
-          <form action="{% url 'thing.views.character_settings' char.name %}" method="POST" style="margin: 0">
-            {% csrf_token %}
+          <form action="{{ url('thing.views.character_settings', char.name) }}" method="POST" style="margin: 0">
+            {{ csrf() }}
             <input type="hidden" name="character_id" value="{{ char.id }}">
             <label class="checkbox">
               <input type="checkbox" id="public-checkbox" name="public"{% if char.config.is_public %} checked{% endif %}>
@@ -290,7 +285,7 @@
             </label>
             <label class="indent">
               <input type="text" id="anon-key-text" name="anon-key" maxlength="16" value="{{ char.config.anon_key }}" class="input-medium">
-              {% if char.config.anon_key %}<a id="anon-key-link" href="{% url 'thing.views.character_anonymous' char.config.anon_key %}">Anonymized link</a>{% endif %}
+              {% if char.config.anon_key %}<a id="anon-key-link" href="{{ url('thing.views.character_anonymous', char.config.anon_key) }}">Anonymized link</a>{% endif %}
             </label>
             <button type="submit" class="btn btn-primary">Save</button>
           </form>
@@ -304,7 +299,7 @@
             {% for sp in user_plans -%}
             <li>
               <i class="icon-{{ sp.z_icon }}"></i>
-              <a href="{{ 'thing.views.character_skillplan'|url(char.name, sp.id) }}">{{ sp.name }}</a>
+              <a href="{{ url('thing.views.character_skillplan', char.name, sp.id) }}">{{ sp.name }}</a>
             </li>
             {%- endfor %}
           </ul>
@@ -312,7 +307,7 @@
         {%- endif %}
 
         {% if public_plans -%}
-        {% with user.is_authenticated() as authed -%}
+        {% set authed = user.is_authenticated() -%}
         <div class="well well-small">
           <h4 class="nomargin">Global Skill Plans</h4>
           <ul class="unstyled">
@@ -320,9 +315,9 @@
             <li>
               <i class="icon-{{ sp.z_icon }}"></i>
               {% if anonymous -%}
-              <a href="{{ 'thing.views.character_anonymous_skillplan'|url(char.config.anon_key, sp.id) }}">
+              <a href="{{ url('thing.views.character_anonymous_skillplan', char.config.anon_key, sp.id) }}">
               {%- else -%}
-              <a href="{{ 'thing.views.character_skillplan'|url(char.name, sp.id) }}">
+              <a href="{{ url('thing.views.character_skillplan', char.name, sp.id) }}">
               {%- endif %}
                 {{ sp.name }}{% if authed %} [{{ sp.user.username }}]{% endif %}
               </a>
@@ -330,7 +325,6 @@
             {%- endfor %}
           </ul>
         </div>
-        {%- endwith %}
         {%- endif %}
       </div>
 

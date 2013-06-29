@@ -160,27 +160,17 @@ def trade_timeframe(request, year=None, month=None, period=None, slug=None):
         t = t_map[item.id]
         item.t = t
 
-        # Average profit
-        if 'buy_average' not in t:
-            t['buy_average'] = 0
-        if 'sell_average' not in t:
-            t['sell_average'] = 0
+        # Add missing data
+        for k in ('buy_average', 'sell_average', 'buy_quantity', 'sell_quantity', 'buy_minimum', 'sell_minimum',
+            'buy_maximum', 'sell_maximum', 'buy_total', 'sell_total'):
+            if k not in t:
+                t[k] = 0
 
         if t['buy_average'] and t['sell_average']:
             t['average_profit'] = (t['sell_average'] - t['buy_average']).quantize(TWO_PLACES)
             t['average_profit_per'] = '%.1f' % (t['average_profit'] / t['buy_average'] * 100)
-        
-        if 'buy_quantity' not in t:
-            t['buy_quantity'] = 0
-        if 'sell_quantity' not in t:
-            t['sell_quantity'] = 0
 
         t['diff'] = t['buy_quantity'] - t['sell_quantity']
-
-        if 'buy_total' not in t:
-            t['buy_total'] = 0
-        if 'sell_total' not in t:
-            t['sell_total'] = 0
 
         t['balance'] = t['sell_total'] - t['buy_total']
 

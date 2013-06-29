@@ -1,6 +1,4 @@
 {% extends "base.html" %}
-{% load url from future %}
-{% load thing_extras %}
 
 {% block title %}Trade{% endblock %}
 
@@ -21,10 +19,10 @@
             <tbody>
               {% for transaction in transactions -%}
               <tr class="r">
-                <td class="l"><a href="{% url 'thing.views.trade_timeframe' transaction.urlpart %}">{{ transaction.name }}</a></td>
+                <td class="l"><a href="{{ url('thing.views.trade_timeframe', transaction.urlpart) }}">{{ transaction.name }}</a></td>
                 <td>{{ transaction.buy_total|commas }}</td>
                 <td>{{ transaction.sell_total|commas }}</td>
-                <td>{{ transaction.balance|commas|balance }}</td>
+                <td>{{ transaction.balance|commas|balance|safe }}</td>
               </tr>
               {%- else -%}
               <tr>

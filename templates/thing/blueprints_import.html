@@ -14,7 +14,7 @@
           {%- endif %}
 
           <form action="" method="POST">
-            {% csrf_token %}
+            {{ csrf() }}
             <fieldset>
               <textarea name="csv" class="input-block-level" placeholder="Paste your CSV data here" rows="10">{{ csv }}</textarea>
             </fieldset>
