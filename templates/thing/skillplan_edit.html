@@ -5,9 +5,10 @@
 
 {% block extra_js %}
     <script type="text/javascript">
+        // current skill popover displayed
+        var current_popover_id = false;
+        
         $(function() {
-            // current skill popover displayed
-            var current_popover_id = false;
         
             // hover thing for skill descriptions
             $('.skill-hover').popover({ 
@@ -22,7 +23,6 @@
                     if(current_popover_id) {
                         if(current_popover_id != $(this).attr('id')) {
                             $('#'+current_popover_id).popover('hide');
-                            $(this).popover('show');
                         }
                     }
                     current_popover_id=$(this).attr('id');
@@ -32,10 +32,7 @@
                         function() {
                             var plan_to_level   = $(this).attr('data-level');
                             var plan_skill_id   = $(this).attr('data-id');
-                            if(addSkillInPlan(plan_skill_id, plan_to_level)) {
-                                $('#'+current_popover_id).popover('hide');
-                            }
-                                                       
+                            addSkillInPlan(plan_skill_id, plan_to_level);
                         }
                     );
                 }
@@ -50,8 +47,26 @@
         }
         
         function addSkillInPlan(skill_id, level) {
-            //alert(skill_id + " - " + level);
-            return true;
+            $.ajax({
+                crossDomain: false,
+                url: '{{ url('thing.views.skillplan_add_skill') }}',
+                data: { action:'getprerequisite'
+                      , skill_id:skill_id
+                      , skillplan_id:{{ skillplan.id }} },
+                type:'post',
+                beforeSend: function(xhr, settings) {
+                    xhr.setRequestHeader("X-CSRFToken", $.cookie('csrftoken'));
+                },
+                success: function(json) {
+                    //alert(json)
+                    // TODO : read the json and add the new skills into the plan.
+                    skills = $.parseJSON(json);
+                    $('#'+current_popover_id).popover('hide');
+                },
+                error: function(xhr, status, error) {
+                    //alert(status);
+                }
+            });
         }
         
         function optimizeAttributes() {
@@ -123,7 +138,7 @@
         
         <div class="row-fluid">
             <div class="span12">
-                <table class="table table-striped table-bordered table-condensed">
+                <table id="skillplan" class="table table-striped table-bordered table-condensed">
                     <thead>
                         <tr class="c">
                             <th>#</th>
