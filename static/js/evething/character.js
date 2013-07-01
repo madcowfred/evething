@@ -2,17 +2,7 @@ EVEthing.character = {
     anon_checked: null,
     
     onload: function() {
-        // Enable linking to a tab with a #location
-        var prefix = 'tab_';
-        var hash = document.location.hash;
-        if (hash) {
-            $('.nav-tabs a[href=' + hash.replace('#', '#' + prefix) + ']').tab('show');
-        }
-        
-        // Change window hash for page reload
-        $('.nav-tabs a').on('shown', function (e) {
-            window.location.hash = e.target.hash.replace('#' + prefix, '#');
-        });
+        EVEthing.misc.setup_tab_hash();
 
         $("#public-checkbox").change(EVEthing.character.public_checkbox_change);
         EVEthing.character.public_checkbox_change();

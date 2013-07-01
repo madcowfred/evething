@@ -19,17 +19,17 @@
           {%- endif %}
 
           <ul class="nav nav-tabs">
-            <li class="active"><a href="#settings" data-toggle="tab">Settings</a></li>
-            <li><a href="#apikeys" data-toggle="tab">API Keys</a></li>
-            <li><a href="#skillplans" data-toggle="tab">Skill Plans</a></li>
+            <li class="active"><a href="#tab_settings" data-toggle="tab">Settings</a></li>
+            <li><a href="#tab_apikeys" data-toggle="tab">API Keys</a></li>
+            <li><a href="#tab_skillplans" data-toggle="tab">Skill Plans</a></li>
             {%- if not disable_password %}
-            <li><a href="#password" data-toggle="tab">Change Password</a></li>
+            <li><a href="#tab_password" data-toggle="tab">Change Password</a></li>
             {%- endif %}
           </ul>
 
           <div class="tab-content">
             {# settings: content -#}
-            <div class="tab-pane active" id="settings">
+            <div class="tab-pane active" id="tab_settings">
               <form action="{{ url('thing.views.account_settings') }}" method="POST" class="form-horizontal">
                 <fieldset>
                   {{ csrf() }}
@@ -191,7 +191,7 @@
             </div>
 
             {# apikeys: content -#}
-            <div class="tab-pane" id="apikeys">
+            <div class="tab-pane" id="tab_apikeys">
               <div class="span12">
                 <table class="table table-striped table-bordered table-condensed" id="key-table">
                   <thead>
@@ -339,7 +339,7 @@
             </div>
 
             {# skillplan: content -#}
-            <div class="tab-pane" id="skillplans">
+            <div class="tab-pane" id="tab_skillplans">
               <div class="span6">
                 <table class="table table-striped table-bordered table-condensed">
                   <thead>
@@ -409,7 +409,7 @@
             </div>
 
             {% if not disable_password %}{# password: content -#}
-            <div class="tab-pane" id="password">
+            <div class="tab-pane" id="tab_password">
               <form action="{{ url('thing.views.account_change_password') }}" method="POST" class="form-horizontal">
                 <fieldset>
                   {{ csrf() }}

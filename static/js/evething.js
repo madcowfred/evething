@@ -37,6 +37,21 @@ var EVEthing = {
                 m = "0" + m;
             $('#utc-time').text(h + ":" + m);
         },
+
+        // Enable linking directly to a tab with a #location
+        setup_tab_hash: function() {
+            // Show the correct tab
+            var prefix = 'tab_';
+            var hash = document.location.hash;
+            if (hash) {
+                $('.nav-tabs a[href=' + hash.replace('#', '#' + prefix) + ']').tab('show');
+            }
+            
+            // Change window hash for page reload
+            $('a[data-toggle="tab"]').on('shown', function (e) {
+                window.location.hash = e.target.hash.replace('#' + prefix, '#');
+            });
+        },
     },
 }
 
