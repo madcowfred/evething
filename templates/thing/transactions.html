@@ -5,13 +5,15 @@
 
 {% block extra_js %}
     <script type="text/javascript">
-      // template provided variables
-      var data = $.parseJSON('{{ json_data|safe }}');
-      EVEthing.filters.data = data.values;
-      EVEthing.filters.expected = data.expected;
-      EVEthing.transactions.filters = data.filters;
+      $(document).ready(function() {
+        // template provided variables
+        var data = $.parseJSON('{{ json_data|safe }}');
+        EVEthing.filters.data = data.values;
+        EVEthing.filters.expected = data.expected;
+        EVEthing.transactions.filters = data.filters;
 
-      EVEthing.transactions.onload();
+        EVEthing.transactions.onload();
+      });
     </script>
 {% endblock %}
 
