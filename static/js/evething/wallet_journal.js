@@ -1,19 +1,6 @@
 EVEthing.wallet_journal = {
     onload: function() {
-        // Add our provided filters
-        var count = 0;
-        $.each(EVEthing.wallet_journal.filters, function(ft, fcfvs) {
-            for (var i = 0; i < fcfvs.length; i++) {
-                $('#filters').append(EVEthing.filters.build(ft, fcfvs[i][0], fcfvs[i][1]));
-                count++;
-            }
-        });
-        // If we didn't add any filters, make an empty one
-        if (count === 0) {
-            $('#filters').append(EVEthing.filters.build());
-        }
-
-        // add query string to pagination links
+        // Add query string to pagination links
         var search = document.location.search;
         $('a').each(function() {
             var href = $(this).attr('href');
@@ -25,10 +12,13 @@ EVEthing.wallet_journal = {
             }
         });
 
-        // bind filter events
+        // Bind filter events
         EVEthing.filters.bind_events();
+        
+        // Load filters
+        EVEthing.filters.load_filters(EVEthing.wallet_journal.filters);
 
-        // bind aggregate button
+        // Bind aggregate button
         $('#aggregate-form').submit(function() {
             var action = $(this).attr('action');
             var data = $('#filter-form, #aggregate-form').serialize();

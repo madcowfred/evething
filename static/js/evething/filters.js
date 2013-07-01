@@ -70,6 +70,21 @@ EVEthing.filters = {
         $('.date').datepicker();
     },
 
+    load_filters: function(filters) {
+        // Add our provided filters
+        var count = 0;
+        $.each(filters, function(ft, fcfvs) {
+            for (var i = 0; i < fcfvs.length; i++) {
+                $('#filters').append(EVEthing.filters.build(ft, fcfvs[i][0], fcfvs[i][1]));
+                count++;
+            }
+        });
+        // If we didn't add any filters, make an empty one
+        if (count === 0) {
+            $('#filters').append(EVEthing.filters.build());
+        }
+    },
+
     build: function(ft, fc, fv) {
         var html = '<div class="control-group" style="margin: 0;">';
         html += '<select name="ft" class="filter-type input-medium">';
