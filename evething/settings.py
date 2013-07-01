@@ -158,11 +158,13 @@ THEMES = [
     ('slate', 'Slate'),
 ]
 
+# Jingo setup
 JINGO_EXCLUDE_APPS = (
     'admin',
     'admindocs',
     'context_processors',
 )
+STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.CachedStaticFilesStorage'
 
 # load local settings
 from local_settings import *

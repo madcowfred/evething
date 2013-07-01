@@ -1,9 +1,8 @@
 import re
 from decimal import *
 
-from django import template
+from django.contrib.staticfiles.storage import staticfiles_storage
 from django.template.defaultfilters import stringfilter
-from django.utils.safestring import mark_safe
 
 from jingo import register
 
@@ -99,9 +98,9 @@ def balance(s):
     if s == '0':
         return s
     elif s.startswith('-'):
-        return mark_safe('<span class="neg">%s</span>' % (s))
+        return '<span class="neg">%s</span>' % (s)
     else:
-        return mark_safe('<span class="pos">%s</span>' % (s))
+        return '<span class="pos">%s</span>' % (s)
 
 @register.filter
 def balance_class(n):
@@ -170,6 +169,11 @@ def spanif(value, arg):
     
     n = int(parts[2])
     if (parts[1] == '<' and value < n) or (parts[1] == '=' and value == n) or (parts[1] == '>' and value > n):
-        return mark_safe('<span class="%s">%s</span>' % (parts[0], value))
+        return '<span class="%s">%s</span>' % (parts[0], value)
     else:
         return value
+
+# Jinja2 filter version of staticfiles. Hopefully.
+@register.function
+def static(path):
+    return staticfiles_storage.url(path)
