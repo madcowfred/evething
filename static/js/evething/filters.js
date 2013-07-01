@@ -102,10 +102,12 @@ EVEthing.filters = {
 
         for (var k in EVEthing.filters.expected[ft].comps) {
             var v = EVEthing.filters.expected[ft].comps[k];
-            if (v == fc)
+            if (v == fc) {
                 html += '<option value="' + v + '" selected>' + EVEthing.filters.comparisons[v] + '</option>';
-            else
+            }
+            else {
                 html += '<option value="' + v + '">' + EVEthing.filters.comparisons[v] + '</option>';
+            }
         }
 
         html += '</select>';
@@ -142,10 +144,12 @@ EVEthing.filters = {
 
             $.each(EVEthing.util.sorted_keys_by_value(EVEthing.filters.data[ft]), function(i, d_id) {
                 var d_name = EVEthing.filters.data[ft][d_id];
-                if (d_id == fv)
+                if (d_id == fv) {
                     html += '<option value="' + d_id + '" selected>' + d_name + '</option>';
-                else
+                }
+                else {
                     html += '<option value="' + d_id + '">' + d_name + '</option>';
+                }
             });
 
             html += '</select>';
