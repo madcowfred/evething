@@ -125,21 +125,11 @@ def assets_summary(request):
 
     tt.add_time('sort data')
     
-    # Ready template things
-    json_expected = json.dumps(ASSETS_EXPECTED)
-    values = {
-        'chars': characters,
-        'corps': corporations,
-        'invflags': InventoryFlag.objects.order_by('name'),
-        'itemcats': ItemCategory.objects.order_by('name'),
-    }
-
     # Render template
     out = render_page(
         'thing/assets_summary.html',
         {
-            'json_expected': json_expected,
-            'values': values,
+            'json_data': _json_data(characters, corporations, []),
             'characters': characters,
             'corporations': corporations,
             'overall_total': overall_total,
@@ -450,25 +440,13 @@ def assets_filter(request):
 
     tt.add_time('sort contents')
     
-    # Ready template things
-    json_expected = json.dumps(ASSETS_EXPECTED)
-    values = {
-        'chars': characters,
-        'corps': corporations,
-        'invflags': InventoryFlag.objects.order_by('name'),
-        'itemcats': ItemCategory.objects.order_by('name'),
-    }
-
     # Render template
     out = render_page(
         'thing/assets_filter.html',
         {
-            'json_expected': json_expected,
-            'values': values,
-            'filters': filters,
+            'json_data': _json_data(characters, corporations, filters),
             'characters': characters,
             'corporations': corporations,
-            'filters': filters,
             'total_value': total_value,
             'systems': sorted_systems,
             'loc_totals': loc_totals,
@@ -495,3 +473,26 @@ def _content_sort(asset):
             _content_sort(asset)
 
 # ---------------------------------------------------------------------------
+
+def _json_data(characters, corporations, filters):
+    data = dict(
+        expected=ASSETS_EXPECTED,
+        filters=filters,
+        values=dict(
+            char={},
+            corp={},
+            invflag={},
+            itemcat={},
+        ),
+    )
+
+    for char in characters:
+        data['values']['char'][char.id] = char.name
+    for corp in corporations:
+        data['values']['corp'][corp.id] = corp.name
+    for invflag in InventoryFlag.objects.all():
+        data['values']['invflag'][invflag.id] = invflag.name
+    for itemcat in ItemCategory.objects.all():
+        data['values']['itemcat'][itemcat.id] = itemcat.name
+
+    return json.dumps(data)

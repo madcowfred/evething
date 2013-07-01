@@ -5,38 +5,15 @@
 
 {% block extra_js %}
     <script type="text/javascript">
-      // template provided variables
-      var expected = $.parseJSON('{{ json_expected|safe }}');
+      $(document).ready(function() {
+        // template provided variables
+        var data = $.parseJSON('{{ json_data|safe }}');
+        EVEthing.filters.data = data.values;
+        EVEthing.filters.expected = data.expected;
+        EVEthing.transactions.filters = data.filters;
 
-      var data = {};
-      data['char'] = {};
-      {% for char in values.chars %}data['char'][{{ char.id }}] = '{{ char.name }}';{% endfor %}
-      data['corp'] = {};
-      {% for corp in values.corps %}data['corp'][{{ corp.id }}] = '{{ corp.name }}';{% endfor %}
-
-      // add provided filters
-      $('#filters').empty();
-      {% for ft, fcfvs in filters.items() %}
-      {% for fc, fv in fcfvs %}
-      $('#filters').append(filter_build(expected, data, '{{ ft }}', '{{ fc }}', '{{ fv }}'));
-      {% endfor %}
-      {% else %}
-      $('#filters').append(filter_build(expected));
-      {% endfor %}
-
-      // add query string to pagination links
-      var search = document.location.search;
-      $('a').each(function() {
-        var href = $(this).attr('href');
-        if (href !== undefined && href.substr(0, 5) === '?page') {
-          var params = parseQueryString();
-          params.page = href.split(/=/)[1];
-          $(this).attr('href', '?' + $.param(params));
-        }
+        EVEthing.transactions.onload();
       });
-      
-      // bind filter events
-      filter_bind();
     </script>
 {% endblock %}
 

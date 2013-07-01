@@ -4,21 +4,15 @@
 {% block title %}Assets Summary{% endblock %}
 
 {% block extra_js %}
-{% include 'includes/assets_js.html' %}
     <script type="text/javascript">
-      var sidenav_offset = {
-        top: function() {
-          var window_h = $(window).height();
-          var sidenav_h = $('#sidenav').height();
-          if (window_h >= (sidenav_h + 75))
-            return $('#total').offset().top;
-          else
-            return 999999;
-        }
-      }
+      $(document).ready(function() {
+        // template provided variables
+        var data = $.parseJSON('{{ json_data|safe }}');
+        EVEthing.filters.data = data.values;
+        EVEthing.filters.expected = data.expected;
+        EVEthing.assets.filters = data.filters;
 
-      $('#sidenav').affix({
-        offset: sidenav_offset,
+        EVEthing.assets.onload();
       });
     </script>
 {% endblock %}

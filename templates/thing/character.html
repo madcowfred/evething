@@ -4,64 +4,7 @@
 {% block title %}{% if anonymous %}Anonymized Character: {{ char.config.anon_key }}{% else %}Character: {{ char.name }}{% endif %}{% endblock %}
 
 {% block extra_js %}
-    <script type="text/javascript">
-      {% if not anonymous -%}
-      var anon_checked = null;
-      {%- endif %}
-
-      $(document).ready(function() {
-        {% if not anonymous -%}
-        $("#public-checkbox").change(settings_checkboxes);
-        settings_checkboxes();
-        
-        anon_checked = $('#anon-key').attr('checked');
-        $("#anon-key").change(anon_toggle);
-        anon_toggle();
-        {%- endif %}
-        
-        // hover thing for skill descriptions
-        $('.skill-hover').popover({ animation: false, trigger: 'hover', html: true });
-
-        // Javascript to enable link to tab
-        var prefix = 'tab_';
-        var hash = document.location.hash;
-        if (hash) {
-          $('.nav-tabs a[href=' + hash.replace(prefix, "") + ']').tab('show');
-        }
-        
-        // Change hash for page-reload
-        $('.nav-tabs a').on('shown', function (e) {
-          window.location.hash = e.target.hash.replace('#', '#' + prefix);
-        })
-      });
-
-      {% if not anonymous -%}
-      function settings_checkboxes() {
-        var state = $("#public-checkbox").attr("checked");
-        if (state == "checked") { $("input.disable-toggle").removeAttr("disabled"); }
-        else { $("input.disable-toggle").attr("disabled", ""); }
-      }
-
-      function anon_toggle() {
-        var checked = $('#anon-key').attr('checked');
-        if (checked != anon_checked) {
-          $('#anon-key-link').remove();
-          anon_checked = checked;
-        }
-
-        if (checked == "checked") {
-          $("#anon-key-text").removeAttr("disabled");
-          if ($("#anon-key-text").val() == "") {
-            $("#anon-key-text").val(randString(16));
-          }
-        }
-        else {
-          $("#anon-key-text").attr("disabled", "");
-          $("#anon-key-text").val("");
-        }
-      }
-      {%- endif %}
-    </script>
+    <script type="text/javascript">$(document).ready(EVEthing.character.onload);</script>
 {% endblock %}
 
 {% block content %}

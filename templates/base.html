@@ -9,10 +9,10 @@
 {% if debug %}
     <link rel="stylesheet/less" href="{{ STATIC_URL }}less/theme-{{ user.get_profile().theme }}/bootstrap.less">
 {% else %}
-    <link rel="stylesheet" href="{{ STATIC_URL }}css/theme-{{ user.get_profile().theme }}.min.css">
+    <link rel="stylesheet" href="{{ static('css/theme-' + user.get_profile().theme + '.min.css') }}">
 {% endif %}{# debug #}
 {% else %}
-    <link rel="stylesheet" href="{{ STATIC_URL }}css/theme-default.min.css">
+    <link rel="stylesheet" href="{{ static('css/theme-default.min.css') }}">
 {% endif %}{# authed #}
     <title>EVEthing: {% block title %}{% endblock %}</title>
   </head>
@@ -121,8 +121,19 @@
     <script src="{{ STATIC_URL}}js/bootstrap.js"></script>
     <script src="{{ STATIC_URL}}js/bootstrap-datepicker.js"></script>
     <script src="{{ STATIC_URL}}js/evething.js"></script>
+    <script src="{{ STATIC_URL}}js/evething/account.js"></script>
+    <script src="{{ STATIC_URL}}js/evething/assets.js"></script>
+    <script src="{{ STATIC_URL}}js/evething/blueprints.js"></script>
+    <script src="{{ STATIC_URL}}js/evething/bpcalc.js"></script>
+    <script src="{{ STATIC_URL}}js/evething/character.js"></script>
+    <script src="{{ STATIC_URL}}js/evething/filters.js"></script>
+    <script src="{{ STATIC_URL}}js/evething/home.js"></script>
+    <script src="{{ STATIC_URL}}js/evething/industry.js"></script>
+    <script src="{{ STATIC_URL}}js/evething/orders.js"></script>
+    <script src="{{ STATIC_URL}}js/evething/transactions.js"></script>
+    <script src="{{ STATIC_URL}}js/evething/wallet_journal.js"></script>
 {% else %}
-    <script src="{{ STATIC_URL }}js/evething-combined.min.js"></script>
+    <script src="{{ static('js/evething-combined.min.js') }}"></script>
 {% endif %}{# if debug #}
 {% block extra_js %}{% endblock %}
   </body>

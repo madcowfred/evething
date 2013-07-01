@@ -7,7 +7,7 @@ BOOTSTRAP_FILES := alert button collapse dropdown modal tooltip popover tab scro
 BOOTSTRAP_JS := $(addsuffix .js,$(addprefix static/js/bootstrap-,$(BOOTSTRAP_FILES)))
 
 # All JS source files that we use
-ALL_JS := static/js/jquery.tablesorter.js static/js/bootstrap.js static/js/evething.js
+ALL_JS := static/js/jquery.tablesorter.js static/js/bootstrap.js static/js/evething.js static/js/evething/*
 
 # Themes
 THEMES    := theme-cerulean theme-cosmo theme-cyborg theme-darkthing theme-default theme-slate
