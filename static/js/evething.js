@@ -40,6 +40,7 @@ var EVEthing = {
     },
 }
 
+// Global ready function
 $(document).ready(function() {
     // highlight currently active link
     var path = window.location.pathname;
@@ -56,7 +57,7 @@ $(document).ready(function() {
     $('.dropdown-toggle').dropdown();
 
     // hover thing for hover things
-    $('.skill-hover').popover({ animation: false, trigger: 'hover' });
+    $('.skill-hover').popover({ animation: false, trigger: 'hover', html: true });
 
     EVEthing.misc.setClock();
     window.setInterval(EVEthing.misc.setClock, 5000);

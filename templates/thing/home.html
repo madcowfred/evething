@@ -4,72 +4,7 @@
 {% block title %}Home{% endblock %}
 
 {% block extra_js %}
-    <script type="text/javascript">
-      $(document).ready(function() {
-        // make tooltips appear to the right of icons
-        $("[rel=tooltip]").each(function () {
-          $(this).data('tooltip').options.placement = 'right';
-        });
-
-        // hover thing for skill descriptions
-        $('.skill-hover').popover({ animation: false, trigger: 'hover', html: true });
-      });
-
-      function screenshot_mode() {
-        // replace sensitive data with placeholders
-        $('.sensitive').each(function () {
-          var $this = $(this);
-          var $oldname = $this.attr('oldname');
-
-          if ($oldname === undefined) {
-            $this.attr('oldname', $this.text());
-            if ($this.hasClass('character-name'))
-              $this.text('Character Name');
-            else if ($this.hasClass('apikey-name'))
-              $this.text('API name');
-            else if ($this.hasClass('corporation-name'))
-              $this.text('Corporation Name [TICKER]');
-            else if ($this.hasClass('character-location'))
-              $this.text('Hoth -- X-Wing');
-            else if ($this.hasClass('wallet-division'))
-              $this.text('Hookers & Blow');
-            else if ($this.hasClass('user-name'))
-              $this.text('Mr. User');
-          }
-          else {
-            $this.text($oldname);
-            $this.removeAttr('oldname');
-          }
-        });
-
-        var seen_tooltips = Array();
-        $('.row-fluid').each(function() {
-          var $row = $(this);
-          
-          $('.well', $row).each(function() {
-            var $well = $(this);
-            var seen = false;
-            
-            $('[rel=tooltip]', $well).each(function () {
-              var $i = $(this);
-              if (seen == false && seen_tooltips[$i.attr('class')] === undefined) {
-                seen = true;
-                seen_tooltips[$i.attr('class')] = true;
-
-                if ($i.attr('shown') === undefined) {
-                  $i.tooltip('show');
-                  $i.attr('shown', 'yup');
-                }
-                else {
-                  $i.tooltip('hide');
-                  $i.removeAttr('shown');
-                }
-              }
-            });
-          });
-        });
-      }
-    </script>
+    <script type="text/javascript">$(document).ready(EVEthing.home.onload);</script>
 {% endblock %}
 
 {% block content %}
@@ -81,9 +16,7 @@
           <span class="divider">/</span>
           <span><strong>Total Assets:</strong> {{ total_assets|default('0.00')|commas }} ISK</span>
           <span class="pull-right">
-            <a href="#" onclick="screenshot_mode();">
-              <i class="icon-picture" title="Screenshot sanitised mode"></i>
-            </a>
+            <i class="js-screenshot clickable icon-picture" title="Screenshot sanitised mode"></i>
           </span>
         </div>
       </div>
