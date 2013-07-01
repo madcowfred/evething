@@ -2,21 +2,7 @@
 {% import 'macros/icons.html' as icons %}
 
 {% block extra_js %}
-    <script type="text/javascript">
-      $(document).ready(function() {
-        // Enable linking to a tab with a #location
-        var prefix = 'tab_';
-        var hash = document.location.hash;
-        if (hash) {
-          $('.nav-tabs a[href=' + hash.replace(prefix, "") + ']').tab('show');
-        }
-        
-        // Change window hash for page reload
-        $('.nav-tabs a').on('shown', function (e) {
-          window.location.hash = e.target.hash.replace('#', '#' + prefix);
-        });
-      });
-    </script>
+    <script type="text/javascript">$(document).ready(EVEthing.industry.onload);</script>
 {% endblock %}
 
 {% block title %}Industry Jobs{% endblock %}
