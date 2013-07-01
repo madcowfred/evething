@@ -205,21 +205,11 @@ def wallet_journal(request):
         entry.z_owner1_filter = build_filter(filters, 'owners', 'eq', entry.z_owner1_char or entry.z_owner1_corp or entry.z_owner1_alliance)
         entry.z_owner2_filter = build_filter(filters, 'owners', 'eq', entry.z_owner2_char or entry.z_owner2_corp or entry.z_owner2_alliance)
 
-    # Ready template things
-    json_expected = json.dumps(JOURNAL_EXPECTED)
-    values = {
-        'chars': characters,
-        'corps': corporations,
-        'reftypes': RefType.objects.exclude(name='').exclude(id__gte=1000),
-    }
-
     # Render template
     return render_page(
         'thing/wallet_journal.html',
         {
-            'json_expected': json_expected,
-            'values': values,
-            'filters': filters,
+            'json_data': _json_data(characters, corporations, filters),
             'total_amount': total_amount,
             'days': days,
             'entries': entries,
@@ -314,21 +304,11 @@ def wallet_journal_aggregate(request):
 
     wja.finalise()
 
-    # Ready template things
-    json_expected = json.dumps(JOURNAL_EXPECTED)
-    values = {
-        'chars': characters,
-        'corps': corporations,
-        'reftypes': RefType.objects.exclude(name='').exclude(id__gte=1000),
-    }
-
     # Render template
     return render_page(
         'thing/wallet_journal_aggregate.html',
         {
-            'json_expected': json_expected,
-            'values': values,
-            'filters': filters,
+            'json_data': _json_data(characters, corporations, filters),
             'agg_data': wja.data,
             'group_by': group_by,
             'empty_colspan': empty_colspan,
@@ -578,5 +558,27 @@ def _journal_queryset(request, character_ids, corporation_ids):
         )
 
     return filters, journal_ids, days
+
+# ---------------------------------------------------------------------------
+
+def _json_data(characters, corporations, filters):
+    data = dict(
+        expected=JOURNAL_EXPECTED,
+        filters=filters,
+        values=dict(
+            char={},
+            corp={},
+            reftype={},
+        ),
+    )
+
+    for char in characters:
+        data['values']['char'][char.id] = char.name
+    for corp in corporations:
+        data['values']['corp'][corp.id] = corp.name
+    for reftype in RefType.objects.exclude(name='').exclude(id__gte=1000):
+        data['values']['reftype'][reftype.id] = reftype.name
+
+    return json.dumps(data)
 
 # ---------------------------------------------------------------------------
