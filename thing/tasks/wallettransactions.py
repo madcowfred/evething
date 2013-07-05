@@ -3,6 +3,7 @@ from decimal import *
 from .apitask import APITask
 
 from thing.models import Character, Corporation, CorpWallet, Item, Station, Transaction
+from django.db import IntegrityError
 
 # ---------------------------------------------------------------------------
 # number of rows to request per WalletTransactions call, max is 2560
