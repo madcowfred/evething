@@ -24,13 +24,13 @@ def blueprints(request):
         runs = int(request.GET.get('runs', '1'))
     except ValueError:
         runs = 1
-    
+
     # Build a map of Blueprint.id -> BlueprintComponent
     bpc_map = {}
     bp_ids = BlueprintInstance.objects.filter(user=request.user.id).values_list('blueprint_id', flat=True)
     for bpc in BlueprintComponent.objects.select_related(depth=1).filter(blueprint__in=bp_ids):
         bpc_map.setdefault(bpc.blueprint.id, []).append(bpc)
-    
+
     tt.add_time('bp->bpc map')
 
     # Assemble blueprint data
@@ -38,7 +38,7 @@ def blueprints(request):
     for bpi in BlueprintInstance.objects.select_related().filter(user=request.user.id):
         # Cache component list so we don't have to retrieve it multiple times
         components = bpi._get_components(components=bpc_map[bpi.blueprint.id], runs=runs)
-        
+
         # Calculate a bunch of things we can't easily do via SQL
         bpi.z_count = bpi.blueprint.item.portion_size * runs
         bpi.z_production_time = bpi.calc_production_time(runs=runs)
@@ -46,9 +46,9 @@ def blueprints(request):
         bpi.z_unit_profit_buy = bpi.blueprint.item.sell_price - bpi.z_unit_cost_buy
         bpi.z_unit_cost_sell = bpi.calc_production_cost(runs=runs, use_sell=True, components=components)
         bpi.z_unit_profit_sell = bpi.blueprint.item.sell_price - bpi.z_unit_cost_sell
-        
+
         bpis.append(bpi)
-    
+
     tt.add_time('bp data')
 
     # Render template
@@ -79,7 +79,7 @@ def blueprints_add(request):
         productivity_level=request.GET['productivity_level'],
     )
     bpi.save()
-    
+
     return redirect('blueprints')
 
 @login_required
@@ -209,7 +209,7 @@ def bpcalc(request):
         'buy_total': 0,
         'sell_total': 0,
     }
-    
+
     # Get the list of BPIs from GET vars
     bpi_list = map(int, request.GET.getlist('bpi'))
     if bpi_list:
@@ -218,37 +218,37 @@ def bpcalc(request):
         bp_ids = BlueprintInstance.objects.filter(user=request.user.id, pk__in=bpi_list).values_list('blueprint_id', flat=True)
         for bpc in BlueprintComponent.objects.select_related(depth=1).filter(blueprint__in=bp_ids):
             bpc_map.setdefault(bpc.blueprint.id, []).append(bpc)
-        
+
         # Do weekly movement in bulk
         item_ids = list(BlueprintInstance.objects.filter(user=request.user.id, pk__in=bpi_list).values_list('blueprint__item_id', flat=True))
         one_month_ago = datetime.datetime.utcnow() - datetime.timedelta(30)
-        
+
         if item_ids:
             query = queries.bpcalc_movement % (', '.join(map(str, item_ids)))
-            
+
             cursor = connection.cursor()
             cursor.execute(query, (days, one_month_ago,))
             move_map = {}
             for row in cursor:
                 move_map[row[0]] = row[1]
-            
+
             comps = {}
             # Fetch BlueprintInstance objects
             for bpi in BlueprintInstance.objects.select_related('blueprint__item').filter(user=request.user.id, pk__in=bpi_list):
                 # Skip BPIs with no current price information
                 if bpi.blueprint.item.sell_price == 0 and bpi.blueprint.item.buy_price == 0:
                     continue
-                
+
                 # Work out how many runs fit into the number of days provided
                 pt = bpi.calc_production_time()
                 runs = int((ONE_DAY * days) / pt)
-                
+
                 # Skip really long production items
                 if runs == 0:
                     continue
-                
+
                 built = runs * bpi.blueprint.item.portion_size
-                
+
                 # Magical m3 stuff
                 bpi.z_input_m3 = 0
                 bpi.z_output_m3 = bpi.blueprint.item.volume * built
@@ -266,12 +266,12 @@ def bpcalc(request):
                 bpi.z_total_sell = bpi.blueprint.item.sell_price * built
                 bpi.z_buy_build = bpi.calc_production_cost(runs=runs, components=components) * built
                 bpi.z_sell_build = bpi.calc_production_cost(runs=runs, use_sell=True, components=components) * built
-                
+
                 bpi.z_buy_profit = bpi.z_total_sell - bpi.z_buy_build
                 bpi.z_buy_profit_per = (bpi.z_buy_profit / bpi.z_buy_build * 100).quantize(Decimal('.1'))
                 bpi.z_sell_profit = bpi.z_total_sell - bpi.z_sell_build
                 bpi.z_sell_profit_per = (bpi.z_sell_profit / bpi.z_sell_build * 100).quantize(Decimal('.1'))
-                
+
                 #bpi.z_volume_week = bpi.blueprint.item.get_volume()
                 bpi.z_volume_week = move_map.get(bpi.blueprint.item.id, 0)
                 if bpi.z_volume_week:
@@ -285,9 +285,9 @@ def bpcalc(request):
                 bpi_totals['buy_profit'] += bpi.z_buy_profit
                 bpi_totals['sell_build'] += bpi.z_sell_build
                 bpi_totals['sell_profit'] += bpi.z_sell_profit
-                
+
                 bpis.append(bpi)
-            
+
             # Components
             for item, amt in comps.items():
                 component_list.append({
@@ -298,17 +298,22 @@ def bpcalc(request):
                     'sell_total': amt * item.sell_price,
                 })
             component_list.sort(key=lambda c: c['item'].name)
-            
+
             # Do some sums
             if bpi_totals['buy_profit'] and bpi_totals['buy_build']:
                 bpi_totals['buy_profit_per'] = (bpi_totals['buy_profit'] / bpi_totals['buy_build'] * 100).quantize(Decimal('.1'))
+            else:
+                bpi_totals['buy_profit_per'] = Decimal('0.0')
+
             if bpi_totals['sell_profit'] and bpi_totals['sell_build']:
                 bpi_totals['sell_profit_per'] = (bpi_totals['sell_profit'] / bpi_totals['sell_build'] * 100).quantize(Decimal('.1'))
-            
+            else:
+                bpi_totals['sell_profit_per'] = Decimal('0.0')
+
             comp_totals['volume'] = sum(comp['volume'] for comp in component_list)
             comp_totals['buy_total'] = sum(comp['buy_total'] for comp in component_list)
             comp_totals['sell_total'] = sum(comp['sell_total'] for comp in component_list)
-        
+
     # Render template
     return render_page(
         'thing/bpcalc.html',

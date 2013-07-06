@@ -58,15 +58,15 @@
                 <td class="bpc-medium">{{ bpi.z_output_m3|humanize }}</td>
                 <td class="bpc-medium">{{ bpi.z_buy_build|humanize }}</td>
                 <td class="bpc-medium">{{ bpi.z_buy_profit|humanize|balance|safe }}</td>
-                <td class="bpc-small">{{ bpi.z_buy_profit_per|spanif("neg < 7")|safe }}%</td>
+                <td class="bpc-small{% if bpi.z_buy_profit_per < 7 %} neg{% endif %}">{{ bpi.z_buy_profit_per }}%</td>
                 <td class="bpc-medium">{{ bpi.z_sell_build|humanize }}</td>
                 <td class="bpc-medium">{{ bpi.z_sell_profit|humanize|balance|safe }}</td>
-                <td class="bpc-small">{{ bpi.z_sell_profit_per|spanif("neg < 7")|safe }}%</td>
+                <td class="bpc-small{% if bpi.z_sell_profit_per < 7 %} neg{% endif %}">{{ bpi.z_sell_profit_per }}%</td>
                 <td class="bpc-small">{{ bpi.z_built|commas }}</td>
                 <td class="bpc-medium">{{ bpi.blueprint.item.sell_price|humanize }}</td>
                 <td class="bpc-medium">{{ bpi.z_total_sell|humanize }}</td>
                 <td class="bpc-medium">{{ bpi.z_volume_week|humanize }}</td>
-                <td class="bpc-small">{{ bpi.z_volume_percent|spanif("neg > 10")|safe }}%</td>
+                <td class="bpc-small{% if bpi.z_volume_percent > 10 %} neg{% endif %}">{{ bpi.z_volume_percent }}%</td>
                 <td class="bpc-tiny"><input type="checkbox"></td>
               </tr>
               {% else %}
@@ -82,10 +82,10 @@
                 <td>{{ bpi_totals.output_m3|humanize }}</td>
                 <td>{{ bpi_totals.buy_build|humanize }}</td>
                 <td>{{ bpi_totals.buy_profit|humanize }}</td>
-                <td>{{ bpi_totals.buy_profit_per|spanif("neg < 7")|safe }}%</td>
+                <td{% if bpi_totals.buy_profit_per < 7 %} class="neg"{% endif %}>{{ bpi_totals.buy_profit_per }}%</td>
                 <td>{{ bpi_totals.sell_build|humanize }}</td>
                 <td>{{ bpi_totals.sell_profit|humanize }}</td>
-                <td>{{ bpi_totals.sell_profit_per|spanif("neg < 7")|safe }}%</td>
+                <td{% if bpi_totals.sell_profit_per < 7 %} class="neg"{% endif %}>{{ bpi_totals.sell_profit_per }}%</td>
                 <td colspan="2"></td>
                 <td>{{ bpi_totals.total_sell|humanize }}</td>
                 <td colspan="3"></td>
@@ -94,7 +94,7 @@
           </table>
         </div>
       </div>
-      
+
       <div class="row-fluid">
         <div class="span8">
           <h2>Components</h2>
