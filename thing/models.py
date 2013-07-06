@@ -888,10 +888,10 @@ class Asset(models.Model):
     def system_or_station(self):
         try:
             return self.station.name
-        except Station.DoesNotExist:
+        except:
             try:
                 return self.system.name
-            except System.DoesNotExist:
+            except:
                 return None
 
     def is_blueprint(self):
