@@ -20,8 +20,9 @@
           </span>
         </div>
       </div>
-      
+
       {%- for char_list in characters %}
+      {%- if char_list %}
       <hr class="margin-half-top">
       {%- if char_list.0.z_apikey.group_name %}
       <p class="home-group">{{ char_list.0.z_apikey.group_name }}</p>
@@ -95,8 +96,9 @@
         {%- endfor %}
       </div>
       {%- endfor %}
-      {%- endfor %}
-      
+      {%- endif %}{# char_list #}
+      {%- endfor %}{# char_list in characters #}
+
       {%- if corporations %}
       <hr class="nomargin">
       <div class="row-fluid">
