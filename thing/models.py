@@ -120,7 +120,7 @@ class APIKey(models.Model):
     )
 
     user = models.ForeignKey(User)
-    
+
     keyid = models.IntegerField(verbose_name='Key ID')
     vcode = models.CharField(max_length=64, verbose_name='Verification code')
     access_mask = models.BigIntegerField(default=0)
@@ -128,21 +128,21 @@ class APIKey(models.Model):
     key_type = models.CharField(max_length=16, default='')
     expires = models.DateTimeField(null=True, blank=True)
     paid_until = models.DateTimeField(null=True, blank=True)
-    
+
     name = models.CharField(max_length=64, default='')
     group_name = models.CharField(max_length=32, default='')
 
     created_at = models.DateTimeField(auto_now=True)
     valid = models.BooleanField(default=True)
-    
+
     characters = models.ManyToManyField('Character', related_name='apikeys')
-    
+
     # this is only used for corporate keys, ugh
     corp_character = models.ForeignKey('Character', null=True, blank=True, related_name='corporate_apikey')
-    
+
     class Meta:
         ordering = ('keyid',)
-    
+
     def __unicode__(self):
         return '#%s, keyId: %s (%s)' % (self.id, self.keyid, self.key_type)
 
@@ -265,10 +265,10 @@ class Corporation(models.Model):
 
     class Meta:
         ordering = ('name',)
-    
+
     def __unicode__(self):
         return self.name
-    
+
     def get_total_balance(self):
         return self.corpwallet_set.aggregate(Sum('balance'))['balance_sum']
 
@@ -280,10 +280,10 @@ class CorpWallet(models.Model):
     account_key = models.IntegerField()
     description = models.CharField(max_length=64)
     balance = models.DecimalField(max_digits=18, decimal_places=2)
-    
+
     class Meta:
         ordering = ('corporation', 'account_id')
-    
+
     def __html__(self):
         if self.corporation.ticker:
             return '[<span class="tip" rel="tooltip" title="%s">%s</span>] %s' % (
@@ -304,14 +304,14 @@ class CorpWallet(models.Model):
 # Characters
 class Character(models.Model):
     id = models.IntegerField(primary_key=True)
-    
+
     name = models.CharField(max_length=64)
     corporation = models.ForeignKey(Corporation, blank=True, null=True)
 
     # Skill stuff
     skills = models.ManyToManyField('Skill', related_name='learned_by', through='CharacterSkill')
     skill_queue = models.ManyToManyField('Skill', related_name='training_by', through='SkillQueue')
-    
+
     # Standings stuff
     faction_standings = models.ManyToManyField('Faction', related_name='has_standings', through='FactionStanding')
     corporation_standings = models.ManyToManyField('Corporation', related_name='has_standings', through='CorporationStanding')
@@ -321,10 +321,10 @@ class Character(models.Model):
     #factory_per_hour = models.DecimalField(max_digits=8, decimal_places=2, default=0.0)
     #sales_tax = models.DecimalField(max_digits=3, decimal_places=2, default=1.5)
     #brokers_fee = models.DecimalField(max_digits=3, decimal_places=2, default=1.0)
-    
+
     class Meta:
        ordering = ('name',)
-    
+
     def __unicode__(self):
         return self.name
 
@@ -371,7 +371,7 @@ class CharacterDetails(models.Model):
     character = models.OneToOneField(Character, unique=True, primary_key=True, related_name='details')
 
     wallet_balance = models.DecimalField(max_digits=18, decimal_places=2, default=0)
-    
+
     cha_attribute = models.SmallIntegerField(default=20)
     int_attribute = models.SmallIntegerField(default=20)
     mem_attribute = models.SmallIntegerField(default=20)
@@ -382,10 +382,10 @@ class CharacterDetails(models.Model):
     mem_bonus = models.SmallIntegerField(default=0)
     per_bonus = models.SmallIntegerField(default=0)
     wil_bonus = models.SmallIntegerField(default=0)
-    
+
     clone_name = models.CharField(max_length=32, default='Clone Grade Alpha')
     clone_skill_points= models.IntegerField(default=900000)
-    
+
     security_status = models.DecimalField(max_digits=6, decimal_places=4, default=0)
 
     last_known_location = models.CharField(max_length=255, default='')
@@ -403,7 +403,7 @@ class CharacterDetails(models.Model):
 class CharacterSkill(models.Model):
     character = models.ForeignKey('Character')
     skill = models.ForeignKey('Skill')
-    
+
     level = models.SmallIntegerField()
     points = models.IntegerField()
 
@@ -418,20 +418,20 @@ class CharacterSkill(models.Model):
 class SkillQueue(models.Model):
     character = models.ForeignKey('Character')
     skill = models.ForeignKey('Skill')
-    
+
     start_time = models.DateTimeField()
     end_time = models.DateTimeField()
     start_sp = models.IntegerField()
     end_sp = models.IntegerField()
     to_level = models.SmallIntegerField()
-    
+
     def __unicode__(self):
         return '%s: %s %d, %d -> %d - Start: %s, End: %s' % (self.character.name, self.skill.item.name,
             self.to_level, self.start_sp, self.end_sp, self.start_time, self.end_time)
 
     class Meta:
         ordering = ('start_time',)
-    
+
     def get_complete_percentage(self, now=None, character=None):
         if now is None:
             now = datetime.datetime.utcnow()
@@ -444,7 +444,7 @@ class SkillQueue(models.Model):
     def get_completed_sp(self, charskill, now=None, character=None):
         if now is None:
             now = datetime.datetime.utcnow()
-        
+
         remaining = total_seconds(self.end_time - now)
         remain_sp = remaining / 60.0 * self.skill.get_sp_per_minute(character or self.character)
         required_sp = self.skill.get_sp_at_level(self.to_level) - self.skill.get_sp_at_level(self.to_level - 1)
@@ -453,7 +453,7 @@ class SkillQueue(models.Model):
         current_sp = charskill.points
 
         return (required_sp - remain_sp) - (current_sp - base_sp)
-    
+
     def get_roman_level(self):
         return ['', 'I', 'II', 'III', 'IV', 'V'][self.to_level]
 
@@ -486,10 +486,10 @@ class CorporationStanding(models.Model):
 class Region(models.Model):
     id = models.IntegerField(primary_key=True)
     name = models.CharField(max_length=64)
-    
+
     def __unicode__(self):
         return self.name
-    
+
     class Meta:
         ordering = ('name'),
 
@@ -497,12 +497,12 @@ class Region(models.Model):
 class Constellation(models.Model):
     id = models.IntegerField(primary_key=True)
     name = models.CharField(max_length=64)
-    
+
     region = models.ForeignKey(Region)
-    
+
     def __unicode__(self):
         return self.name
-    
+
     class Meta:
         ordering = ('name'),
 
@@ -510,12 +510,12 @@ class Constellation(models.Model):
 class System(models.Model):
     id = models.IntegerField(primary_key=True)
     name = models.CharField(max_length=32)
-    
+
     constellation = models.ForeignKey(Constellation)
-    
+
     def __unicode__(self):
         return self.name
-    
+
     class Meta:
         ordering = ('name'),
 
@@ -527,7 +527,7 @@ numeral_map = zip(
 )
 def roman_to_int(n):
     n = unicode(n).upper()
-    
+
     i = result = 0
     for integer, numeral in numeral_map:
         while n[i:i + len(numeral)] == numeral:
@@ -539,20 +539,20 @@ class Station(models.Model):
     id = models.IntegerField(primary_key=True)
     name = models.CharField(max_length=128)
     short_name = models.CharField(max_length=64, default='')
-    
+
     system = models.ForeignKey(System)
-    
+
     def __unicode__(self):
         return self.name
-    
+
     # Build the short name when this object is saved
     def save(self, *args, **kwargs):
         self._make_shorter_name()
         super(Station, self).save(*args, **kwargs)
-    
+
     def _make_shorter_name(self):
         out = []
-        
+
         parts = self.name.split(' - ')
         if len(parts) == 1:
             self.short_name = self.name
@@ -560,14 +560,14 @@ class Station(models.Model):
             a_parts = parts[0].split()
             # Change the roman annoyance to a proper digit
             out.append('%s %s' % (a_parts[0], str(roman_to_int(a_parts[1]))))
-            
+
             # Moooon
             if parts[1].startswith('Moon') and len(parts) == 3:
                 out[0] = '%s-%s' % (out[0], parts[1][5:])
                 out.append(''.join(s[0] for s in parts[2].split()))
             else:
                 out.append(''.join(s[0] for s in parts[1].split()))
-            
+
             self.short_name = ' - '.join(out)
 
 # ---------------------------------------------------------------------------
@@ -575,9 +575,9 @@ class Station(models.Model):
 class MarketGroup(MPTTModel):
     id = models.IntegerField(primary_key=True)
     name = models.CharField(max_length=100)
-    
+
     parent = TreeForeignKey('self', blank=True, null=True, related_name='children')
-    
+
     def __unicode__(self):
         return self.name
 
@@ -589,7 +589,7 @@ class MarketGroup(MPTTModel):
 class ItemCategory(models.Model):
     id = models.IntegerField(primary_key=True)
     name = models.CharField(max_length=64)
-    
+
     def __unicode__(self):
         return self.name
 
@@ -599,7 +599,7 @@ class ItemGroup(models.Model):
     id = models.IntegerField(primary_key=True)
     name = models.CharField(max_length=64)
     category = models.ForeignKey(ItemCategory)
-    
+
     def __unicode__(self):
         return self.name
 
@@ -608,21 +608,21 @@ class ItemGroup(models.Model):
 class Item(models.Model):
     id = models.IntegerField(primary_key=True)
     name = models.CharField(max_length=128)
-    
+
     item_group = models.ForeignKey(ItemGroup)
     market_group = models.ForeignKey(MarketGroup, blank=True, null=True)
-    
+
     portion_size = models.IntegerField()
     # 0.0025 -> 10,000,000,000
     volume = models.DecimalField(max_digits=16, decimal_places=4, default=0)
-    
+
     base_price = models.DecimalField(max_digits=15, decimal_places=2, default=0)
     sell_price = models.DecimalField(max_digits=15, decimal_places=2, default=0)
     buy_price = models.DecimalField(max_digits=15, decimal_places=2, default=0)
-    
+
     def __unicode__(self):
         return self.name
-    
+
     def get_volume(self, days=7):
         iph_days = self.pricehistory_set.all()[:days]
         agg = self.pricehistory_set.filter(pk__in=iph_days).aggregate(Sum('movement'))
@@ -664,7 +664,7 @@ class Skill(models.Model):
     def __unicode__(self):
         return '%s (Rank %d; %s/%s)' % (self.item.name, self.rank, self.get_primary_attribute_display(),
             self.get_secondary_attribute_display())
-    
+
     def __html__(self):
         return "<strong>Primary:</strong> %s / <strong>Secondary</strong>: %s<br><br>%s" % (
             self.get_primary_attribute_display(),
@@ -705,18 +705,18 @@ class Skill(models.Model):
 class PriceHistory(models.Model):
     region = models.ForeignKey(Region)
     item = models.ForeignKey(Item)
-    
+
     date = models.DateField()
     minimum = models.DecimalField(max_digits=18, decimal_places=2)
     maximum = models.DecimalField(max_digits=18, decimal_places=2)
     average = models.DecimalField(max_digits=18, decimal_places=2)
     movement = models.BigIntegerField()
     orders = models.IntegerField()
-    
+
     class Meta:
         ordering = ('-date',)
         unique_together = ('region', 'item', 'date')
-    
+
     def __unicode__(self):
         return '%s (%s)' % (self.item, self.date)
 
@@ -725,21 +725,21 @@ class PriceHistory(models.Model):
 # TODO: rename this and implement (character, corp_wallet) assignment somehow
 class Campaign(models.Model):
     user = models.ForeignKey(User)
-    
+
     title = models.CharField(max_length=32)
     slug = models.SlugField(max_length=32)
     start_date = models.DateTimeField()
     end_date = models.DateTimeField()
-    
+
     corp_wallets = models.ManyToManyField(CorpWallet, blank=True, null=True)
     characters = models.ManyToManyField(Character, blank=True, null=True)
-    
+
     class Meta:
         ordering = ('title',)
-    
+
     def __unicode__(self):
         return self.title
-    
+
     def get_transactions_filter(self, transactions):
         return transactions.filter(
             Q(corp_wallet__in=self.corp_wallets.all()) |
@@ -760,13 +760,13 @@ class JournalEntry(models.Model):
 
     ref_id = models.BigIntegerField(db_index=True)
     ref_type = models.ForeignKey('RefType')
-    
+
     owner1_id = models.IntegerField()
     owner2_id = models.IntegerField()
-    
+
     arg_name = models.CharField(max_length=128)
     arg_id = models.BigIntegerField()
-    
+
     amount = models.DecimalField(max_digits=14, decimal_places=2)
     balance = models.DecimalField(max_digits=17, decimal_places=2)
     reason = models.CharField(max_length=255)
@@ -814,25 +814,25 @@ class RefType(models.Model):
 # Market orders
 class MarketOrder(models.Model):
     order_id = models.BigIntegerField(primary_key=True)
-    
+
     station = models.ForeignKey(Station)
     item = models.ForeignKey(Item)
     character = models.ForeignKey(Character)
     corp_wallet = models.ForeignKey(CorpWallet, null=True, blank=True)
-    
+
     creator_character_id = models.IntegerField(db_index=True)
 
     escrow = models.DecimalField(max_digits=14, decimal_places=2)
     price = models.DecimalField(max_digits=14, decimal_places=2)
     total_price = models.DecimalField(max_digits=17, decimal_places=2)
-    
+
     buy_order = models.BooleanField()
     volume_entered = models.IntegerField()
     volume_remaining = models.IntegerField()
     minimum_volume = models.IntegerField()
     issued = models.DateTimeField(db_index=True)
     expires = models.DateTimeField(db_index=True)
-    
+
     class Meta:
         ordering = ('buy_order', 'item__name')
 
@@ -857,14 +857,14 @@ class InventoryFlag(models.Model):
         for pre, data in FLAG_NICE.items():
             if self.name.startswith(pre):
                 return data[0]
-        
+
         return self.name
 
     def sort_order(self):
         for pre, data in FLAG_NICE.items():
             if self.name.startswith(pre):
                 return data[1]
-        
+
         return 999
 
 # ---------------------------------------------------------------------------
@@ -886,12 +886,13 @@ class Asset(models.Model):
     singleton = models.BooleanField()
 
     def system_or_station(self):
-        if self.station is not None:
+        try:
             return self.station.name
-        elif self.system is not None:
-            return self.system.name
-        else:
-            return None
+        except Station.DoesNotExist:
+            try:
+                return self.system.name
+            except System.DoesNotExist:
+                return None
 
     def is_blueprint(self):
         if self.item.item_group.category.name == 'Blueprint':
@@ -901,7 +902,7 @@ class Asset(models.Model):
 
     def get_sell_price(self):
         blueprint = self.is_blueprint()
-        
+
         if blueprint == 0:
             return self.item.sell_price
         # BPOs use the base (NPC) price
@@ -933,7 +934,7 @@ class AssetSummary(models.Model):
 class Contract(models.Model):
     character = models.ForeignKey(Character)
     corporation = models.ForeignKey(Corporation, blank=True, null=True)
-    
+
     contract_id = models.IntegerField(db_index=True)
 
     issuer_char = models.ForeignKey(Character, blank=True, null=True, related_name="contract_issuers")
@@ -972,7 +973,7 @@ class Contract(models.Model):
 
     class Meta:
         ordering = ('-date_issued',)
-    
+
     def get_issuer_name(self):
         if self.for_corp:
             return self.issuer_corp.name
@@ -1108,7 +1109,7 @@ class IndustryJob(models.Model):
 
     system = models.ForeignKey(System)
     container_location_id = models.IntegerField()
-    
+
     material_multiplier = models.DecimalField(max_digits=5, decimal_places=3)
     character_material_multiplier = models.DecimalField(max_digits=5, decimal_places=3)
     time_multiplier = models.DecimalField(max_digits=5, decimal_places=3)
@@ -1122,12 +1123,12 @@ class IndustryJob(models.Model):
     completed = models.IntegerField()
     completed_status = models.IntegerField(choices=STATUS_CHOICES)
     activity = models.IntegerField(choices=ACTIVITY_CHOICES)
-   
+
     install_time = models.DateTimeField()
     begin_time = models.DateTimeField()
     end_time = models.DateTimeField()
     pause_time = models.DateTimeField()
-    
+
     class Meta:
         ordering = ('-end_time',)
 
@@ -1137,17 +1138,17 @@ class Blueprint(models.Model):
     id = models.IntegerField(primary_key=True)
     name = models.CharField(max_length=128)
     item = models.ForeignKey(Item)
-    
+
     production_time = models.IntegerField()
     productivity_modifier = models.IntegerField()
     material_modifier = models.IntegerField()
     waste_factor = models.IntegerField()
-    
+
     components = models.ManyToManyField(Item, related_name='component_of', through='BlueprintComponent')
-    
+
     class Meta:
         ordering = ('name',)
-    
+
     def __unicode__(self):
         return self.name
 
@@ -1156,7 +1157,7 @@ class Blueprint(models.Model):
 class BlueprintComponent(models.Model):
     blueprint = models.ForeignKey(Blueprint)
     item = models.ForeignKey(Item)
-    
+
     count = models.IntegerField()
     needs_waste = models.BooleanField(default=True)
 
@@ -1168,20 +1169,20 @@ class BlueprintComponent(models.Model):
 class BlueprintInstance(models.Model):
     user = models.ForeignKey(User, blank=True, null=True)
     blueprint = models.ForeignKey(Blueprint)
-    
+
     original = models.BooleanField()
     material_level = models.IntegerField(default=0)
     productivity_level = models.IntegerField(default=0)
-    
+
     class Meta:
         ordering = ('blueprint',)#.item',)
-    
+
     def __unicode__(self):
         if self.original:
             return "%s (BPO, ML%s PL%s)" % (self.blueprint.name, self.material_level, self.productivity_level)
         else:
             return "%s (BPC, ML%s PL%s)" % (self.blueprint.name, self.material_level, self.productivity_level)
-    
+
     # Calculate production time, taking PL and skills into account
     # TODO: fix this, skills not available
     # TODO: take implants into account
@@ -1193,16 +1194,16 @@ class BlueprintInstance(models.Model):
         BPT = Decimal(self.blueprint.production_time)
         BPM = self.blueprint.productivity_modifier
         PL = Decimal(self.productivity_level)
-        
+
         if PL >= 0:
             pt = BPT * (1 - (BPM / BPT) * (PL / (1 + PL))) * PTM
         else:
             pt = BPT * (1 - (BPM / BPT) * (PL - 1)) * PTM
-        
+
         pt *= runs
-        
+
         return pt.quantize(Decimal('0'), rounding=ROUND_UP)
-    
+
     # Calculate the construction cost assuming ME50 components
     def calc_capital_production_cost(self):
         total_cost = Decimal(0)
@@ -1236,17 +1237,17 @@ class BlueprintInstance(models.Model):
     # TODO: move factory cost/etc to a model attached to the User table
     def calc_production_cost(self, components=None, runs=1, use_sell=False, character=None):
         total_cost = Decimal(0)
-        
+
         # Component costs
         if components is None:
             components = self._get_components(runs=runs)
-        
+
         for item, amt in components:
             if use_sell is True:
                 total_cost += (Decimal(str(amt)) * item.sell_price)
             else:
                 total_cost += (Decimal(str(amt)) * item.buy_price)
-        
+
         # Factory costs
         # if character is not None:
         #     total_cost += character.factory_cost
@@ -1255,24 +1256,24 @@ class BlueprintInstance(models.Model):
         #     total_cost *= (1 + (character.sales_tax / 100))
         #     # Broker's fee
         #     total_cost *= (1 + (character.brokers_fee / 100))
-        
+
         # Run count
         total_cost /= (self.blueprint.item.portion_size * runs)
-        
+
         return total_cost.quantize(Decimal('.01'), rounding=ROUND_UP)
-    
+
     # Get all components required for this item, adjusted for ML and relevant skills
     # TODO: fix this, skills aren't currently available
     def _get_components(self, components=None, runs=1):
         PES = 5 #fixme: self.character.production_efficiency_skill
         ML = self.material_level
         WF = self.blueprint.waste_factor / 100.0
-        
+
         comps = []
-        
+
         if components is None:
             components = BlueprintComponent.objects.filter(blueprint=self.blueprint).select_related()
-        
+
         for component in components:
             if component.needs_waste:
                 # well this is horrible
@@ -1282,9 +1283,9 @@ class BlueprintInstance(models.Model):
                     amt = round(component.count * (1 + (WF * (abs(ML) + 1))) + (0.25 - (0.05 * PES)))
             else:
                 amt = component.count
-            
+
             comps.append((component.item, int(amt * runs)))
-        
+
         return comps
 
 # ---------------------------------------------------------------------------
