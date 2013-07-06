@@ -200,8 +200,10 @@ def bpcalc(request):
         'total_sell': Decimal('0.0'),
         'buy_build': Decimal('0.0'),
         'buy_profit': Decimal('0.0'),
+        'buy_profit_per': Decimal('0.0'),
         'sell_build': Decimal('0.0'),
         'sell_profit': Decimal('0.0'),
+        'sell_profit_per': Decimal('0.0'),
     }
     component_list = []
     comp_totals = {
@@ -302,13 +304,9 @@ def bpcalc(request):
             # Do some sums
             if bpi_totals['buy_profit'] and bpi_totals['buy_build']:
                 bpi_totals['buy_profit_per'] = (bpi_totals['buy_profit'] / bpi_totals['buy_build'] * 100).quantize(Decimal('.1'))
-            else:
-                bpi_totals['buy_profit_per'] = Decimal('0.0')
 
             if bpi_totals['sell_profit'] and bpi_totals['sell_build']:
                 bpi_totals['sell_profit_per'] = (bpi_totals['sell_profit'] / bpi_totals['sell_build'] * 100).quantize(Decimal('.1'))
-            else:
-                bpi_totals['sell_profit_per'] = Decimal('0.0')
 
             comp_totals['volume'] = sum(comp['volume'] for comp in component_list)
             comp_totals['buy_total'] = sum(comp['buy_total'] for comp in component_list)
