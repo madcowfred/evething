@@ -2,6 +2,60 @@
 jQuery.ajaxSettings.traditional = true;
 
 
+var EVEthing = {
+    util: {
+        // Get a list of keys in obj sorted by key
+        sorted_keys: function(obj) {
+            var keys = [];
+            for (var key in obj)
+                keys.push(key);
+            return keys.sort();
+        },
+
+        // Get a list of keys in obj sorted by value
+        sorted_keys_by_value: function(obj) {
+            var keys = [];
+            for (var key in obj)
+                keys.push(key);
+            return keys.sort(function (a,b) {
+                if (obj[a] < obj[b]) return -1;
+                if (obj[a] > obj[b]) return 1;
+                return 0;
+            });
+        },
+    },
+
+    misc: {
+        setClock: function() {
+            // set up the clock
+            var time = new Date();
+            var h = time.getUTCHours();
+            if (h < 10)
+                h = "0" + h;
+            var m = time.getUTCMinutes();
+            if (m < 10)
+                m = "0" + m;
+            $('#utc-time').text(h + ":" + m);
+        },
+
+        // Enable linking directly to a tab with a #location
+        setup_tab_hash: function() {
+            // Show the correct tab
+            var prefix = 'tab_';
+            var hash = document.location.hash;
+            if (hash) {
+                $('.nav-tabs a[href=' + hash.replace('#', '#' + prefix) + ']').tab('show');
+            }
+            
+            // Change window hash for page reload
+            $('a[data-toggle="tab"]').on('shown', function (e) {
+                window.location.hash = e.target.hash.replace('#' + prefix, '#');
+            });
+        },
+    },
+}
+
+// Global ready function
 $(document).ready(function() {
     // highlight currently active link
     var path = window.location.pathname;
@@ -12,28 +66,19 @@ $(document).ready(function() {
     });
 
     // activate bootstrap tooltips
-    $("[rel=tooltip]").tooltip();
+    $('[rel=tooltip]').tooltip();
+
     // activate bootstrap dropdowns
     $('.dropdown-toggle').dropdown();
 
-    setClock();
-    window.setInterval(setClock, 5000);
+    // hover thing for hover things
+    $('.skill-hover').popover({ animation: false, trigger: 'hover', html: true });
+
+    EVEthing.misc.setClock();
+    window.setInterval(EVEthing.misc.setClock, 5000);
 });
 
-function setClock() {
-    // set up the clock
-    var time = new Date();
-    var h = time.getUTCHours();
-    if (h < 10)
-        h = "0" + h;
-    var m = time.getUTCMinutes();
-    if (m < 10)
-        m = "0" + m;
-    $('#utc-time').text(h + ":" + m);
-}
-
-
-
+// Add our 'human' parser to deal with K/M/B suffixes
 $.tablesorter.addParser({
     id: 'human',
     is: function(s) {
@@ -90,19 +135,6 @@ parseUri.options = {
 };
 
 
-function randString(n)
-{
-    var text = '';
-    var possible = 'abcdefghijklmnopqrstuvwxyz0123456789';
-
-    for(var i=0; i < n; i++) {
-        text += possible.charAt(Math.floor(Math.random() * possible.length));
-    }
-
-    return text;
-}
-
-
 // http://codereview.stackexchange.com/a/10396
 function parseQueryString() {
     var query = (window.location.search || '?').substr(1),
@@ -111,186 +143,4 @@ function parseQueryString() {
         (map[key] = map[key] || []).push(value);
     });
     return map;
-}
-
-
-function sorted_keys(obj) {
-    var keys = [];
-    for (var key in obj)
-        keys.push(key);
-    return keys.sort();
-}
-function sorted_keys_by_value(obj) {
-    var keys = [];
-    for (var key in obj)
-        keys.push(key);
-    return keys.sort(function (a,b) {
-        if (obj[a] < obj[b]) return -1;
-        if (obj[a] > obj[b]) return 1;
-        return 0;
-    });
-}
-
-
-var filter_comps = {
-    'eq': '==',
-    'ne': '!=',
-    'gt': '>',
-    'gte': '>=',
-    'lt': '<',
-    'lte': '<=',
-    'in': 'contains',
-    'bt': 'between',
-}
-
-function filter_build(expected, data, ft, fc, fv) {
-    var html = '<div class="control-group" style="margin: 0;">';
-    html += '<select name="ft" class="filter-type input-medium">';
-    html += '<option value=""></option>';
-
-    $.each(sorted_keys(expected), function(i, k) {
-        if (k === ft)
-            html += '<option value="' + k + '" selected>' + expected[k].label + '</option>';
-        else
-            html += '<option value="' + k + '">' + expected[k].label + '</option>';
-    });
-    html += '</select>';
-
-    if (ft) {
-        html += filter_build_comp(expected, ft, fc);
-        html += filter_build_value(data, ft, fc, fv);
-    }
-
-    html += ' <i class="icon-plus clickable filter-icon"></i>';
-    html += '<i class="icon-trash clickable filter-icon"></i>';
-    html += '</div>';
-
-    return html;
-}
-
-function filter_build_comp(expected, ft, fc) {
-    html = ' <select name="fc" class="filter-comp input-small">';
-
-    for (var k in expected[ft].comps) {
-        var v = expected[ft].comps[k];
-        if (v == fc)
-            html += '<option value="' + v + '" selected>' + filter_comps[v] + '</option>';
-        else
-            html += '<option value="' + v + '">' + filter_comps[v] + '</option>';
-    }
-
-    html += '</select>';
-    return html;
-}
-
-function filter_build_value(data, ft, fc, fv) {
-    html = ' ';
-
-    if (fc == 'in') {
-        html += '<input name="fv" class="filter-value span2" type="text" value="' + fv + '">';
-    }
-    else if (ft == 'date') {
-        dates = fv.split(',');
-        for (var i = dates.length; i < 2; i++) {
-            dates.push('');
-        }
-
-        html += '<span>';
-        html += '<div class="input-append date" data-date="' + dates[0] + '" data-date-format="yyyy-mm-dd">';
-        html += '<input type="text" class="input-small" value="' + dates[0] + '" readonly>';
-        html += '<span class="add-on"><i class="icon-calendar"></i></span></div>';
-        if (fc == 'bt') {
-            html += ' and ';
-            html += '<div class="input-append date" data-date="' + dates[1] + '" data-date-format="yyyy-mm-dd">';
-            html += '<input type="text" class="input-small" value="' + dates[1] + '" readonly>';
-            html += '<span class="add-on"><i class="icon-calendar"></i></span></div>';
-        }
-        html += '<input type="hidden" name="fv" value="">';
-        html += '</span>';
-    }
-    else if (data[ft]) {
-        html += '<select name="fv" class="filter-value span2">';
-
-        $.each(sorted_keys_by_value(data[ft]), function(i, d_id) {
-            var d_name = data[ft][d_id];
-            if (d_id == fv)
-                html += '<option value="' + d_id + '" selected>' + d_name + '</option>';
-            else
-                html += '<option value="' + d_id + '">' + d_name + '</option>';
-        });
-
-        html += '</select>';
-    }
-    else {
-        html += '<input name="fv" class="filter-value span2" type="text" value="' + fv + '">';
-    }
-    return html;
-}
-
-function filter_bind() {
-    // click event for add icon
-    $('body').on('click', '.icon-plus', function() {
-        $('#filters').append(filter_build(expected));
-        $('.date').datepicker();
-    });
-
-    // click event for delete icon
-    $('body').on('click', '.icon-trash', function() {
-        $(this).parent().remove();
-        if ($('.filter-type').length == 0) {
-            $('#filters').append(filter_build(expected));
-        }
-    });
-
-    // change event for filter-type selects
-    $('body').on('change', '.filter-type', function() {
-        var $ft = $(this);
-        // clear any other select/input in this line
-        $ft.siblings('select, input').remove();
-        // add the comparison box
-        $ft.after(filter_build_comp(expected, $ft.val(), undefined));
-        // add the value box
-        var $fc = $ft.next();
-        $fc.after(filter_build_value(data, $ft.val(), $fc.val(), ''));
-        $('.date').datepicker();
-    });
-
-    // change event for filter-comp selects
-    $('body').on('change', '.filter-comp', function() {
-        var $ft = $(this).prev();
-        var $fc = $(this);
-        var $fv = $fc.next();
-        
-        var val = $fc.val();
-        if (
-            (val === 'in' && ! $fv.is('input')) ||
-            (val === 'bt') ||
-            (val !== 'in' && val !== 'bt' && ! $fv.is('select'))
-        ) {
-            $fv.remove();
-            $fc.after(filter_build_value(data, $ft.val(), $fc.val(), ''));
-            $('.date').datepicker();
-        }
-    });
-
-    // change event for datepicker disasters
-    $('body').on('changeDate', '.date', function(ev) {
-        var $span = $('span:first', $(this).parent().parent());
-        var dates = [];
-        $.each($('input[type="text"]', $span), function(index, input) {
-            dates.push($(input).val());
-        });
-        $('input[type="hidden"]', $span).val(dates.join());
-    });
-
-    $('.date').datepicker();
-}
-
-function bind_aggregate_button() {
-    $('#aggregate-form').submit(function() {
-        var action = $(this).attr('action');
-        var data = $('#filter-form, #aggregate-form').serialize();
-        window.location.href = action + '?' + data;
-        return false;
-    });
 }

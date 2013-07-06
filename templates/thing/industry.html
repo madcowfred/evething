@@ -2,21 +2,7 @@
 {% import 'macros/icons.html' as icons %}
 
 {% block extra_js %}
-    <script type="text/javascript">
-      $(document).ready(function() {
-        // Enable linking to a tab with a #location
-        var prefix = 'tab_';
-        var hash = document.location.hash;
-        if (hash) {
-          $('.nav-tabs a[href=' + hash.replace(prefix, "") + ']').tab('show');
-        }
-        
-        // Change window hash for page reload
-        $('.nav-tabs a').on('shown', function (e) {
-          window.location.hash = e.target.hash.replace('#', '#' + prefix);
-        });
-      });
-    </script>
+    <script type="text/javascript">$(document).ready(EVEthing.industry.onload);</script>
 {% endblock %}
 
 {% block title %}Industry Jobs{% endblock %}
@@ -27,13 +13,13 @@
           <h2>Industry Jobs</h2>
           
           <ul class="nav nav-tabs">
-            <li class="active"><a href="#incomplete" data-toggle="tab">Incomplete</a></li>
-            <li><a href="#complete" data-toggle="tab">Complete</a></li>
+            <li class="active"><a href="#tab_incomplete" data-toggle="tab">Incomplete</a></li>
+            <li><a href="#tab_complete" data-toggle="tab">Complete</a></li>
           </ul>
 
           <div class="tab-content">
             {#- incomplete -#}
-            <div class="tab-pane active" id="incomplete">
+            <div class="tab-pane active" id="tab_incomplete">
               <div class="span12">
                 <table class="table table-striped table-bordered table-condensed" id="incomplete-table">
                   <thead>
@@ -104,7 +90,7 @@
             </div>
 
             {#- complete -#}
-            <div class="tab-pane" id="complete">
+            <div class="tab-pane" id="tab_complete">
               <div class="span12">
                 <table class="table table-striped table-bordered table-condensed" id="complete-table">
                   <thead>

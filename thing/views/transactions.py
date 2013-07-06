@@ -282,13 +282,12 @@ def transactions(request):
     out = render_page(
         'thing/transactions.html',
         {
+            'json_data': _json_data(characters, corporations, filters),
             'transactions': transactions,
             'show_item_icons': request.user.get_profile().show_item_icons,
             'paginated': paginated,
             'next': next,
             'prev': prev,
-            'filters': filters,
-            'json_expected': json_expected,
             'values': values,
         },
         request,
@@ -303,3 +302,20 @@ def transactions(request):
     return out
 
 # ---------------------------------------------------------------------------
+
+def _json_data(characters, corporations, filters):
+    data = dict(
+        expected=FILTER_EXPECTED,
+        filters=filters,
+        values=dict(
+            char={},
+            corp={},
+        ),
+    )
+
+    for char in characters:
+        data['values']['char'][char.id] = char.name
+    for corp in corporations:
+        data['values']['corp'][corp.id] = corp.name
+
+    return json.dumps(data)

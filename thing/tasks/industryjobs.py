@@ -12,7 +12,7 @@ class IndustryJobs(APITask):
     def run(self, url, taskstate_id, apikey_id, character_id):
         if self.init(taskstate_id, apikey_id) is False:
             return
-        
+
         # Make sure the character exists
         try:
             character = Character.objects.select_related('details').get(pk=character_id)
@@ -38,7 +38,7 @@ class IndustryJobs(APITask):
         job_map = {}
         for ij in ij_filter:
             job_map[ij.job_id] = ij
-        
+
         # Iterate over the returned result set
         now = datetime.datetime.now()
         flag_ids = set()
@@ -49,7 +49,7 @@ class IndustryJobs(APITask):
         new_events = []
         for row in self.root.findall('result/rowset/row'):
             job_id = int(row.attrib['jobID'])
-            
+
             # Job exists
             ij = job_map.get(job_id, None)
             if ij is not None:
@@ -106,7 +106,11 @@ class IndustryJobs(APITask):
 
         # Create new IndustryJob objects
         new = []
+        seen_jobs = []
         for row in rows:
+            jobID = int(row.attrib['jobID'])
+            seen_jobs.append(jobID)
+
             installed_item = item_map.get(int(row.attrib['installedItemTypeID']))
             if installed_item is None:
                 self.log_warn("industry_jobs: No matching Item %s", row.attrib['installedItemTypeID'])
@@ -135,7 +139,7 @@ class IndustryJobs(APITask):
             # Create the new job object
             ij = IndustryJob(
                 character=character,
-                job_id=row.attrib['jobID'],
+                job_id=jobID,
                 assembly_line_id=row.attrib['assemblyLineID'],
                 container_id=row.attrib['containerID'],
                 location_id=row.attrib['installedItemLocationID'],
@@ -164,15 +168,26 @@ class IndustryJobs(APITask):
                 end_time=self.parse_api_date(row.attrib['endProductionTime']),
                 pause_time=self.parse_api_date(row.attrib['pauseProductionTime']),
             )
-            
+
             if self.apikey.corp_character:
                 ij.corporation = self.apikey.corp_character.corporation
 
             new.append(ij)
 
-        # Insert any new orders
+        # Insert any new jobs
         if new:
             IndustryJob.objects.bulk_create(new)
+
+        # Clean up old jobs in weird states
+        ij_filter.filter(
+            completed=0,
+            end_time__lte=datetime.datetime.utcnow() - datetime.timedelta(days=14),
+        ).exclude(
+            job_id__in=seen_jobs,
+        ).update(
+            completed=1,
+            completed_status=IndustryJob.DELIVERED_STATUS,
+        )
 
         return True
 

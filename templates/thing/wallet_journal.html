@@ -4,7 +4,16 @@
 {% block title %}Wallet Journal{% endblock %}
 
 {% block extra_js %}
-{% include 'includes/wallet_journal_js.html' %}
+    <script type="text/javascript">
+      $(document).ready(function() {
+        var data = $.parseJSON('{{ json_data|safe }}');
+        EVEthing.filters.data = data.values;
+        EVEthing.filters.expected = data.expected;
+        EVEthing.wallet_journal.filters = data.filters;
+
+        EVEthing.wallet_journal.onload();
+      });
+    </script>
 {% endblock %}
 
 {% block content %}

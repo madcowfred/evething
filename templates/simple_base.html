@@ -1,39 +1,99 @@
-{% load url from future %}
 <!DOCTYPE html>
 <html lang="en">
+{% set authed = user.is_authenticated() %}
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="{{ STATIC_URL }}favicon.ico">
-    <link rel="stylesheet" href="{{ STATIC_URL }}css/theme-default.min.css" />
+{% if authed %}
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/theme-{{ user.get_profile().theme }}.min.css">
+{% else %}
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/theme-default.min.css">
+{% endif %}{# authed #}
     <title>EVEthing: {% block title %}{% endblock %}</title>
   </head>
-  
+
   <body>
     <div id="wrap">
       <div class="navbar navbar-fixed-top">
         <div class="navbar-inner">
           <div class="container-fluid">
-            <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
             <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
               <span class="icon-bar"></span>
               <span class="icon-bar"></span>
               <span class="icon-bar"></span>
             </a>
-            <a class="brand" href="{% url 'thing.views.home' %}">EVEthing</a>
-            <div class="nav-collapse">
-              <ul class="nav pull-right">
+            <a class="brand" href="{{ url('thing.views.home') }}">EVEthing</a>
+            <div class="nav-collapse collapse">
+              <ul class="nav" id="nav-list">
+{% if authed %}
+{% set profile = user.get_profile() %}
+                {% if profile.show_assets %}<li><a href="{{ url('thing.views.assets_summary') }}">Assets</a></li>{% endif %}
+                {% if profile.show_blueprints %}<li><a href="{{ url('thing.views.blueprints') }}">Blueprints</a></li>{% endif %}
+{% if profile.show_contracts %}
                 <li>
-                  <a href="{% url 'auth_login' %}">Login</a>
+                  <a href="{{ url('thing.views.contracts') }}">
+                    Contracts
+                    {% if nav_contracts %}<span class="text-success">[{{ nav_contracts }}]</span>{% endif %}
+                  </a>
                 </li>
+{% endif %}{# profile.show_contracts #}
+{% if profile.show_industry %}
+                <li>
+                  <a href="{{ url('thing.views.industry') }}">
+                    Industry
+                    {% if nav_industryjobs %}<span class="text-success">[{{ nav_industryjobs }}]</span>{% endif %}
+                  </a>
+                </li>
+{% endif %}{# profile.show_industry #}
+                {% if profile.show_orders %}<li><a href="{{ url('thing.views.orders') }}">Orders</a></li>{% endif %}
+                {% if profile.show_trade %}<li><a href="{{ url('thing.views.trade') }}">Trade</a></li>{% endif %}
+                {% if profile.show_transactions %}<li><a href="{{ url('thing.views.transactions') }}">Transactions</a></li>{% endif %}
+                {% if profile.show_wallet_journal %}<li><a href="{{ url('thing.views.wallet_journal') }}">Wallet Journal</a></li>{% endif %}
+{% endif %}{# user.is_authenticated #}
+              </ul>
+
+              <ul class="nav pull-right">
+{% if authed %}
+                <li class="navbar-text visible-desktop server-status">
+{% if server_open %}
+                  <i class="icon-thumbs-up" rel="tooltip" data-placement="bottom" title="Server is online - {{ online_players|commas }} players"></i>
+{% else %}
+                  <i class="icon-thumbs-down" rel="tooltip" data-placement="bottom" title="Server is offline"></i>
+{% endif %}
+                </li>
+                <li class="navbar-text visible-desktop"{% if not user.get_profile().show_clock %} style="display: none"{% endif %}>
+                  <span id="utc-time"></span> EVE
+                </li>
+                <li class="dropdown">
+                  <a class="dropdown-toggle" data-toggle="dropdown" href="#" role="button">
+                    <span class="sensitive user-name">{{ user.username }}</span>
+                    <b class="caret"></b>
+                  </a>
+                  <ul class="dropdown-menu">
+                    <li><a href="{{ url('thing.views.account') }}">Account Management</a></li>
+                    <li><a href="{{ url('thing.views.events') }}">Event log</a></li>
+                    <li class="divider"></li>
+{% if user.is_staff %}
+                    <li><a href="{{ url('admin:index') }}">Site Administration</a></li>
+                    <li class="divider"></li>
+{% endif %}
+                    <li><a href="{{ url('auth_logout') }}">Logout</a>
+                  </ul>
+                </li>
+{% else %}
+                <li>
+                  <a href="{{ url('auth_login') }}">Login</a>
+                </li>
+{% endif %}{# user.is_staff #}
               </ul>
             </div>
           </div>
         </div>
       </div>
-      
+    
       <div class="container-fluid" id="container">
-        {% block content %}{% endblock %}
+{% block content %}{% endblock %}
       </div>
 
       <div id="push"></div>
@@ -47,6 +107,6 @@
       </div>
     </div>
 
-    <script src="{{ STATIC_URL }}js/evething-combined.min.js"></script>
+{% block extra_js %}{% endblock %}
   </body>
 </html>

@@ -5,5 +5,4 @@
 local_settings.py
 skill_graph.pickle
 static/js/evething-combined.js
-
-.DS_Store
+thing/profile_middleware.py

@@ -34,7 +34,7 @@
                   Group by year
                 </label>
                 <label class="radio inline">
-                  <input type="radio" name="group_by_date" value="month" class="input-small"{% if group_by.date == 'month' %} checked{% endif %}>
+                  <input type="radio" name="group_by_date" value="month" class="input-small"{% if group_by.date == 'month' or not group_by %} checked{% endif %}>
                   Group by month
                 </label>
                 <label class="radio inline">

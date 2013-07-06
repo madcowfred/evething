@@ -4,14 +4,7 @@
 {% block title %}Orders{% endblock %}
 
 {% block extra_js %}
-    <script type="text/javascript">
-      $(document).ready(function() {
-        // make tooltips appear to the right of icons
-        $("[rel=tooltip]").each(function () {
-          $(this).data('tooltip').options.placement = 'right';
-        });
-      });
-    </script>
+    <script type="text/javascript">$(document).ready(EVEthing.orders.onload);</script>
 {% endblock %}
 
 {% block content %}
