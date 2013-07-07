@@ -70,14 +70,35 @@ def skillplan_edit(request, skillplan_id):
             # and "not reached prerequisite" skills
             
             skill_list[current_market_group].append(skill)
+        
+        characters = Character.objects.filter(
+            apikeys__user=request.user,
+        ).select_related(
+            'config',
+            'details',
+        ).distinct()
 
+        try:
+            selected_char = characters.get(id=request.GET.get('character'))
+        except Character.DoesNotExist:
+            selected_char = False
+        
+        skillplan_details = _skillplan_list(request, skillplan, selected_char)
         #print(', '.join(skill_list))
         return render_page(
-            'thing/skillplan_edit.html',
+            'thing/skillplan_entries.html',
             {   
-                'skillplan' : skillplan,
-                'skill_list': skill_list,
-            },
+                'skillplan'         : skillplan,
+                'skill_list'        : skill_list,
+                'show_trained'      : skillplan_details.get('show_trained'),
+                'implants'          : skillplan_details.get('implants'),
+                'char'              : skillplan_details.get('character'),
+                'entries'           : skillplan_details.get('entries'),
+                'total_remaining'   : skillplan_details.get('total_remaining'),
+                'characters'        : characters,
+                'selected_character': selected_char
+            }
+            ,
             request,
         )
 
@@ -222,6 +243,156 @@ def skillplan_info_edit(request):
     return redirect('thing.views.skillplan')
 
 # ---------------------------------------------------------------------------
+def _skillplan_list(request, skillplan, character = False):
+    tt = TimerThing('skillplan_list')
+
+    utcnow = datetime.datetime.utcnow()
+
+    # Check our GET variables
+    implants = request.GET.get('implants', '')
+    if implants.isdigit() and 0 <= int(implants) <= 5:
+        implants = int(implants)
+    else:
+        implants = 0
+
+    show_trained = ('show_trained' in request.GET)
+
+    tt.add_time('init')
+
+    # Init some stuff to have no errors
+    learned = {}
+    training_skill = None
+    # Try retrieving learned data from cache
+    if character:
+        cache_key = 'character_skillplan:learned:%s' % (character.id)
+        learned = cache.get(cache_key)
+        # Not cached, fetch from database and cache
+        if learned is None:
+            learned = {}
+            for cs in CharacterSkill.objects.filter(character=character).select_related('skill__item'):
+                learned[cs.skill.item.id] = cs
+            cache.set(cache_key, learned, 300)
+    
+        tt.add_time('char skills')
+    
+        # Possibly get training information
+        training_skill = None
+        if character.config.show_skill_queue is True:
+            sqs = list(SkillQueue.objects.select_related('skill__item').filter(character=character, end_time__gte=utcnow))
+            if sqs:
+                training_skill = sqs[0]
+    
+        tt.add_time('training')
+        
+    # Initialise stat stuff
+    if character and character.details:
+        remap_stats = dict(
+            int_attribute=character.details.int_attribute,
+            mem_attribute=character.details.mem_attribute,
+            per_attribute=character.details.per_attribute,
+            wil_attribute=character.details.wil_attribute,
+            cha_attribute=character.details.cha_attribute,
+        )
+        
+    else:
+        # default stats on a new char
+        # no char will ever have 0 to any attribute
+        remap_stats = dict(
+            int_attribute=20,
+            mem_attribute=20,
+            per_attribute=20,
+            wil_attribute=20,
+            cha_attribute=19,
+        )
+
+    implant_stats = {}
+    for stat in ('int', 'mem', 'per', 'wil', 'cha'):
+        k = '%s_bonus' % (stat)
+        if implants == 0 and character:
+            implant_stats[k] = getattr(character.details, k, 0)
+        else:
+            implant_stats[k] = implants
+
+    # Iterate over all entries in this skill plan
+    entries = []
+    total_remaining = 0.0
+    for entry in skillplan.entries.select_related('sp_remap', 'sp_skill__skill__item__item_group'):
+        # It's a remap entry
+        if entry.sp_remap is not None:
+        
+            # If the remap have every attributes set to 0, we do not add it.
+            # (happen when remap are not set on evemon before exporting .emp
+            if entry.sp_remap.int_stat == 0 and entry.sp_remap.mem_stat == 0 and entry.sp_remap.per_stat == 0 and entry.sp_remap.wil_stat == 0 and entry.sp_remap.cha_stat == 0:
+               continue
+                
+            
+            # Delete the previous remap if it's two in a row, that makes no sense
+            if entries and entries[-1].sp_remap is not None:
+                entries.pop()
+
+
+            remap_stats['int_attribute'] = entry.sp_remap.int_stat
+            remap_stats['mem_attribute'] = entry.sp_remap.mem_stat
+            remap_stats['per_attribute'] = entry.sp_remap.per_stat
+            remap_stats['wil_attribute'] = entry.sp_remap.wil_stat
+            remap_stats['cha_attribute'] = entry.sp_remap.cha_stat
+
+        # It's a skill entry
+        if entry.sp_skill is not None:
+            skill = entry.sp_skill.skill
+            
+            # If this skill is already learned
+            cs = learned.get(skill.item.id, None)
+            if cs is not None:
+                # Mark it as injected if level 0
+                if cs.level == 0:
+                    entry.z_injected = True
+                # It might already be trained
+                elif cs.level >= entry.sp_skill.level:
+                    # If we don't care about trained skills, skip this skill entirely
+                    if not show_trained:
+                        continue
+
+                    entry.z_trained = True
+            # Not learned, need to buy it
+            else:
+                entry.z_buy = True
+
+            # Calculate SP/hr
+            if remap_stats:
+                entry.z_sppm = skill.get_sppm_stats(remap_stats, implant_stats)
+            else:
+                entry.z_sppm = skill.get_sp_per_minute(character)
+            
+            # 0 sppm is bad
+            entry.z_sppm = max(1, entry.z_sppm)
+            entry.z_spph = int(entry.z_sppm * 60)
+
+            # Calculate time remaining
+            if training_skill is not None and training_skill.skill_id == entry.sp_skill.skill_id and training_skill.to_level == entry.sp_skill.level:
+                entry.z_remaining = total_seconds(training_skill.end_time - utcnow)
+                entry.z_training = True
+            else:
+                entry.z_remaining = (skill.get_sp_at_level(entry.sp_skill.level) - skill.get_sp_at_level(entry.sp_skill.level - 1)) / entry.z_sppm * 60
+
+            # Add time remaining to total
+            if not hasattr(entry, 'z_trained'):
+                total_remaining += entry.z_remaining
+
+        entries.append(entry)
+
+    tt.add_time('skillplan loop')
+    if settings.DEBUG:
+        tt.finished()
+
+    return {
+            'show_trained': show_trained,
+            'implants': implants,
+            'char': character,
+            'entries': entries,
+            'total_remaining': total_remaining,
+        }
+
 
 def _handle_skillplan_upload(request):
     name = request.POST['name'].strip()
