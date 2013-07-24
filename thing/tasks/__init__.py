@@ -29,5 +29,6 @@ from reftypes import RefTypes
 from serverstatus import ServerStatus
 
 # Periodic tasks
+from fixnames import FixNames
 from historyupdater import HistoryUpdater
 from priceupdater import PriceUpdater
