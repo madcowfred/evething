@@ -31,13 +31,13 @@ urlpatterns += patterns('thing.views',
     (r'^account/apikey/purge/$', 'account_apikey_purge'),
     
     (r'^skillplan/$', 'skillplan'),
+    (r'^skillplan/ajax/add/skill$','skillplan_add_skill'),
     (r'^skillplan/create/$', 'skillplan_add'),
-    (r'^skillplan/import/$', 'skillplan_import_emp'),
     (r'^skillplan/delete/$', 'skillplan_delete'),
     (r'^skillplan/edit/(?P<skillplan_id>\d+)$', 'skillplan_edit'),
     (r'^skillplan/edit/$', lambda x: HttpResponseRedirect('/skillplan/')),
+    (r'^skillplan/import/$', 'skillplan_import_emp'),
     (r'^skillplan/info/edit/$', 'skillplan_info_edit'),
-    (r'^skillplan/prerequisite/$','skillplan_add_skill'),
 
 
     (r'^assets/$', 'assets_summary'),

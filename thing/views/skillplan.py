@@ -111,37 +111,124 @@ def skillplan_edit(request, skillplan_id):
 @login_required
 def skillplan_add_skill(request):
     """
-    Add skill into a given plan
-    this function will add the prerequisites too and return
-    the whole list (in json) of the skills to add.
+    Add a skill and all of it's prerequisite (not already in the plan)
+    into the skill plan
+    
+    This function will return a json with status "ok" or a http error code.
     
     POST:   skillplan_id : id of the plan
             skill_id : skill to add 
+            skill_level : the level of the skill to add
     """
     
     if request.is_ajax():
-        skill_id = request.POST.get('skill_id', '')
-        skillplan_id = request.POST.get('skillplan_id', '')
+        skill_id        = request.POST.get('skill_id', '')
+        skillplan_id    = request.POST.get('skillplan_id', '')
+        skill_level     = request.POST.get('skill_level', '')
+        
+        if not skill_level.isdigit() or int(skill_level) < 1 or int(skill_level) > 5:
+            skill_level = 1
+        
         
         if skill_id.isdigit() and skillplan_id.isdigit():
+            try:
+                skillplan = SkillPlan.objects.get(user=request.user, id=skillplan_id)
+                skill = Skill.objects.get(item__id=skill_id)
+                
+            except Skill.DoesNotExist:
+                return HttpResponse(content='That skill does not exist', status=500) 
+                
+            except SkillPlan.DoesNotExist:
+                return HttpResponse(content='That skillplan does not exist', status=500)     
+
+            skill_list = OrderedDict()
+            skills_in_plan = {}
+            last_position = 0
             
-            skill = Skill.objects.get(item__id=skill_id)
-            skill_json = OrderedDict()
-            skill_json[skill.item.id] = {}
-            skill_json[skill.item.id]['skillname'] = skill.item.name
-            skill_json[skill.item.id]['skill_id']  = skill.item.id
+            # get the list of all skills already in the plan
+            for entry in skillplan.entries.select_related('sp_remap', 'sp_skill__skill__item'):         
+                if entry.sp_remap is not None:
+                    continue
+                if entry.sp_skill is not None:
+                    skills_in_plan[entry.sp_skill.skill.item.id] = entry.level
+                last_position = entry.position + 1
             
+            # if the skill is not already in the plan at the same level, we'll try to add it.
+            if (skill_id in skills_in_plan and skill_level > skills_in_plan[skill_id]) or skill_id not in skills_in_plan:
             
-            return HttpResponse(json.dumps(skill_json), status=200)
+                # fetch all prerequisites
+                _get_skill_prerequisites(skill, skill_list, skills_in_plan)
+                
+                if skill_id in skills_in_plan:
+                    start_level = skills_in_plan[skill_id]
+                else: 
+                    start_level = 1
+                
+                
+                # add the skill (we want to add) to the list
+                for level in range(1, skill_level+1):
+                    skill_list[len(skill_list)] = {'id':skill_id, 'level':skill_level}
+            
+            # if we have any new skill to add, just create the new entries :)
+            entries = []
+            
+            for skill_to_add in skill_list:
+                try:
+                    sps = SPSkill.objects.create(
+                        skill_id=skill_to_add.id,
+                        level=skill_to_add.level,
+                        priority=2,
+                    )
+                except:
+                    continue
+            
+                entries.append(SPEntry(
+                    skill_plan=skillplan,
+                    position=last_position,
+                    sp_skill=sps,
+                ))
+
+                last_position += 1
+            
+            SPEntry.objects.bulk_create(entries)
+                        
+            return HttpResponse(json.dumps({'status':'ok'}), status=200)
         
         else:
             return HttpResponse(content='Cannot add the skill : no skill or no skillplan provided', status=500)       
     else:
-        return HttpResponse(content='test', status=403)
+        return HttpResponse(content='Cannot call this page directly', status=403)
 
+
+
+def _get_skill_prerequisites(skill, skill_list, skills_in_plan):
     
-    
-     
+    parents = skill.get_skill_parent()
+    if parents is None:
+        return
+        
+    for parent in parents:
+        
+        _get_skill_prerequisites(parent.parent_skill, skill_list, skills_in_plan)
+        
+        # check to what level we already added the skill, and update it 
+        if parent.parent_skill.item.id in skills_in_plan:
+            skill_start_level = skills_in_plan[parent.parent_skill.item.id]
+            if skills_in_plan[parent.parent_skill.item.id] < parent.level:
+                skills_in_plan[parent.parent_skill.item.id] = parent.level
+            
+            # we do not need to re-add the skill, since we already added it into the list
+            if parent.level == skill_start_level:
+                continue
+        else:
+            skill_start_level = 1
+            skills_in_plan[parent.parent_skill.item.id] = parent.level
+        
+        # add all level of the skill needed
+        for level in range(skill_start_level, parent.level+1):
+            skill_list[len(skill_list)] = {'id':parent.parent_skill.item.id, 'level':level}
+    return
+
 # ---------------------------------------------------------------------------
 # Import a skillplan
 @login_required
