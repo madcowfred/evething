@@ -54,9 +54,10 @@ EVEthing.skillplan = {
             },
             success: function(json) {
                 response = $.parseJSON(json);
-                if(response.status == "OK"){
+                if(response.status == "ok"){
                     $('#'+EVEthing.skillplan.current_popover_id).popover('hide');
-                    EVEthing.skillplan.reload()
+                    EVEthing.skillplan.reload();
+                }
             },
             error: function(xhr, status, error) {
                 // display the error for the user (at least !)
