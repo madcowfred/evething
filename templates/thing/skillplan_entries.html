@@ -6,76 +6,9 @@
 {% block extra_js %}
     <script type="text/javascript">
         // current skill popover displayed
-        var current_popover_id = false;
-        
-        $(function() {
-        
-            // hover thing for skill descriptions
-            $('.skill-hover').popover({ 
-                animation: false, 
-                trigger: 'click', 
-                html: true,
-                placement: 'left',
-                container: 'body'
-            }).on('click', 
-                function() {
-                    // popover on click, but only display one popover.
-                    if(current_popover_id) {
-                        if(current_popover_id != $(this).attr('id')) {
-                            $('#'+current_popover_id).popover('hide');
-                        }
-                    }
-                    current_popover_id=$(this).attr('id');
-                    
-                    // define click events on button in the popover        
-                    $('.btn-plan-skill').on('click',
-                        function() {
-                            var plan_to_level   = $(this).attr('data-level');
-                            var plan_skill_id   = $(this).attr('data-id');
-                            addSkillInPlan(plan_skill_id, plan_to_level);
-                        }
-                    );
-                }
-            );;
-            
-
-            
-        });
-        
-        function addRemapPoint() {
-            return false;
-        }
-        
-        function addSkillInPlan(skill_id, level) {
-            $.ajax({
-                crossDomain: false,
-                url: '{{ url('thing.views.skillplan_add_skill') }}',
-                data: { action:'getprerequisite'
-                      , skill_id:skill_id
-                      , skillplan_id:{{ skillplan.id }} },
-                type:'post',
-                beforeSend: function(xhr, settings) {
-                    xhr.setRequestHeader("X-CSRFToken", $.cookie('csrftoken'));
-                },
-                success: function(json) {
-                    //alert(json)
-                    // TODO : read the json and add the new skills into the plan.
-                    skills = $.parseJSON(json);
-                    $('#'+current_popover_id).popover('hide');
-                },
-                error: function(xhr, status, error) {
-                    //alert(status);
-                }
-            });
-        }
-        
-        function optimizeAttributes() {
-        
-        }
-        
-        function optimizeRemaps() {
-        
-        }
+        EVEthing.skillplan.addSkillInPlanUrl = "{{ url('thing.views.skillplan_add_skill')  }}"
+        EVEthing.skillplan.skillplanId = {{ skillplan.id }}
+        $(document).ready(EVEthing.skillplan.onload);
     </script>
 {% endblock %}
 
@@ -223,8 +156,8 @@
                 </li>
                 {% for skill in skills -%}
                 <li id="skill-{{ skill.item.id }}" class="mg-{{ market_group.id }} collapse skill" data-name="{{ skill.item.name }}" data-group="{{ market_group.name }}" data-prim="{{ skill.primary_attribute }}" data-sec="{{ skill.secondary_attribute }}" data-planned-to="0" data-skilled-to="0">
-                    <a href="#">
-                        <span class="skill-hover {{ extra_class}}" rel="popover" title="{{ skill.item.name }}" id="skill-hover-{{ skill.item.id }}" data-content="
+                    <a>
+                        <span class="skill-list-hover {{ extra_class}}" rel="popover" title="{{ skill.item.name }}" id="skill-list-hover-{{ skill.item.id }}" data-content="
                             {{ skill }}
                             <br><br>
                             <strong>Plan to level:</strong> <br>
