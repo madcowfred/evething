@@ -29,8 +29,8 @@ class FixNames(APITask):
 
         # Go fetch names for them
         name_map = {}
-        for i in range(0, len(ids), 250):
-            params = { 'ids': ','.join(map(str, ids[i:i+250])) }
+        for i in range(0, len(ids), 100):
+            params = { 'ids': ','.join(map(str, ids[i:i+100])) }
 
             if self.fetch_api(CHAR_NAME_URL, params, use_auth=False) is False or self.root is None:
                 return False
@@ -50,27 +50,34 @@ class FixNames(APITask):
                 corp.save()
                 del name_map[id]
 
-        # Ugh, now go look up all of the damn names just in case they're corporations
-        new_corps = []
+        # Fix character names
         for id, name in name_map.items():
-            params = { 'corporationID': id }
-            
-            # Not a corporation, update the Character object
-            if self.fetch_api(CORP_SHEET_URL, params, use_auth=False) is False or self.root is None:
-                char = char_map.get(id)
+            char = char_map.get(id)
+            if char is not None:
                 char.name = name
                 char.save()
-            else:
-                new_corps.append(Corporation(
-                    id=id,
-                    name=name,
-                    ticker=self.root.find('result/ticker').text,
-                ))
+
+        # # Ugh, now go look up all of the damn names just in case they're corporations
+        # new_corps = []
+        # for id, name in name_map.items():
+        #     params = { 'corporationID': id }
+            
+        #     # Not a corporation, update the Character object
+        #     if self.fetch_api(CORP_SHEET_URL, params, use_auth=False) is False or self.root is None:
+        #         char = char_map.get(id)
+        #         char.name = name
+        #         char.save()
+        #     else:
+        #         new_corps.append(Corporation(
+        #             id=id,
+        #             name=name,
+        #             ticker=self.root.find('result/ticker').text,
+        #         ))
 
         # Now we can create the new corporation objects
-        corp_map = Corporation.objects.in_bulk([c.id for c in new_corps])
-        new_corps = [c for c in new_corps if c.id not in corp_map]
-        Corporation.objects.bulk_create(new_corps)
+        #corp_map = Corporation.objects.in_bulk([c.id for c in new_corps])
+        #new_corps = [c for c in new_corps if c.id not in corp_map]
+        #Corporation.objects.bulk_create(new_corps)
 
         # And finally delete any characters that have equivalent corporations now
         cursor = self.get_cursor()
