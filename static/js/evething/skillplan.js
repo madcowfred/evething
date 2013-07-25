@@ -2,7 +2,9 @@ EVEthing.skillplan = {
     // current skill popover displayed
     current_popover_id: false,
     
+    skillplanId: 0,
     addSkillInPlanUrl: "",
+    skillPlanEntriesURL: "",
     
     onload: function() {
         // hover thing for skill descriptions
@@ -34,7 +36,7 @@ EVEthing.skillplan = {
                 return false;
             }
         );
-        
+        EVEthing.skillplan.reload_entries()
     },
     
     addRemapPoint: function() {
@@ -56,7 +58,7 @@ EVEthing.skillplan = {
                 response = $.parseJSON(json);
                 if(response.status == "ok"){
                     $('#'+EVEthing.skillplan.current_popover_id).popover('hide');
-                    EVEthing.skillplan.reload();
+                    EVEthing.skillplan.reload_entries();
                 }
             },
             error: function(xhr, status, error) {
@@ -65,9 +67,23 @@ EVEthing.skillplan = {
         });
     },
     
-    reload: function() {
+    reload_entries: function() {
         // call a page with a $.get to grab the skillplan entries.
-    }
+        ajax_wait = true;
+
+        var implants     = $('#implants').val();
+        var character_id = Math.max($('#characters').val(), 0);
+        var show_trained = ($('#show_trained').attr('checked')) ? 1 : 0;
+        var url          = EVEthing.skillplan.skillPlanEntriesURL.replace('99999999999', EVEthing.skillplan.skillplanId)
+                                                                 .replace('88888888888', character_id)
+                                                                 .replace('77777777777', implants)
+                                                                 .replace('66666666666', show_trained)
+        
+        $.get(url, function(data) {
+            $('#skillplan').html(data); 
+        })
+
+    },
     
     optimizeAttributes: function() {
     
