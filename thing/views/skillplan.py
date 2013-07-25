@@ -5,7 +5,7 @@ from django.http import HttpResponse
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse
-from django.shortcuts import redirect
+from django.shortcuts import redirect, get_object_or_404
 from django.views.decorators.debug import sensitive_post_parameters, sensitive_variables
 
 try:
@@ -36,19 +36,13 @@ def skillplan(request):
         request,
     )
 
-
 # ---------------------------------------------------------------------------
 # Create a skillplan
 @login_required
 def skillplan_edit(request, skillplan_id):
 
     if skillplan_id.isdigit():
-        try:
-            skillplan = SkillPlan.objects.get(user=request.user, id=skillplan_id)
-        
-        except SkillPlan.DoesNotExist:
-            request.session['message_type'] = 'error'
-            request.session['message'] = 'You do not own that skill plan!'
+        skillplan = get_object_or_404(SkillPlan, user=request.user, pk=skillplan_id)
                 
 
         # Init the global skill list
@@ -83,29 +77,48 @@ def skillplan_edit(request, skillplan_id):
         except Character.DoesNotExist:
             selected_char = False
         
-        skillplan_details = _skillplan_list(request, skillplan, selected_char)
-        #print(', '.join(skill_list))
+        implants = request.GET.get('implants', '')
+        if implants.isdigit() and 0 <= int(implants) <= 5:
+            implants = int(implants)
+        else:
+            implants = 0
+
         return render_page(
-            'thing/skillplan_entries.html',
+            'thing/skillplan_details.html',
             {   
                 'skillplan'         : skillplan,
                 'skill_list'        : skill_list,
-                'show_trained'      : skillplan_details.get('show_trained'),
-                'implants'          : skillplan_details.get('implants'),
-                'char'              : skillplan_details.get('character'),
-                'entries'           : skillplan_details.get('entries'),
-                'total_remaining'   : skillplan_details.get('total_remaining'),
+                'show_trained'      : ('show_trained' in request.GET),
+                'implants'          : implants,
                 'characters'        : characters,
                 'selected_character': selected_char
-            }
-            ,
+            },
             request,
         )
 
     else:
         redirect('thing.views.skillplan')
 
-
+# ---------------------------------------------------------------------------
+# 
+@login_required
+def skillplan_render_entries(request, skillplan_id, character_id, implants, show_trained):
+    skillplan = get_object_or_404(SkillPlan, user=request.user, pk=skillplan_id)
+    
+    try:
+        character = Character.objects.get(apikeys__user=request.user, id=character_id).select_related('config','details')
+    except Character.DoesNotExist:
+        character = False
+    
+    if implants.isdigit() and 0 <= int(implants) <= 5:
+        implants = int(implants)
+    else:
+        implants = 0 
+    
+    show_trained=bool(show_trained)
+    
+    return _skillplan_list(request, skillplan, character, implants, show_trained)
+        
 # ---------------------------------------------------------------------------
 # Add a given skill & prerequisites
 @login_required
@@ -120,6 +133,9 @@ def skillplan_add_skill(request):
             skill_id : skill to add 
             skill_level : the level of the skill to add
     """
+    tt = TimerThing('skill_add_skill')
+
+    tt.add_time('init')
     
     if request.is_ajax():
         skill_id        = request.POST.get('skill_id', '')
@@ -128,7 +144,7 @@ def skillplan_add_skill(request):
         
         if not skill_level.isdigit() or int(skill_level) < 1 or int(skill_level) > 5:
             skill_level = 1
-        
+        skill_level = int(skill_level)
         
         if skill_id.isdigit() and skillplan_id.isdigit():
             try:
@@ -145,19 +161,25 @@ def skillplan_add_skill(request):
             skills_in_plan = {}
             last_position = 0
             
+            tt.add_time('Get objects')
+            
             # get the list of all skills already in the plan
             for entry in skillplan.entries.select_related('sp_remap', 'sp_skill__skill__item'):         
                 if entry.sp_remap is not None:
                     continue
                 if entry.sp_skill is not None:
-                    skills_in_plan[entry.sp_skill.skill.item.id] = entry.level
+                    skills_in_plan[entry.sp_skill.skill.item.id] = entry.sp_skill.level
                 last_position = entry.position + 1
+                
+            tt.add_time('Get skillplan entries')
             
             # if the skill is not already in the plan at the same level, we'll try to add it.
             if (skill_id in skills_in_plan and skill_level > skills_in_plan[skill_id]) or skill_id not in skills_in_plan:
             
                 # fetch all prerequisites
                 _get_skill_prerequisites(skill, skill_list, skills_in_plan)
+                
+                tt.add_time('Get skills prerequisites')
                 
                 if skill_id in skills_in_plan:
                     start_level = skills_in_plan[skill_id]
@@ -166,17 +188,17 @@ def skillplan_add_skill(request):
                 
                 
                 # add the skill (we want to add) to the list
-                for level in range(1, skill_level+1):
-                    skill_list[len(skill_list)] = {'id':skill_id, 'level':skill_level}
+                for level in range(start_level, skill_level+1):
+                    skill_list[len(skill_list)] = {'id':skill_id, 'level':level}
             
             # if we have any new skill to add, just create the new entries :)
             entries = []
             
-            for skill_to_add in skill_list:
+            for index, skill_to_add in skill_list.items():
                 try:
                     sps = SPSkill.objects.create(
-                        skill_id=skill_to_add.id,
-                        level=skill_to_add.level,
+                        skill_id=skill_to_add['id'],
+                        level=skill_to_add['level'],
                         priority=2,
                     )
                 except:
@@ -189,45 +211,20 @@ def skillplan_add_skill(request):
                 ))
 
                 last_position += 1
-            
+                
+            print(entries)
             SPEntry.objects.bulk_create(entries)
-                        
+            
+            tt.add_time('Skill Entries creation')
+            if settings.DEBUG:
+                tt.finished()    
+                
             return HttpResponse(json.dumps({'status':'ok'}), status=200)
         
         else:
             return HttpResponse(content='Cannot add the skill : no skill or no skillplan provided', status=500)       
     else:
         return HttpResponse(content='Cannot call this page directly', status=403)
-
-
-
-def _get_skill_prerequisites(skill, skill_list, skills_in_plan):
-    
-    parents = skill.get_skill_parent()
-    if parents is None:
-        return
-        
-    for parent in parents:
-        
-        _get_skill_prerequisites(parent.parent_skill, skill_list, skills_in_plan)
-        
-        # check to what level we already added the skill, and update it 
-        if parent.parent_skill.item.id in skills_in_plan:
-            skill_start_level = skills_in_plan[parent.parent_skill.item.id]
-            if skills_in_plan[parent.parent_skill.item.id] < parent.level:
-                skills_in_plan[parent.parent_skill.item.id] = parent.level
-            
-            # we do not need to re-add the skill, since we already added it into the list
-            if parent.level == skill_start_level:
-                continue
-        else:
-            skill_start_level = 1
-            skills_in_plan[parent.parent_skill.item.id] = parent.level
-        
-        # add all level of the skill needed
-        for level in range(skill_start_level, parent.level+1):
-            skill_list[len(skill_list)] = {'id':parent.parent_skill.item.id, 'level':level}
-    return
 
 # ---------------------------------------------------------------------------
 # Import a skillplan
@@ -249,7 +246,8 @@ def skillplan_import_emp(request):
 
 # ---------------------------------------------------------------------------
 # Create a skillplan
-def skillplan_add(request):
+@login_required
+def skillplan_create(request):
 
     skillplan = SkillPlan.objects.create(
         user=request.user,
@@ -263,6 +261,7 @@ def skillplan_add(request):
     
 # ---------------------------------------------------------------------------
 # Export Skillplan
+@login_required
 def skillplan_export(request, skillplan_id):
     # path = os.expanduser('~/files/pdf/')
     # f = open(path+filename, "r")
@@ -301,7 +300,6 @@ def skillplan_delete(request):
 
     return redirect('thing.views.skillplan')
 
-
 # ---------------------------------------------------------------------------
 # Edit a skillplan
 @login_required
@@ -330,19 +328,11 @@ def skillplan_info_edit(request):
     return redirect('thing.views.skillplan')
 
 # ---------------------------------------------------------------------------
-def _skillplan_list(request, skillplan, character = False):
-    tt = TimerThing('skillplan_list')
+# Return the entries of a given skillplan
+def _skillplan_list(request, skillplan, character, implants, show_trained):
+    tt = TimerThing('skillplan_list_entries')
 
     utcnow = datetime.datetime.utcnow()
-
-    # Check our GET variables
-    implants = request.GET.get('implants', '')
-    if implants.isdigit() and 0 <= int(implants) <= 5:
-        implants = int(implants)
-    else:
-        implants = 0
-
-    show_trained = ('show_trained' in request.GET)
 
     tt.add_time('init')
 
@@ -472,15 +462,20 @@ def _skillplan_list(request, skillplan, character = False):
     if settings.DEBUG:
         tt.finished()
 
-    return {
+    return render_page(
+        'thing/skillplan_entries.html',
+        {   
             'show_trained': show_trained,
             'implants': implants,
             'char': character,
             'entries': entries,
             'total_remaining': total_remaining,
-        }
-
-
+        },
+        request,
+    )
+    
+# ---------------------------------------------------------------------------
+# Handle the upload of a .EMP skillplan 
 def _handle_skillplan_upload(request):
     name = request.POST['name'].strip()
     uf = request.FILES['file']
@@ -529,7 +524,8 @@ def _handle_skillplan_upload(request):
     request.session['message_type'] = 'success'
     request.session['message'] = "Skill plan uploaded successfully."
 
-
+# ---------------------------------------------------------------------------
+# Parse an emp skillplan and save it into the database
 def _parse_emp_plan(skillplan, root):
     entries = []
     position = 0
@@ -573,3 +569,33 @@ def _parse_emp_plan(skillplan, root):
         position += 1
 
     SPEntry.objects.bulk_create(entries)
+
+# ---------------------------------------------------------------------------
+# Return a dict with all the prerequisite of a given skill
+def _get_skill_prerequisites(skill, skill_list, skills_in_plan):
+    
+    parents = skill.get_skill_parent()
+    if parents is None:
+        return
+        
+    for parent in parents:
+        
+        _get_skill_prerequisites(parent.parent_skill, skill_list, skills_in_plan)
+        
+        # check to what level we already added the skill, and update it 
+        if parent.parent_skill.item.id in skills_in_plan:
+            skill_start_level = skills_in_plan[parent.parent_skill.item.id]
+            if skills_in_plan[parent.parent_skill.item.id] < parent.level:
+                skills_in_plan[parent.parent_skill.item.id] = parent.level
+            
+            # we do not need to re-add the skill, since we already added it into the list
+            if parent.level == skill_start_level:
+                continue
+        else:
+            skill_start_level = 1
+            skills_in_plan[parent.parent_skill.item.id] = parent.level
+        
+        # add all level of the skill needed
+        for level in range(skill_start_level, parent.level+1):
+            skill_list[len(skill_list)] = {'id':parent.parent_skill.item.id, 'level':level}
+    return
