@@ -487,9 +487,9 @@ def _json_data(characters, corporations, filters):
     )
 
     for char in characters:
-        data['values']['char'][char.id] = char.name
+        data['values']['char'][char.id] = char.name.replace("'", '&apos;')
     for corp in corporations:
-        data['values']['corp'][corp.id] = corp.name
+        data['values']['corp'][corp.id] = corp.name.replace("'", '&apos;')
     for invflag in InventoryFlag.objects.all():
         data['values']['invflag'][invflag.id] = invflag.name
     for itemcat in ItemCategory.objects.all():
