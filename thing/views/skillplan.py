@@ -392,8 +392,10 @@ def _skillplan_list(request, skillplan, character, implants, show_trained):
 
     # Iterate over all entries in this skill plan
     entries = []
+    parent_list = {}
+
     total_remaining = 0.0
-    for entry in skillplan.entries.select_related('sp_remap', 'sp_skill__skill__item__item_group'):
+    for entry in skillplan.entries.select_related('sp_remap', 'sp_skill__skill__item__item_group', 'sp_skill__skill__parents'):
         # It's a remap entry
         if entry.sp_remap is not None:
         
@@ -455,7 +457,12 @@ def _skillplan_list(request, skillplan, character, implants, show_trained):
             # Add time remaining to total
             if not hasattr(entry, 'z_trained'):
                 total_remaining += entry.z_remaining
-
+            
+            # using a dict to save parents reduce by like 4 or 5 the time required
+            if skill.item.id not in parent_list:
+                parent_list[skill.item.id] = _get_skill_parents(skill)
+            entry.z_parents = parent_list[skill.item.id]  
+            
         entries.append(entry)
 
     tt.add_time('skillplan loop')
@@ -571,12 +578,28 @@ def _parse_emp_plan(skillplan, root):
     SPEntry.objects.bulk_create(entries)
 
 # ---------------------------------------------------------------------------
+# Return a set of all parents for a given skill (do not return the level, only id)
+def _get_skill_parents(skill):
+    parents = skill.get_skill_parent()
+    if parents is None:
+        return {}
+    
+    list_parent=set()
+    
+    for parent in parents:
+        list_parent.add(parent.parent_skill.item.id)
+        list_parent.update(_get_skill_parents(parent.parent_skill))
+    
+    return list_parent
+
+    
+# ---------------------------------------------------------------------------
 # Return a dict with all the prerequisite of a given skill
 def _get_skill_prerequisites(skill, skill_list, skills_in_plan):
     
     parents = skill.get_skill_parent()
     if parents is None:
-        return
+        return 
         
     for parent in parents:
         
