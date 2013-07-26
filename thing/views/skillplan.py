@@ -194,7 +194,7 @@ def skillplan_add_skill(request):
             # if we have any new skill to add, just create the new entries :)
             entries = []
             
-            for index, skill_to_add in skill_list.items():
+            for skill_to_add in skill_list.values():
                 try:
                     sps = SPSkill.objects.create(
                         skill_id=skill_to_add['id'],
