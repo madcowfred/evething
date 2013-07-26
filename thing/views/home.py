@@ -320,6 +320,21 @@ def home(request):
 
     tt.add_time('corps')
 
+    # Try retrieving total corp asset value from cache
+    cache_key = 'home:corp_assets:%d' % (request.user.id)
+    corp_assets = cache.get(cache_key)
+    # Not cached, fetch from database and cache
+    if corp_assets is None:
+        corp_assets = AssetSummary.objects.filter(
+            corporation_id__in=[c.id for c in corporations],
+        ).aggregate(
+            t=Sum('total_value'),
+        )['t']
+        cache.set(cache_key, corp_assets, 300)
+
+    tt.add_time('corp_assets')
+
+    # Render template
     out = render_page(
         'thing/home.html',
         {
@@ -328,6 +343,7 @@ def home(request):
             'total_balance': total_balance,
             'total_sp': total_sp,
             'total_assets': total_assets,
+            'corp_assets': corp_assets,
             'corporations': corporations,
             #'characters': first + last,
             'characters': char_lists,
