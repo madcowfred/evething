@@ -9,11 +9,14 @@
                             <th>Sec</th>
                             <th>SP/hr</th>
                             <th>Time</th>
+                            <th></th>
                         </tr>
                     </thead>
-                    {% for entry in entries -%}
-                        <tr class="c">
+                    <tbody>
+                        {% for entry in entries -%}
+                        
                         {% if entry.sp_remap -%}
+                        <tr class="c">
                             <td></td>
                             <td class="l" colspan="6">
                                 <i class="icon-user"></i> Remap to
@@ -23,7 +26,9 @@
                                 <strong>{{ entry.sp_remap.wil_stat }}</strong> Wil /
                                 <strong>{{ entry.sp_remap.cha_stat }}</strong> Cha
                             </td>
+                            
                         {%- else %}
+                        <tr class="c" data-id="{{ entry.sp_skill.skill.item.id }}" data-level="{{ entry.sp_skill.level }}" data-parents="{{ entry.z_parents }}">
                             <td class="sp-trained">
                             {% if entry.z_training -%}
                                 <i class="icon-flag"></i>
@@ -45,11 +50,12 @@
                             <td class="sp-small">{{ entry.z_spph|commas }}</td>
                             <td class="r sp-time">{{ entry.z_remaining|duration }}</td>
                         {%- endif %}
+                            <td class="skill_entry_handler"><i class="icon-reorder"></i></td>
                         </tr>
                     {%- else %}
                         <tr>
                             <td></td>
-                            <td colspan="6">This skill plan is empty.</td>
+                            <td colspan="7">This skill plan is empty.</td>
                         </tr>
                     {%- endfor %}
                     </tbody>
