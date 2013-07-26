@@ -81,6 +81,22 @@ EVEthing.skillplan = {
         
         $.get(url, function(data) {
             $('#skillplan').html(data); 
+            
+            
+            // we need to reset the hover
+            $('.skill-hover').popover({ animation: false, trigger: 'hover', html: true });
+            $('#skillplan tbody').sortable({
+                axis: "y",
+                containment: "parent" ,
+                cursor: "move",
+                handle: ".skill_entry_handler",
+                helper: "clone",
+                start: function(event, ui) {
+                },
+                stop: function(event, ui) {
+                }
+            });
+          //  $('#skillplan tbody').disableSelection();
         })
 
     },
