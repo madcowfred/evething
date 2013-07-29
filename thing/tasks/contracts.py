@@ -279,6 +279,6 @@ class Contracts(APITask):
         #     c_filter.filter(contract_id__in=seen_contracts).update(retrieved_items=True)
 
 
-        # return True
+        return True
 
 # ---------------------------------------------------------------------------
