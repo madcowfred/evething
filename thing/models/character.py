@@ -26,10 +26,6 @@
 from django.db import models
 
 from thing.models.corporation import Corporation
-from thing.models.corporationstanding import CorporationStanding
-from thing.models.faction import Faction
-from thing.models.factionstanding import FactionStanding
-from thing.models.skill import Skill
 
 # ------------------------------------------------------------------------------
 
