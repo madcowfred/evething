@@ -35,7 +35,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import Http404
 from django.shortcuts import redirect, get_object_or_404
 
-from thing.models import *
+from thing.models.character import Character
 from thing.stuff import *
 
 # ---------------------------------------------------------------------------
@@ -44,7 +44,7 @@ def character(request, character_name):
     characters = Character.objects.select_related('config', 'details', 'corporation__alliance')
     characters = characters.filter(apikeys__valid=True)
     characters = characters.distinct()
-    
+
     char = get_object_or_404(characters, name=character_name)
     print char.config
     print char.details
@@ -69,7 +69,7 @@ def character_anonymous(request, anon_key):
 # Common code for character views
 def character_common(request, char, public=True, anonymous=False):
     tt = TimerThing('character_common')
-    
+
     utcnow = datetime.datetime.utcnow()
 
     # I don't know how this happens but hey, let's fix it here
@@ -302,7 +302,7 @@ def character_skillplan(request, character_name, skillplan_id):
     # Not logged in or character does not belong to user
     if public is True:
         character = get_object_or_404(Character.objects.select_related('config', 'details'), name=character_name, config__is_public=True)
-        
+
         qs = Q(visibility=SkillPlan.GLOBAL_VISIBILITY)
         if request.user.is_authenticated():
             qs |= Q(user=request.user)
@@ -429,7 +429,7 @@ def character_skillplan_common(request, character, skillplan, public=True, anony
                     entry.z_sppm = skill.get_sp_per_minute(character, implants=implant_stats)
                 else:
                     entry.z_sppm = skill.get_sp_per_minute(character)
-            
+
             # 0 sppm is bad
             entry.z_sppm = max(1, entry.z_sppm)
             entry.z_spph = int(entry.z_sppm * 60)
