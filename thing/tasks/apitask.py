@@ -20,7 +20,6 @@ from billiard import current_process
 from celery import Task
 from celery.task.control import broadcast
 from celery.utils.log import get_task_logger
-from django import get_version
 from django.conf import settings
 from django.core.cache import cache
 from django.db import connections
