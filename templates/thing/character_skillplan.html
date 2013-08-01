@@ -15,7 +15,7 @@
               {% if anonymous -%}
               <a href="{{ url('thing.views.character_anonymous', char.config.anon_key) }}">{{ char.config.anon_key }}</a>
               {%- else -%}
-              <a href="{{ url('thing.views.character', char.name) }}">{{ char.name }}</a>
+              <a href="{{ url('thing.views.character_sheet', char.name) }}">{{ char.name }}</a>
               {%- endif %}
             </li>
             <li><strong>Skill Plan</strong>: {{ skillplan.name }}</li>

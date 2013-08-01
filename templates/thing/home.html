@@ -42,7 +42,7 @@
                 {%- if character.name == '*UNKNOWN' %}
                 {{ character.name }}
                 {%- else %}
-                <a href="{{ url('thing.views.character', character.name) }}" class="sensitive character-name">
+                <a href="{{ url('thing.views.character_sheet', character.name) }}" class="sensitive character-name">
                   {{ character.name }}
                 </a>
                 {%- endif %}
