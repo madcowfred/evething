@@ -57,6 +57,7 @@ class Character(models.Model):
             return 'Unknown'
 
     def get_total_skill_points(self):
+        from thing.models.characterskill import CharacterSkill
         return CharacterSkill.objects.filter(character=self).aggregate(total_sp=Sum('points'))['total_sp']
 
 # ------------------------------------------------------------------------------

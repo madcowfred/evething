@@ -35,7 +35,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import Http404
 from django.shortcuts import redirect, get_object_or_404
 
-from thing.models.character import Character
+from thing.models import *
 from thing.stuff import *
 
 # ---------------------------------------------------------------------------
