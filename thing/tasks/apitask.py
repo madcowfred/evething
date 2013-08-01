@@ -357,7 +357,7 @@ class APITask(Task):
         self.log_error('[fetch_api] API key with keyID %d marked invalid!', self.apikey.keyid)
 
         # Log an error event for the user
-        text = "Your API key #%d was marked invalid: %s %s" % (self.apikey.id, reason)
+        text = "Your API key #%d was marked invalid: %s" % (self.apikey.id, reason)
         Event.objects.create(
             user_id=self.apikey.user.id,
             issued=now,
