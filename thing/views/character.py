@@ -40,7 +40,7 @@ from thing.stuff import *
 
 # ---------------------------------------------------------------------------
 # Display a character page
-def character(request, character_name):
+def character_sheet(request, character_name):
     characters = Character.objects.select_related('config', 'details', 'corporation__alliance')
     characters = characters.filter(apikeys__valid=True)
     characters = characters.distinct()
