@@ -26,6 +26,7 @@
 from django.db import models
 
 from thing.models.character import Character
+from thing.models.item import Item
 
 # ------------------------------------------------------------------------------
 # Character details
@@ -51,7 +52,7 @@ class CharacterDetails(models.Model):
     security_status = models.DecimalField(max_digits=6, decimal_places=4, default=0)
 
     last_known_location = models.CharField(max_length=255, default='')
-    ship_item = models.ForeignKey('Item', blank=True, null=True)
+    ship_item = models.ForeignKey(Item, blank=True, null=True)
     ship_name = models.CharField(max_length=128, default='')
 
     class Meta:

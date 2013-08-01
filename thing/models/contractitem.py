@@ -25,11 +25,13 @@
 
 from django.db import models
 
+from thing.models.item import Item
+
 # ------------------------------------------------------------------------------
 # Contract items
 class ContractItem(models.Model):
     contract_id = models.IntegerField(db_index=True)
-    item = models.ForeignKey('Item', related_name='contract_items')
+    item = models.ForeignKey(Item, related_name='contract_items')
 
     quantity = models.IntegerField()
     raw_quantity = models.IntegerField()

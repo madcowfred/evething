@@ -26,11 +26,13 @@
 from django.contrib.auth.models import User
 from django.db import models
 
+from thing.models.corporation import Corporation
+
 # ------------------------------------------------------------------------------
 # Corporation wallets
 class CorpWallet(models.Model):
     account_id = models.IntegerField(primary_key=True)
-    corporation = models.ForeignKey('Corporation')
+    corporation = models.ForeignKey(Corporation)
     account_key = models.IntegerField()
     description = models.CharField(max_length=64)
     balance = models.DecimalField(max_digits=18, decimal_places=2)

@@ -23,19 +23,26 @@
 # OF SUCH DAMAGE.
 # ------------------------------------------------------------------------------
 
+from xml.sax.saxutils import unescape
+
 from django.contrib.auth.models import User
 from django.db import models
+
+from thing.models.character import Character
+from thing.models.corporation import Corporation
+from thing.models.corpwallet import CorpWallet
+from thing.models.reftype import RefType
 
 # ------------------------------------------------------------------------------
 # Wallet journal entries
 class JournalEntry(models.Model):
-    character = models.ForeignKey('Character')
-    corp_wallet = models.ForeignKey('CorpWallet', null=True, blank=True)
+    character = models.ForeignKey(Character)
+    corp_wallet = models.ForeignKey(CorpWallet, null=True, blank=True)
 
     date = models.DateTimeField(db_index=True)
 
     ref_id = models.BigIntegerField(db_index=True)
-    ref_type = models.ForeignKey('RefType')
+    ref_type = models.ForeignKey(RefType)
 
     owner1_id = models.IntegerField()
     owner2_id = models.IntegerField()
@@ -47,7 +54,7 @@ class JournalEntry(models.Model):
     balance = models.DecimalField(max_digits=17, decimal_places=2)
     reason = models.CharField(max_length=255)
 
-    tax_corp = models.ForeignKey('Corporation', null=True, blank=True)
+    tax_corp = models.ForeignKey(Corporation, null=True, blank=True)
     tax_amount = models.DecimalField(max_digits=14, decimal_places=2)
 
     class Meta:

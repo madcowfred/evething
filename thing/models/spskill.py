@@ -25,10 +25,12 @@
 
 from django.db import models
 
+from thing.models.skill import Skill
+
 # ------------------------------------------------------------------------------
 
 class SPSkill(models.Model):
-    skill = models.ForeignKey('Skill')
+    skill = models.ForeignKey(Skill)
 
     level = models.IntegerField()
     priority = models.IntegerField()

@@ -25,13 +25,11 @@
 
 from django.db import models
 
-#from thing.models.characterskill import CharacterSkill
 from thing.models.corporation import Corporation
 from thing.models.corporationstanding import CorporationStanding
 from thing.models.faction import Faction
 from thing.models.factionstanding import FactionStanding
 from thing.models.skill import Skill
-#from thing.models.skillqueue import SkillQueue
 
 # ------------------------------------------------------------------------------
 
@@ -40,14 +38,6 @@ class Character(models.Model):
 
     name = models.CharField(max_length=64)
     corporation = models.ForeignKey(Corporation, blank=True, null=True)
-
-    # Skill stuff
-    #skills = models.ManyToManyField(Skill, related_name='learned_by', through='CharacterSkill')
-    #skill_queue = models.ManyToManyField(Skill, related_name='training_by', through='SkillQueue')
-
-    # Standings stuff
-    #faction_standings = models.ManyToManyField(Faction, related_name='has_standings', through='FactionStanding')
-    #corporation_standings = models.ManyToManyField(Corporation, related_name='has_standings', through='CorporationStanding')
 
     class Meta:
         app_label = 'thing'

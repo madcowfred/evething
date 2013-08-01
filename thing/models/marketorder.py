@@ -23,18 +23,22 @@
 # OF SUCH DAMAGE.
 # ------------------------------------------------------------------------------
 
-from django.contrib.auth.models import User
 from django.db import models
+
+from thing.models.character import Character
+from thing.models.corpwallet import CorpWallet
+from thing.models.item import Item
+from thing.models.station import Station
 
 # ------------------------------------------------------------------------------
 # Market orders
 class MarketOrder(models.Model):
     order_id = models.BigIntegerField(primary_key=True)
 
-    station = models.ForeignKey('Station')
-    item = models.ForeignKey('Item')
-    character = models.ForeignKey('Character')
-    corp_wallet = models.ForeignKey('CorpWallet', null=True, blank=True)
+    station = models.ForeignKey(Station)
+    item = models.ForeignKey(Item)
+    character = models.ForeignKey(Character)
+    corp_wallet = models.ForeignKey(CorpWallet, null=True, blank=True)
 
     creator_character_id = models.IntegerField(db_index=True)
 

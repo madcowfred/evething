@@ -51,10 +51,12 @@ class Campaign(models.Model):
 
     def get_transactions_filter(self, transactions):
         return transactions.filter(
-            Q(corp_wallet__in=self.corp_wallets.all()) |
+            models.Q(corp_wallet__in=self.corp_wallets.all())
+            |
             (
-                Q(corp_wallet=None) &
-                Q(character__in=self.characters.all())
+                models.Q(corp_wallet=None)
+                &
+                models.Q(character__in=self.characters.all())
             ),
             date__range=(self.start_date, self.end_date),
         )

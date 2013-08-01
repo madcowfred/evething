@@ -25,11 +25,14 @@
 
 from django.db import models
 
+from thing.models.item import Item
+from thing.models.region import Region
+
 # ------------------------------------------------------------------------------
 # Historical item price data
 class PriceHistory(models.Model):
-    region = models.ForeignKey('Region')
-    item = models.ForeignKey('Item')
+    region = models.ForeignKey(Region)
+    item = models.ForeignKey(Item)
 
     date = models.DateField()
     minimum = models.DecimalField(max_digits=18, decimal_places=2)

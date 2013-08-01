@@ -25,15 +25,19 @@
 
 from django.db import models
 
+from thing.models.skillplan import SkillPlan
+from thing.models.spremap import SPRemap
+from thing.models.spskill import SPSkill
+
 # ------------------------------------------------------------------------------
 
 class SPEntry(models.Model):
-    skill_plan = models.ForeignKey('SkillPlan', related_name='entries')
+    skill_plan = models.ForeignKey(SkillPlan, related_name='entries')
 
     position = models.IntegerField()
 
-    sp_remap = models.ForeignKey('SPRemap', blank=True, null=True)
-    sp_skill = models.ForeignKey('SPSkill', blank=True, null=True)
+    sp_remap = models.ForeignKey(SPRemap, blank=True, null=True)
+    sp_skill = models.ForeignKey(SPSkill, blank=True, null=True)
 
     class Meta:
         app_label = 'thing'

@@ -26,11 +26,14 @@
 from django.contrib.auth.models import User
 from django.db import models
 
+from thing.models.character import Character
+from thing.models.faction import Faction
+
 # ------------------------------------------------------------------------------
 # Faction standings
 class FactionStanding(models.Model):
-    faction = models.ForeignKey('Faction')
-    character = models.ForeignKey('Character')
+    faction = models.ForeignKey(Faction)
+    character = models.ForeignKey(Character)
 
     standing = models.DecimalField(max_digits=4, decimal_places=2)
 

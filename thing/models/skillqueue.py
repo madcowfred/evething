@@ -28,12 +28,14 @@ import datetime
 from django.db import models
 
 from core.util import total_seconds
+from thing.models.character import Character
+from thing.models.skill import Skill
 
 # ------------------------------------------------------------------------------
 # Skill queue
 class SkillQueue(models.Model):
-    character = models.ForeignKey('Character')
-    skill = models.ForeignKey('Skill')
+    character = models.ForeignKey(Character)
+    skill = models.ForeignKey(Skill)
 
     start_time = models.DateTimeField()
     end_time = models.DateTimeField()

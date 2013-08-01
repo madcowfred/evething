@@ -25,10 +25,13 @@
 
 from django.db import models
 
+from thing.models.character import Character
+from thing.models.corporation import Corporation
+
 # ------------------------------------------------------------------------------
 class CorporationStanding(models.Model):
-    corporation = models.ForeignKey('Corporation')
-    character = models.ForeignKey('Character')
+    corporation = models.ForeignKey(Corporation)
+    character = models.ForeignKey(Character)
 
     standing = models.DecimalField(max_digits=4, decimal_places=2)
 

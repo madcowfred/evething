@@ -25,16 +25,22 @@
 
 from django.db import models
 
+from thing.models.character import Character
+from thing.models.corporation import Corporation
+from thing.models.corpwallet import CorpWallet
+from thing.models.item import Item
+from thing.models.station import Station
+
 # ------------------------------------------------------------------------------
 # Wallet transactions
 class Transaction(models.Model):
-    station = models.ForeignKey('Station')
-    item = models.ForeignKey('Item')
+    station = models.ForeignKey(Station)
+    item = models.ForeignKey(Item)
 
-    character = models.ForeignKey('Character')
-    corp_wallet = models.ForeignKey('CorpWallet', null=True, blank=True)
-    other_char = models.ForeignKey('Character', null=True, blank=True, related_name='transaction_others')
-    other_corp = models.ForeignKey('Corporation', null=True, blank=True)
+    character = models.ForeignKey(Character)
+    corp_wallet = models.ForeignKey(CorpWallet, null=True, blank=True)
+    other_char = models.ForeignKey(Character, null=True, blank=True, related_name='transaction_others')
+    other_corp = models.ForeignKey(Corporation, null=True, blank=True)
 
     transaction_id = models.BigIntegerField(db_index=True)
     date = models.DateTimeField(db_index=True)

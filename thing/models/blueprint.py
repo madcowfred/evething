@@ -40,8 +40,6 @@ class Blueprint(models.Model):
     material_modifier = models.IntegerField()
     waste_factor = models.IntegerField()
 
-    #components = models.ManyToManyField(Item, related_name='component_of', through='BlueprintComponent')
-
     class Meta:
         app_label = 'thing'
         ordering = ('name',)

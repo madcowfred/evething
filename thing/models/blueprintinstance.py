@@ -23,6 +23,8 @@
 # OF SUCH DAMAGE.
 # ------------------------------------------------------------------------------
 
+from decimal import Decimal, ROUND_UP
+
 from django.contrib.auth.models import User
 from django.db import models
 

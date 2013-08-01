@@ -25,6 +25,12 @@
 
 from django.db import models
 
+from thing.models.character import Character
+from thing.models.corporation import Corporation
+from thing.models.inventoryflag import InventoryFlag
+from thing.models.item import Item
+from thing.models.system import System
+
 # ------------------------------------------------------------------------------
 # Industry jobs
 class IndustryJob(models.Model):
@@ -64,8 +70,8 @@ class IndustryJob(models.Model):
         (INVENTION_ACTIVITY, 'Invention'),
     )
 
-    character = models.ForeignKey('Character')
-    corporation = models.ForeignKey('Corporation', blank=True, null=True)
+    character = models.ForeignKey(Character)
+    corporation = models.ForeignKey(Corporation, blank=True, null=True)
 
     job_id = models.IntegerField()
     assembly_line_id = models.IntegerField()
@@ -83,7 +89,7 @@ class IndustryJob(models.Model):
     licensed_production_runs_remaining = models.IntegerField()
     licensed_production_runs = models.IntegerField()
 
-    system = models.ForeignKey('System')
+    system = models.ForeignKey(System)
     container_location_id = models.IntegerField()
 
     material_multiplier = models.DecimalField(max_digits=5, decimal_places=3)
@@ -91,10 +97,10 @@ class IndustryJob(models.Model):
     time_multiplier = models.DecimalField(max_digits=5, decimal_places=3)
     character_time_multiplier = models.DecimalField(max_digits=5, decimal_places=3)
 
-    installed_item = models.ForeignKey('Item', related_name='job_installed_items')
-    installed_flag = models.ForeignKey('InventoryFlag', related_name='job_installed_flags')
-    output_item = models.ForeignKey('Item', related_name='job_output_items')
-    output_flag = models.ForeignKey('InventoryFlag', related_name='job_output_flags')
+    installed_item = models.ForeignKey(Item, related_name='job_installed_items')
+    installed_flag = models.ForeignKey(InventoryFlag, related_name='job_installed_flags')
+    output_item = models.ForeignKey(Item, related_name='job_output_items')
+    output_flag = models.ForeignKey(InventoryFlag, related_name='job_output_flags')
 
     completed = models.IntegerField()
     completed_status = models.IntegerField(choices=STATUS_CHOICES)
@@ -106,6 +112,7 @@ class IndustryJob(models.Model):
     pause_time = models.DateTimeField()
 
     class Meta:
+        app_label = 'thing'
         ordering = ('-end_time',)
 
 # ------------------------------------------------------------------------------
