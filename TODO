@@ -1,7 +1,6 @@
 * documentation:
   - Pages need to explain what the hell they do
     = Help link somewhere?
-  - api_updater deprecated
   - http://www.readthedocs.org/
   - Build a page for evething.org
   -- Some sort of exciting exploration of features I guess!
@@ -20,6 +19,11 @@
       # Frequency (once, hourly, daily)
         % Will need another damn new database model to store events that have been issued
       # Things to email about (insufficient clone, room in skill queue, account not in training, account time <10 days)
+  - Mail
+    = Retrieve mail and store in database.
+    = Provide interface to browse all mail at the same time, or limit to specific character.
+    = Search.
+  - Notifications (see Mail)
 
 * misc:
   - Implement proper APIKey access_mask checks:
