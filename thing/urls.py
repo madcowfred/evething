@@ -23,7 +23,7 @@
 # OF SUCH DAMAGE.
 # ------------------------------------------------------------------------------
 
-from django.conf.urls.defaults import *
+from django.conf.urls import patterns, include, url
 
 urlpatterns = patterns('everdi.blueprints.views',
     (r'^$',					'index'),
