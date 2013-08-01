@@ -107,7 +107,7 @@ INSTALLED_APPS = (
     'south',
     'djcelery',
     'mptt',
-    'jingo',
+    #'jingo',
     'thing',
 )
 
