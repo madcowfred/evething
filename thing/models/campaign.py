@@ -26,6 +26,9 @@
 from django.contrib.auth.models import User
 from django.db import models
 
+from thing.models.character import Character
+from thing.models.corpwallet import CorpWallet
+
 # ------------------------------------------------------------------------------
 
 class Campaign(models.Model):
@@ -36,8 +39,8 @@ class Campaign(models.Model):
     start_date = models.DateTimeField()
     end_date = models.DateTimeField()
 
-    corp_wallets = models.ManyToManyField('CorpWallet', blank=True, null=True)
-    characters = models.ManyToManyField('Character', blank=True, null=True)
+    corp_wallets = models.ManyToManyField(CorpWallet, blank=True, null=True)
+    characters = models.ManyToManyField(Character, blank=True, null=True)
 
     class Meta:
         app_label = 'thing'

@@ -25,6 +25,8 @@
 
 from django.db import models
 
+from thing.models.item import Item
+
 # ------------------------------------------------------------------------------
 
 class Skill(models.Model):
@@ -49,7 +51,7 @@ class Skill(models.Model):
         WILLPOWER_ATTRIBUTE: ('wil_attribute', 'wil_bonus'),
     }
 
-    item = models.OneToOneField('Item', primary_key=True)
+    item = models.OneToOneField(Item, primary_key=True)
     rank = models.SmallIntegerField()
     description = models.TextField()
     primary_attribute = models.SmallIntegerField(choices=ATTRIBUTE_CHOICES)

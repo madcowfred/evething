@@ -25,14 +25,17 @@
 
 from django.db import models
 
+from thing.models.character import Character
+from thing.models.skill import Skill
+
 # ------------------------------------------------------------------------------
 
 ROMAN = ['', 'I', 'II', 'III', 'IV', 'V']
 
 # Character skills
 class CharacterSkill(models.Model):
-    character = models.ForeignKey('Character')
-    skill = models.ForeignKey('Skill')
+    character = models.ForeignKey(Character)
+    skill = models.ForeignKey(Skill)
 
     level = models.SmallIntegerField()
     points = models.IntegerField()

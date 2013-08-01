@@ -25,6 +25,8 @@
 
 from django.db import models
 
+from thing.models.system import System
+
 # ------------------------------------------------------------------------------
 # Stations
 numeral_map = zip(
@@ -46,7 +48,7 @@ class Station(models.Model):
     name = models.CharField(max_length=128)
     short_name = models.CharField(max_length=64, default='')
 
-    system = models.ForeignKey('System')
+    system = models.ForeignKey(System)
 
     class Meta:
         app_label = 'thing'

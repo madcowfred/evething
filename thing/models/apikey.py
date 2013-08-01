@@ -32,6 +32,8 @@ from celery.execute import send_task
 
 from core.util import total_seconds
 
+from thing.models.character import Character
+
 # ------------------------------------------------------------------------------
 # API keys
 class APIKey(models.Model):
@@ -105,10 +107,14 @@ class APIKey(models.Model):
     created_at = models.DateTimeField(auto_now=True)
     valid = models.BooleanField(default=True)
 
-    characters = models.ManyToManyField('Character', related_name='apikeys')
+    characters = models.ManyToManyField(Character, related_name='apikeys')
 
     # this is only used for corporate keys, ugh
-    corp_character = models.ForeignKey('Character', null=True, blank=True, related_name='corporate_apikey')
+    corp_character = models.ForeignKey(Character, null=True, blank=True, related_name='corporate_apikey')
+
+    class Meta:
+        app_label = 'thing'
+        ordering = ('keyid',)
 
     def __unicode__(self):
         return '#%s, keyId: %s (%s)' % (self.id, self.keyid, self.key_type)
@@ -148,9 +154,5 @@ class APIKey(models.Model):
         self.invalidate()
 
         send_task('thing.purge_api_key', args=[self.id], kwargs={}, queue='et_high')
-
-    class Meta:
-        app_label = 'thing'
-        ordering = ('keyid',)
 
 # ------------------------------------------------------------------------------

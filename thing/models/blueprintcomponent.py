@@ -25,12 +25,15 @@
 
 from django.db import models
 
+from thing.models.blueprint import Blueprint
+from thing.models.item import Item
+
 # ------------------------------------------------------------------------------
 # Blueprint components
 class BlueprintComponent(models.Model):
-    blueprint = models.ForeignKey('Blueprint')
+    blueprint = models.ForeignKey(Blueprint)
 
-    item = models.ForeignKey('Item')
+    item = models.ForeignKey(Item)
     count = models.IntegerField()
     needs_waste = models.BooleanField(default=True)
 

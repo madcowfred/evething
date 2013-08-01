@@ -25,7 +25,7 @@
 
 from django.db import models
 
-from .alliance import Alliance
+from thing.models.alliance import Alliance
 
 # ------------------------------------------------------------------------------
 

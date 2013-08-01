@@ -1,53 +1,53 @@
 # Locations
-from .constellation import Constellation
-from .region import Region
-from .system import System
-from .station import Station
+from thing.models.region import Region
+from thing.models.constellation import Constellation
+from thing.models.system import System
+from thing.models.station import Station
 
 # Entities
-from .faction import Faction
-from .alliance import Alliance
-from .corporation import Corporation
-from .character import Character
+from thing.models.faction import Faction
+from thing.models.alliance import Alliance
+from thing.models.corporation import Corporation
+from thing.models.character import Character
 
 #
-from .inventoryflag import InventoryFlag
-from .reftype import RefType
+from thing.models.inventoryflag import InventoryFlag
+from thing.models.reftype import RefType
 
 # Items
-from .marketgroup import MarketGroup
-from .itemcategory import ItemCategory
-from .itemgroup import ItemGroup
-from .item import Item
-from .blueprint import Blueprint
-from .skill import Skill
+from thing.models.marketgroup import MarketGroup
+from thing.models.itemcategory import ItemCategory
+from thing.models.itemgroup import ItemGroup
+from thing.models.item import Item
+from thing.models.blueprint import Blueprint
+from thing.models.skill import Skill
 
 # Everything else
-from .apikey import APIKey
-from .apikeyfailure import APIKeyFailure
-from .asset import Asset
-from .assetsummary import AssetSummary
-from .blueprintcomponent import BlueprintComponent
-from .blueprintinstance import BlueprintInstance
-from .campaign import Campaign
-from .characterconfig import CharacterConfig
-from .characterdetails import CharacterDetails
-from .characterskill import CharacterSkill
-from .contract import Contract
-from .contractitem import ContractItem
-from .corporationstanding import CorporationStanding
-from .corpwallet import CorpWallet
-from .event import Event
-from .factionstanding import FactionStanding
-from .industryjob import IndustryJob
-from .journalentry import JournalEntry
-from .marketorder import MarketOrder
-from .pricehistory import PriceHistory
-from .skillplan import SkillPlan
-from .skillqueue import SkillQueue
-from .spentry import SPEntry
-from .spremap import SPRemap
-from .spskill import SPSkill
-from .taskstate import TaskState
-from .transaction import Transaction
-from .userprofile import UserProfile
+from thing.models.apikey import APIKey
+from thing.models.apikeyfailure import APIKeyFailure
+from thing.models.asset import Asset
+from thing.models.assetsummary import AssetSummary
+from thing.models.blueprintcomponent import BlueprintComponent
+from thing.models.blueprintinstance import BlueprintInstance
+from thing.models.campaign import Campaign
+from thing.models.characterconfig import CharacterConfig
+from thing.models.characterdetails import CharacterDetails
+from thing.models.characterskill import CharacterSkill
+from thing.models.contract import Contract
+from thing.models.contractitem import ContractItem
+from thing.models.corporationstanding import CorporationStanding
+from thing.models.corpwallet import CorpWallet
+from thing.models.event import Event
+from thing.models.factionstanding import FactionStanding
+from thing.models.industryjob import IndustryJob
+from thing.models.journalentry import JournalEntry
+from thing.models.marketorder import MarketOrder
+from thing.models.pricehistory import PriceHistory
+from thing.models.skillplan import SkillPlan
+from thing.models.skillqueue import SkillQueue
+from thing.models.spentry import SPEntry
+from thing.models.spremap import SPRemap
+from thing.models.spskill import SPSkill
+from thing.models.taskstate import TaskState
+from thing.models.transaction import Transaction
+from thing.models.userprofile import UserProfile

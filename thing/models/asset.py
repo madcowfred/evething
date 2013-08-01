@@ -26,20 +26,26 @@
 from django.contrib.auth.models import User
 from django.db import models
 
+from thing.models.character import Character
+from thing.models.inventoryflag import InventoryFlag
+from thing.models.item import Item
+from thing.models.station import Station
+from thing.models.system import System
+
 # ------------------------------------------------------------------------------
 # Assets
 class Asset(models.Model):
     asset_id = models.BigIntegerField(db_index=True)
     parent = models.BigIntegerField(default=0)
 
-    character = models.ForeignKey('Character')
+    character = models.ForeignKey(Character)
     corporation_id = models.IntegerField(default=0, db_index=True)
-    system = models.ForeignKey('System')
-    station = models.ForeignKey('Station', blank=True, null=True)
+    system = models.ForeignKey(System)
+    station = models.ForeignKey(Station, blank=True, null=True)
 
-    item = models.ForeignKey('Item')
+    item = models.ForeignKey(Item)
     name = models.CharField(max_length=128, default='')
-    inv_flag = models.ForeignKey('InventoryFlag')
+    inv_flag = models.ForeignKey(InventoryFlag)
     quantity = models.IntegerField()
     raw_quantity = models.IntegerField()
     singleton = models.BooleanField()

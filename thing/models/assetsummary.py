@@ -25,13 +25,17 @@
 
 from django.db import models
 
+from thing.models.character import Character
+from thing.models.station import Station
+from thing.models.system import System
+
 # ------------------------------------------------------------------------------
 
 class AssetSummary(models.Model):
-    character = models.ForeignKey('Character')
+    character = models.ForeignKey(Character)
     corporation_id = models.IntegerField(default=0)
-    system = models.ForeignKey('System')
-    station = models.ForeignKey('Station', blank=True, null=True)
+    system = models.ForeignKey(System)
+    station = models.ForeignKey(Station, blank=True, null=True)
 
     total_items = models.BigIntegerField()
     # 1,234,567,890.12

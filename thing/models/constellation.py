@@ -25,19 +25,21 @@
 
 from django.db import models
 
+from thing.models.region import Region
+
 # ------------------------------------------------------------------------------
 
 class Constellation(models.Model):
     id = models.IntegerField(primary_key=True)
     name = models.CharField(max_length=64)
 
-    region = models.ForeignKey('Region')
-
-    def __unicode__(self):
-        return self.name
+    region = models.ForeignKey(Region)
 
     class Meta:
         app_label = 'thing'
         ordering = ('name'),
+
+    def __unicode__(self):
+        return self.name
 
 # ------------------------------------------------------------------------------

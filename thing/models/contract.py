@@ -26,21 +26,25 @@
 from django.contrib.auth.models import User
 from django.db import models
 
+from thing.models.character import Character
+from thing.models.corporation import Corporation
+from thing.models.station import Station
+
 # ------------------------------------------------------------------------------
 
 class Contract(models.Model):
-    character = models.ForeignKey('Character')
-    corporation = models.ForeignKey('Corporation', blank=True, null=True)
+    character = models.ForeignKey(Character)
+    corporation = models.ForeignKey(Corporation, blank=True, null=True)
 
     contract_id = models.IntegerField(db_index=True)
 
-    issuer_char = models.ForeignKey('Character', blank=True, null=True, related_name="contract_issuers")
-    issuer_corp = models.ForeignKey('Corporation', related_name="contract_issuers")
+    issuer_char = models.ForeignKey(Character, blank=True, null=True, related_name='+')
+    issuer_corp = models.ForeignKey(Corporation, related_name='+')
     assignee_id = models.IntegerField(default=0)
     acceptor_id = models.IntegerField(default=0)
 
-    start_station = models.ForeignKey('Station', blank=True, null=True, related_name="contract_starts")
-    end_station = models.ForeignKey('Station', blank=True, null=True, related_name="contract_ends")
+    start_station = models.ForeignKey(Station, blank=True, null=True, related_name='+')
+    end_station = models.ForeignKey(Station, blank=True, null=True, related_name='+')
 
     type = models.CharField(max_length=16)
     status = models.CharField(max_length=24)

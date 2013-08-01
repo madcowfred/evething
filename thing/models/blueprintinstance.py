@@ -26,11 +26,13 @@
 from django.contrib.auth.models import User
 from django.db import models
 
+from thing.models.blueprint import Blueprint
+
 # ------------------------------------------------------------------------------
 # Blueprint instances - an owned blueprint
 class BlueprintInstance(models.Model):
     user = models.ForeignKey(User, blank=True, null=True)
-    blueprint = models.ForeignKey('Blueprint')
+    blueprint = models.ForeignKey(Blueprint)
 
     original = models.BooleanField()
     material_level = models.IntegerField(default=0)

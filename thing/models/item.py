@@ -27,14 +27,17 @@ from decimal import Decimal
 
 from django.db import models
 
+from thing.models.itemgroup import ItemGroup
+from thing.models.marketgroup import MarketGroup
+
 # ------------------------------------------------------------------------------
 
 class Item(models.Model):
     id = models.IntegerField(primary_key=True)
     name = models.CharField(max_length=128)
 
-    item_group = models.ForeignKey('ItemGroup')
-    market_group = models.ForeignKey('MarketGroup', blank=True, null=True)
+    item_group = models.ForeignKey(ItemGroup)
+    market_group = models.ForeignKey(MarketGroup, blank=True, null=True)
 
     portion_size = models.IntegerField()
     # 0.0025 -> 10,000,000,000

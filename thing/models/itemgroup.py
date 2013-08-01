@@ -25,12 +25,15 @@
 
 from django.db import models
 
+from thing.models.itemcategory import ItemCategory
+
 # ------------------------------------------------------------------------------
 
 class ItemGroup(models.Model):
     id = models.IntegerField(primary_key=True)
     name = models.CharField(max_length=64)
-    category = models.ForeignKey('ItemCategory')
+
+    category = models.ForeignKey(ItemCategory)
 
     class Meta:
         app_label = 'thing'

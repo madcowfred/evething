@@ -25,10 +25,12 @@
 
 from django.db import models
 
+from thing.models.character import Character
+
 # ------------------------------------------------------------------------------
 # Character details
 class CharacterDetails(models.Model):
-    character = models.OneToOneField('Character', unique=True, primary_key=True, related_name='details')
+    character = models.OneToOneField(Character, unique=True, primary_key=True, related_name='details')
 
     wallet_balance = models.DecimalField(max_digits=18, decimal_places=2, default=0)
 

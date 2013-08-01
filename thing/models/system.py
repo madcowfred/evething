@@ -25,13 +25,15 @@
 
 from django.db import models
 
+from thing.models.constellation import Constellation
+
 # ------------------------------------------------------------------------------
 
 class System(models.Model):
     id = models.IntegerField(primary_key=True)
     name = models.CharField(max_length=32)
 
-    constellation = models.ForeignKey('Constellation')
+    constellation = models.ForeignKey(Constellation)
 
     class Meta:
         app_label = 'thing'

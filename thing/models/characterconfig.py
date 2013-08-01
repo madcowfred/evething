@@ -25,10 +25,12 @@
 
 from django.db import models
 
+from thing.models.character import Character
+
 # ------------------------------------------------------------------------------
 # Character configuration information
 class CharacterConfig(models.Model):
-    character = models.OneToOneField('Character', unique=True, primary_key=True, related_name='config')
+    character = models.OneToOneField(Character, unique=True, primary_key=True, related_name='config')
 
     is_public = models.BooleanField(default=False)
     show_clone = models.BooleanField(default=False)
