@@ -1,6 +1,5 @@
 from django.conf import settings
-#from django.conf.urls.defaults import *
-from coffin.conf.urls.defaults import *
+from django.conf.urls import patterns, include, url
 from django.contrib.auth.views import login, logout
 
 
@@ -12,7 +11,7 @@ urlpatterns = patterns('',
     # Admin
     (r'^admin/doc/', include('django.contrib.admindocs.urls')),
     (r'^admin/', include(admin.site.urls)),
-    
+
     # Authentication things
     url(r'^accounts/login/$', 'django.contrib.auth.views.login', name="auth_login"),
     url(r'^accounts/logout/$', 'django.contrib.auth.views.logout', {'next_page': '/'}, name="auth_logout"),
@@ -43,17 +42,17 @@ urlpatterns += patterns('thing.views',
     (r'^blueprints/import/$', 'blueprints_import'),
 
     (r'^bpcalc/$', 'bpcalc'),
-    
+
     url(r'^character/(?P<character_name>[\w\'\- ]+)/$', 'character', name='character'),
     (r'^character/(?P<character_name>[\w\'\- ]+)/settings/', 'character_settings'),
     (r'^character/(?P<character_name>[\w\'\- ]+)/skillplan/(?P<skillplan_id>\d+)$', 'character_skillplan'),
     url(r'^character_anon/(?P<anon_key>[a-z0-9]+)/$', 'character_anonymous', name='character_anonymous'),
     (r'^character_anon/(?P<anon_key>[a-z0-9]+)/skillplan/(?P<skillplan_id>\d+)$', 'character_anonymous_skillplan'),
-    
+
     (r'^contracts/', 'contracts'),
 
     (r'^events/$', 'events'),
-    
+
     (r'^industry/$', 'industry'),
 
     (r'^orders/$', 'orders'),
@@ -62,7 +61,7 @@ urlpatterns += patterns('thing.views',
     (r'^trade/(?P<year>\d{4})-(?P<month>\d{2})/$', 'trade_timeframe'),
     (r'^trade/(?P<period>all)/$', 'trade_timeframe'),
     (r'^trade/(?P<slug>[-\w]+)/$', 'trade_timeframe'),
-    
+
     (r'^transactions/$', 'transactions'),
 
     (r'^wallet_journal/$', 'wallet_journal'),
