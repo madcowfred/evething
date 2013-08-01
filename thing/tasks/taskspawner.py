@@ -90,12 +90,16 @@ def task_spawner():
     # Iterate over each key, doing stuff
     for keyid, apikey in keys.items():
         masks = apikey.get_masks()
-        
+
         # All keys do keyinfo checks things
         func, url, queue = API_KEY_INFO_URL
         taskstate = status[keyid].get((url, 0), None)
 
         _init_taskstate(taskdata, now, taskstate, keyid, apikey.id, func, url, queue, 0)
+
+        # Don't do anything else if this key needs APIKeyInfo
+        if apikey.needs_apikeyinfo:
+            continue
 
         # Account/character keys
         if apikey.key_type in (APIKey.ACCOUNT_TYPE, APIKey.CHARACTER_TYPE):
@@ -147,7 +151,7 @@ def task_spawner():
             kwargs={},
             queue=queue,
         )
-    
+
     TaskState.objects.filter(pk__in=ts_ids).update(state=TaskState.QUEUED_STATE, mod_time=now)
 
     # Create the new ones, they can be started next time around
@@ -161,7 +165,7 @@ def task_spawner():
             mod_time=now,
             next_time=now,
         ))
-    
+
     TaskState.objects.bulk_create(new)
 
 # ---------------------------------------------------------------------------

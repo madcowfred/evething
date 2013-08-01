@@ -105,7 +105,10 @@ class APIKey(models.Model):
     group_name = models.CharField(max_length=32, default='')
 
     created_at = models.DateTimeField(auto_now=True)
+
     valid = models.BooleanField(default=True)
+    needs_apikeyinfo = models.BooleanField(default=False)
+    apikeyinfo_errors = models.IntegerField(default=0)
 
     characters = models.ManyToManyField(Character, related_name='apikeys')
 
