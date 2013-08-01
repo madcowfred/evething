@@ -29,6 +29,7 @@ from django.contrib.auth.models import User
 from django.db import models
 
 from thing.models.blueprint import Blueprint
+from thing.models.blueprintcomponent import BlueprintComponent
 
 # ------------------------------------------------------------------------------
 # Blueprint instances - an owned blueprint
