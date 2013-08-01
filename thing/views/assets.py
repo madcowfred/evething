@@ -26,6 +26,8 @@
 import json
 import operator
 
+from decimal import Decimal
+
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q, Avg, Count, Max, Min, Sum
@@ -81,7 +83,7 @@ def assets_summary(request):
     for character in characters:
         character_ids.append(character.id)
         character_map[character.id] = character
-    
+
     corporations = Corporation.objects.filter(pk__in=APIKey.objects.filter(user=request.user).exclude(corp_character=None).values('corp_character__corporation'))
     corporation_ids = []
     corporation_map = {}
@@ -149,7 +151,7 @@ def assets_summary(request):
     summary_list.sort()
 
     tt.add_time('sort data')
-    
+
     # Render template
     out = render_page(
         'thing/assets_summary.html',
@@ -185,7 +187,7 @@ def assets_filter(request):
     for character in characters:
         character_ids.append(character.id)
         character_map[character.id] = character
-    
+
     corporations = Corporation.objects.filter(pk__in=APIKey.objects.filter(user=request.user).exclude(corp_character=None).values('corp_character__corporation'))
     corporation_ids = []
     corporation_map = {}
@@ -378,7 +380,7 @@ def assets_filter(request):
                 asset.z_blueprint = min(-1, asset.raw_quantity)
             else:
                 asset.z_blueprint = 0
-            
+
             # total value of this asset stack
             if asset.z_blueprint >= 0:
                 # capital ships!
@@ -391,7 +393,7 @@ def assets_filter(request):
             # BPCs count as 0 value for now
             else:
                 asset.z_price = 0
-            
+
             asset.z_total = asset.quantity * asset.z_price
             asset.z_volume = (asset.quantity * asset.item.volume).quantize(Decimal('0.01'))
 
@@ -404,7 +406,7 @@ def assets_filter(request):
             # base asset, always add
             if asset.parent == 0:
                 asset.z_indent = 0
-                
+
                 loc_totals[asset.z_k] += asset.z_total
                 systems[asset.z_k].append(asset)
 
@@ -439,7 +441,7 @@ def assets_filter(request):
                 else:
                     # inventory group
                     asset.z_slot = asset.inv_flag.nice_name()
-                    # corporation hangar  
+                    # corporation hangar
                     if asset.z_corporation is not None and asset.z_slot.startswith('CorpSAG'):
                         asset.z_slot = getattr(asset.z_corporation, 'division%s' % (asset.z_slot[-1]))
 
@@ -464,7 +466,7 @@ def assets_filter(request):
             _content_sort(asset)
 
     tt.add_time('sort contents')
-    
+
     # Render template
     out = render_page(
         'thing/assets_filter.html',
