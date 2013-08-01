@@ -33,10 +33,7 @@ class Locations(APITask):
 
             if asset.name != row.attrib['itemName']:
                 asset.name = row.attrib['itemName']
-                if self._django_version >= '1.5':
-                    asset.save(update_fields=['name'])
-                else:
-                    asset.save()
+                asset.save(update_fields=['name'])
 
         return True
 

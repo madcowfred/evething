@@ -56,8 +56,6 @@ this_process = None
 class APITask(Task):
     abstract = True
 
-    _django_version = get_version()
-
     # Logger instance
     _logger = get_task_logger(__name__)
 
