@@ -45,7 +45,7 @@ def render_page(template, data, request, character_ids=None, corporation_ids=Non
     from thing.models import APIKey, Character, Corporation, Contract, IndustryJob, TaskState
 
     utcnow = datetime.datetime.utcnow()
-    
+
     data['server_open'] = cache.get('server_open')
     data['online_players'] = cache.get('online_players')
 
@@ -76,9 +76,9 @@ def render_page(template, data, request, character_ids=None, corporation_ids=Non
 
             # Aggregate ready industry jobs
             jobs = IndustryJob.objects.filter(
-                Q(character__in=character_ids, corporation__isnull=True)
-                |
-                Q(corporation__in=corporation_ids)
+               Q(character__in=character_ids, corporation__isnull=True)
+               |
+               Q(corporation__in=corporation_ids)
             )
             jobs = jobs.filter(completed=False, end_time__lte=utcnow)
             data['nav_industryjobs'] = jobs.aggregate(t=Count('id'))['t']
