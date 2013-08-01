@@ -23,6 +23,8 @@
 # OF SUCH DAMAGE.
 # ------------------------------------------------------------------------------
 
+import math
+
 from django.db import models
 
 from thing.models.item import Item

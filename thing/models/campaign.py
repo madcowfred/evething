@@ -25,6 +25,7 @@
 
 from django.contrib.auth.models import User
 from django.db import models
+from django.db.models import Q
 
 from thing.models.character import Character
 from thing.models.corpwallet import CorpWallet

@@ -26,6 +26,7 @@
 from decimal import Decimal
 
 from django.db import models
+from django.db.models import Sum
 
 from thing.models.itemgroup import ItemGroup
 from thing.models.marketgroup import MarketGroup
