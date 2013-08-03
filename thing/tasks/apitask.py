@@ -241,6 +241,11 @@ class APITask(Task):
                         else:
                             self.apikey.save(update_fields=('apikeyinfo_errors',))
 
+                    # Any other call, set this key as needs_apikeyinfo
+                    else:
+                        self.apikey.needs_apikeyinfo = True
+                        self.apikey.save(update_fields=('needs_apikeyinfo',))
+
                 # Increment backoff if it wasn't a 403 error
                 else:
                     self._increment_backoff('Bad status code: %s' % (r.status_code))
