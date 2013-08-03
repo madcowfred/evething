@@ -5,7 +5,7 @@ import sys
 
 # Enforce Django 1.5
 from django import get_version
-if get_version() < '1.6':
+if get_version() < '1.5':
     print
     print 'ERROR: EVEthing requires Django version 1.5 or above!'
     print
