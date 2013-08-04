@@ -12,31 +12,32 @@ from thing.models import APIKey, TaskState
 API_KEY_INFO_URL = ('thing.api_key_info', '/account/APIKeyInfo.xml.aspx', 'et_low')
 
 CHAR_URLS = {
-    APIKey.CHAR_ACCOUNT_STATUS_MASK: ('thing.account_status', '/account/AccountStatus.xml.aspx', 'et_medium'),
-    APIKey.CHAR_ASSET_LIST_MASK: ('thing.asset_list', '/char/AssetList.xml.aspx', 'et_medium'),
-    APIKey.CHAR_CHARACTER_INFO_MASK: ('thing.character_info', '/eve/CharacterInfo.xml.aspx', 'et_medium'),
-    APIKey.CHAR_CHARACTER_SHEET_MASK: ('thing.character_sheet', '/char/CharacterSheet.xml.aspx', 'et_medium'),
-    APIKey.CHAR_CONTRACTS_MASK: ('thing.contracts', '/char/Contracts.xml.aspx', 'et_medium'),
-    APIKey.CHAR_INDUSTRY_JOBS_MASK: ('thing.industry_jobs', '/char/IndustryJobs.xml.aspx', 'et_medium'),
-    APIKey.CHAR_MARKET_ORDERS_MASK: ('thing.market_orders', '/char/MarketOrders.xml.aspx', 'et_medium'),
-    APIKey.CHAR_SKILL_QUEUE_MASK: ('thing.skill_queue', '/char/SkillQueue.xml.aspx', 'et_medium'),
-    APIKey.CHAR_STANDINGS_MASK: ('thing.standings', '/char/Standings.xml.aspx', 'et_medium'),
-    APIKey.CHAR_WALLET_JOURNAL_MASK: ('thing.wallet_journal', '/char/WalletJournal.xml.aspx', 'et_medium'),
-    APIKey.CHAR_WALLET_TRANSACTIONS_MASK: ('thing.wallet_transactions', '/char/WalletTransactions.xml.aspx', 'et_medium'),
+    # APIKey.CHAR_ACCOUNT_STATUS_MASK: ('thing.account_status', '/account/AccountStatus.xml.aspx', 'et_medium'),
+    # APIKey.CHAR_ASSET_LIST_MASK: ('thing.asset_list', '/char/AssetList.xml.aspx', 'et_medium'),
+    # APIKey.CHAR_CHARACTER_INFO_MASK: ('thing.character_info', '/eve/CharacterInfo.xml.aspx', 'et_medium'),
+    # APIKey.CHAR_CHARACTER_SHEET_MASK: ('thing.character_sheet', '/char/CharacterSheet.xml.aspx', 'et_medium'),
+    # APIKey.CHAR_CONTRACTS_MASK: ('thing.contracts', '/char/Contracts.xml.aspx', 'et_medium'),
+    # APIKey.CHAR_INDUSTRY_JOBS_MASK: ('thing.industry_jobs', '/char/IndustryJobs.xml.aspx', 'et_medium'),
+    APIKey.CHAR_MAIL_MESSAGES_MASK: ('thing.mail_messages', '/char/MailMessages.xml.aspx', 'et_medium'),
+    # APIKey.CHAR_MARKET_ORDERS_MASK: ('thing.market_orders', '/char/MarketOrders.xml.aspx', 'et_medium'),
+    # APIKey.CHAR_SKILL_QUEUE_MASK: ('thing.skill_queue', '/char/SkillQueue.xml.aspx', 'et_medium'),
+    # APIKey.CHAR_STANDINGS_MASK: ('thing.standings', '/char/Standings.xml.aspx', 'et_medium'),
+    # APIKey.CHAR_WALLET_JOURNAL_MASK: ('thing.wallet_journal', '/char/WalletJournal.xml.aspx', 'et_medium'),
+    # APIKey.CHAR_WALLET_TRANSACTIONS_MASK: ('thing.wallet_transactions', '/char/WalletTransactions.xml.aspx', 'et_medium'),
 }
 
 CORP_URLS = {
-    APIKey.CORP_ACCOUNT_BALANCE_MASK: ('thing.account_balance', '/corp/AccountBalance.xml.aspx', 'et_medium'),
-    APIKey.CORP_ASSET_LIST_MASK: ('thing.asset_list', '/corp/AssetList.xml.aspx', 'et_medium'),
-    APIKey.CORP_CONTRACTS_MASK: ('thing.contracts', '/corp/Contracts.xml.aspx', 'et_medium'),
-    APIKey.CORP_CORPORATION_SHEET_MASK: ('thing.corporation_sheet', '/corp/CorporationSheet.xml.aspx', 'et_medium'),
-    APIKey.CORP_INDUSTRY_JOBS_MASK: ('thing.industry_jobs', '/corp/IndustryJobs.xml.aspx', 'et_medium'),
-    APIKey.CORP_MARKET_ORDERS_MASK: ('thing.market_orders', '/corp/MarketOrders.xml.aspx', 'et_medium'),
+    # APIKey.CORP_ACCOUNT_BALANCE_MASK: ('thing.account_balance', '/corp/AccountBalance.xml.aspx', 'et_medium'),
+    # APIKey.CORP_ASSET_LIST_MASK: ('thing.asset_list', '/corp/AssetList.xml.aspx', 'et_medium'),
+    # APIKey.CORP_CONTRACTS_MASK: ('thing.contracts', '/corp/Contracts.xml.aspx', 'et_medium'),
+    # APIKey.CORP_CORPORATION_SHEET_MASK: ('thing.corporation_sheet', '/corp/CorporationSheet.xml.aspx', 'et_medium'),
+    # APIKey.CORP_INDUSTRY_JOBS_MASK: ('thing.industry_jobs', '/corp/IndustryJobs.xml.aspx', 'et_medium'),
+    # APIKey.CORP_MARKET_ORDERS_MASK: ('thing.market_orders', '/corp/MarketOrders.xml.aspx', 'et_medium'),
     # APIKey.CORP_MEMBER_TRACKING_MASK: ('thing.member_tracking', '/corp/MemberTracking.xml.aspx', 'et_medium'),
     # APIKey.CORP_OUTPOST_LIST_MASK: ('outpost_list', '/corp/OutpostList.xml.aspx', 'et_medium'),
     # APIKey.CORP_SHAREHOLDERS_MASK: ('thing.shareholders', '/corp/Shareholders.xml.aspx', 'et_medium'),
-    APIKey.CORP_WALLET_JOURNAL_MASK: ('thing.wallet_journal', '/corp/WalletJournal.xml.aspx', 'et_medium'),
-    APIKey.CORP_WALLET_TRANSACTIONS_MASK: ('thing.wallet_transactions', '/corp/WalletTransactions.xml.aspx', 'et_medium'),
+    # APIKey.CORP_WALLET_JOURNAL_MASK: ('thing.wallet_journal', '/corp/WalletJournal.xml.aspx', 'et_medium'),
+    # APIKey.CORP_WALLET_TRANSACTIONS_MASK: ('thing.wallet_transactions', '/corp/WalletTransactions.xml.aspx', 'et_medium'),
 }
 
 GLOBAL_TASKS = (
