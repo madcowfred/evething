@@ -216,15 +216,15 @@ def account_apikey_delete(request):
     if apikey_id.isdigit():
         try:
             apikey = APIKey.objects.get(user=request.user.id, id=apikey_id)
-        
+
         except APIKey.DoesNotExist:
             request.session['message_type'] = 'error'
             request.session['message'] = 'You do not have an API key with that KeyID!'
-        
+
         else:
             request.session['message_type'] = 'success'
             request.session['message'] = 'API key %s deleted successfully!' % (apikey.id)
-            
+
             apikey.delete()
 
     else:
@@ -243,7 +243,7 @@ def account_apikey_edit(request):
     except APIKey.DoesNotExist:
         request.session['message_type'] = 'error'
         request.session['message'] = 'You do not have an API key with that KeyID!'
-    
+
     else:
         request.session['message_type'] = 'success'
         request.session['message'] = 'API key %s edited successfully!' % (apikey.id)
@@ -270,11 +270,11 @@ def account_apikey_purge(request):
     if apikey_id.isdigit():
         try:
             apikey = APIKey.objects.get(user=request.user.id, id=apikey_id)
-        
+
         except APIKey.DoesNotExist:
             request.session['message_type'] = 'error'
             request.session['message'] = 'You do not have an API key with that KeyID!'
-        
+
         else:
             request.session['message_type'] = 'success'
             request.session['message'] = 'API key %s purge queued successfully!' % (apikey.id)
@@ -313,15 +313,15 @@ def account_skillplan_delete(request):
     if skillplan_id.isdigit():
         try:
             skillplan = SkillPlan.objects.get(user=request.user, id=skillplan_id)
-        
+
         except SkillPlan.DoesNotExist:
             request.session['message_type'] = 'error'
             request.session['message'] = 'You do not own that skill plan!'
-        
+
         else:
             request.session['message_type'] = 'success'
             request.session['message'] = 'Skill plan "%s" deleted successfully!' % (skillplan.name)
-            
+
             # Delete all of the random things for this skillplan
             entries = SPEntry.objects.filter(skill_plan=skillplan)
             SPRemap.objects.filter(pk__in=[e.sp_remap_id for e in entries if e.sp_remap_id]).delete()
@@ -343,11 +343,11 @@ def account_skillplan_edit(request):
     if skillplan_id.isdigit():
         try:
             skillplan = SkillPlan.objects.get(user=request.user, id=skillplan_id)
-        
+
         except SkillPlan.DoesNotExist:
             request.session['message_type'] = 'error'
             request.session['message'] = 'You do not own that skill plan!'
-        
+
         else:
             skillplan.name = request.POST['name']
             skillplan.visibility = request.POST['visibility']
@@ -406,7 +406,7 @@ def _handle_skillplan_upload(request):
         name=name,
         visibility=visibility,
     )
-    
+
     _parse_emp_plan(skillplan, root)
 
     request.session['message_type'] = 'success'
@@ -416,6 +416,8 @@ def _handle_skillplan_upload(request):
 def _parse_emp_plan(skillplan, root):
     entries = []
     position = 0
+    seen = {}
+
     for entry in root.findall('entry'):
         # Create the various objects for the remapping if it exists
         remapping = entry.find('remapping')
@@ -437,23 +439,55 @@ def _parse_emp_plan(skillplan, root):
 
             position += 1
 
-        # Create the various objects for the skill
-        try:
-            sps = SPSkill.objects.create(
-                skill_id=entry.attrib['skillID'],
-                level=entry.attrib['level'],
-                priority=entry.attrib['priority'],
-            )
-        except:
-            continue
-            
-        entries.append(SPEntry(
-            skill_plan=skillplan,
-            position=position,
-            sp_skill=sps,
-        ))
+        # Grab some data we'll need
+        skillID = int(entry.attrib['skillID'])
+        level = int(entry.attrib['level'])
+        priority = int(entry.attrib['priority'])
 
-        position += 1
+        # Get prereqs for this skill
+        prereqs = Skill.get_prereqs(skillID)
+
+        # Add any missing prereq skills
+        for pre_skill_id, pre_level in prereqs:
+            for i in range(seen.get(pre_skill_id, 0) + 1, pre_level + 1):
+                try:
+                    sps = SPSkill.objects.create(
+                        skill_id=pre_skill_id,
+                        level=i,
+                        priority=priority,
+                    )
+                except:
+                    continue
+
+                entries.append(SPEntry(
+                    skill_plan=skillplan,
+                    position=position,
+                    sp_skill=sps,
+                ))
+
+                position += 1
+                seen[pre_skill_id] = i
+
+
+        # Add the actual skill
+        for i in range(seen.get(skillID, 0) + 1, level + 1):
+            try:
+                sps = SPSkill.objects.create(
+                    skill_id=skillID,
+                    level=i,
+                    priority=priority,
+                )
+            except:
+                continue
+
+            entries.append(SPEntry(
+                skill_plan=skillplan,
+                position=position,
+                sp_skill=sps,
+            ))
+
+            position += 1
+            seen[skillID] = i
 
     SPEntry.objects.bulk_create(entries)
 
