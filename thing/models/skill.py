@@ -26,11 +26,6 @@
 import cPickle
 import math
 
-try:
-    from collections import OrderedDict
-except ImportError:
-    from ordereddict import OrderedDict
-
 from django.db import models
 
 from thing.models.item import Item
@@ -122,18 +117,13 @@ class Skill(models.Model):
 
         def _recurse_prereqs(prereqs, skill):
             for sid, level in SKILL_MAP.get(skill, {}).values():
-                if sid in prereqs:
-                    old = prereqs.pop(sid)
-                    prereqs[sid] = max(old, level)
-                else:
-                    prereqs[sid] = level
-
+                prereqs.append([sid, level])
                 _recurse_prereqs(prereqs, sid)
 
-        prereqs = OrderedDict()
+        prereqs = []
         _recurse_prereqs(prereqs, skill_id)
 
         # Return a reversed list so it's in training order
-        return list(reversed(prereqs.items()))
+        return list(reversed(prereqs))
 
 # ------------------------------------------------------------------------------
