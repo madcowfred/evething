@@ -4,7 +4,11 @@
 {% block title %}{% if anonymous %}Anonymized Character: {{ char.config.anon_key }}{% else %}Character: {{ char.name }}{% endif %}{% endblock %}
 
 {% block extra_js %}
-    <script type="text/javascript">$(document).ready(EVEthing.character.onload);</script>
+    <script type="text/javascript">$(document).ready(function() {
+      EVEthing.character.anon_url = "{{ url('thing.views.character_anonymous', 'zzzz') }}";
+      EVEthing.character.onload();
+    });
+    </script>
 {% endblock %}
 
 {% block content %}
@@ -169,11 +173,11 @@
         <div class="image">
           <img src="{% if anonymous %}{{ STATIC_URL }}img/anonymous_character.jpg{% else %}http://image.eveonline.com/Character/{{ char.id }}_256.jpg{% endif %}" height="256" width="256" class="img-rounded">
         </div>
-        
+
         {%- if not public %}
         <div class="well well-small">
           <h4 class="nomargin">Settings</h4>
-          <form action="{{ url('thing.views.character_settings', char.name) }}" method="POST" style="margin: 0">
+          <form id="settings-form" action="{{ url('thing.views.character_settings', char.name) }}" method="POST" style="margin: 0">
             {{ csrf() }}
             <input type="hidden" name="character_id" value="{{ char.id }}">
             <label class="checkbox">
@@ -218,23 +222,22 @@
                 <i class="icon-info-sign" rel="tooltip" title="Show wallet balance on public sheet"></i>
               </div>
             </label>
-            <br>
             <label class="checkbox">
-              <input type="checkbox" id="anon-key" name="anon-key-toggle"{% if char.config.anon_key %} checked{% endif %}>
+              <input type="checkbox" id="anon-toggle" name="anon-key-toggle"{% if char.config.anon_key %} checked{% endif %}>
               Anonymous key
               <div class="pull-right">
                 <i class="icon-info-sign" rel="tooltip" title="Key to use for anonymous character sheet"></i>
               </div>
             </label>
-            <label class="indent">
-              <input type="text" id="anon-key-text" name="anon-key" maxlength="16" value="{{ char.config.anon_key }}" class="input-medium">
-              {% if char.config.anon_key %}<a id="anon-key-link" href="{{ url('thing.views.character_anonymous', char.config.anon_key) }}">Anonymized link</a>{% endif %}
+            <input type="hidden" id="anon-key" value="{{ char.config.anon_key }}">
+            <label class="indent" id="anon-key-label">
             </label>
-            <button type="submit" class="btn btn-primary">Save</button>
+            <button type="submit" class="btn btn-primary">Save settings</button>
+            <span id="settings-status" class="pull-right"></span>
           </form>
         </div>
         {%- endif %}
-        
+
         {% if user_plans -%}
         <div class="well well-small">
           <h4 class="nomargin">My Skill Plans</h4>

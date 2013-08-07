@@ -23,6 +23,7 @@
 # OF SUCH DAMAGE.
 # ------------------------------------------------------------------------------
 
+import random
 import re
 
 try:
@@ -35,6 +36,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import Http404
 from django.shortcuts import redirect, get_object_or_404
 
+from core.util import json_response
 from thing.models import *
 from thing.stuff import *
 
@@ -60,12 +62,14 @@ def character_sheet(request, character_name):
 
     return character_common(request, char, public=public)
 
+# ------------------------------------------------------------------------------
 # Display an anonymized character page
 def character_anonymous(request, anon_key):
     char = get_object_or_404(Character.objects.select_related('config', 'details'), config__anon_key=anon_key)
 
     return character_common(request, char, anonymous=True)
 
+# ------------------------------------------------------------------------------
 # Common code for character views
 def character_common(request, char, public=True, anonymous=False):
     tt = TimerThing('character_common')
@@ -255,7 +259,11 @@ def character_common(request, char, public=True, anonymous=False):
 
     return out
 
-ANON_KEY_RE = re.compile(r'^[a-z0-9]+$')
+# ------------------------------------------------------------------------------
+
+ANON_KEY_RE = re.compile(r'^[a-z0-9]{16}$')
+ANON_KEY_CHOICES = 'abcdefghijklmnopqrstuvwxyz0123456789'
+
 @login_required
 def character_settings(request, character_name):
     chars = Character.objects.filter(name=character_name, apikeys__user=request.user).distinct()
@@ -270,18 +278,21 @@ def character_settings(request, character_name):
     char.config.show_standings = ('standings' in request.POST)
     char.config.show_wallet = ('wallet' in request.POST)
 
+    # User wants to enable anonymous key
     if 'anon-key-toggle' in request.POST:
         anon_key = request.POST.get('anon-key', '').lower()
-        if ANON_KEY_RE.match(anon_key) and len(anon_key) == 16:
+        # Provided key is OK, use that
+        if ANON_KEY_RE.match(anon_key):
             char.config.anon_key = anon_key
+        # Generate a new key
         else:
-            char.config.anon_key = None
+            char.config.anon_key = ''.join([random.choice(ANON_KEY_CHOICES) for i in range(16)])
     else:
-        char.config.anon_key = None
+        char.config.anon_key = ''
 
     char.config.save()
 
-    return redirect(char)
+    return json_response(dict(anon_key=char.config.anon_key))
 
 # ---------------------------------------------------------------------------
 # Display a SkillPlan for a character
@@ -310,12 +321,15 @@ def character_skillplan(request, character_name, skillplan_id):
 
     return character_skillplan_common(request, character, skillplan, public=public)
 
+# ------------------------------------------------------------------------------
 # Display a SkillPlan for an anonymous character
 def character_anonymous_skillplan(request, anon_key, skillplan_id):
     character = get_object_or_404(Character.objects.select_related('config', 'details'), config__anon_key=anon_key)
     skillplan = get_object_or_404(SkillPlan.objects.prefetch_related('entries'), pk=skillplan_id, visibility=SkillPlan.GLOBAL_VISIBILITY)
 
     return character_skillplan_common(request, character, skillplan, anonymous=True)
+
+# ------------------------------------------------------------------------------
 
 def character_skillplan_common(request, character, skillplan, public=True, anonymous=False):
     tt = TimerThing('skillplan_common')
