@@ -24,6 +24,7 @@
 # OF SUCH DAMAGE.
 # ------------------------------------------------------------------------------
 
+import cPickle
 import os
 import sys
 import time
@@ -33,6 +34,8 @@ try:
 except ImportError:
     import xml.etree.ElementTree as ET
 
+from decimal import Decimal
+
 # Set up our environment and import settings
 os.environ['DJANGO_SETTINGS_MODULE'] = 'evething.settings'
 from django.conf import settings
@@ -41,7 +44,6 @@ from django.db import connections
 from thing.models import *
 
 # ---------------------------------------------------------------------------
-
 # Override volume for ships, assembled volume is mostly useless :ccp:
 PACKAGED = {
      25: 2500,  # frigate
@@ -69,6 +71,25 @@ PACKAGED = {
     900: 50000, # marauder
     906: 10000, # combat recon
     963: 5000,  # strategic cruiser
+}
+
+# ---------------------------------------------------------------------------
+# Skill map things
+PREREQ_SKILLS = {
+    182: 0,
+    183: 1,
+    184: 2,
+    1285: 3,
+    1289: 4,
+    1290: 5,
+}
+PREREQ_LEVELS = {
+    277: 0,
+    278: 1,
+    279: 2,
+    1286: 3,
+    1287: 4,
+    1288: 5,
 }
 
 # ---------------------------------------------------------------------------
@@ -103,6 +124,7 @@ class Importer:
         time_func('InventoryFlag', self.import_inventoryflag)
         time_func('NPCFaction', self.import_npcfaction)
         time_func('NPCCorporation', self.import_npccorporation)
+        time_func('SkillMap', self.build_skill_map)
 
     # -----------------------------------------------------------------------
     # Regions
@@ -735,6 +757,41 @@ class Importer:
             Corporation.objects.bulk_create(new)
 
         return added
+
+    # -----------------------------------------------------------------------
+    # Build the skill map
+    def build_skill_map(self):
+        # Get all skills
+        skill_map = {}
+        for skill in Skill.objects.all():
+            skill_map[skill.item_id] = {}
+
+        ids = ','.join(map(str, skill_map.keys()))
+
+        # Gather skill pre-requisite data
+        self.cursor.execute("""
+            SELECT  typeID,
+                    attributeID,
+                    COALESCE(valueFloat, valueInt)
+            FROM    dgmTypeAttributes
+            WHERE   attributeID in (182, 183, 184, 1285, 1289, 1290, 277, 278, 279, 1286, 1287, 1288)
+                    AND typeID in (%s)
+        """ % (ids))
+
+        for row in self.cursor:
+            typeID = int(row[0])
+            attrID = int(row[1])
+            value = int(row[2])
+
+            if attrID in PREREQ_SKILLS:
+                skill_map[typeID].setdefault(PREREQ_SKILLS[attrID], [None, None])[0] = value
+            elif attrID in PREREQ_LEVELS:
+                skill_map[typeID].setdefault(PREREQ_LEVELS[attrID], [None, None])[1] = value
+
+        # Save the skill map to a pickle
+        cPickle.dump(skill_map, open('skill_map.pickle', 'w'))
+
+        return 1
 
 # ---------------------------------------------------------------------------
 
