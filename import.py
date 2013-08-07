@@ -27,7 +27,11 @@
 import os
 import sys
 import time
-import xml.etree.ElementTree as ET
+
+try:
+    import xml.etree.cElementTree as ET
+except ImportError:
+    import xml.etree.ElementTree as ET
 
 # Set up our environment and import settings
 os.environ['DJANGO_SETTINGS_MODULE'] = 'evething.settings'
@@ -73,9 +77,9 @@ def time_func(text, f):
     start = time.time()
     print '=> %s:' % (text),
     sys.stdout.flush()
-    
+
     added = f()
-    
+
     print '%d (%0.2fs)' % (added, time.time() - start)
 
 
@@ -84,7 +88,7 @@ class Importer:
         self.cursor = connections['import'].cursor()
         # sqlite3 UTF drama workaround
         connections['import'].connection.text_factory = lambda x: unicode(x, "utf-8", "ignore")
-    
+
     def import_all(self):
         time_func('Region', self.import_region)
         time_func('Constellation', self.import_constellation)
@@ -99,24 +103,24 @@ class Importer:
         time_func('InventoryFlag', self.import_inventoryflag)
         time_func('NPCFaction', self.import_npcfaction)
         time_func('NPCCorporation', self.import_npccorporation)
-    
+
     # -----------------------------------------------------------------------
     # Regions
     def import_region(self):
         added = 0
-        
+
         self.cursor.execute("SELECT regionID, regionName FROM mapRegions WHERE regionName != 'Unknown'")
         bulk_data = {}
         for row in self.cursor:
             bulk_data[int(row[0])] = row[1:]
-        
+
         data_map = Region.objects.in_bulk(bulk_data.keys())
-        
+
         new = []
         for id, data in bulk_data.items():
             if id in data_map:
                 continue
-            
+
             region = Region(
                 id=id,
                 name=data[0],
@@ -126,28 +130,28 @@ class Importer:
 
         if new:
             Region.objects.bulk_create(new)
-        
+
         return added
-    
+
     # -----------------------------------------------------------------------
     # Constellations
     def import_constellation(self):
         added = 0
-        
+
         self.cursor.execute('SELECT constellationID,constellationName,regionID FROM mapConstellations')
         bulk_data = {}
         for row in self.cursor:
             id = int(row[0])
             if id:
                 bulk_data[id] = row[1:]
-        
+
         data_map = Constellation.objects.in_bulk(bulk_data.keys())
-        
+
         new = []
         for id, data in bulk_data.items():
             if id in data_map or not data[0] or not data[1]:
                 continue
-            
+
             con = Constellation(
                 id=id,
                 name=data[0],
@@ -155,31 +159,31 @@ class Importer:
             )
             new.append(con)
             added += 1
-        
+
         if new:
             Constellation.objects.bulk_create(new)
 
         return added
-    
+
     # -----------------------------------------------------------------------
     # Systems
     def import_system(self):
         added = 0
-        
+
         self.cursor.execute('SELECT solarSystemID, solarSystemName, constellationID FROM mapSolarSystems')
         bulk_data = {}
         for row in self.cursor:
             id = int(row[0])
             if id:
                 bulk_data[id] = row[1:]
-        
+
         data_map = System.objects.in_bulk(bulk_data.keys())
-        
+
         new = []
         for id, data in bulk_data.items():
             if id in data_map or not data[0] or not data[1]:
                 continue
-            
+
             system = System(
                 id=id,
                 name=data[0],
@@ -190,28 +194,28 @@ class Importer:
 
         if new:
             System.objects.bulk_create(new)
-        
+
         return added
-    
+
     # -----------------------------------------------------------------------
     # Stations
     def import_station(self):
         added = 0
-        
+
         self.cursor.execute('SELECT stationID, stationName, solarSystemID FROM staStations')
         bulk_data = {}
         for row in self.cursor:
             id = int(row[0])
             if id:
                 bulk_data[id] = row[1:]
-        
+
         data_map = Station.objects.in_bulk(bulk_data.keys())
-        
+
         new = []
         for id, data in bulk_data.items():
             if id in data_map or not data[0] or not data[1]:
                 continue
-            
+
             station = Station(
                 id=id,
                 name=data[0],
@@ -220,7 +224,7 @@ class Importer:
             station._make_shorter_name()
             new.append(station)
             added += 1
-        
+
         if new:
             Station.objects.bulk_create(new)
 
@@ -230,16 +234,16 @@ class Importer:
     # Market groups
     def import_marketgroup(self):
         added = 0
-        
+
         self.cursor.execute('SELECT marketGroupID, marketGroupName, parentGroupID FROM invMarketGroups')
         bulk_data = {}
         for row in self.cursor:
             id = int(row[0])
             if id:
                 bulk_data[id] = row[1:]
-        
+
         data_map = MarketGroup.objects.in_bulk(bulk_data.keys())
-        
+
         last_count = 999999
         while bulk_data:
             items = list(bulk_data.items())
@@ -259,7 +263,7 @@ class Importer:
                         parent = MarketGroup.objects.get(pk=data[1])
                     except MarketGroup.DoesNotExist:
                         continue
-                
+
                 # if we've already added this marketgroup, check that the parent
                 # hasn't changed
                 mg = data_map.get(id, None)
@@ -274,7 +278,7 @@ class Importer:
 
                         del bulk_data[id]
                         continue
-                
+
                 mg = MarketGroup(
                     id=id,
                     name=data[0],
@@ -282,30 +286,30 @@ class Importer:
                 )
                 mg.save()
                 added += 1
-                
+
                 del bulk_data[id]
-        
+
         return added
-    
+
     # -----------------------------------------------------------------------
     # Item Categories
     def import_itemcategory(self):
         added = 0
-        
+
         self.cursor.execute('SELECT categoryID, categoryName FROM invCategories')
         bulk_data = {}
         for row in self.cursor:
             id = int(row[0])
             if id and row[1]:
                 bulk_data[id] = row[1:]
-        
+
         data_map = ItemCategory.objects.in_bulk(bulk_data.keys())
-        
+
         new = []
         for id, data in bulk_data.items():
             if id in data_map or not data[0]:
                 continue
-            
+
             ic = ItemCategory(
                 id=id,
                 name=data[0],
@@ -315,23 +319,23 @@ class Importer:
 
         if new:
             ItemCategory.objects.bulk_create(new)
-        
+
         return added
-    
+
     # -----------------------------------------------------------------------
     # Item Groups
     def import_itemgroup(self):
         added = 0
-        
+
         self.cursor.execute('SELECT groupID, groupName, categoryID FROM invGroups')
         bulk_data = {}
         for row in self.cursor:
             id = int(row[0])
             if id and row[2]:
                 bulk_data[id] = row[1:]
-        
+
         data_map = ItemGroup.objects.in_bulk(bulk_data.keys())
-        
+
         new = []
         for id, data in bulk_data.items():
             if not data[1]:
@@ -355,31 +359,31 @@ class Importer:
 
         if new:
             ItemGroup.objects.bulk_create(new)
-        
+
         return added
-    
+
     # -----------------------------------------------------------------------
     # Items
     def import_item(self):
         added = 0
-        
+
         self.cursor.execute('SELECT typeID, typeName, groupID, marketGroupID, portionSize, volume, basePrice FROM invTypes')
-        
+
         bulk_data = {}
         mg_ids = set()
         for row in self.cursor:
             bulk_data[int(row[0])] = row[1:]
             if row[3] is not None:
                 mg_ids.add(int(row[3]))
-        
+
         data_map = Item.objects.in_bulk(bulk_data.keys())
         mg_map = MarketGroup.objects.in_bulk(mg_ids)
-        
+
         new = []
         for id, data in bulk_data.items():
             if not data[0] or not data[1]:
                 continue
-            
+
             if data[2] is None:
                 mg_id = None
             else:
@@ -405,7 +409,7 @@ class Importer:
                     item.market_group_id = mg_id
                     item.save()
                 continue
-            
+
             item = Item(
                 id=id,
                 name=data[0],
@@ -420,14 +424,14 @@ class Importer:
 
         if new:
             Item.objects.bulk_create(new)
-        
+
         return added
-    
+
     # -----------------------------------------------------------------------
     def import_blueprint(self):
         # Blueprints
         added = 0
-        
+
         self.cursor.execute("""
             SELECT  b.blueprintTypeID, t.typeName, b.productTypeID, b.productionTime, b.productivityModifier, b.materialModifier, b.wasteFactor
             FROM    invBlueprintTypes AS b
@@ -438,9 +442,9 @@ class Importer:
         bulk_data = {}
         for row in self.cursor:
             bulk_data[int(row[0])] = row[1:]
-        
+
         data_map = Blueprint.objects.in_bulk(bulk_data.keys())
-        
+
         new = []
         for id, data in bulk_data.items():
             if not data[0] or not data[1]:
@@ -481,7 +485,7 @@ class Importer:
                     needs_waste=True,
                 ))
                 added += 1
-            
+
             # Extra materials. activityID 1 is manufacturing - categoryID 16 is skill requirements
             self.cursor.execute("""
                 SELECT  r.requiredTypeID, r.quantity
@@ -494,7 +498,7 @@ class Importer:
                         AND r.activityID = 1
                         AND g.categoryID <> 16
             """, (id,))
-            
+
             for extrarow in self.cursor:
                 new.append(BlueprintComponent(
                     blueprint_id=id,
@@ -511,7 +515,7 @@ class Importer:
             BlueprintComponent.objects.bulk_create(new)
 
         return added
-    
+
     # -----------------------------------------------------------------------
     # Skills
     def import_skill(self):
