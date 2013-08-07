@@ -1,3 +1,28 @@
+# ------------------------------------------------------------------------------
+# Copyright (c) 2010-2013, EVEthing team
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without modification,
+# are permitted provided that the following conditions are met:
+#
+#     Redistributions of source code must retain the above copyright notice, this
+#       list of conditions and the following disclaimer.
+#     Redistributions in binary form must reproduce the above copyright notice,
+#       this list of conditions and the following disclaimer in the documentation
+#       and/or other materials provided with the distribution.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+# IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+# INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+# NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+# PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+# WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
+# OF SUCH DAMAGE.
+# ------------------------------------------------------------------------------
+
 from decimal import *
 
 from .apitask import APITask
@@ -15,7 +40,7 @@ class WalletTransactions(APITask):
     def run(self, url, taskstate_id, apikey_id, character_id):
         if self.init(taskstate_id, apikey_id) is False:
             return
-        
+
         # Make sure the character exists
         try:
             character = Character.objects.select_related('details').get(pk=character_id)
@@ -45,7 +70,7 @@ class WalletTransactions(APITask):
             'characterID': character.id,
             'rowCount': TRANSACTION_ROWS,
         }
-        
+
         # Corporation key
         if self.apikey.corp_character:
             params['accountKey'] = corp_wallet.account_key
@@ -64,12 +89,12 @@ class WalletTransactions(APITask):
         while True:
             if self.fetch_api(url, params) is False or self.root is None:
                 return False
-            
+
             rows = self.root.findall('result/rowset/row')
             # empty result set = no transactions ever on this wallet
             if not rows:
                 break
-            
+
             # Gather bulk data
             for row in rows:
                 transaction_id = int(row.attrib['transactionID'])
@@ -96,12 +121,12 @@ class WalletTransactions(APITask):
         corp_map = Corporation.objects.in_bulk(char_ids.difference(char_map))
         item_map = Item.objects.in_bulk(item_ids)
         station_map = Station.objects.in_bulk(station_ids)
-        
+
         # Iterate over scary data
         new = []
         for transaction_id, row in bulk_data.items():
             transaction_time = self.parse_api_date(row.attrib['transactionDateTime'])
-            
+
             # Skip corporate transactions if this is a personal call, we have no idea
             # what CorpWallet this transaction is related to otherwise :ccp:
             if row.attrib['transactionFor'].lower() == 'corporation' and not self.apikey.corp_character:
@@ -134,7 +159,7 @@ class WalletTransactions(APITask):
                 if station is None:
                     self.log_warn('Invalid station_id %s', row.attrib['stationID'])
                     continue
-                
+
                 # For a corporation key, make sure the character exists
                 if self.apikey.corp_character:
                     char_id = int(row.attrib['characterID'])
@@ -150,7 +175,7 @@ class WalletTransactions(APITask):
                 # Any other key = just use the supplied character
                 else:
                     char = character
-                
+
                 # Create a new transaction object and save it
                 quantity = int(row.attrib['quantity'])
                 price = Decimal(row.attrib['price'])
@@ -167,17 +192,17 @@ class WalletTransactions(APITask):
                     price=price,
                     total_price=quantity * price,
                 )
-                
+
                 # Set the corp_character for corporation API requests
                 if self.apikey.corp_character:
                     t.corp_wallet = corp_wallet
-                
+
                 # Set whichever client type is relevant
                 if isinstance(client, Character):
                     t.other_char_id = client.id
                 else:
                     t.other_corp_id = client.id
-                
+
                 new.append(t)
 
         # Create any new transaction objects
