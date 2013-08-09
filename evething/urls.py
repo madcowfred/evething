@@ -55,7 +55,7 @@ urlpatterns += patterns('thing.views',
 
     (r'^industry/$', 'industry'),
 
-    #(r'^mail/$', 'mail'),
+    (r'^mail/$', 'mail'),
     (r'^mail/json/body/(?P<mm_id>\d+)/$', 'mail_json_body'),
     (r'^mail/json/headers/$', 'mail_json_headers'),
 

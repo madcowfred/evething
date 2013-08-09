@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% import 'macros/common.html' as common %}
+
+{% block title %}Mail{% endblock %}
+
+{% block extra_js %}
+    <script type="text/javascript">
+      $(document).ready(function() {
+        EVEthing.mail.characters = { {% for character in characters %}{{ character.0 }}:'{{character.1}}',{% endfor %} };
+        EVEthing.mail.headers_url = "{{ url('thing.views.mail_json_headers') }}";
+        EVEthing.mail.body_url = "{{ url('thing.views.mail_json_body', '0000') }}";
+        EVEthing.mail.onload();
+      });
+    </script>
+{% endblock %}
+
+{% block content %}
+      <div class="row-fluid">
+        <div class="span3">
+          <ul class="nav nav-list span3 assets-sidenav" id="sidenav">
+            <li><a href="" data-character-id="0"><i class="icon-chevron-right"></i> All</a></li>
+            {% if characters %}
+            <li class="divider"></li>
+            {% for character in characters %}
+            <li><a href="" data-character-id="{{ character.0 }}"><i class="icon-chevron-right"></i> {{ character. 1}}</a></li>
+            {% endfor %}
+            {% endif %}
+          </ul>
+        </div>
+
+        <div class="span9">
+          <div class="mail-list">
+            <form>
+              <table id="mail-list-table" class="table table-bordered table-condensed table-striped">
+                <thead>
+                  <tr>
+                    <th></th>
+                    <th></th>
+                    <th>From</th>
+                    <th>To</th>
+                    <th>Subject</th>
+                    <th>Date</th>
+                  </tr>
+                </thead>
+                <tbody>
+                </tbody>
+              </table>
+            </form>
+          </div>
+
+          <div class="mail-message">
+          </div>
+        </div>
+      </div>
+{% endblock %}

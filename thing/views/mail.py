@@ -34,6 +34,30 @@ from thing.stuff import render_page
 # ------------------------------------------------------------------------------
 
 @login_required
+def mail(request):
+    char_qs = Character.objects.filter(
+        apikeys__user=request.user,
+    ).distinct()
+
+    characters = []
+    for char in char_qs:
+        characters.append([
+            char.id,
+            char.name.replace("'", '&apos;'),
+        ])
+
+    return render_page(
+        'thing/mail.html',
+        dict(
+            characters=characters,
+        ),
+        request,
+        [c[0] for c in characters],
+    )
+
+# ------------------------------------------------------------------------------
+
+@login_required
 def mail_json_body(request, mm_id):
     try:
         message = MailMessage.objects.get(
@@ -52,10 +76,10 @@ def mail_json_body(request, mm_id):
 @login_required
 def mail_json_headers(request):
     data = dict(
+        characters={},
         alliances={},
         corporations={},
         messages=[],
-        to_characters={},
     )
 
     # Build a queryset
@@ -64,27 +88,34 @@ def mail_json_headers(request):
     ).prefetch_related(
         'character',
         'to_characters',
+    ).order_by(
+        '-sent_date',
     )
 
-    # Collect corp/alliance IDs
-    check_ids = set()
+    # Collect various IDs
+    character_ids = set()
+    corp_alliance_ids = set()
     for message in message_qs:
+        character_ids.add(message.sender_id)
         if message.to_corp_or_alliance_id:
-            check_ids.add(message.to_corp_or_alliance_id)
+            corp_alliance_ids.add(message.to_corp_or_alliance_id)
 
-    # Bulk query corps/alliances
-    corp_map = Corporation.objects.in_bulk(check_ids)
-    alliance_map = Alliance.objects.in_bulk(check_ids)
+    # Bulk query things
+    char_map = Character.objects.in_bulk(character_ids)
+    corp_map = Corporation.objects.in_bulk(corp_alliance_ids)
+    alliance_map = Alliance.objects.in_bulk(corp_alliance_ids)
 
     # Gather corp/alliance data
+    for char in char_map.values():
+        data['characters'][char.id] = char.name.replace("'", '&apos;')
     for corp in corp_map.values():
         data['corporations'][corp.id] = dict(
-            name=corp.name,
+            name=corp.name.replace("'", '&apos;'),
             ticker=corp.ticker,
         )
     for alliance in alliance_map.values():
         data['alliances'][alliance.id] = dict(
-            name=alliance.name,
+            name=alliance.name.replace("'", '&apos;'),
             short_name=alliance.short_name,
         )
 
@@ -95,7 +126,7 @@ def mail_json_headers(request):
             character_id=message.character_id,
             message_id=message.message_id,
             sender_id=message.sender_id,
-            sent_date=message.sent_date.strftime('%Y-%m-%d %H:%M:%S +0000'),
+            sent_date=message.sent_date.strftime('%Y-%m-%d %H:%M:%S'),
             title=message.title,
             to_corp_or_alliance_id=message.to_corp_or_alliance_id,
             to_characters=[],
@@ -104,7 +135,7 @@ def mail_json_headers(request):
 
         # Add any to_characters
         for char in message.to_characters.all():
-            data['to_characters'][char.id] = char.name
+            data['characters'][char.id] = char.name
             m['to_characters'].append(char.id)
 
         data['messages'].append(m)
