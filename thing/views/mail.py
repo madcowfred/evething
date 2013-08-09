@@ -120,9 +120,15 @@ def mail_json_headers(request):
         )
 
     # Gather message data
+    seen_message_ids = set()
     for message in message_qs:
+        # Skip already seen messages
+        if message.message_id in seen_message_ids:
+            continue
+        seen_message_ids.add(message.message_id)
+
         m = dict(
-            mm_id=message.id,
+            #mm_id=message.id,
             character_id=message.character_id,
             message_id=message.message_id,
             sender_id=message.sender_id,
