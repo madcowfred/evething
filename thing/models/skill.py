@@ -23,11 +23,19 @@
 # OF SUCH DAMAGE.
 # ------------------------------------------------------------------------------
 
+import cPickle
 import math
 
 from django.db import models
 
 from thing.models.item import Item
+
+# ------------------------------------------------------------------------------
+
+try:
+    SKILL_MAP = cPickle.load(open('skill_map.pickle', 'r'))
+except:
+    SKILL_MAP = {}
 
 # ------------------------------------------------------------------------------
 
@@ -100,5 +108,22 @@ class Skill(models.Model):
         sec = stats.get(sec_attrs[0]) + implants.get(sec_attrs[1])
 
         return pri + (sec / 2.0)
+
+    # ------------------------------------------------------------------------------
+
+    @staticmethod
+    def get_prereqs(skill_id):
+        'Get all pre-requisite skills for a given skill ID'
+
+        def _recurse_prereqs(prereqs, skill):
+            for sid, level in SKILL_MAP.get(skill, {}).values():
+                prereqs.append([sid, level])
+                _recurse_prereqs(prereqs, sid)
+
+        prereqs = []
+        _recurse_prereqs(prereqs, skill_id)
+
+        # Return a reversed list so it's in training order
+        return list(reversed(prereqs))
 
 # ------------------------------------------------------------------------------

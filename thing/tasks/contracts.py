@@ -1,3 +1,28 @@
+# ------------------------------------------------------------------------------
+# Copyright (c) 2010-2013, EVEthing team
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without modification,
+# are permitted provided that the following conditions are met:
+#
+#     Redistributions of source code must retain the above copyright notice, this
+#       list of conditions and the following disclaimer.
+#     Redistributions in binary form must reproduce the above copyright notice,
+#       this list of conditions and the following disclaimer in the documentation
+#       and/or other materials provided with the distribution.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+# IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+# INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+# NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+# PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+# WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
+# OF SUCH DAMAGE.
+# ------------------------------------------------------------------------------
+
 import datetime
 
 from decimal import *
@@ -14,20 +39,20 @@ class Contracts(APITask):
     def run(self, url, taskstate_id, apikey_id, character_id):
         if self.init(taskstate_id, apikey_id) is False:
             return
-        
+
         # Make sure the character exists
         try:
             character = Character.objects.select_related('details').get(pk=character_id)
         except Character.DoesNotExist:
             self.log_warn('Character %s does not exist!', character_id)
             return
-        
+
         now = datetime.datetime.now()
 
         # Initialise for corporate query
         if self.apikey.corp_character:
             c_filter = Contract.objects.filter(corporation=self.apikey.corp_character.corporation)
-        
+
         # Initialise for character query
         else:
             c_filter = Contract.objects.filter(character=character, corporation__isnull=True)
@@ -70,7 +95,7 @@ class Contracts(APITask):
                 continue
 
             contract_ids.add(int(row.attrib['contractID']))
-            
+
             station_ids.add(int(row.attrib['startStationID']))
             station_ids.add(int(row.attrib['endStationID']))
 
@@ -81,7 +106,7 @@ class Contracts(APITask):
                 lookup_ids.add(int(row.attrib['assigneeID']))
             if row.attrib['acceptorID'] != '0':
                 lookup_ids.add(int(row.attrib['acceptorID']))
-            
+
             contract_rows.append(row)
 
         # Fetch bulk data
@@ -89,7 +114,7 @@ class Contracts(APITask):
         corp_map = Corporation.objects.in_bulk(lookup_ids | lookup_corp_ids)
         alliance_map = Alliance.objects.in_bulk(lookup_ids)
         station_map = Station.objects.in_bulk(station_ids)
-        
+
         # Add missing IDs as *UNKNOWN* Characters for now
         new = []
         for new_id in lookup_ids.difference(char_map, corp_map, alliance_map, lookup_corp_ids):
@@ -136,7 +161,7 @@ class Contracts(APITask):
         #      volume="10000"/>
         for row in contract_rows:
             contractID = int(row.attrib['contractID'])
-            
+
             issuer_char = char_map.get(int(row.attrib['issuerID']))
             if issuer_char is None:
                 self.log_warn('Invalid issuerID %s', row.attrib['issuerID'])
@@ -146,7 +171,7 @@ class Contracts(APITask):
             if issuer_corp is None:
                 self.log_warn('Invalid issuerCorpID %s', row.attrib['issuerCorpID'])
                 continue
-            
+
             start_station = station_map.get(int(row.attrib['startStationID']))
             if start_station is None:
                 self.log_warn('Invalid startStationID %s', row.attrib['startStationID'])
@@ -162,7 +187,7 @@ class Contracts(APITask):
 
             dateIssued = self.parse_api_date(row.attrib['dateIssued'])
             dateExpired = self.parse_api_date(row.attrib['dateExpired'])
-            
+
             dateAccepted = row.attrib['dateAccepted']
             if dateAccepted:
                 dateAccepted = self.parse_api_date(dateAccepted)
@@ -185,7 +210,7 @@ class Contracts(APITask):
                 if contract.status != row.attrib['status']:
                     text = "Contract %s changed status from '%s' to '%s'" % (
                         contract, contract.status, row.attrib['status'])
-                    
+
                     new_events.append(Event(
                         user_id=self.apikey.user.id,
                         issued=now,
@@ -237,7 +262,7 @@ class Contracts(APITask):
                     if assignee is not None:
                         text = "Contract %s was created from '%s' to '%s' with status '%s'" % (
                             contract, contract.get_issuer_name(), assignee.name, contract.status)
-                        
+
                         new_events.append(Event(
                             user_id=self.apikey.user.id,
                             issued=now,
