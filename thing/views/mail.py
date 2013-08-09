@@ -58,16 +58,16 @@ def mail(request):
 # ------------------------------------------------------------------------------
 
 @login_required
-def mail_json_body(request, mm_id):
-    try:
-        message = MailMessage.objects.get(
-            pk=mm_id,
-            character__apikeys__user=request.user,
-        )
-    except MailMessage.DoesNotExist:
-        data = dict(error='Message does not exist.')
+def mail_json_body(request, message_id):
+    messages = MailMessage.objects.filter(
+        message_id=message_id,
+        character__apikeys__user=request.user,
+    )
+    if messages.count() > 0:
+        data = dict(body=messages[0].body)
+        messages.update(read=True)
     else:
-        data = dict(body=message.body)
+        data = dict(error='Message does not exist.')
 
     return json_response(data)
 
@@ -132,11 +132,13 @@ def mail_json_headers(request):
             character_id=message.character_id,
             message_id=message.message_id,
             sender_id=message.sender_id,
-            sent_date=message.sent_date.strftime('%Y-%m-%d %H:%M:%S'),
+            # don't need seconds since we don't appear to get them from the API
+            sent_date=message.sent_date.strftime('%Y-%m-%d %H:%M'),
             title=message.title,
             to_corp_or_alliance_id=message.to_corp_or_alliance_id,
             to_characters=[],
             to_list_id=message.to_list_id,
+            read=message.read,
         )
 
         # Add any to_characters

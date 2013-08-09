@@ -29,26 +29,50 @@
         </div>
 
         <div class="span9">
-          <div class="mail-list">
-            <form>
-              <table id="mail-list-table" class="table table-bordered table-condensed table-striped">
-                <thead>
-                  <tr>
-                    <th></th>
-                    <th></th>
-                    <th>From</th>
-                    <th>To</th>
-                    <th>Subject</th>
-                    <th>Date</th>
-                  </tr>
-                </thead>
-                <tbody>
-                </tbody>
-              </table>
-            </form>
+          <div class="row-fluid">
+            <div class="span12 mail-list">
+              <form class="nomargin">
+                <table id="mail-list-table" class="table table-bordered table-condensed table-striped nomargin">
+                  <thead>
+                    <tr>
+                      <th></th>
+                      <th>From</th>
+                      <th>To</th>
+                      <th>Subject</th>
+                      <th>Date</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                  </tbody>
+                </table>
+              </form>
+            </div>
           </div>
 
-          <div class="mail-message">
+          <div class="row-fluid">
+            <div class="span12 mail-message">
+              <table id="mail-message-table" class="table table-condensed nomargin">
+                <tr>
+                  <td>From:</td>
+                  <td id="mail-message-from"></td>
+                </tr>
+                <tr>
+                  <td>To:</td>
+                  <td id="mail-message-to"></td>
+                </tr>
+                <tr>
+                  <td>Subject:</td>
+                  <td id="mail-message-subject"></td>
+                </tr>
+                <tr>
+                  <td>Date:</td>
+                  <td id="mail-message-date"></td>
+                </tr>
+                <tr>
+                  <td id="mail-message-body" colspan="2"></td>
+                </tr>
+              </table>
+            </div>
           </div>
         </div>
       </div>
