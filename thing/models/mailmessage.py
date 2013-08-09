@@ -43,6 +43,8 @@ class MailMessage(models.Model):
 
     body = models.TextField(blank=True, null=True)
 
+    read = models.BooleanField(default=False)
+
     class Meta:
         app_label = 'thing'
         ordering = ('-sent_date',)
