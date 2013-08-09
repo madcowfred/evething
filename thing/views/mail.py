@@ -1,0 +1,114 @@
+# ------------------------------------------------------------------------------
+# Copyright (c) 2010-2013, EVEthing team
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without modification,
+# are permitted provided that the following conditions are met:
+#
+#     Redistributions of source code must retain the above copyright notice, this
+#       list of conditions and the following disclaimer.
+#     Redistributions in binary form must reproduce the above copyright notice,
+#       this list of conditions and the following disclaimer in the documentation
+#       and/or other materials provided with the distribution.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+# IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+# INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+# NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+# PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+# WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
+# OF SUCH DAMAGE.
+# ------------------------------------------------------------------------------
+
+import time
+
+from django.contrib.auth.decorators import login_required
+
+from core.util import json_response
+from thing.models import *
+from thing.stuff import render_page
+
+# ------------------------------------------------------------------------------
+
+@login_required
+def mail_json_body(request, mm_id):
+    try:
+        message = MailMessage.objects.get(
+            pk=mm_id,
+            character__apikeys__user=request.user,
+        )
+    except MailMessage.DoesNotExist:
+        data = dict(error='Message does not exist.')
+    else:
+        data = dict(body=message.body)
+
+    return json_response(data)
+
+# ------------------------------------------------------------------------------
+
+@login_required
+def mail_json_headers(request):
+    data = dict(
+        alliances={},
+        corporations={},
+        messages=[],
+        to_characters={},
+    )
+
+    # Build a queryset
+    message_qs = MailMessage.objects.filter(
+        character__apikeys__user=request.user,
+    ).prefetch_related(
+        'character',
+        'to_characters',
+    )
+
+    # Collect corp/alliance IDs
+    check_ids = set()
+    for message in message_qs:
+        if message.to_corp_or_alliance_id:
+            check_ids.add(message.to_corp_or_alliance_id)
+
+    # Bulk query corps/alliances
+    corp_map = Corporation.objects.in_bulk(check_ids)
+    alliance_map = Alliance.objects.in_bulk(check_ids)
+
+    # Gather corp/alliance data
+    for corp in corp_map.values():
+        data['corporations'][corp.id] = dict(
+            name=corp.name,
+            ticker=corp.ticker,
+        )
+    for alliance in alliance_map.values():
+        data['alliances'][alliance.id] = dict(
+            name=alliance.name,
+            short_name=alliance.short_name,
+        )
+
+    # Gather message data
+    for message in message_qs:
+        m = dict(
+            mm_id=message.id,
+            character_id=message.character_id,
+            message_id=message.message_id,
+            sender_id=message.sender_id,
+            sent_date=message.sent_date.strftime('%Y-%m-%d %H:%M:%S +0000'),
+            title=message.title,
+            to_corp_or_alliance_id=message.to_corp_or_alliance_id,
+            to_characters=[],
+            to_list_id=message.to_list_id,
+        )
+
+        # Add any to_characters
+        for char in message.to_characters.all():
+            data['to_characters'][char.id] = char.name
+            m['to_characters'].append(char.id)
+
+        data['messages'].append(m)
+
+    return json_response(data)
+
+# ------------------------------------------------------------------------------
