@@ -1,4 +1,31 @@
+# ------------------------------------------------------------------------------
+# Copyright (c) 2010-2013, EVEthing team
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without modification,
+# are permitted provided that the following conditions are met:
+#
+#     Redistributions of source code must retain the above copyright notice, this
+#       list of conditions and the following disclaimer.
+#     Redistributions in binary form must reproduce the above copyright notice,
+#       this list of conditions and the following disclaimer in the documentation
+#       and/or other materials provided with the distribution.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+# IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+# INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+# NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+# PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+# WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
+# OF SUCH DAMAGE.
+# ------------------------------------------------------------------------------
+
 import calendar
+
+from decimal import Decimal
 
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q, Avg, Count, Max, Min, Sum
@@ -17,7 +44,7 @@ MONTHS = (None, 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', '
 def trade(request):
     data = {}
     now = datetime.datetime.now()
-    
+
     # Order information
     #orders = Order.objects.filter(corporation=corporation)
     #buy_orders = orders.filter(o_type='B')
@@ -27,15 +54,15 @@ def trade(request):
     #data['buy_total'] = buy_orders.aggregate(Sum('total_price'))['total_price__sum'] or 0
     #data['escrow_total'] = buy_orders.aggregate(Sum('escrow'))['escrow__sum'] or 0
     #data['net_asset_value'] = data['wallet_balance'] + data['sell_total'] + data['escrow_total']
-    
+
     # Transaction stuff oh god
     characters = list(Character.objects.filter(apikeys__user=request.user.id).values_list('id', flat=True))
     transactions = Transaction.objects.filter(character_id__in=characters)
-    
+
     t_check = []
     # All
     t_check.append(('[All]', 'all', transactions))
-    
+
     # Campaigns
     for camp in Campaign.objects.filter(user=request.user.id):
         title = '[%s]' % (camp.title)
@@ -48,7 +75,7 @@ def trade(request):
             name = '%s %s' % (MONTHS[month], year)
             urlpart = '%s-%02d' % (year, month)
             t_check.append((name, urlpart, transactions.filter(date__range=_month_range(year, month))))
-    
+
     # Get data and stuff
     t_data = []
     for name, urlpart, trans in t_check:
@@ -58,19 +85,19 @@ def trade(request):
             buy_total=0,
             sell_total=0,
         )
-        
+
         for data in trans.values('buy_transaction').annotate(Sum('total_price')):
             if data['buy_transaction'] is True:
                 row['buy_total'] = data['total_price__sum']
             else:
                 row['sell_total'] = data['total_price__sum']
-        
+
         row['balance'] = row['sell_total'] - row['buy_total']
-        
+
         t_data.append(row)
-    
+
     data['transactions'] = t_data
-    
+
     # Render template
     return render_page(
         'thing/trade.html',
@@ -91,17 +118,17 @@ def trade_timeframe(request, year=None, month=None, period=None, slug=None):
         'total_projected_average': 0,
         'total_projected_market': 0,
     }
-    
+
     # Get a QuerySet of transactions by this user
     characters = list(Character.objects.filter(apikeys__user=request.user.id).values_list('id', flat=True))
     corporations = list(APIKey.objects.filter(user=request.user).exclude(corp_character=None).values_list('corp_character__corporation__id', flat=True))
     wallets = list(CorpWallet.objects.filter(corporation__in=corporations).values_list('account_id', flat=True))
-    
+
     transactions = Transaction.objects.filter(
         Q(character__in=characters) |
         Q(corp_wallet__in=wallets)
     )
-    
+
     # Year/Month
     if year and month:
         year = int(year)
@@ -119,7 +146,7 @@ def trade_timeframe(request, year=None, month=None, period=None, slug=None):
     elif period:
         data['timeframe'] = 'all time'
         data['urlpart'] = 'all'
-    
+
     # Fetch the aggregate transaction data
     data_set = transactions.values('buy_transaction', 'item').annotate(
         sum_quantity=Sum('quantity'),
@@ -186,7 +213,7 @@ def trade_timeframe(request, year=None, month=None, period=None, slug=None):
             t['projected_market'] = t['balance']
 
         data['items'].append(item)
-        
+
         # Update totals
         data['total_buys'] += t['buy_total']
         data['total_sells'] += t['sell_total']

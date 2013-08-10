@@ -1,5 +1,32 @@
+# ------------------------------------------------------------------------------
+# Copyright (c) 2010-2013, EVEthing team
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without modification,
+# are permitted provided that the following conditions are met:
+#
+#     Redistributions of source code must retain the above copyright notice, this
+#       list of conditions and the following disclaimer.
+#     Redistributions in binary form must reproduce the above copyright notice,
+#       this list of conditions and the following disclaimer in the documentation
+#       and/or other materials provided with the distribution.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+# IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+# INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+# NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+# PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+# WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
+# OF SUCH DAMAGE.
+# ------------------------------------------------------------------------------
+
 import json
 import operator
+
+from decimal import Decimal
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
@@ -56,7 +83,7 @@ def assets_summary(request):
     for character in characters:
         character_ids.append(character.id)
         character_map[character.id] = character
-    
+
     corporations = Corporation.objects.filter(pk__in=APIKey.objects.filter(user=request.user).exclude(corp_character=None).values('corp_character__corporation'))
     corporation_ids = []
     corporation_map = {}
@@ -124,7 +151,7 @@ def assets_summary(request):
     summary_list.sort()
 
     tt.add_time('sort data')
-    
+
     # Render template
     out = render_page(
         'thing/assets_summary.html',
@@ -160,7 +187,7 @@ def assets_filter(request):
     for character in characters:
         character_ids.append(character.id)
         character_map[character.id] = character
-    
+
     corporations = Corporation.objects.filter(pk__in=APIKey.objects.filter(user=request.user).exclude(corp_character=None).values('corp_character__corporation'))
     corporation_ids = []
     corporation_map = {}
@@ -353,7 +380,7 @@ def assets_filter(request):
                 asset.z_blueprint = min(-1, asset.raw_quantity)
             else:
                 asset.z_blueprint = 0
-            
+
             # total value of this asset stack
             if asset.z_blueprint >= 0:
                 # capital ships!
@@ -366,7 +393,7 @@ def assets_filter(request):
             # BPCs count as 0 value for now
             else:
                 asset.z_price = 0
-            
+
             asset.z_total = asset.quantity * asset.z_price
             asset.z_volume = (asset.quantity * asset.item.volume).quantize(Decimal('0.01'))
 
@@ -379,7 +406,7 @@ def assets_filter(request):
             # base asset, always add
             if asset.parent == 0:
                 asset.z_indent = 0
-                
+
                 loc_totals[asset.z_k] += asset.z_total
                 systems[asset.z_k].append(asset)
 
@@ -414,7 +441,7 @@ def assets_filter(request):
                 else:
                     # inventory group
                     asset.z_slot = asset.inv_flag.nice_name()
-                    # corporation hangar  
+                    # corporation hangar
                     if asset.z_corporation is not None and asset.z_slot.startswith('CorpSAG'):
                         asset.z_slot = getattr(asset.z_corporation, 'division%s' % (asset.z_slot[-1]))
 
@@ -439,7 +466,7 @@ def assets_filter(request):
             _content_sort(asset)
 
     tt.add_time('sort contents')
-    
+
     # Render template
     out = render_page(
         'thing/assets_filter.html',
@@ -487,9 +514,9 @@ def _json_data(characters, corporations, filters):
     )
 
     for char in characters:
-        data['values']['char'][char.id] = char.name
+        data['values']['char'][char.id] = char.name.replace("'", '&apos;')
     for corp in corporations:
-        data['values']['corp'][corp.id] = corp.name
+        data['values']['corp'][corp.id] = corp.name.replace("'", '&apos;')
     for invflag in InventoryFlag.objects.all():
         data['values']['invflag'][invflag.id] = invflag.name
     for itemcat in ItemCategory.objects.all():

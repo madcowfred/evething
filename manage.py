@@ -3,6 +3,14 @@
 import os
 import sys
 
+# Enforce Django 1.5
+from django import get_version
+if get_version() < '1.5':
+    print
+    print 'ERROR: EVEthing requires Django version 1.5 or above!'
+    print
+    sys.exit(1)
+
 # try using cdecimal for faster Decimal type
 try:
     import cdecimal

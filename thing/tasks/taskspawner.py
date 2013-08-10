@@ -1,3 +1,28 @@
+# ------------------------------------------------------------------------------
+# Copyright (c) 2010-2013, EVEthing team
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without modification,
+# are permitted provided that the following conditions are met:
+#
+#     Redistributions of source code must retain the above copyright notice, this
+#       list of conditions and the following disclaimer.
+#     Redistributions in binary form must reproduce the above copyright notice,
+#       this list of conditions and the following disclaimer in the documentation
+#       and/or other materials provided with the distribution.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+# IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+# INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+# NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+# PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+# WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
+# OF SUCH DAMAGE.
+# ------------------------------------------------------------------------------
+
 import datetime
 import os
 import sys
@@ -90,12 +115,16 @@ def task_spawner():
     # Iterate over each key, doing stuff
     for keyid, apikey in keys.items():
         masks = apikey.get_masks()
-        
+
         # All keys do keyinfo checks things
         func, url, queue = API_KEY_INFO_URL
         taskstate = status[keyid].get((url, 0), None)
 
         _init_taskstate(taskdata, now, taskstate, keyid, apikey.id, func, url, queue, 0)
+
+        # Don't do anything else if this key needs APIKeyInfo
+        if apikey.needs_apikeyinfo:
+            continue
 
         # Account/character keys
         if apikey.key_type in (APIKey.ACCOUNT_TYPE, APIKey.CHARACTER_TYPE):
@@ -147,7 +176,7 @@ def task_spawner():
             kwargs={},
             queue=queue,
         )
-    
+
     TaskState.objects.filter(pk__in=ts_ids).update(state=TaskState.QUEUED_STATE, mod_time=now)
 
     # Create the new ones, they can be started next time around
@@ -161,7 +190,7 @@ def task_spawner():
             mod_time=now,
             next_time=now,
         ))
-    
+
     TaskState.objects.bulk_create(new)
 
 # ---------------------------------------------------------------------------

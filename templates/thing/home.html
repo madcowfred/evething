@@ -10,11 +10,16 @@
 {% block content %}
       <div class="row-fluid">
         <div class="span12">
-          <span><strong>Total SP:</strong> {{ total_sp|commas }}</span>
+          <strong>Totals</strong> --&nbsp;
+          <strong>Skill Points:</strong> {{ total_sp|commas }}
           <span class="divider">/</span>
-          <span><strong>Total Balance:</strong> {{ total_balance|commas }} ISK</span>
+          <strong>Wallet:</strong> {{ total_balance|commas }} ISK
           <span class="divider">/</span>
-          <span><strong>Total Assets:</strong> {{ total_assets|default('0.00')|commas }} ISK</span>
+          <strong>Personal Assets:</strong> {{ total_assets|default('0.00')|commas }} ISK
+{% if corp_assets %}
+          <span class="divider">/</span>
+          <strong>Corp Assets:</strong> {{ corp_assets|default('0.00')|commas }} ISK
+{% endif %}
           <span class="pull-right">
             <i class="js-screenshot clickable icon-picture" title="Screenshot sanitised mode"></i>
           </span>
@@ -37,7 +42,7 @@
                 {%- if character.name == '*UNKNOWN' %}
                 {{ character.name }}
                 {%- else %}
-                <a href="{{ url('thing.views.character', character.name) }}" class="sensitive character-name">
+                <a href="{{ url('thing.views.character_sheet', character.name) }}" class="sensitive character-name">
                   {{ character.name }}
                 </a>
                 {%- endif %}

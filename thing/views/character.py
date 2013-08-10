@@ -1,3 +1,29 @@
+# ------------------------------------------------------------------------------
+# Copyright (c) 2010-2013, EVEthing team
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without modification,
+# are permitted provided that the following conditions are met:
+#
+#     Redistributions of source code must retain the above copyright notice, this
+#       list of conditions and the following disclaimer.
+#     Redistributions in binary form must reproduce the above copyright notice,
+#       this list of conditions and the following disclaimer in the documentation
+#       and/or other materials provided with the distribution.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+# IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+# INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+# NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+# PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+# WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
+# OF SUCH DAMAGE.
+# ------------------------------------------------------------------------------
+
+import random
 import re
 
 try:
@@ -10,16 +36,17 @@ from django.contrib.auth.decorators import login_required
 from django.http import Http404
 from django.shortcuts import redirect, get_object_or_404
 
+from core.util import json_response
 from thing.models import *
 from thing.stuff import *
 
 # ---------------------------------------------------------------------------
 # Display a character page
-def character(request, character_name):
+def character_sheet(request, character_name):
     characters = Character.objects.select_related('config', 'details', 'corporation__alliance')
     characters = characters.filter(apikeys__valid=True)
     characters = characters.distinct()
-    
+
     char = get_object_or_404(characters, name=character_name)
     print char.config
     print char.details
@@ -35,16 +62,18 @@ def character(request, character_name):
 
     return character_common(request, char, public=public)
 
+# ------------------------------------------------------------------------------
 # Display an anonymized character page
 def character_anonymous(request, anon_key):
     char = get_object_or_404(Character.objects.select_related('config', 'details'), config__anon_key=anon_key)
 
     return character_common(request, char, anonymous=True)
 
+# ------------------------------------------------------------------------------
 # Common code for character views
 def character_common(request, char, public=True, anonymous=False):
     tt = TimerThing('character_common')
-    
+
     utcnow = datetime.datetime.utcnow()
 
     # I don't know how this happens but hey, let's fix it here
@@ -230,7 +259,11 @@ def character_common(request, char, public=True, anonymous=False):
 
     return out
 
-ANON_KEY_RE = re.compile(r'^[a-z0-9]+$')
+# ------------------------------------------------------------------------------
+
+ANON_KEY_RE = re.compile(r'^[a-z0-9]{16}$')
+ANON_KEY_CHOICES = 'abcdefghijklmnopqrstuvwxyz0123456789'
+
 @login_required
 def character_settings(request, character_name):
     chars = Character.objects.filter(name=character_name, apikeys__user=request.user).distinct()
@@ -245,18 +278,21 @@ def character_settings(request, character_name):
     char.config.show_standings = ('standings' in request.POST)
     char.config.show_wallet = ('wallet' in request.POST)
 
+    # User wants to enable anonymous key
     if 'anon-key-toggle' in request.POST:
         anon_key = request.POST.get('anon-key', '').lower()
-        if ANON_KEY_RE.match(anon_key) and len(anon_key) == 16:
+        # Provided key is OK, use that
+        if ANON_KEY_RE.match(anon_key):
             char.config.anon_key = anon_key
+        # Generate a new key
         else:
-            char.config.anon_key = None
+            char.config.anon_key = ''.join([random.choice(ANON_KEY_CHOICES) for i in range(16)])
     else:
-        char.config.anon_key = None
+        char.config.anon_key = ''
 
     char.config.save()
 
-    return redirect(char)
+    return json_response(dict(anon_key=char.config.anon_key))
 
 # ---------------------------------------------------------------------------
 # Display a SkillPlan for a character
@@ -277,7 +313,7 @@ def character_skillplan(request, character_name, skillplan_id):
     # Not logged in or character does not belong to user
     if public is True:
         character = get_object_or_404(Character.objects.select_related('config', 'details'), name=character_name, config__is_public=True)
-        
+
         qs = Q(visibility=SkillPlan.GLOBAL_VISIBILITY)
         if request.user.is_authenticated():
             qs |= Q(user=request.user)
@@ -285,12 +321,15 @@ def character_skillplan(request, character_name, skillplan_id):
 
     return character_skillplan_common(request, character, skillplan, public=public)
 
+# ------------------------------------------------------------------------------
 # Display a SkillPlan for an anonymous character
 def character_anonymous_skillplan(request, anon_key, skillplan_id):
     character = get_object_or_404(Character.objects.select_related('config', 'details'), config__anon_key=anon_key)
     skillplan = get_object_or_404(SkillPlan.objects.prefetch_related('entries'), pk=skillplan_id, visibility=SkillPlan.GLOBAL_VISIBILITY)
 
     return character_skillplan_common(request, character, skillplan, anonymous=True)
+
+# ------------------------------------------------------------------------------
 
 def character_skillplan_common(request, character, skillplan, public=True, anonymous=False):
     tt = TimerThing('skillplan_common')
@@ -404,7 +443,7 @@ def character_skillplan_common(request, character, skillplan, public=True, anony
                     entry.z_sppm = skill.get_sp_per_minute(character, implants=implant_stats)
                 else:
                     entry.z_sppm = skill.get_sp_per_minute(character)
-            
+
             # 0 sppm is bad
             entry.z_sppm = max(1, entry.z_sppm)
             entry.z_spph = int(entry.z_sppm * 60)

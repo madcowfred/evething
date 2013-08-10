@@ -1,3 +1,28 @@
+# ------------------------------------------------------------------------------
+# Copyright (c) 2010-2013, EVEthing team
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without modification,
+# are permitted provided that the following conditions are met:
+#
+#     Redistributions of source code must retain the above copyright notice, this
+#       list of conditions and the following disclaimer.
+#     Redistributions in binary form must reproduce the above copyright notice,
+#       this list of conditions and the following disclaimer in the documentation
+#       and/or other materials provided with the distribution.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+# IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+# INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+# NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+# PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+# WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
+# OF SUCH DAMAGE.
+# ------------------------------------------------------------------------------
+
 """
 Defines an abstract APITask class with various helpful features like error handling
 and explosions.
@@ -20,7 +45,6 @@ from billiard import current_process
 from celery import Task
 from celery.task.control import broadcast
 from celery.utils.log import get_task_logger
-from django import get_version
 from django.conf import settings
 from django.core.cache import cache
 from django.db import connections
@@ -55,8 +79,6 @@ this_process = None
 
 class APITask(Task):
     abstract = True
-
-    _django_version = get_version()
 
     # Logger instance
     _logger = get_task_logger(__name__)
@@ -114,8 +136,12 @@ class APITask(Task):
             except APIKey.DoesNotExist:
                 return False
             else:
-                # Still valid?
+                # No longer a valid key?
                 if not self.apikey.valid:
+                    return False
+
+                # Needs APIKeyInfo?
+                if self.apikey.needs_apikeyinfo and getattr(self, 'name') != 'thing.api_key_info':
                     return False
 
     # -----------------------------------------------------------------------
@@ -175,13 +201,10 @@ class APITask(Task):
         else:
             self._taskstate.next_time = utcnow + datetime.timedelta(minutes=30)
 
-        if self._django_version >= '1.5':
-            self._taskstate.save(update_fields=('state', 'mod_time', 'next_time'))
-        else:
-            self._taskstate.save()
+        self._taskstate.save(update_fields=('state', 'mod_time', 'next_time'))
 
     # ---------------------------------------------------------------------------
-    
+
     def fetch_api(self, url, params, use_auth=True, log_error=True):
         """
         Fetch API data either from the API cache (if cached) or from the actual
@@ -197,7 +220,7 @@ class APITask(Task):
 
         cache_key = self._get_cache_key(url, params)
         cached_data = cache.get(cache_key)
-        
+
         # Data is not cached, fetch new data
         if cached_data is None:
             # Sleep now if we have to
@@ -205,7 +228,7 @@ class APITask(Task):
             if sleep_for > 0:
                 #self.log_warn('Sleeping for %d seconds', sleep_for)
                 time.sleep(sleep_for)
-            
+
             # Add the vCode to params now
             if use_auth:
                 params['vCode'] = self.apikey.vcode
@@ -225,16 +248,39 @@ class APITask(Task):
 
             self._api_log.append((url, time.time() - start))
 
+            is_apikeyinfo = (getattr(self, 'name') == 'thing.api_key_info')
+
             # If the status code is bad return False
             if not r.status_code == requests.codes.ok:
                 # Forbidden? Delay for abitrary 4 hours
                 if r.status_code == '403' or r.status_code == 403:
                     self._cache_delta = datetime.timedelta(hours=4)
                     self.log_warn('403 error, caching for 4 hours')
+
+                    # If this is an APIKeyInfo call, increment error count
+                    if is_apikeyinfo and self.apikey:
+                        self.apikey.apikeyinfo_errors += 1
+                        # Too many errors, invalidate the key
+                        if self.apikey.apikeyinfo_errors >= 3:
+                            self.invalidate_key('Too many 403 errors from APIKeyInfo')
+                        else:
+                            self.apikey.save(update_fields=('apikeyinfo_errors',))
+
+                    # Any other call, set this key as needs_apikeyinfo
+                    else:
+                        self.apikey.needs_apikeyinfo = True
+                        self.apikey.save(update_fields=('needs_apikeyinfo',))
+
                 # Increment backoff if it wasn't a 403 error
                 else:
                     self._increment_backoff('Bad status code: %s' % (r.status_code))
                 return False
+
+            # No errors, reset APIKeyInfo error count if required
+            elif is_apikeyinfo and self.apikey:
+                self.apikey.apikeyinfo_errors = 0
+                self.apikey.needs_apikeyinfo = False
+                self.apikey.save(update_fields=('apikeyinfo_errors', 'needs_apikeyinfo'))
 
         # Data is cached, use that
         else:
@@ -276,55 +322,8 @@ class APITask(Task):
 
                 # Permanent key errors
                 if error.attrib['code'] in KEY_ERRORS:
-                    now = datetime.datetime.now()
-
-                    # Mark the key as invalid
-                    self.apikey.invalidate()
-
-                    # Log an error
-                    self.log_error('[fetch_api] API key with keyID %d marked invalid!', self.apikey.keyid)
-
-                    # Log an error event for the user
-                    text = "Your API key #%d was marked invalid: %s %s" % (
-                        self.apikey.id,
-                        error.attrib['code'],
-                        error.text
-                    )
-                    Event.objects.create(
-                        user_id=self.apikey.user.id,
-                        issued=now,
-                        text=text,
-                    )
-
-                    # Log a key failure
-                    fail_reason = '%s: %s' % (error.attrib['code'], error.text)
-                    APIKeyFailure.objects.create(
-                        user_id=self.apikey.user.id,
-                        keyid=self.apikey.keyid,
-                        fail_time=now,
-                        fail_reason=fail_reason,
-                    )
-
-                    # Check if we need to punish this user for their sins
-                    one_week_ago = now - datetime.timedelta(7)
-                    count = APIKeyFailure.objects.filter(user=self.apikey.user, fail_time__gt=one_week_ago).count()
-                    limit = getattr(settings, 'API_FAILURE_LIMIT', 3)
-                    if limit > 0 and count >= limit:
-                        # Disable their ability to add keys
-                        profile = self.apikey.user.get_profile()
-                        profile.can_add_keys = False
-                        if self._django_version >= '1.5':
-                            profile.save(update_fields=('can_add_keys'))
-                        else:
-                            profile.save()
-
-                        # Log that we did so
-                        text = "Limit of %d API key failures per 7 days exceeded, you may no longer add keys." % (limit)
-                        Event.objects.create(
-                            user_id=self.apikey.user.id,
-                            issued=now,
-                            text=text,
-                        )
+                    reason = '%s %s' % (error.attrib['code'], error.text)
+                    self.invalidate_key(reason)
 
                 # Website is broken errors, trigger sleep
                 elif error.attrib['code'].startswith('5') or error.attrib['code'] in ('901', '902', '1001'):
@@ -338,7 +337,7 @@ class APITask(Task):
                 return False
 
         return True
-    
+
     # -----------------------------------------------------------------------
 
     def fetch_url(self, url, params):
@@ -372,6 +371,51 @@ class APITask(Task):
         Parse XML and return an ElementTree.
         """
         return ET.fromstring(data.encode('utf-8'))
+
+    # -----------------------------------------------------------------------
+
+    def invalidate_key(self, reason):
+        now = datetime.datetime.now()
+
+        # Mark the key as invalid
+        self.apikey.invalidate()
+
+        # Log an error
+        self.log_error('[fetch_api] API key with keyID %d marked invalid!', self.apikey.keyid)
+
+        # Log an error event for the user
+        text = "Your API key #%d was marked invalid: %s" % (self.apikey.id, reason)
+        Event.objects.create(
+            user_id=self.apikey.user.id,
+            issued=now,
+            text=text,
+        )
+
+        # Log a key failure
+        APIKeyFailure.objects.create(
+            user_id=self.apikey.user.id,
+            keyid=self.apikey.keyid,
+            fail_time=now,
+            fail_reason=reason,
+        )
+
+        # Check if we need to punish this user for their sins
+        one_week_ago = now - datetime.timedelta(7)
+        count = APIKeyFailure.objects.filter(user=self.apikey.user, fail_time__gt=one_week_ago).count()
+        limit = getattr(settings, 'API_FAILURE_LIMIT', 3)
+        if limit > 0 and count >= limit:
+            # Disable their ability to add keys
+            profile = self.apikey.user.get_profile()
+            profile.can_add_keys = False
+            profile.save(update_fields=('can_add_keys',))
+
+            # Log that we did so
+            text = "Limit of %d API key failures per 7 days exceeded, you may no longer add keys." % (limit)
+            Event.objects.create(
+                user_id=self.apikey.user.id,
+                issued=now,
+                text=text,
+            )
 
     # -----------------------------------------------------------------------
 
@@ -447,15 +491,15 @@ class APITask(Task):
     def log_error(self, text, *args):
         text = '[%d/%s] %s' % (this_process, self.__class__.__name__, text)
         self._logger.error(text, *args)
-    
+
     def log_warn(self, text, *args):
         text = '[%d/%s] %s' % (this_process, self.__class__.__name__, text)
         self._logger.warn(text, *args)
-    
+
     def log_info(self, text, *args):
         text = '[%d/%s] %s' % (this_process, self.__class__.__name__, text)
         self._logger.info(text, *args)
-    
+
     def log_debug(self, text, *args):
         text = '[%d/%s] %s' % (this_process, self.__class__.__name__, text)
         self._logger.debug(text, *args)
