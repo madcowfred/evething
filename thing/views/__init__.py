@@ -8,7 +8,7 @@ from thing.views.contracts import *
 from thing.views.events import *
 from thing.views.industry import *
 from thing.views.orders import *
-from thing.views.skillplan import *
 from thing.views.trade import *
 from thing.views.transactions import *
 from thing.views.wallet_journal import *
+from thing.views.skillplan import *
