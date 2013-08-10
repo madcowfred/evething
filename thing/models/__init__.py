@@ -20,6 +20,7 @@ from thing.models.itemcategory import ItemCategory
 from thing.models.itemgroup import ItemGroup
 from thing.models.item import Item
 from thing.models.blueprint import Blueprint
+from thing.models.skillparent import SkillParent
 from thing.models.skill import Skill
 
 # Everything else
