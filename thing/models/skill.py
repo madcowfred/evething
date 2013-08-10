@@ -29,6 +29,8 @@ import math
 from django.db import models
 
 from thing.models.item import Item
+from thing.models.skillparent import SkillParent
+
 
 # ------------------------------------------------------------------------------
 
@@ -66,6 +68,14 @@ class Skill(models.Model):
     description = models.TextField()
     primary_attribute = models.SmallIntegerField(choices=ATTRIBUTE_CHOICES)
     secondary_attribute = models.SmallIntegerField(choices=ATTRIBUTE_CHOICES)
+
+    parents = models.ManyToManyField('self'
+                                    , blank=True
+                                    , null=True
+                                    , through="SkillParent"
+                                    , related_name="children"
+                                    , symmetrical=False)
+
 
     class Meta:
         app_label = 'thing'
@@ -108,6 +118,34 @@ class Skill(models.Model):
         sec = stats.get(sec_attrs[0]) + implants.get(sec_attrs[1])
 
         return pri + (sec / 2.0)
+    
+
+    def add_parent(self, skill, level):
+        parent_skill, created = SkillParent.objects.get_or_create(
+            child_skill=self,
+            parent_skill=skill,
+            level=level)
+        return parent_skill
+    
+    def remove_parent(self, skill):
+        SkillParent.objects.filter(
+            child_skill=self,
+            parent_skill=skill).delete()
+        return self
+    
+    def clean_parents(self):
+        SkillParent.objects.filter(
+            child_skill=self).delete()
+        return self
+
+    def get_skill_parent(self):
+        return SkillParent.objects.filter(
+            child_skill=self)
+            
+    def get_skill_children(self):
+        return SkillParent.objects.filter(
+            parent_skill=self)
+
 
     # ------------------------------------------------------------------------------
 
@@ -125,5 +163,6 @@ class Skill(models.Model):
 
         # Return a reversed list so it's in training order
         return list(reversed(prereqs))
+
 
 # ------------------------------------------------------------------------------
