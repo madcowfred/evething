@@ -7,6 +7,8 @@ EVEthing.skillplan = {
     skillPlanEntriesURL: "",
     
     onload: function() {
+        $('#apply_filter').click(function(){EVEthing.skillplan.reload_entries()});               
+        
         // hover thing for skill descriptions
         $('.skill-list-hover').popover({ 
             animation: false, 
@@ -33,6 +35,7 @@ EVEthing.skillplan = {
                         return false;
                     }
                 );
+                
                 return false;
             }
         );
