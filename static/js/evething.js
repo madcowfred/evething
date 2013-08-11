@@ -46,7 +46,7 @@ var EVEthing = {
             if (hash) {
                 $('.nav-tabs a[href=' + hash.replace('#', '#' + prefix) + ']').tab('show');
             }
-            
+
             // Change window hash for page reload
             $('a[data-toggle="tab"]').on('shown', function (e) {
                 window.location.hash = e.target.hash.replace('#' + prefix, '#');
@@ -104,6 +104,14 @@ $.tablesorter.addParser({
     type: 'numeric',
 });
 
+// Update the tablesorter theme with some bits
+$.extend($.tablesorter.themes.bootstrap, {
+    icons      : '', // add "icon-white" to make them white; this icon class is added to the <i> in the header
+    sortNone   : 'icon-sort',
+    sortAsc    : 'icon-caret-up',
+    sortDesc   : 'icon-caret-down',
+});
+
 
 function parseUri (str) {
     var    o   = parseUri.options,
@@ -144,3 +152,21 @@ function parseQueryString() {
     });
     return map;
 }
+
+// Handlebars needs a getTemplate function
+// http://berzniz.com/post/24743062344/handling-handlebars-js-like-a-pro
+Handlebars.getTemplate = function(name) {
+    if (Handlebars.templates === undefined || Handlebars.templates[name] === undefined) {
+        $.ajax({
+            url : '/static/handlebars/' + name + '.handlebars',
+            success : function(data) {
+                if (Handlebars.templates === undefined) {
+                    Handlebars.templates = {};
+                }
+                Handlebars.templates[name] = Handlebars.compile(data);
+            },
+            async : false
+        });
+    }
+    return Handlebars.templates[name];
+};

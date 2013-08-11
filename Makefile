@@ -1,20 +1,18 @@
 # Bootstrap JS source files that we use
-BOOTSTRAP_JS=static/js/bootstrap-alert.js static/js/bootstrap-button.js static/js/bootstrap-collapse.js static/js/bootstrap-dropdown.js \
-	static/js/bootstrap-modal.js static/js/bootstrap-tooltip.js static/js/bootstrap-popover.js static/js/bootstrap-tab.js \
-	static/js/bootstrap-scrollspy.js static/js/bootstrap-affix.js
-
 BOOTSTRAP_FILES := alert button collapse dropdown modal tooltip popover tab scrollspy affix datepicker
 BOOTSTRAP_JS := $(addsuffix .js,$(addprefix static/js/bootstrap-,$(BOOTSTRAP_FILES)))
 
 # All JS source files that we use
-ALL_JS := static/js/jquery.tablesorter.js static/js/jquery.cookie.js static/js/bootstrap.js static/js/evething.js static/js/evething/*
+ALL_FILES := jquery.tablesorter.js jquery.cookie.js jquery.tablesorter.widgets.js bootstrap.js handlebars.runtime.js templates.js evething.js evething/*
+ALL_JS    := $(addprefix static/js/,$(ALL_FILES))
 
 # Themes
 THEMES    := theme-cerulean theme-cosmo theme-cyborg theme-darkthing theme-default theme-slate
 THEME_OUT := $(addprefix static/css/,$(addsuffix .min.css,$(THEMES)))
 
-all : css js
+all : css handlebars js
 css : $(THEME_OUT)
+handlebars : static/js/templates.js
 js  : static/js/bootstrap.js static/js/evething-combined.min.js
 
 # Compile and minify LESS -> CSS
@@ -29,6 +27,12 @@ static/js/bootstrap.js : $(BOOTSTRAP_JS)
 	@cat $(BOOTSTRAP_JS) > static/js/bootstrap.js
 	@echo \ done!
 
+# Handlebars
+static/js/templates.js : static/handlebars/*.handlebars
+	@echo -n Compiling templates...
+	@handlebars static/handlebars/*.handlebars -f $@
+	@echo \ done!
+
 # Combine and minify all JS
 static/js/evething-combined.min.js : $(ALL_JS)
 	@echo -n Combining and minifying $(notdir $@)...
@@ -37,5 +41,5 @@ static/js/evething-combined.min.js : $(ALL_JS)
 	@echo \ done!
 
 clean :
-	rm -f static/js/bootstrap.js static/js/evething-combined.min.js
+	rm -f static/js/bootstrap.js static/js/templates.js static/js/evething-combined.min.js
 	rm -f $(THEME_OUT)

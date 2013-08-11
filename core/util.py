@@ -27,6 +27,7 @@ import datetime
 import json
 
 from django.conf import settings
+from django.core import serializers
 from django.core.cache import cache
 from django.db.models import Max
 from django.http import HttpResponse
@@ -69,5 +70,17 @@ def json_response(data):
     Returns a JSON response containing data.
     """
     return HttpResponse(json.dumps(data), content_type='application/json')
+
+# ------------------------------------------------------------------------------
+
+def json_serialized(queryset, fields=None):
+    """
+    Returns a JSON response containing data using the Django serializer.
+    """
+    if fields:
+        serialized = serializers.serialize('json', queryset, fields=fields)
+    else:
+        serialized = serializers.serialize('json', queryset)
+    return HttpResponse(serialized, content_type='application/json')
 
 # ------------------------------------------------------------------------------

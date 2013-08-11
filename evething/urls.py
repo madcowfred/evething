@@ -64,6 +64,11 @@ urlpatterns += patterns('thing.views',
 
     (r'^industry/$', 'industry'),
 
+    (r'^mail/$', 'mail'),
+    (r'^mail/json/body/(?P<message_id>\d+)/$', 'mail_json_body'),
+    (r'^mail/json/headers/$', 'mail_json_headers'),
+    (r'^mail/mark_read/$', 'mail_mark_read'),
+
     (r'^orders/$', 'orders'),
 
     (r'^trade/$', 'trade'),

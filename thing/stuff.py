@@ -42,7 +42,7 @@ from django.template import RequestContext
 # ---------------------------------------------------------------------------
 # Wrapper around render_to_response
 def render_page(template, data, request, character_ids=None, corporation_ids=None):
-    from thing.models import APIKey, Character, Corporation, Contract, IndustryJob, TaskState
+    from thing.models import APIKey, Character, Corporation, Contract, IndustryJob, MailMessage, TaskState
 
     utcnow = datetime.datetime.utcnow()
 
@@ -50,13 +50,15 @@ def render_page(template, data, request, character_ids=None, corporation_ids=Non
     data['online_players'] = cache.get('online_players')
 
     if request.user.is_authenticated():
-        # Get Contracts/Industry Jobs data
+        # Get nav counts data
         cache_key = 'nav_counts:%s' % (request.user.id)
         cc = cache.get(cache_key)
 
         if cc:
+            print 'cached'
             data['nav_contracts'] = cc[0]
             data['nav_industryjobs'] = cc[1]
+            data['nav_mail'] = cc[2]
         else:
             if character_ids is None:
                 character_ids = list(Character.objects.filter(apikeys__user=request.user.id).values_list('id', flat=True))
@@ -83,9 +85,17 @@ def render_page(template, data, request, character_ids=None, corporation_ids=Non
             jobs = jobs.filter(completed=False, end_time__lte=utcnow)
             data['nav_industryjobs'] = jobs.aggregate(t=Count('id'))['t']
 
+            # Aggregate unread mail messages
+            data['nav_mail'] = MailMessage.objects.filter(
+                character__in=character_ids,
+                read=False,
+            ).values(
+                'message_id',
+            ).distinct().count()
+
             # Cache data
-            cache_data = (data['nav_contracts'], data['nav_industryjobs'])
-            cache.set(cache_key, cache_data, 120)
+            cache_data = (data['nav_contracts'], data['nav_industryjobs'], data['nav_mail'])
+            cache.set(cache_key, cache_data, 300)
 
         # Get queue length data
         data['task_count'] = cache.get('task_count')
@@ -94,6 +104,13 @@ def render_page(template, data, request, character_ids=None, corporation_ids=Non
             cache.set('task_count', data['task_count'], 60)
 
     return render_to_response(template, data, RequestContext(request))
+
+# ---------------------------------------------------------------------------
+
+def flush_cache(user):
+    if user.is_authenticated():
+        cache_key = 'nav_counts:%s' % (user.id)
+        cache.delete(cache_key)
 
 # ---------------------------------------------------------------------------
 # Times things

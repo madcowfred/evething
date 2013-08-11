@@ -1,0 +1,7 @@
+                  <tr{{ rowClass }} data-message-id="{{ message_id }}">
+                    <td class="mail-checkbox"><input type="checkbox" name="message_{{ message_id }}"></td>
+                    <td class="mail-from">{{ senderText }}</td>
+                    <td class="mail-to">{{ toText }}</td>
+                    <td><a class="mail-link" href="#{{ message_id }}">{{ subjectText }}</a></td>
+                    <td class="mail-date">{{ sent_date }}</td>
+                  </tr>

@@ -131,11 +131,16 @@ td.r { text-align: right; }
   border-top: 4px solid @tableBorder;
 }
 
-/* server status */
-.server-status {
-  font-size: 125%;
+/* navbar mail/server status icons */
+.navbar-mail, .navbar-server-status {
   color: lighten(@navbarText, 20%);
-  padding-right: 8px;
+
+  i {
+    font-size: 125%;
+  }
+}
+.navbar-server-status {
+  padding-right: 10px;
 }
 
 /* home stuff */
@@ -591,4 +596,90 @@ table .headerSortUp:after {
   filter: alpha(opacity=60);
   -moz-opacity: 0.6;
   opacity: 0.6;
+}
+
+/* mail */
+.mail-list {
+  min-height: 200px;
+  max-height: 200px;
+  overflow: auto;
+}
+.mail-message {
+  margin-top: 10px;
+  min-height: 200px;
+  max-height: 200px;
+  overflow: auto;
+  border: 1px solid @tableBorder;
+  border-top: 0;
+}
+.mail-message-heading {
+  text-align: right !important;
+  font-weight: bold;
+  width: 6em;
+}
+
+.mail-main {
+  float: right;
+  margin-left: -200px;
+}
+.mail-content {
+  margin-left: 200px;
+}
+.mail-side {
+  float: right;
+  width: 180px;
+  margin-right: 20px;
+
+  select {
+    width: 100%;
+  }
+
+  .mail-read {
+    margin-bottom: 10px;
+  }
+}
+#mail-list-table {
+  .mail-checkbox {
+    width: 1em;
+
+    input {
+      margin: 0 0 4px 0;
+    }
+  }
+  .mail-from {
+    width: 14em;
+  }
+  .mail-to {
+    width: 16em;
+  }
+  .mail-date {
+    width: 9em;
+    text-align: center;
+  }
+}
+#mail-mark-read-button {
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+.table-sortable {
+  th:not(.sorter-false) {
+    cursor: pointer;
+  }
+  .tablesorter-header i {
+    position: absolute;
+    right: 2px;
+    top: 50%;
+    margin-top: -7px;
+    display: inline-block;
+  }
+  .tablesorter-headerAsc, .tablesorter-headerDesc {
+    background: @infoBackground;
+  }
+  i.icon-caret-up {
+    margin-top: -11px;
+  }
+  i.icon-caret-down {
+    margin-top: -4px;
+  }
 }
