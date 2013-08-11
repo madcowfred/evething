@@ -3,6 +3,6 @@
 *.sublime-project
 *.sublime-workspace
 local_settings.py
-skill_graph.pickle
+skill_map.pickle
 static/js/evething-combined.js
 thing/profile_middleware.py
