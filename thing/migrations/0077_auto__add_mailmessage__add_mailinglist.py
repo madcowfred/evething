@@ -17,8 +17,9 @@ class Migration(SchemaMigration):
             ('sent_date', self.gf('django.db.models.fields.DateTimeField')()),
             ('title', self.gf('django.db.models.fields.CharField')(max_length=255)),
             ('to_corp_or_alliance_id', self.gf('django.db.models.fields.IntegerField')()),
-            ('to_list_id', self.gf('django.db.models.fields.CharField')(max_length=255)),
+            ('to_list_id', self.gf('django.db.models.fields.IntegerField')()),
             ('body', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
+            ('read', self.gf('django.db.models.fields.BooleanField')(default=False)),
         ))
         db.send_create_signal('thing', ['MailMessage'])
 
@@ -31,6 +32,13 @@ class Migration(SchemaMigration):
         ))
         db.create_unique(m2m_table_name, ['mailmessage_id', 'character_id'])
 
+        # Adding model 'MailingList'
+        db.create_table(u'thing_mailinglist', (
+            ('id', self.gf('django.db.models.fields.IntegerField')(primary_key=True)),
+            ('name', self.gf('django.db.models.fields.CharField')(max_length=255)),
+        ))
+        db.send_create_signal('thing', ['MailingList'])
+
 
     def backwards(self, orm):
         # Deleting model 'MailMessage'
@@ -38,6 +46,9 @@ class Migration(SchemaMigration):
 
         # Removing M2M table for field to_characters on 'MailMessage'
         db.delete_table(db.shorten_name(u'thing_mailmessage_to_characters'))
+
+        # Deleting model 'MailingList'
+        db.delete_table(u'thing_mailinglist')
 
 
     models = {
@@ -396,18 +407,24 @@ class Migration(SchemaMigration):
             'tax_amount': ('django.db.models.fields.DecimalField', [], {'max_digits': '14', 'decimal_places': '2'}),
             'tax_corp': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['thing.Corporation']", 'null': 'True', 'blank': 'True'})
         },
+        'thing.mailinglist': {
+            'Meta': {'object_name': 'MailingList'},
+            'id': ('django.db.models.fields.IntegerField', [], {'primary_key': 'True'}),
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '255'})
+        },
         'thing.mailmessage': {
             'Meta': {'ordering': "('-sent_date',)", 'object_name': 'MailMessage'},
             'body': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'character': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['thing.Character']"}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'message_id': ('django.db.models.fields.BigIntegerField', [], {}),
+            'read': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'sender_id': ('django.db.models.fields.IntegerField', [], {}),
             'sent_date': ('django.db.models.fields.DateTimeField', [], {}),
             'title': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
             'to_characters': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "'+'", 'symmetrical': 'False', 'to': "orm['thing.Character']"}),
             'to_corp_or_alliance_id': ('django.db.models.fields.IntegerField', [], {}),
-            'to_list_id': ('django.db.models.fields.CharField', [], {'max_length': '255'})
+            'to_list_id': ('django.db.models.fields.IntegerField', [], {})
         },
         'thing.marketgroup': {
             'Meta': {'object_name': 'MarketGroup'},
