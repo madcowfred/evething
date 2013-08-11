@@ -3,7 +3,7 @@ BOOTSTRAP_FILES := alert button collapse dropdown modal tooltip popover tab scro
 BOOTSTRAP_JS := $(addsuffix .js,$(addprefix static/js/bootstrap-,$(BOOTSTRAP_FILES)))
 
 # All JS source files that we use
-ALL_JS := static/js/jquery.tablesorter.js static/js/bootstrap.js static/js/handlebars.runtime.js static/js/evething.js static/js/evething/*
+ALL_JS := static/js/jquery.tablesorter.js static/js/bootstrap.js static/js/handlebars.runtime.js static/js/evething.js static/js/templates.js static/js/evething/*
 
 # Themes
 THEMES    := theme-cerulean theme-cosmo theme-cyborg theme-darkthing theme-default theme-slate
@@ -11,7 +11,7 @@ THEME_OUT := $(addprefix static/css/,$(addsuffix .min.css,$(THEMES)))
 
 all : css handlebars js
 css : $(THEME_OUT)
-handlebars : static/js/evething/templates.js
+handlebars : static/js/templates.js
 js  : static/js/bootstrap.js static/js/evething-combined.min.js
 
 # Compile and minify LESS -> CSS
@@ -27,7 +27,7 @@ static/js/bootstrap.js : $(BOOTSTRAP_JS)
 	@echo \ done!
 
 # Handlebars
-static/js/evething/templates.js : static/handlebars/*.handlebars
+static/js/templates.js : static/handlebars/*.handlebars
 	@echo -n Compiling templates...
 	@handlebars static/handlebars/*.handlebars -f $@
 	@echo \ done!
@@ -40,5 +40,5 @@ static/js/evething-combined.min.js : $(ALL_JS)
 	@echo \ done!
 
 clean :
-	rm -f static/js/bootstrap.js static/js/evething-combined.min.js
+	rm -f static/js/bootstrap.js static/js/templates.js static/js/evething-combined.min.js
 	rm -f $(THEME_OUT)
