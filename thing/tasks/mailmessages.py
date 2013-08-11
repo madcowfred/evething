@@ -23,6 +23,8 @@
 # OF SUCH DAMAGE.
 # ------------------------------------------------------------------------------
 
+from django.db import IntegrityError
+
 from celery.execute import send_task
 
 from .apitask import APITask
@@ -73,9 +75,12 @@ class MailMessages(APITask):
                     name='*UNKNOWN*',
                 ))
 
-        # Create any new Character objects
-        if new:
-            Character.objects.bulk_create(new)
+        # Create any new Character objects one at a time, oh dear
+        for character in new:
+            try:
+                character.save()
+            except IntegrityError:
+                continue
 
         # Bulk fetch mail from database
         mail_map = {}
