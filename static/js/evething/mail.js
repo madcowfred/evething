@@ -28,7 +28,8 @@ EVEthing.mail = {
             widgets: ['uitheme'],
             headers: {
                 0: { sorter: false, },
-            }
+            },
+            sortList: [[4, 1]],
         });
 
         // Retrieve mail headers
