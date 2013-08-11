@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% import 'macros/common.html' as common %}
+
+{% block title %}Mail{% endblock %}
+
+{% block extra_js %}
+    <script type="text/javascript">
+      $(document).ready(function() {
+        EVEthing.mail.characters = { {% for character in characters %}{{ character.0 }}:'{{character.1}}',{% endfor %} };
+        EVEthing.mail.headers_url = "{{ url('thing.views.mail_json_headers') }}";
+        EVEthing.mail.body_url = "{{ url('thing.views.mail_json_body', '0000') }}";
+        EVEthing.mail.onload();
+      });
+    </script>
+{% endblock %}
+
+{% block content %}
+      <div class="row-fluid mail-main">
+        <div class="mail-content">
+          <div class="row-fluid">
+            <div class="span12 mail-list">
+              <form class="nomargin">
+                <table id="mail-list-table" class="table table-bordered table-condensed table-striped nomargin">
+                  <thead>
+                    <tr>
+                      <th class="mail-checkbox"><input id="mail-list-check-all" type="checkbox"></th>
+                      <th class="mail-from">From</th>
+                      <th class="mail-to">To</th>
+                      <th>Subject</th>
+                      <th class="mail-date">Date</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                  </tbody>
+                  <tfoot>
+                    <tr id="mail-list-filtered" style="display: none">
+                      <td colspan="5">There are no mail messages to show with these filter settings.</td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </form>
+            </div>{# mail-list #}
+          </div>{# row-fluid #}
+
+          <div class="row-fluid">
+            <div class="span12 mail-message">
+              <table id="mail-message-table" class="table table-condensed nomargin">
+                <tr>
+                  <td class="mail-message-heading">From:</td>
+                  <td id="mail-message-from"></td>
+                </tr>
+                <tr>
+                  <td class="mail-message-heading">To:</td>
+                  <td id="mail-message-to"></td>
+                </tr>
+                <tr>
+                  <td class="mail-message-heading">Subject:</td>
+                  <td id="mail-message-subject"></td>
+                </tr>
+                <tr>
+                  <td class="mail-message-heading">Date:</td>
+                  <td id="mail-message-date"></td>
+                </tr>
+                <tr>
+                  <td id="mail-message-body" colspan="2"></td>
+                </tr>
+              </table>
+            </div>{# mail-message #}
+          </div>{# row-fluid #}
+        </div>{# mail-content #}
+      </div>{# mail-main #}
+
+      <div id="mail-side" class="mail-side">
+        <div class="well well-small">
+          <h4 class="nomargin">Filters</h4>
+          <div class="btn-group mail-read" data-toggle="buttons-checkbox">
+            <button type="button" id="filter-unread" class="btn js-filter active">Unread</button>
+            <button type="button" id="filter-read" class="btn js-filter">Read</button>
+          </div>
+          <form class="nomargin">
+            <fieldset>
+              <label>Character</label>
+              <select id="filter-character"></select>
+              <label class="checkbox">
+                <input type="checkbox" id="filter-to-character" class="js-filter" checked="checked"> To: Character
+              </label>
+              <label class="checkbox">
+                <input type="checkbox" id="filter-to-corporation" class="js-filter" checked="checked"> To: Corporation
+              </label>
+              <label class="checkbox">
+                <input type="checkbox" id="filter-to-alliance" class="js-filter" checked="checked"> To: Alliance
+              </label>
+              <label class="checkbox">
+                <input type="checkbox" id="filter-to-mailing-list" class="js-filter" checked="checked"> To: Mailing List
+              </label>
+            </fieldset>
+          </form>
+        </div>
+      </div>
+{% endblock %}

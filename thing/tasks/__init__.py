@@ -14,6 +14,9 @@ from contracts import Contracts
 from corporationsheet import CorporationSheet
 from industryjobs import IndustryJobs
 from locations import Locations
+from mailinglists import MailingLists
+from mailbodies import MailBodies
+from mailmessages import MailMessages
 from marketorders import MarketOrders
 # from membertracking import MemberTracking
 # from shareholders import Shareholders
