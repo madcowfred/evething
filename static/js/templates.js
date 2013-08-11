@@ -23,8 +23,8 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
   else { stack1 = depth0.message_id; stack1 = typeof stack1 === functionType ? stack1.apply(depth0) : stack1; }
   buffer += escapeExpression(stack1)
     + "\">";
-  if (stack1 = helpers.title) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
-  else { stack1 = depth0.title; stack1 = typeof stack1 === functionType ? stack1.apply(depth0) : stack1; }
+  if (stack1 = helpers.subjectText) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
+  else { stack1 = depth0.subjectText; stack1 = typeof stack1 === functionType ? stack1.apply(depth0) : stack1; }
   buffer += escapeExpression(stack1)
     + "</a></td>\n                    <td class=\"mail-date\">";
   if (stack1 = helpers.sent_date) { stack1 = stack1.call(depth0, {hash:{},data:data}); }

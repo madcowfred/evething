@@ -72,6 +72,9 @@ EVEthing.mail = {
         Handlebars.registerHelper('senderText', function() {
             return EVEthing.mail.data.characters[this.sender_id] || '*UNKNOWN*';
         });
+        Handlebars.registerHelper('subjectText', function() {
+            return this.title || '*BLANK SUBJECT*';
+        })
     },
 
     // Resize event
