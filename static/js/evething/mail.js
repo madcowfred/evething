@@ -60,7 +60,17 @@ EVEthing.mail = {
                         }
                     }
                     else {
-                        message.to_character = EVEthing.mail.data.characters[message.character_id] || '*UNKNOWN*';
+                        if (message.to_characters.length > 0) {
+                            if (message.to_characters.length > 1) {
+                                message.to_character = '*Multiple characters*';
+                            }
+                            else {
+                                message.to_character = EVEthing.mail.data.characters[message.to_characters[0]] || '*UNKNOWN*';
+                            }
+                        }
+                        else {
+                            message.to_character = EVEthing.mail.data.characters[message.character_id] || '*UNKNOWN*';
+                        }
                     }
                 }
 
