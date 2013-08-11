@@ -41,7 +41,8 @@ EVEthing.mail = {
                     message = data.messages[i];
 
                     if (message.to_list_id > 0) {
-                        message.to_list = EVEthing.mail.data.mailing_lists[message.to_list_id] || '*UNKNOWN LIST*';
+                        var list = EVEthing.mail.data.mailing_lists[message.to_list_id] || '*UNKNOWN LIST*';
+                        message.to_list = '<i class="icon-list"></i> ' + list;
                     }
                     else if (message.to_corp_or_alliance_id > 0) {
                         var corp = EVEthing.mail.data.corporations[message.to_corp_or_alliance_id];
