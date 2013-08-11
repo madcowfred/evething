@@ -64,7 +64,7 @@ def mail_json_body(request, message_id):
         character__apikeys__user=request.user,
     )
     if messages.count() > 0:
-        data = dict(body=messages[0].body)
+        data = dict(body=messages[0].stripped_body())
         messages.update(read=True)
     else:
         data = dict(error='Message does not exist.')

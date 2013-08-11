@@ -15,20 +15,8 @@
 {% endblock %}
 
 {% block content %}
-      <div class="row-fluid">
-        <div class="span3">
-          <ul class="nav nav-list span3 assets-sidenav" id="sidenav">
-            <li><a href="" data-character-id="0"><i class="icon-chevron-right"></i> All</a></li>
-            {% if characters %}
-            <li class="divider"></li>
-            {% for character in characters %}
-            <li><a href="" data-character-id="{{ character.0 }}"><i class="icon-chevron-right"></i> {{ character. 1}}</a></li>
-            {% endfor %}
-            {% endif %}
-          </ul>
-        </div>
-
-        <div class="span9">
+      <div class="row-fluid mail-main">
+        <div class="mail-content">
           <div class="row-fluid">
             <div class="span12 mail-list">
               <form class="nomargin">
@@ -46,34 +34,58 @@
                   </tbody>
                 </table>
               </form>
-            </div>
-          </div>
+            </div>{# mail-list #}
+          </div>{# row-fluid #}
 
           <div class="row-fluid">
             <div class="span12 mail-message">
               <table id="mail-message-table" class="table table-condensed nomargin">
                 <tr>
-                  <td>From:</td>
+                  <td class="mail-message-heading">From:</td>
                   <td id="mail-message-from"></td>
                 </tr>
                 <tr>
-                  <td>To:</td>
+                  <td class="mail-message-heading">To:</td>
                   <td id="mail-message-to"></td>
                 </tr>
                 <tr>
-                  <td>Subject:</td>
+                  <td class="mail-message-heading">Subject:</td>
                   <td id="mail-message-subject"></td>
                 </tr>
                 <tr>
-                  <td>Date:</td>
+                  <td class="mail-message-heading">Date:</td>
                   <td id="mail-message-date"></td>
                 </tr>
                 <tr>
                   <td id="mail-message-body" colspan="2"></td>
                 </tr>
               </table>
-            </div>
+            </div>{# mail-message #}
+          </div>{# row-fluid #}
+        </div>{# mail-content #}
+      </div>{# mail-main #}
+
+      <div class="mail-side">
+        <div class="well well-small">
+          <div class="btn-group mail-read" data-toggle="buttons-checkbox">
+            <button type="button" id="filter-unread" class="btn">Unread</button>
+            <button type="button" id="filter-read" class="btn">Read</button>
           </div>
+          <form>
+            <fieldset>
+              <div class="control-group">
+                <label class="control-label">Character</label>
+                <select id="filter-character">
+                </select>
+              </div>
+              <div class="control-group">
+                <label class="control-label">To Type</label>
+                <input type="checkbox" id="filter-to-character"> Character
+                <input type="checkbox" id="filter-to-corporation"> Corporation
+                <input type="checkbox" id="filter-to-alliance"> Alliance
+                <input type="checkbox" id="filter-to-list"> List
+            </fieldset>
+          </form>
         </div>
       </div>
 {% endblock %}

@@ -6,6 +6,10 @@ EVEthing.mail = {
                 e.preventDefault();
             }
 
+            // save the table row for later
+            var $tr = $(this).closest('tr');
+            console.log($tr);
+
             var message_id = parseInt($(this).attr('href').replace('#', ''));
             for (var i = 0; i < EVEthing.mail.data.messages.length; i++) {
                 message = EVEthing.mail.data.messages[i];
@@ -13,9 +17,19 @@ EVEthing.mail = {
                 if (message.message_id === message_id) {
                     // Fill in the data we already have
                     $('#mail-message-from').html(EVEthing.mail.data.characters[this.sender_id] || '*UNKNOWN*');
-                    //$('#mail-message-to');
                     $('#mail-message-subject').html(message.title);
                     $('#mail-message-date').html(message.sent_date);
+
+                    // To is annoying
+                    var html = EVEthing.mail.corp_or_alliance_id(message);
+                    if (html === '') {
+                        var chars = [];
+                        for (var i = 0; i < message.to_characters.length; i++) {
+                            chars.push(EVEthing.mail.data.characters[message.to_characters[i]] || '*UNKNOWN*');
+                        }
+                        html += chars.join(', ');
+                    }
+                    $('#mail-message-to').html(html);
 
                     // Loading spinner in the body for now
                     $('#mail-message-body').html('<i class="icon-spinner icon-spin icon-4x"></i>');
@@ -26,7 +40,8 @@ EVEthing.mail = {
                         url,
                         function(data) {
                             if (data.body) {
-                                $('#mail-message-body').html(data.body.replace('\n', '<br>\n'));
+                                $tr.removeClass('warning');
+                                $('#mail-message-body').html(data.body.replace(/\n/g, '<br>\n'));
                             }
                             // Error probably
                             else {
@@ -56,24 +71,9 @@ EVEthing.mail = {
             }
         });
         Handlebars.registerHelper('toText', function() {
-            var html = '';
-            if (this.to_corp_or_alliance_id > 0) {
-                var corp = EVEthing.mail.data.corporations[this.to_corp_or_alliance_id];
-                if (corp !== undefined) {
-                    html += '<i class="icon-group"></i> ' + corp.name;
-                }
-                else {
-                    var alliance = EVEthing.mail.data.alliances[this.to_corp_or_alliance_id];
-                    if (alliance !== undefined) {
-                        html += '<i class="icon-hospital"></i> ' + alliance.name;
-                    }
-                    else {
-                        html += '*UNKNOWN*';
-                    }
-                }
-            }
-            else {
-                html += '<i class="icon-something"></i> ' + EVEthing.mail.data.characters[this.character_id];
+            var html = EVEthing.mail.corp_or_alliance_id(this);
+            if (html === '') {
+                html += EVEthing.mail.data.characters[this.character_id];
             }
             return new Handlebars.SafeString(html);
         });
@@ -109,5 +109,27 @@ EVEthing.mail = {
         }
 
         $('#mail-list-table tbody').html(html);
+    },
+
+    // Handle corp_or_alliance_id ugh
+    corp_or_alliance_id: function(message) {
+        if (message.to_corp_or_alliance_id > 0) {
+            var corp = EVEthing.mail.data.corporations[message.to_corp_or_alliance_id];
+            if (corp !== undefined) {
+                return '<i class="icon-group"></i> ' + corp.name;
+            }
+            else {
+                var alliance = EVEthing.mail.data.alliances[message.to_corp_or_alliance_id];
+                if (alliance !== undefined) {
+                    return '<i class="icon-hospital"></i> ' + alliance.name;
+                }
+                else {
+                    return '*UNKNOWN*';
+                }
+            }
+        }
+        else {
+            return '';
+        }
     },
 };

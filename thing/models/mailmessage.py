@@ -23,11 +23,15 @@
 # OF SUCH DAMAGE.
 # ------------------------------------------------------------------------------
 
+import re
+
 from django.db import models
 
 from thing.models.character import Character
 
 # ------------------------------------------------------------------------------
+
+TAG_RE = re.compile('<[^>]+>')
 
 class MailMessage(models.Model):
     character = models.ForeignKey(Character)
@@ -48,5 +52,8 @@ class MailMessage(models.Model):
     class Meta:
         app_label = 'thing'
         ordering = ('-sent_date',)
+
+    def stripped_body(self):
+        return TAG_RE.sub('', self.body)
 
 # ------------------------------------------------------------------------------
