@@ -80,6 +80,7 @@ def mail_json_headers(request):
         characters={},
         alliances={},
         corporations={},
+        mailing_lists={},
         messages=[],
     )
 
@@ -96,17 +97,21 @@ def mail_json_headers(request):
     # Collect various IDs
     character_ids = set()
     corp_alliance_ids = set()
+    mailing_list_ids = set()
     for message in message_qs:
         character_ids.add(message.sender_id)
         if message.to_corp_or_alliance_id:
             corp_alliance_ids.add(message.to_corp_or_alliance_id)
+        if message.to_list_id:
+            mailing_list_ids.add(message.to_list_id)
 
     # Bulk query things
     char_map = Character.objects.in_bulk(character_ids)
     corp_map = Corporation.objects.in_bulk(corp_alliance_ids)
     alliance_map = Alliance.objects.in_bulk(corp_alliance_ids)
+    mailing_list_map = MailingList.objects.in_bulk(mailing_list_ids)
 
-    # Gather corp/alliance data
+    # Mangle data for JSON
     for char in char_map.values():
         data['characters'][char.id] = char.name.replace("'", '&apos;')
     for corp in corp_map.values():
@@ -119,6 +124,8 @@ def mail_json_headers(request):
             name=alliance.name.replace("'", '&apos;'),
             short_name=alliance.short_name,
         )
+    for mailing_list in mailing_list_map.values():
+        data['mailing_lists'][mailing_list.id] = mailing_list.name.replace("'", '&apos;')
 
     # Gather message data
     seen_messages = {}
