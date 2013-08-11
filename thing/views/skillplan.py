@@ -327,7 +327,7 @@ def skillplan_delete(request):
 # ---------------------------------------------------------------------------
 # Edit a skillplan
 @login_required
-def skillplan_info_edit(request):
+def skillplan_edit_info(request):
     skillplan_id = request.POST.get('skillplan_id', '')
     if skillplan_id.isdigit():
         try:
