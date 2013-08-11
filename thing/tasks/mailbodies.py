@@ -54,9 +54,9 @@ class MailBodies(APITask):
         for row in self.root.findall('result/rowset/row'):
             text = row.text
             if text is None:
-                self.log_error('Weird message: %s | %s | %s', row, text, row.items())
-            else:
-                mail_bodies[int(row.attrib['messageID'])] = row.text.replace('<br>', '\n')
+                text = ''
+
+            mail_bodies[int(row.attrib['messageID'])] = text.replace('<br>', '\n')
 
         # Bulk fetch mail from database and update any new body fields
         for mm in m_filter.filter(message_id__in=mail_bodies.keys()):
