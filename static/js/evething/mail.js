@@ -21,6 +21,16 @@ EVEthing.mail = {
         $('#filter-character').html(options);
         $('#filter-character').val(0);
 
+        // Activate tablesorter
+        $('#mail-list-table').tablesorter({
+            theme: 'bootstrap',
+            headerTemplate: '{content} {icon}',
+            widgets: ['uitheme'],
+            headers: {
+                0: { sorter: false, },
+            }
+        });
+
         // Retrieve mail headers
         $.get(
             EVEthing.mail.headers_url,
@@ -152,6 +162,9 @@ EVEthing.mail = {
         else {
             $('#mail-list-filtered').hide();
         }
+
+        // Let tablesorter know that we've updated
+        $('#mail-list-table').trigger('update');
     },
 
     mail_link_click: function(e) {

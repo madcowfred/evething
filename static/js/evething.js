@@ -104,6 +104,14 @@ $.tablesorter.addParser({
     type: 'numeric',
 });
 
+// Update the tablesorter theme with some bits
+$.extend($.tablesorter.themes.bootstrap, {
+    icons      : '', // add "icon-white" to make them white; this icon class is added to the <i> in the header
+    sortNone   : 'icon-sort',
+    sortAsc    : 'icon-caret-up',
+    sortDesc   : 'icon-caret-down',
+});
+
 
 function parseUri (str) {
     var    o   = parseUri.options,

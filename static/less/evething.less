@@ -134,11 +134,13 @@ td.r { text-align: right; }
 /* navbar mail/server status icons */
 .navbar-mail, .navbar-server-status {
   color: lighten(@navbarText, 20%);
-  padding-right: 10px;
 
   i {
     font-size: 125%;
   }
+}
+.navbar-server-status {
+  padding-right: 10px;
 }
 
 /* home stuff */
@@ -639,5 +641,25 @@ table .headerSortUp:after {
   .mail-date {
     width: 9em;
     text-align: center;
+  }
+}
+
+
+.table-sortable {
+  th:not(.sorter-false) {
+    cursor: pointer;
+  }
+  .tablesorter-header i {
+    position: absolute;
+    right: 2px;
+    top: 50%;
+    margin-top: -7px;
+    display: inline-block;
+  }
+  i.icon-caret-up {
+    margin-top: -11px;
+  }
+  i.icon-caret-down {
+    margin-top: -4px;
   }
 }
