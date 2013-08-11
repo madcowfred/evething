@@ -215,26 +215,36 @@ EVEthing.mail = {
                 }
                 $('#mail-message-to').html(html);
 
-                // Loading spinner in the body for now
-                $('#mail-message-body').html('<i class="icon-spinner icon-spin icon-4x"></i>');
+                // If we already have a body, display it!
+                if (message.body !== undefined) {
+                    $('#mail-message.body').html(message.body);
+                }
+                else {
+                    // Loading spinner in the body for now
+                    $('#mail-message-body').html('<i class="icon-spinner icon-spin icon-4x"></i>');
 
-                // Fetch the message body
-                var url = EVEthing.mail.body_url.replace('0000', message_id);
-                $.get(
-                    url,
-                    function(data) {
-                        if (data.body) {
-                            $tr.removeClass('warning');
-                            $('#mail-message-body').html(data.body.replace(/\n/g, '<br>\n'));
-                            message.read = true;
-                            EVEthing.mail.build_table();
+                    // Fetch the message body
+                    var url = EVEthing.mail.body_url.replace('0000', message_id);
+                    $.get(
+                        url,
+                        function(data) {
+                            if (data.body) {
+                                $tr.removeClass('warning');
+
+                                message.body = data.body.replace(/\n/g, '<br>\n');
+                                message.read = true;
+
+                                $('#mail-message-body').html(message.body);
+
+                                EVEthing.mail.build_table();
+                            }
+                            // Error probably
+                            else {
+                                $('#mail-message.body').html('<strong>ERROR:</strong> ' + data.error);
+                            }
                         }
-                        // Error probably
-                        else {
-                            $('#mail-message.body').html('<strong>ERROR:</strong> ' + data.error);
-                        }
-                    }
-                );
+                    );
+                }
 
                 break;
             }
