@@ -40,10 +40,9 @@ class MailMessage(models.Model):
     sender_id = models.IntegerField()
     sent_date = models.DateTimeField()
     title = models.CharField(max_length=255)
-    to_corp_or_alliance_id = models.IntegerField()
-    #to_character_ids = models.
     to_characters = models.ManyToManyField(Character, related_name='+')
-    to_list_id = models.CharField(max_length=255)
+    to_corp_or_alliance_id = models.IntegerField()
+    to_list_id = models.IntegerField()
 
     body = models.TextField(blank=True, null=True)
 

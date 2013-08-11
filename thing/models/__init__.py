@@ -41,6 +41,7 @@ from thing.models.event import Event
 from thing.models.factionstanding import FactionStanding
 from thing.models.industryjob import IndustryJob
 from thing.models.journalentry import JournalEntry
+from thing.models.mailinglist import MailingList
 from thing.models.mailmessage import MailMessage
 from thing.models.marketorder import MarketOrder
 from thing.models.pricehistory import PriceHistory
