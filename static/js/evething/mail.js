@@ -87,6 +87,8 @@ EVEthing.mail = {
                     }
                 }
 
+                $('#mail-list-loading').remove();
+
                 EVEthing.mail.build_table();
             }
         );
