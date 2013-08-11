@@ -1,10 +1,16 @@
 EVEthing.mail = {
     onload: function() {
         // Filter changes
-        $('#mail-side').on('click', '.btn, input', function() {
+        $('#mail-side').on('click', '.js-filter', function() {
             setTimeout(EVEthing.mail.build_table, 1);
         });
         $('#mail-side').on('change', 'select', EVEthing.mail.build_table);
+
+        // Mark read button
+        $('#mail-mark-read-button').on('click', EVEthing.mail.mark_read_click);
+
+        // Mail all checkbox click
+        $('#mail-list-check-all').on('click', EVEthing.mail.mail_check_all_click);
 
         // Mail link click
         $('#mail-list-table').on('click', '.mail-link', EVEthing.mail.mail_link_click);
@@ -14,12 +20,11 @@ EVEthing.mail = {
         EVEthing.mail.resize();
 
         // Build character list
-        var options = '<option value="0">-ALL-</option><option value="-" disabled>——————————</option>';
+        var options = '<option value="0" selected>-ALL-</option><option value="-" disabled>——————————</option>';
         $.each(EVEthing.util.sorted_keys_by_value(EVEthing.mail.characters), function(i, character_id) {
             options += '<option value="' + character_id + '">' + EVEthing.mail.characters[character_id] + '</option>';
         });
         $('#filter-character').html(options);
-        $('#filter-character').val(0);
 
         // Activate tablesorter
         $('#mail-list-table').tablesorter({
@@ -37,19 +42,25 @@ EVEthing.mail = {
             EVEthing.mail.headers_url,
             function(data) {
                 EVEthing.mail.data = data;
+                EVEthing.mail.data.message_map = {};
 
                 for (var i = 0; i < data.messages.length; i++) {
                     message = data.messages[i];
+                    EVEthing.mail.data.message_map[message.message_id] = message;
 
+                    // Mailing list
                     if (message.to_list_id > 0) {
                         var list = EVEthing.mail.data.mailing_lists[message.to_list_id] || '*UNKNOWN LIST*';
                         message.to_list = '<i class="icon-list"></i> ' + list;
                     }
+                    // Corp or alliance
                     else if (message.to_corp_or_alliance_id > 0) {
                         var corp = EVEthing.mail.data.corporations[message.to_corp_or_alliance_id];
+                        // Corp
                         if (corp !== undefined) {
                             message.to_corporation = '<i class="icon-group"></i> ' + corp.name;
                         }
+                        // Alliance
                         else {
                             var alliance = EVEthing.mail.data.alliances[message.to_corp_or_alliance_id];
                             if (alliance !== undefined) {
@@ -60,6 +71,7 @@ EVEthing.mail = {
                             }
                         }
                     }
+                    // Character
                     else {
                         if (message.to_characters.length > 0) {
                             if (message.to_characters.length > 1) {
@@ -137,12 +149,22 @@ EVEthing.mail = {
             }
             keep = keep_read;
 
+            // Early exit
+            if (keep === false) {
+                continue;
+            }
+
             // Display this based on selected character?
             if (character_id > 0 && (
                 message.character_id !== character_id &&
                 message.to_characters.indexOf(character_id) < 0
             )) {
                 keep = false;
+            }
+
+            // Early exit
+            if (keep === false) {
+                continue;
             }
 
             // Display this based on to: filters?
@@ -175,8 +197,38 @@ EVEthing.mail = {
             $('#mail-list-filtered').hide();
         }
 
+        // Reset the all checkbox to unchecked
+        $('#mail-list-check-all').prop('checked', false);
+
         // Let tablesorter know that we've updated
         $('#mail-list-table').trigger('update');
+    },
+
+    mark_read_click: function() {
+        var $form = $('#mail-mark-read-form');
+
+        // Submit the form
+        $.post(
+            $form.attr('action'),
+            $form.serialize(),
+            function(data) {
+                $.each($('#mail-list-table tbody input:checked'), function(i, input) {
+                    var message_id = $(input).closest('tr').attr('data-message-id');
+                    EVEthing.mail.data.message_map[message_id].read = true;
+                });
+
+                EVEthing.mail.build_table();
+            }
+        );
+    },
+
+    mail_check_all_click: function() {
+        if ($('#mail-list-check-all').is(':checked')) {
+            $('#mail-list-table tbody input').prop('checked', 'checked');
+        }
+        else {
+            $('#mail-list-table tbody input').prop('checked', false);
+        }
     },
 
     mail_link_click: function(e) {

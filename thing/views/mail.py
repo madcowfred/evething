@@ -26,6 +26,7 @@
 import time
 
 from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse
 
 from core.util import json_response
 from thing.models import *
@@ -170,5 +171,27 @@ def mail_json_headers(request):
         seen_messages[message.message_id] = m
 
     return json_response(data)
+
+# ------------------------------------------------------------------------------
+
+@login_required
+def mail_mark_read(request):
+    if request.method == 'POST':
+        message_ids = []
+        for k in request.POST.keys():
+            if k.startswith('message_'):
+                parts = k.split('_')
+                if len(parts) == 2 and parts[1].isdigit():
+                    message_ids.append(int(parts[1]))
+
+        if message_ids:
+            MailMessage.objects.filter(
+                character__apikeys__user=request.user,
+                message_id__in=message_ids,
+            ).update(
+                read=True,
+            )
+
+    return HttpResponse()
 
 # ------------------------------------------------------------------------------

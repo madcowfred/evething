@@ -10,7 +10,15 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
   if (stack1 = helpers.rowClass) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
   else { stack1 = depth0.rowClass; stack1 = typeof stack1 === functionType ? stack1.apply(depth0) : stack1; }
   buffer += escapeExpression(stack1)
-    + ">\n                    <td class=\"mail-checkbox\"><input type=\"checkbox\"></td>\n                    <td class=\"mail-from\">";
+    + " data-message-id=\"";
+  if (stack1 = helpers.message_id) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
+  else { stack1 = depth0.message_id; stack1 = typeof stack1 === functionType ? stack1.apply(depth0) : stack1; }
+  buffer += escapeExpression(stack1)
+    + "\">\n                    <td class=\"mail-checkbox\"><input type=\"checkbox\" name=\"message_";
+  if (stack1 = helpers.message_id) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
+  else { stack1 = depth0.message_id; stack1 = typeof stack1 === functionType ? stack1.apply(depth0) : stack1; }
+  buffer += escapeExpression(stack1)
+    + "\"></td>\n                    <td class=\"mail-from\">";
   if (stack1 = helpers.senderText) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
   else { stack1 = depth0.senderText; stack1 = typeof stack1 === functionType ? stack1.apply(depth0) : stack1; }
   buffer += escapeExpression(stack1)

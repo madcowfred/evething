@@ -19,7 +19,8 @@
         <div class="mail-content">
           <div class="row-fluid">
             <div class="span12 mail-list">
-              <form class="nomargin">
+              <form id="mail-mark-read-form" class="nomargin" method="POST" action="{{ url('thing.views.mail_mark_read') }}">
+                {{ csrf() }}
                 <table id="mail-list-table" class="table table-bordered table-condensed table-striped table-sortable nomargin">
                   <thead>
                     <tr>
@@ -72,6 +73,7 @@
 
       <div id="mail-side" class="mail-side">
         <div class="well well-small">
+          <button type="button" id="mail-mark-read-button" class="btn btn-success">Mark as read <i class="icon-chevron-right"></i></button>
           <h4 class="nomargin">Filters</h4>
           <div class="btn-group mail-read" data-toggle="buttons-checkbox">
             <button type="button" id="filter-unread" class="btn js-filter active">Unread</button>
