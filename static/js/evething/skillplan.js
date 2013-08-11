@@ -99,7 +99,6 @@ EVEthing.skillplan = {
                 stop: function(event, ui) {
                 }
             });
-          //  $('#skillplan tbody').disableSelection();
         })
 
     },
