@@ -192,6 +192,8 @@ def mail_mark_read(request):
                 read=True,
             )
 
+            flush_cache(request.user)
+
     return HttpResponse()
 
 # ------------------------------------------------------------------------------
