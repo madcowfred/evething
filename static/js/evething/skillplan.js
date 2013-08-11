@@ -4,7 +4,8 @@ EVEthing.skillplan = {
     
     skillplanId: 0,
     addSkillInPlanUrl: "",
-    skillPlanEntriesURL: "",
+    skillPlanEntriesUrl: "",
+    reorderEntriesUrl: "",
     
     onload: function() {
         $('#apply_filter').click(
@@ -35,7 +36,7 @@ EVEthing.skillplan = {
                 $('.btn-plan-skill').on('click',
                     function() {
                         var plan_to_level   = $(this).attr('data-level');
-                        var plan_skill_id   = $(this).attr('data-id');
+                        var plan_skill_id   = $(this).attr('data-skill-id');
                         EVEthing.skillplan.addSkillInPlan(plan_skill_id, plan_to_level);
                         return false;
                     }
@@ -82,7 +83,7 @@ EVEthing.skillplan = {
         var implants     = $('#implants').val();
         var character_id = Math.max($('#characters').val(), 0);
         var show_trained = ($('#show_trained').is(':checked')) ? 1 : 0;
-        var url          = EVEthing.skillplan.skillPlanEntriesURL.replace('99999999999', EVEthing.skillplan.skillplanId)
+        var url          = EVEthing.skillplan.skillPlanEntriesUrl.replace('99999999999', EVEthing.skillplan.skillplanId)
                                                                  .replace('88888888888', character_id)
                                                                  .replace('77777777777', implants)
                                                                  .replace('66666666666', show_trained)
@@ -99,13 +100,32 @@ EVEthing.skillplan = {
                 cursor: "move",
                 handle: ".skill_entry_handler",
                 helper: "clone",
-                start: function(event, ui) {
+                start: function(event, ui) {    
+                    EVEthing.skillplan.previous_entries_number = ui.item.prevAll().length;
                 },
                 stop: function(event, ui) {
+                    // if we have the same number of previous entries, it's like we didn't move the entry
+                    if(ui.item.prevAll().length != EVEthing.skillplan.previous_entries_number) {
+                                               
+                        // what is the new position ?
+                        var new_position = 0;
+                        
+                        if(ui.item.prev().length != 0) {
+                            if(ui.item.prev().attr('data-position') < ui.item.attr('data-position')) {
+                                new_position = ui.item.next().attr('data-position');
+                            } else {
+                                new_position = ui.item.prev().attr('data-position');
+                            }
+                        }
+                        
+                        EVEthing.skillplan.reorderEntriesUrl.replace('99999999999', EVEthing.skillplan.skillplanId)
+                                                            .replace('88888888888', ui.item.attr('data-id'))
+                                                            .replace('77777777777', new_position)
+                        //todo : ajax call 
+                    }
                 }
             });
         })
-
     },
     
     optimizeAttributes: function() {

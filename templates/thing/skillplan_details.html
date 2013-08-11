@@ -7,7 +7,8 @@
     <script type="text/javascript">
         // current skill popover displayed
         EVEthing.skillplan.addSkillInPlanUrl = "{{ url('thing.views.skillplan_add_skill')  }}"
-        EVEthing.skillplan.skillPlanEntriesURL = "{{ url('thing.views.skillplan_render_entries', 99999999999, 88888888888, 77777777777, 66666666666 )  }}"
+        EVEthing.skillplan.skillPlanEntriesUrl = "{{ url('thing.views.skillplan_render_entries', 99999999999, 88888888888, 77777777777, 66666666666 )  }}"
+        EVEthing.skillplan.reorderEntriesUrl = "{{ url('thing.views.skillplan_reorder_entry', 99999999999, 88888888888, 77777777777 )  }}"
         EVEthing.skillplan.skillplanId = {{ skillplan.id }}
         $(document).ready(EVEthing.skillplan.onload);
     </script>
