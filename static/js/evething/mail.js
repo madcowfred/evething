@@ -1,22 +1,36 @@
 EVEthing.mail = {
     onload: function() {
-        // Mail link click
-        $('#mail-list-table').on('click', '.mail-link', EVEthing.mail.mail_link_click);
-
         $('#mail-side').on('click', '.btn, input', function() {
             setTimeout(EVEthing.mail.build_table, 1);
         });
 
+        // Mail link click
+        $('#mail-list-table').on('click', '.mail-link', EVEthing.mail.mail_link_click);
+
         // Window resize
         EVEthing.mail.resize();
 
+        // Build character list
+        var options = '<option value="0">-ALL-</option><option>----------</option>';
+        $('#filter-character').html(options);
+        $('#filter-character').val(0);
+
+        // Retrieve mail headers
+        $.get(
+            EVEthing.mail.headers_url,
+            function(data) {
+                EVEthing.mail.data = data;
+                EVEthing.mail.build_table();
+            }
+        );
+
         // Register Handlebars helpers
         Handlebars.registerHelper('rowClass', function() {
-            if (! this.read) {
-                return new Handlebars.SafeString(' class="warning"');
+            if (this.read) {
+                return new Handlebars.SafeString(' class="success"');
             }
             else {
-                return '';
+                return new Handlebars.SafeString(' class="error"');
             }
         });
         Handlebars.registerHelper('toText', function() {
@@ -29,15 +43,6 @@ EVEthing.mail = {
         Handlebars.registerHelper('senderText', function() {
             return EVEthing.mail.data.characters[this.sender_id] || '*UNKNOWN*';
         });
-
-        // Retrieve mail headers
-        $.get(
-            EVEthing.mail.headers_url,
-            function(data) {
-                EVEthing.mail.data = data;
-                EVEthing.mail.build_table();
-            }
-        );
     },
 
     // Resize event
@@ -56,6 +61,7 @@ EVEthing.mail = {
         // Collect filter settings
         var filter_unread = $('#filter-unread').hasClass('active');
         var filter_read = $('#filter-read').hasClass('active');
+        //var filter_to_character = $('#filter-to-character').val();
 
         var html = '';
         for (var i = 0; i < EVEthing.mail.data.messages.length; i++) {

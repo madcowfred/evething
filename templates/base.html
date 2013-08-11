@@ -54,17 +54,20 @@
                 {% if profile.show_trade %}<li><a href="{{ url('thing.views.trade') }}">Trade</a></li>{% endif %}
                 {% if profile.show_transactions %}<li><a href="{{ url('thing.views.transactions') }}">Transactions</a></li>{% endif %}
                 {% if profile.show_wallet_journal %}<li><a href="{{ url('thing.views.wallet_journal') }}">Wallet Journal</a></li>{% endif %}
-{% endif %}{# user.is_authenticated #}
+{% endif %}{# authed #}
               </ul>
 
               <ul class="nav pull-right">
 {% if authed %}
-                <li class="navbar-text visible-desktop server-status">
+                <li class="navbar-text navbar-mail">
+                  <i class="icon-envelope-alt"></i> {{ nav_mail }}
+                </li>
+                <li class="navbar-text visible-desktop navbar-server-status">
 {% if server_open %}
                   <i class="icon-thumbs-up" rel="tooltip" data-placement="bottom" title="Server is online - {{ online_players|commas }} players"></i>
 {% else %}
                   <i class="icon-thumbs-down" rel="tooltip" data-placement="bottom" title="Server is offline"></i>
-{% endif %}
+{% endif %}{# server_open #}
                 </li>
                 <li class="navbar-text visible-desktop"{% if not user.get_profile().show_clock %} style="display: none"{% endif %}>
                   <span id="utc-time"></span> EVE
@@ -81,7 +84,7 @@
 {% if user.is_staff %}
                     <li><a href="{{ url('admin:index') }}">Site Administration</a></li>
                     <li class="divider"></li>
-{% endif %}
+{% endif %}{# user.is_staff #}
                     <li><a href="{{ url('auth_logout') }}">Logout</a>
                   </ul>
                 </li>
@@ -89,7 +92,7 @@
                 <li>
                   <a href="{{ url('auth_login') }}">Login</a>
                 </li>
-{% endif %}{# user.is_staff #}
+{% endif %}{# authed #}
               </ul>
             </div>
           </div>

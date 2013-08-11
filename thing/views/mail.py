@@ -29,7 +29,7 @@ from django.contrib.auth.decorators import login_required
 
 from core.util import json_response
 from thing.models import *
-from thing.stuff import render_page
+from thing.stuff import render_page, flush_cache
 
 # ------------------------------------------------------------------------------
 
@@ -66,6 +66,7 @@ def mail_json_body(request, message_id):
     if messages.count() > 0:
         data = dict(body=messages[0].stripped_body())
         messages.update(read=True)
+        flush_cache(request.user)
     else:
         data = dict(error='Message does not exist.')
 
@@ -120,15 +121,23 @@ def mail_json_headers(request):
         )
 
     # Gather message data
-    seen_message_ids = set()
+    seen_messages = {}
     for message in message_qs:
         # Skip already seen messages
-        if message.message_id in seen_message_ids:
-            continue
-        seen_message_ids.add(message.message_id)
+        m = seen_messages.get(message.message_id)
+        if m is not None:
+            # Set the message as unread if one version of it is unread
+            if message.read == False:
+                m['read'] = False
 
+            # Add this character to the to_characters list if it's not already there
+            if message.character_id not in m['to_characters']:
+                m['to_characters'].append(message.character_id)
+
+            continue
+
+        # Create a new message dict
         m = dict(
-            #mm_id=message.id,
             character_id=message.character_id,
             message_id=message.message_id,
             sender_id=message.sender_id,
@@ -146,7 +155,12 @@ def mail_json_headers(request):
             data['characters'][char.id] = char.name
             m['to_characters'].append(char.id)
 
+        # Add the character_id to to_characters if it is empty
+        if len(m['to_characters']) == 0:
+            m['to_characters'].append(message.character_id)
+
         data['messages'].append(m)
+        seen_messages[message.message_id] = m
 
     return json_response(data)
 

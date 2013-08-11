@@ -67,23 +67,27 @@
 
       <div id="mail-side" class="mail-side">
         <div class="well well-small">
+          <h4 class="nomargin">Filters</h4>
           <div class="btn-group mail-read" data-toggle="buttons-checkbox">
             <button type="button" id="filter-unread" class="btn js-filter active">Unread</button>
             <button type="button" id="filter-read" class="btn js-filter">Read</button>
           </div>
-          <form>
+          <form class="nomargin">
             <fieldset>
-              <div class="control-group">
-                <label class="control-label">Character</label>
-                <select id="filter-character">
-                </select>
-              </div>
-              <div class="control-group">
-                <label class="control-label">To Type</label>
-                <input type="checkbox" id="filter-to-character" class="js-filter"> Character
-                <input type="checkbox" id="filter-to-corporation" class="js-filter"> Corporation
-                <input type="checkbox" id="filter-to-alliance" class="js-filter"> Alliance
-                <input type="checkbox" id="filter-to-list" class="js-filter"> List
+              <label>Character</label>
+              <select id="filter-character"></select>
+              <label class="checkbox">
+                <input type="checkbox" id="filter-to-character" class="js-filter" checked="checked"> To: Character
+              </label>
+              <label class="checkbox">
+                <input type="checkbox" id="filter-to-corporation" class="js-filter" checked="checked"> To: Corporation
+              </label>
+              <label class="checkbox">
+                <input type="checkbox" id="filter-to-alliance" class="js-filter" checked="checked"> To: Alliance
+              </label>
+              <label class="checkbox">
+                <input type="checkbox" id="filter-to-list" class="js-filter" checked="checked"> To: Mailing List
+              </label>
             </fieldset>
           </form>
         </div>

@@ -131,11 +131,14 @@ td.r { text-align: right; }
   border-top: 4px solid @tableBorder;
 }
 
-/* server status */
-.server-status {
-  font-size: 125%;
+/* navbar mail/server status icons */
+.navbar-mail, .navbar-server-status {
   color: lighten(@navbarText, 20%);
-  padding-right: 8px;
+  padding-right: 10px;
+
+  i {
+    font-size: 125%;
+  }
 }
 
 /* home stuff */
