@@ -165,7 +165,7 @@ EVEthing.mail = {
 
             if (message.message_id === message_id) {
                 // Fill in the data we already have
-                $('#mail-message-from').html(EVEthing.mail.data.characters[this.sender_id] || '*UNKNOWN*');
+                $('#mail-message-from').html(EVEthing.mail.data.characters[message.sender_id] || '*UNKNOWN*');
                 $('#mail-message-subject').html(message.title);
                 $('#mail-message-date').html(message.sent_date);
 
