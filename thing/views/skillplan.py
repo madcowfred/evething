@@ -140,8 +140,7 @@ def skillplan_render_entries(request, skillplan_id, character_id, implants, show
     else:
         implants = 0 
     
-    show_trained=bool(show_trained)
-    
+    show_trained=bool(int(show_trained))
     return _skillplan_list(request, skillplan, character, implants, show_trained)
         
 # ---------------------------------------------------------------------------
