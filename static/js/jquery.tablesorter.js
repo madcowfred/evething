@@ -384,6 +384,12 @@
 				c.$headers = $(table).find(c.selectorHeaders).each(function(index) {
 					$t = $(this);
 					ch = c.headers[index];
+
+					// don't add div cruft if sorting is disabled for this column
+					if (ts.getData($t, c.headers[index], 'sorter') === 'false') {
+						return;
+					}
+
 					c.headerContent[index] = this.innerHTML; // save original header content
 					// set up header template
 					t = c.headerTemplate.replace(/\{content\}/g, this.innerHTML).replace(/\{icon\}/g, i);
