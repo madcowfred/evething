@@ -23,11 +23,11 @@
                 <table id="mail-list-table" class="table table-bordered table-condensed table-striped nomargin">
                   <thead>
                     <tr>
-                      <th></th>
-                      <th>From</th>
-                      <th>To</th>
+                      <th class="mail-checkbox"></th>
+                      <th class="mail-from">From</th>
+                      <th class="mail-to">To</th>
                       <th>Subject</th>
-                      <th>Date</th>
+                      <th class="mail-date">Date</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -65,11 +65,11 @@
         </div>{# mail-content #}
       </div>{# mail-main #}
 
-      <div class="mail-side">
+      <div id="mail-side" class="mail-side">
         <div class="well well-small">
           <div class="btn-group mail-read" data-toggle="buttons-checkbox">
-            <button type="button" id="filter-unread" class="btn">Unread</button>
-            <button type="button" id="filter-read" class="btn">Read</button>
+            <button type="button" id="filter-unread" class="btn js-filter active">Unread</button>
+            <button type="button" id="filter-read" class="btn js-filter">Read</button>
           </div>
           <form>
             <fieldset>
@@ -80,10 +80,10 @@
               </div>
               <div class="control-group">
                 <label class="control-label">To Type</label>
-                <input type="checkbox" id="filter-to-character"> Character
-                <input type="checkbox" id="filter-to-corporation"> Corporation
-                <input type="checkbox" id="filter-to-alliance"> Alliance
-                <input type="checkbox" id="filter-to-list"> List
+                <input type="checkbox" id="filter-to-character" class="js-filter"> Character
+                <input type="checkbox" id="filter-to-corporation" class="js-filter"> Corporation
+                <input type="checkbox" id="filter-to-alliance" class="js-filter"> Alliance
+                <input type="checkbox" id="filter-to-list" class="js-filter"> List
             </fieldset>
           </form>
         </div>

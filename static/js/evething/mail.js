@@ -1,61 +1,10 @@
 EVEthing.mail = {
     onload: function() {
         // Mail link click
-        $('#mail-list-table').on('click', '.mail-link', function(e) {
-            if (e.preventDefault) {
-                e.preventDefault();
-            }
+        $('#mail-list-table').on('click', '.mail-link', EVEthing.mail.mail_link_click);
 
-            // save the table row for later
-            var $tr = $(this).closest('tr');
-            console.log($tr);
-
-            var message_id = parseInt($(this).attr('href').replace('#', ''));
-            for (var i = 0; i < EVEthing.mail.data.messages.length; i++) {
-                message = EVEthing.mail.data.messages[i];
-
-                if (message.message_id === message_id) {
-                    // Fill in the data we already have
-                    $('#mail-message-from').html(EVEthing.mail.data.characters[this.sender_id] || '*UNKNOWN*');
-                    $('#mail-message-subject').html(message.title);
-                    $('#mail-message-date').html(message.sent_date);
-
-                    // To is annoying
-                    var html = EVEthing.mail.corp_or_alliance_id(message);
-                    if (html === '') {
-                        var chars = [];
-                        for (var i = 0; i < message.to_characters.length; i++) {
-                            chars.push(EVEthing.mail.data.characters[message.to_characters[i]] || '*UNKNOWN*');
-                        }
-                        html += chars.join(', ');
-                    }
-                    $('#mail-message-to').html(html);
-
-                    // Loading spinner in the body for now
-                    $('#mail-message-body').html('<i class="icon-spinner icon-spin icon-4x"></i>');
-
-                    // Fetch the message body
-                    var url = EVEthing.mail.body_url.replace('0000', message_id);
-                    $.get(
-                        url,
-                        function(data) {
-                            if (data.body) {
-                                $tr.removeClass('warning');
-                                $('#mail-message-body').html(data.body.replace(/\n/g, '<br>\n'));
-                            }
-                            // Error probably
-                            else {
-                                $('#mail-message.body').html('<strong>ERROR:</strong> ' + data.error);
-                            }
-                        }
-                    );
-
-                    console.log(message);
-                    break;
-                }
-            }
-
-            return false;
+        $('#mail-side').on('click', '.btn, input', function() {
+            setTimeout(EVEthing.mail.build_table, 1);
         });
 
         // Window resize
@@ -101,11 +50,28 @@ EVEthing.mail = {
 
     // Build mail-list-table
     build_table: function() {
+        console.log('build table');
         var template = Handlebars.getTemplate('mail_list');
+
+        // Collect filter settings
+        var filter_unread = $('#filter-unread').hasClass('active');
+        var filter_read = $('#filter-read').hasClass('active');
+
         var html = '';
         for (var i = 0; i < EVEthing.mail.data.messages.length; i++) {
             var message = EVEthing.mail.data.messages[i];
-            html += template(message);
+
+            var keep = false;
+            if (filter_unread && !message.read) {
+                keep = true;
+            }
+            if (filter_read && message.read) {
+                keep = true;
+            }
+
+            if (keep === true) {
+                html += template(message);
+            }
         }
 
         $('#mail-list-table tbody').html(html);
@@ -131,5 +97,63 @@ EVEthing.mail = {
         else {
             return '';
         }
+    },
+
+    mail_link_click: function(e) {
+        if (e.preventDefault) {
+            e.preventDefault();
+        }
+
+        // save the table row for later
+        var $tr = $(this).closest('tr');
+        console.log($tr);
+
+        var message_id = parseInt($(this).attr('href').replace('#', ''));
+        for (var i = 0; i < EVEthing.mail.data.messages.length; i++) {
+            message = EVEthing.mail.data.messages[i];
+
+            if (message.message_id === message_id) {
+                // Fill in the data we already have
+                $('#mail-message-from').html(EVEthing.mail.data.characters[this.sender_id] || '*UNKNOWN*');
+                $('#mail-message-subject').html(message.title);
+                $('#mail-message-date').html(message.sent_date);
+
+                // To is annoying
+                var html = EVEthing.mail.corp_or_alliance_id(message);
+                if (html === '') {
+                    var chars = [];
+                    for (var i = 0; i < message.to_characters.length; i++) {
+                        chars.push(EVEthing.mail.data.characters[message.to_characters[i]] || '*UNKNOWN*');
+                    }
+                    html += chars.join(', ');
+                }
+                $('#mail-message-to').html(html);
+
+                // Loading spinner in the body for now
+                $('#mail-message-body').html('<i class="icon-spinner icon-spin icon-4x"></i>');
+
+                // Fetch the message body
+                var url = EVEthing.mail.body_url.replace('0000', message_id);
+                $.get(
+                    url,
+                    function(data) {
+                        if (data.body) {
+                            $tr.removeClass('warning');
+                            $('#mail-message-body').html(data.body.replace(/\n/g, '<br>\n'));
+                            message.read = true;
+                            EVEthing.mail.build_table();
+                        }
+                        // Error probably
+                        else {
+                            $('#mail-message.body').html('<strong>ERROR:</strong> ' + data.error);
+                        }
+                    }
+                );
+
+                break;
+            }
+        }
+
+        return false;
     },
 };
