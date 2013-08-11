@@ -131,7 +131,7 @@ def skillplan_render_entries(request, skillplan_id, character_id, implants, show
     skillplan = get_object_or_404(SkillPlan, user=request.user, pk=skillplan_id)
     
     try:
-        character = Character.objects.get(apikeys__user=request.user, id=character_id).select_related('config','details')
+        character = Character.objects.select_related('config','details').get(apikeys__user=request.user, id=character_id)
     except Character.DoesNotExist:
         character = False
     
