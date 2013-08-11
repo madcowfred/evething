@@ -125,7 +125,7 @@ def skillplan_edit(request, skillplan_id):
         redirect('thing.views.skillplan')
 
 # ---------------------------------------------------------------------------
-# 
+# Render the table entries of the skillplan
 @login_required
 def skillplan_render_entries(request, skillplan_id, character_id, implants, show_trained):
     skillplan = get_object_or_404(SkillPlan, user=request.user, pk=skillplan_id)
@@ -142,7 +142,13 @@ def skillplan_render_entries(request, skillplan_id, character_id, implants, show
     
     show_trained=bool(int(show_trained))
     return _skillplan_list(request, skillplan, character, implants, show_trained)
-        
+
+# ---------------------------------------------------------------------------
+# Move an entry in another position
+def skillplan_reorder_entry(request, skillplan_id, skill_entry, new_position):
+    pass
+
+
 # ---------------------------------------------------------------------------
 # Add a given skill & prerequisites
 @login_required
