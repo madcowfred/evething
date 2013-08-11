@@ -29,11 +29,12 @@ class MailMessages(APITask):
         for row in self.root.findall('result/rowset/row'):
             mail[int(row.attrib['messageID'])] = row.attrib
 
-            tci = row.attrib['toCharacterIDs'].split(',')
-            if len(tci) == 1 and tci[0] == '':
-                continue
+            char_ids.add(int(row.attrib['senderID']))
 
-            char_ids.update(map(int, tci))
+            # Add all of toCharacterIDs to our set
+            tci = row.attrib['toCharacterIDs'].split(',')
+            if len(tci) > 0 and tci[0] != '':
+                char_ids.update(map(int, tci))
 
         # Bulk fetch characters from database
         new = []
