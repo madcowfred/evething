@@ -10,6 +10,7 @@ EVEthing.mail = {
         $('#mail-list-table').on('click', '.mail-link', EVEthing.mail.mail_link_click);
 
         // Window resize
+        $(window).on('resize', EVEthing.mail.resize);
         EVEthing.mail.resize();
 
         // Build character list
@@ -95,6 +96,7 @@ EVEthing.mail = {
 
         var character_id = parseInt($('#filter-character').val());
 
+        var count = 0;
         var html = '';
         for (var i = 0; i < EVEthing.mail.data.messages.length; i++) {
             var message = EVEthing.mail.data.messages[i];
@@ -130,14 +132,23 @@ EVEthing.mail = {
                 keep = keep_to;
             }
 
-
             // Add to page if we should display it
             if (keep === true) {
+                count++;
                 html += template(message);
             }
         }
 
+        // Add the rows to the table
         $('#mail-list-table tbody').html(html);
+
+        // Show/hide the filtered row if we have to
+        if (count === 0) {
+            $('#mail-list-filtered').show();
+        }
+        else {
+            $('#mail-list-filtered').hide();
+        }
     },
 
     mail_link_click: function(e) {

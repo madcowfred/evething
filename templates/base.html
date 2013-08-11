@@ -59,8 +59,8 @@
 
               <ul class="nav pull-right">
 {% if authed %}
-                <li class="navbar-text navbar-mail">
-                  <i class="icon-envelope-alt"></i> {{ nav_mail }}
+                <li class="navbar-mail">
+                  <a href="{{ url('thing.views.mail') }}"><i class="icon-envelope-alt"></i> {{ nav_mail }}</a>
                 </li>
                 <li class="navbar-text visible-desktop navbar-server-status">
 {% if server_open %}
@@ -80,6 +80,7 @@
                   <ul class="dropdown-menu">
                     <li><a href="{{ url('thing.views.account') }}">Account Management</a></li>
                     <li><a href="{{ url('thing.views.events') }}">Event log</a></li>
+                    <li><a href="{{ url('thing.views.mail') }}">Mail</a></li>
                     <li class="divider"></li>
 {% if user.is_staff %}
                     <li><a href="{{ url('admin:index') }}">Site Administration</a></li>

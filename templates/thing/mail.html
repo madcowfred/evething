@@ -23,7 +23,7 @@
                 <table id="mail-list-table" class="table table-bordered table-condensed table-striped nomargin">
                   <thead>
                     <tr>
-                      <th class="mail-checkbox"></th>
+                      <th class="mail-checkbox"><input id="mail-list-check-all" type="checkbox"></th>
                       <th class="mail-from">From</th>
                       <th class="mail-to">To</th>
                       <th>Subject</th>
@@ -32,6 +32,11 @@
                   </thead>
                   <tbody>
                   </tbody>
+                  <tfoot>
+                    <tr id="mail-list-filtered" style="display: none">
+                      <td colspan="5">There are no mail messages to show with these filter settings.</td>
+                    </tr>
+                  </tfoot>
                 </table>
               </form>
             </div>{# mail-list #}
