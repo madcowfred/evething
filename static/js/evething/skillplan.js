@@ -76,7 +76,7 @@ EVEthing.skillplan = {
 
         var implants     = $('#implants').val();
         var character_id = Math.max($('#characters').val(), 0);
-        var show_trained = ($('#show_trained').attr('checked')) ? 1 : 0;
+        var show_trained = ($('#show_trained').is(':checked')) ? 1 : 0;
         var url          = EVEthing.skillplan.skillPlanEntriesURL.replace('99999999999', EVEthing.skillplan.skillplanId)
                                                                  .replace('88888888888', character_id)
                                                                  .replace('77777777777', implants)
