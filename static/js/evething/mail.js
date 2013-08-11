@@ -201,7 +201,14 @@ EVEthing.mail = {
                 if (html === undefined) {
                     var chars = [];
                     for (var i = 0; i < message.to_characters.length; i++) {
-                        chars.push(EVEthing.mail.data.characters[message.to_characters[i]] || '*UNKNOWN*');
+                        var char_id = message.to_characters[i];
+                        // Make our character names bold
+                        if (EVEthing.mail.characters[char_id] !== undefined) {
+                            chars.push('<strong>' + EVEthing.mail.characters[char_id] + '</strong>');
+                        }
+                        else {
+                            chars.push(EVEthing.mail.data.characters[char_id] || '*UNKNOWN*');
+                        }
                     }
                     html = chars.join(', ');
                 }
