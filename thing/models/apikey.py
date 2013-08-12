@@ -98,7 +98,7 @@ class APIKey(models.Model):
 
     user = models.ForeignKey(User)
 
-    keyid = models.IntegerField(verbose_name='Key ID')
+    keyid = models.IntegerField(verbose_name='Key ID', db_index=True)
     vcode = models.CharField(max_length=64, verbose_name='Verification code')
     access_mask = models.BigIntegerField(default=0)
     override_mask = models.BigIntegerField(default=0)
