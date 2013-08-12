@@ -53,7 +53,7 @@ EVEthing.mail = {
 
                     // Mailing list
                     if (message.to_list_id > 0) {
-                        var list = EVEthing.mail.data.mailing_lists[message.to_list_id] || '*UNKNOWN LIST*';
+                        var list = EVEthing.mail.data.mailing_lists[message.to_list_id] || 'Unknown list';
                         message.to_list = '<i class="icon-list"></i> ' + list;
                     }
                     // Corp or alliance
@@ -70,7 +70,7 @@ EVEthing.mail = {
                                 message.to_alliance = '<i class="icon-hospital"></i> ' + alliance.name;
                             }
                             else {
-                                message.to_alliance = '<i class="icon-hospital"></i> *UNKNOWN*';
+                                message.to_alliance = '<i class="icon-hospital"></i> Unknown alliance';
                             }
                         }
                     }
@@ -78,7 +78,7 @@ EVEthing.mail = {
                     else {
                         if (message.to_characters.length > 0) {
                             if (message.to_characters.length > 1) {
-                                message.to_character = '*Multiple characters*';
+                                message.to_character = '<i class="icon-asterisk"></i> Multiple characters';
                             }
                             else {
                                 message.to_character = EVEthing.mail.data.characters[message.to_characters[0]] || '*UNKNOWN*';
@@ -316,7 +316,7 @@ EVEthing.mail = {
 
                 // If we already have a body, display it!
                 if (message.body !== undefined) {
-                    $('#mail-message.body').html(message.body);
+                    $('#mail-message-body').html(message.body);
                 }
                 else {
                     // Loading spinner in the body for now
