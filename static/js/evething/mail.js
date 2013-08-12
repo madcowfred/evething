@@ -37,6 +37,9 @@ EVEthing.mail = {
             sortList: [[4, 1]],
         });
 
+        // Deal with hash stuff
+        EVEthing.mail.onload_hash();
+
         // Retrieve mail headers
         $.get(
             EVEthing.mail.headers_url,
@@ -111,6 +114,36 @@ EVEthing.mail = {
         Handlebars.registerHelper('subjectText', function() {
             return this.title || '*BLANK SUBJECT*';
         })
+    },
+
+    // Sets filters based on the document hash
+    onload_hash: function() {
+        var parts = document.location.hash.replace('#', '').split(';');
+        if (parts.length === 2) {
+            var bools = parts[0].split('');
+            if (bools.length === 6) {
+                if (bools[0] === 'f') {
+                    $('#filter-unread').removeClass('active');
+                }
+                else {
+                    $('#filter-unread').addClass('active');
+                }
+
+                if (bools[1] === 'f') {
+                    $('#filter-read').removeClass('active');
+                }
+                else {
+                    $('#filter-read').addClass('active');
+                }
+
+                $('#filter-to-character').prop('checked', bools[2] === 'f' ? false : 'checked');
+                $('#filter-to-corporation').prop('checked', bools[3] === 'f' ? false : 'checked');
+                $('#filter-to-alliance').prop('checked', bools[4] === 'f' ? false : 'checked');
+                $('#filter-to-mailing-list').prop('checked', bools[5] === 'f' ? false : 'checked');
+
+                $('#filter-character').val(parts[1]);
+            }
+        }
     },
 
     // Resize event
@@ -204,6 +237,18 @@ EVEthing.mail = {
 
         // Let tablesorter know that we've updated
         $('#mail-list-table').trigger('update');
+
+        // Build a new hash
+        document.location.hash = [
+            filter_unread ? 't' : 'f',
+            filter_read ? 't' : 'f',
+            filter_to_character ? 't' : 'f',
+            filter_to_corporation ? 't' : 'f',
+            filter_to_alliance ? 't' : 'f',
+            filter_to_mailing_list ? 't' : 'f',
+            ';',
+            character_id,
+        ].join('');
     },
 
     mark_read_click: function() {
