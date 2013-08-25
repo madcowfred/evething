@@ -58,7 +58,7 @@ class Locations(APITask):
 
             if asset.name != row.attrib['itemName']:
                 asset.name = row.attrib['itemName']
-                asset.save(update_fields=['name'])
+                asset.save(update_fields=('name',))
 
         return True
 
