@@ -16,7 +16,7 @@ handlebars : static/js/templates.js
 js  : static/js/bootstrap.js static/js/evething-combined.min.js
 
 # Compile and minify LESS -> CSS
-static/css/%.min.css : static/less/% static/less/bootstrap static/less/evething.less
+static/css/%.min.css : static/less/%/ static/less/bootstrap/ static/less/evething.less static/less/evething/
 	@echo -n Compiling and minifying $(notdir $@)...
 	@recess --compress $</bootstrap.less > $@
 	@echo \ done!

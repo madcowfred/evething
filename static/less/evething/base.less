@@ -1,0 +1,49 @@
+/* Base styles, mostly used by base.html */
+html, body {
+  height: 100%;
+}
+
+/* wrapper for page content to push down footer */
+#wrap {
+  min-height: 100%;
+  height: auto !important;
+  height: 100%;
+  margin: 0 auto -40px;
+}
+#wrap > .container-fluid {
+  padding-top: 55px;
+  padding-bottom: 5px;
+}
+@media (max-width: 767px) {
+  #wrap > .container-fluid {
+    padding-top: 0px;
+  }
+}
+.anchor {
+  padding-top: 50px;
+  margin-top: -50px;
+}
+
+/* footer */
+#footer, #push {
+  height: 40px;
+}
+#footer {
+  background-color: @navbarBackground;
+  color: @navbarText;
+}
+#footer > .container-fluid {
+  padding-top: 8px;
+}
+
+/* navbar mail/server status icons */
+.navbar-mail, .navbar-server-status {
+  color: lighten(@navbarText, 20%);
+
+  i {
+    font-size: 125%;
+  }
+}
+.navbar-server-status {
+  padding-right: 10px;
+}

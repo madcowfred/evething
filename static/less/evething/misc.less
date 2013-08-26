@@ -1,0 +1,161 @@
+/* Miscellaneous stuff */
+.pos { color: #009800; }
+.neg { color: #FF0000; }
+
+.c { text-align: center; }
+.r { text-align: right; }
+
+.tip {
+  border-bottom: 1px dotted;
+}
+.clickable {
+  cursor: pointer;
+}
+.filter-icon {
+  font-size: 150%;
+  margin-left: 6px;
+}
+
+.background-warn {
+  background: @etWarningBackground;
+}
+.background-error {
+  background: @etErrorBackground;
+}
+.background-success {
+  background: @etSuccessBackground;
+}
+.background-info {
+  background: @etInfoBackground;
+}
+
+.border-warn {
+  border: 2px solid @etWarningBorder !important;
+  hr {
+    border-bottom: 1px solid @etWarningBorder !important;
+  }
+}
+.border-error {
+  border: 2px solid @etErrorBorder !important;
+  hr {
+    border-bottom: 1px solid @etErrorBorder !important;
+  }
+}
+.border-success {
+  border: 2px solid @etSuccessBorder !important;
+  hr {
+    border-bottom: 1px solid @etSuccessBorder !important;
+  }
+}
+.border-info {
+  border: 2px solid @etInfoBorder !important;
+  hr {
+    border-bottom: 1px solid @etInfoBorder !important;
+  }
+}
+
+thead td.head {
+    text-align: center;
+    font-weight: bold;
+}
+
+tr.bold td { font-weight: bold; }
+
+ul.children li {
+  margin-top: 0px;
+  padding-top: 0px;
+  margin-left: 8px;
+}
+
+i.skill {
+  margin-left: -3px;
+}
+img.icon {
+  margin-left: -3px;
+}
+
+div.image {
+  margin-bottom: 20px;
+}
+
+/* table alignment, urgh */
+tr.c th,
+tr.c td { text-align: center; }
+
+tr.r th,
+tr.r td { text-align: right; }
+
+tr.r th.l,
+tr.r td.l,
+tr.c th.l,
+tr.c td.l,
+td.l { text-align: left; }
+
+tr.l th.c,
+tr.l td.c,
+tr.r th.c,
+tr.r td.c,
+td.c { text-align: center; }
+
+tr.l th.r,
+tr.l td.r,
+tr.c th.r,
+tr.c td.r,
+td.r { text-align: right; }
+
+.divider-row td {
+  border-top: 4px solid @tableBorder;
+}
+
+/* various layout things */
+.fixed {
+  font-family: Menlo, Monaco, "Courier New", monospace;
+  font-size: 12px;
+}
+
+.dot { border-bottom: 1px dotted; }
+.large { font-size: 1.15em; }
+.small { font-size: 0.85em; }
+.smaller { font-size: 0.8em; }
+.level5 { color: #4F4FAF; }
+.black { color: #000000; }
+
+.low-game-time {
+  //color: #DF2F2F;
+  font-weight: bold;
+}
+
+.indent {
+  margin-left: 1.2em;
+}
+
+.margin-half-top { margin-top: 0.5em; }
+.margin-full-top { margin-top: 1.0em; }
+.margin-half-bot { margin-bottom: 0.5em; }
+.margin-left { margin-left: 1em; }
+
+.nomargin {
+  margin: 0;
+}
+.nopadding {
+  padding: 0;
+}
+
+form.nomargin, img.nomargin {
+  margin: 0;
+  padding: 0;
+}
+hr.nomargin {
+  margin-top: 0px;
+  margin-bottom: 6px;
+}
+i.nomargin {
+  margin-right: -1px;
+}
+h2.nomargin, h3.nomargin, h4.nomargin {
+  margin-top: 0px;
+  margin-bottom: 4px;
+}
+ul.unstyled {
+  margin-bottom: 0px;
+}
