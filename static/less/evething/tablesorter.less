@@ -1,0 +1,62 @@
+/* jQuery.tablesorter styles */
+table .header {
+  cursor: pointer;
+}
+table .header:after {
+  content: "";
+  float: right;
+  margin-top: 7px;
+  border-width: 0 4px 4px;
+  border-style: solid;
+  border-color: #000000 transparent;
+  visibility: hidden;
+}
+table .headerSortUp, table .headerSortDown {
+  background-color: #d7d7d9;
+  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.75);
+}
+table .header:hover:after {
+  visibility: visible;
+}
+table .headerSortDown:after, table .headerSortDown:hover:after {
+  visibility: visible;
+  filter: alpha(opacity=60);
+  -moz-opacity: 0.6;
+  opacity: 0.6;
+}
+table .headerSortUp:after {
+  border-bottom: none;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 4px solid #000000;
+  visibility: visible;
+  -webkit-box-shadow: none;
+  -moz-box-shadow: none;
+  box-shadow: none;
+  filter: alpha(opacity=60);
+  -moz-opacity: 0.6;
+  opacity: 0.6;
+}
+
+/* Some basic styling for sortable tables */
+.table-sortable {
+  th:not(.sorter-false) {
+    cursor: pointer;
+  }
+  .tablesorter-header i {
+    position: absolute;
+    right: 2px;
+    top: 50%;
+    margin-top: -7px;
+    display: inline-block;
+  }
+  .tablesorter-headerAsc, .tablesorter-headerDesc {
+    background: @infoBackground;
+  }
+  i.icon-caret-up {
+    margin-top: -11px;
+  }
+  i.icon-caret-down {
+    margin-top: -4px;
+  }
+}

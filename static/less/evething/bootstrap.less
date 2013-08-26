@@ -1,0 +1,38 @@
+/* Override Bootstrap styles */
+.table-condensed th, .table-condensed td {
+  padding: 3px 4px;
+}
+.well-info {
+  margin-bottom: 1em;
+}
+.well-small .progress {
+  margin-bottom: 2px;
+}
+.modal-footer {
+  padding: 8px 9px 9px;
+}
+.form-horizontal .control-group {
+  margin-bottom: 8px;
+}
+legend {
+  margin-bottom: 0;
+}
+.nav-list .divider {
+  margin: 4px -15px;
+}
+.nav-list > li > a,
+.nav-list .nav-header {
+  text-shadow: none;
+}
+.nav-list > li > a:hover {
+  text-decoration: none;
+  background-color: @tableBackgroundHover;
+}
+
+
+/* Strangely missing Bootstrap styles */
+.alert-warn {
+  background-color: @warningBackground;
+  border-color: @warningBorder;
+  color: @warningText;
+}
