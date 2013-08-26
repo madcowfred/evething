@@ -53,6 +53,6 @@ class MailMessage(models.Model):
         ordering = ('-sent_date',)
 
     def stripped_body(self):
-        return TAG_RE.sub('', self.body)
+        return TAG_RE.sub('', self.body or '')
 
 # ------------------------------------------------------------------------------

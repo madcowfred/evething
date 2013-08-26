@@ -1,13 +1,8 @@
 EVEthing.blueprints = {
     onload: function() {
-        $('#checkall').toggle(
-            function() {
-                $('#blueprints-table [type="checkbox"]').attr('checked', 'checked');
-            },
-            function() {
-                $('#blueprints-table [type="checkbox"]').removeAttr("checked");
-            }
-        );
+        $('#checkall').on('click', function() {
+            $('.js-check').prop('checked', this.checked ? 'checked' : false);
+        });
 
         // bind the edit buttons
         $('.bp-edit').on('click', function() {

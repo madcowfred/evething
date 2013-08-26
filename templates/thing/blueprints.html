@@ -47,7 +47,9 @@
                 <th>B Profit</th>
                 <th>S Make</th>
                 <th>S Profit</th>
-                <th><a href="#" id="checkall">all</a></th>
+                <th>
+                  <input type="checkbox" id="checkall">
+                </th>
                 <th></th>
               </tr>
             </thead>
@@ -66,7 +68,7 @@
                 <td>{{ bpi.z_unit_profit_buy|humanize|balance|safe }}</td>
                 <td>{{ bpi.z_unit_cost_sell|humanize }}</td>
                 <td>{{ bpi.z_unit_profit_sell|humanize|balance|safe }}</td>
-                <td class="c"><input type="checkbox" name="bpi" value="{{ bpi.pk }}"></td>
+                <td class="c"><input class="js-check" type="checkbox" name="bpi" value="{{ bpi.pk }}"></td>
                 <td>
                   <i class="icon-edit bp-edit"></i>
                   <i class="icon-trash bp-delete"></i>
@@ -91,7 +93,7 @@
           </form>
         </div>
       </div>
-      
+
       <div class="modal hide" id="add-blueprint">
         <div class="modal-header">
           <a class="close" data-dismiss="modal">{{ icons.close_modal() }}</a>
@@ -183,7 +185,7 @@
         <form action="{{ url('thing.views.blueprints_del') }}" class="nomargin">
           <input type="hidden" name="bpi_id" id="bp-del-bpi_id" value="">
           <div class="modal-body">
-            Are you sure you wish to delete blueprint #<span id="bp-del-id"></span> (<span id="bp-del-name"></span>, <span id="bp-del-type"></span>, 
+            Are you sure you wish to delete blueprint #<span id="bp-del-id"></span> (<span id="bp-del-name"></span>, <span id="bp-del-type"></span>,
             ML <span id="bp-del-ml"></span>, PL <span id="bp-del-pl"></span>)?
           </div>
           <div class="modal-footer">
