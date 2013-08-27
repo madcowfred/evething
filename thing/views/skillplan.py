@@ -150,6 +150,62 @@ def skillplan_reorder_entry(request, skillplan_id, skill_entry, new_position):
 
 
 # ---------------------------------------------------------------------------
+# Add a remap to the skillplan
+@login_required
+def skillplan_ajax_add_remap(request):
+    """
+    Add a remap to the skillplan
+        
+    This function will return a json with status "ok" or a http error code.
+    
+    POST:   skillplan_id : id of the plan
+    """
+    tt = TimerThing('skill_add_skill')
+
+    tt.add_time('init')
+    
+    if request.is_ajax():
+        skillplan_id    = request.POST.get('skillplan_id', '')
+        
+        if skillplan_id.isdigit():
+            try:
+                skillplan = SkillPlan.objects.get(user=request.user, id=skillplan_id)
+
+            except SkillPlan.DoesNotExist:
+                return HttpResponse(content='That skillplan does not exist', status=500)     
+
+            last_position = skillplan.entries.count();
+            tt.add_time('SkillPlan last pos')
+                        
+            skill_remap = SPRemap.objects.create(
+                int_stat=20,
+                mem_stat=20,
+                per_stat=20,
+                wil_stat=20,
+                cha_stat=19,
+            )
+
+            SPEntry.objects.create(
+                skill_plan=skillplan,
+                position=last_position,
+                sp_remap=skill_remap,
+            )
+            
+            tt.add_time('Remap entry creation')
+            if settings.DEBUG:
+                tt.finished()    
+                
+            return HttpResponse(json.dumps({'status':'ok'}), status=200)
+        
+        else:
+            return HttpResponse(content='Cannot add the remap : no skillplan provided', status=500)       
+    else:
+        return HttpResponse(content='Cannot call this page directly', status=403)
+
+
+
+
+# ---------------------------------------------------------------------------
 # Add a given skill & prerequisites
 @login_required
 def skillplan_add_skill(request):
