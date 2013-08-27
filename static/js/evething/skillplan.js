@@ -4,6 +4,7 @@ EVEthing.skillplan = {
     
     skillplanId: 0,
     addSkillInPlanUrl: "",
+    addRemapInPlanUrl: "",
     skillPlanEntriesUrl: "",
     reorderEntriesUrl: "",
     
@@ -13,7 +14,14 @@ EVEthing.skillplan = {
                 EVEthing.skillplan.reload_entries();
                 return false;
             }
-        );               
+        );        
+        
+        $('#add_remap').click(
+            function() {
+                EVEthing.skillplan.add_remap();
+                return false;
+            }
+        );       
         
         // hover thing for skill descriptions
         $('.skill-list-hover').popover({ 
@@ -49,7 +57,25 @@ EVEthing.skillplan = {
     },
     
     addRemapPoint: function() {
-        return false;
+        $.ajax({
+            crossDomain: false,
+            url: EVEthing.skillplan.addRemapInPlanUrl,
+            data: { skillplan_id:EVEthing.skillplan.skillplanId },
+            beforeSend: function(xhr, settings) {
+                xhr.setRequestHeader("X-CSRFToken", $.cookie('csrftoken'));
+            },
+            success: function(json) {
+                response = $.parseJSON(json);
+                if(response.status == "ok"){
+                    EVEthing.skillplan.reload_entries();
+                }
+            },
+            error: function(xhr, status, error) {
+                // TODO : 
+                // display the error for the user (at least !)
+            }
+        });
+
     },
     
     addSkillInPlan: function(skill_id, level) {

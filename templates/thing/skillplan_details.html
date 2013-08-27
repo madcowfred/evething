@@ -6,7 +6,8 @@
 {% block extra_js %}
     <script type="text/javascript">
         // current skill popover displayed
-        EVEthing.skillplan.addSkillInPlanUrl = "{{ url('thing.views.skillplan_add_skill')  }}"
+        EVEthing.skillplan.addSkillInPlanUrl = "{{ url('thing.views.skillplan_add_skill') }}"
+        EVEthing.skillplan.addRemapInPlanUrl = "{{ url('thing.views.skillplan_add_remap') }}"
         EVEthing.skillplan.skillPlanEntriesUrl = "{{ url('thing.views.skillplan_render_entries', 99999999999, 88888888888, 77777777777, 66666666666 )  }}"
         EVEthing.skillplan.reorderEntriesUrl = "{{ url('thing.views.skillplan_reorder_entry', 99999999999, 88888888888, 77777777777 )  }}"
         EVEthing.skillplan.skillplanId = {{ skillplan.id }}
@@ -39,7 +40,7 @@
                         </ul>
                     </div>
                     &nbsp;
-                    <a  href="#" class="btn btn-info">Add Remap</a>
+                    <a  href="#" class="btn btn-info" id="add_remap">Add Remap</a>
                 </div>
                 
                 <label class="select">
