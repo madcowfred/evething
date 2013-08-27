@@ -99,6 +99,7 @@ EVEthing.skillplan = {
                 }
             },
             error: function(xhr, status, error) {
+                // TODO : 
                 // display the error for the user (at least !)
             }
         });
@@ -146,10 +147,35 @@ EVEthing.skillplan = {
                             }
                         }
                         
+                        EVEthing.skillplan.reorderEntry(ui.item.attr('data-id'), new_position);                    
                     }
                 }
             });
         })
+    },
+    
+    reorderEntry: function(entry, new_position) {
+        $.ajax({
+            crossDomain: false,
+            url: EVEthing.skillplan.addSkillInPlanUrl,
+            data: { entry_id:entry
+                  , new_position:new_position
+                  , skillplan_id:EVEthing.skillplan.skillplanId },
+            type:'post',
+            beforeSend: function(xhr, settings) {
+                xhr.setRequestHeader("X-CSRFToken", $.cookie('csrftoken'));
+            },
+            success: function(json) {
+                response = $.parseJSON(json);
+                if(response.status == "ok"){
+                    EVEthing.skillplan.reload_entries();
+                }
+            },
+            error: function(xhr, status, error) {
+                // TODO : 
+                // display the error for the user (at least !)
+            }
+        });
     },
     
     optimizeAttributes: function() {
