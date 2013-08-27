@@ -18,7 +18,7 @@ EVEthing.skillplan = {
         
         $('#add_remap').click(
             function() {
-                EVEthing.skillplan.add_remap();
+                EVEthing.skillplan.addRemapPoint();
                 return false;
             }
         );       
