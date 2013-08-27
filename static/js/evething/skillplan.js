@@ -11,7 +11,7 @@ EVEthing.skillplan = {
     onload: function() {
         $('#apply_filter').click(
             function(){
-                EVEthing.skillplan.reload_entries();
+                EVEthing.skillplan.reloadEntries();
                 return false;
             }
         );        
@@ -54,7 +54,7 @@ EVEthing.skillplan = {
                 return false;
             }
         );
-        EVEthing.skillplan.reload_entries()
+        EVEthing.skillplan.reloadEntries()
     },
     
     addRemapPoint: function() {
@@ -69,7 +69,7 @@ EVEthing.skillplan = {
             success: function(json) {
                 response = $.parseJSON(json);
                 if(response.status == "ok"){
-                    EVEthing.skillplan.reload_entries();
+                    EVEthing.skillplan.reloadEntries();
                 }
             },
             error: function(xhr, status, error) {
@@ -95,7 +95,7 @@ EVEthing.skillplan = {
                 response = $.parseJSON(json);
                 if(response.status == "ok"){
                     $('#'+EVEthing.skillplan.current_popover_id).popover('hide');
-                    EVEthing.skillplan.reload_entries();
+                    EVEthing.skillplan.reloadEntries();
                 }
             },
             error: function(xhr, status, error) {
@@ -105,7 +105,7 @@ EVEthing.skillplan = {
         });
     },
     
-    reload_entries: function() {
+    reloadEntries: function() {
         // call a page with a $.get to grab the skillplan entries.
         ajax_wait = true;
 
@@ -168,7 +168,7 @@ EVEthing.skillplan = {
             success: function(json) {
                 response = $.parseJSON(json);
                 if(response.status == "ok"){
-                    EVEthing.skillplan.reload_entries();
+                    EVEthing.skillplan.reloadEntries();
                 }
             },
             error: function(xhr, status, error) {
