@@ -146,10 +146,6 @@ EVEthing.skillplan = {
                             }
                         }
                         
-                        EVEthing.skillplan.reorderEntriesUrl.replace('99999999999', EVEthing.skillplan.skillplanId)
-                                                            .replace('88888888888', ui.item.attr('data-id'))
-                                                            .replace('77777777777', new_position)
-                        //todo : ajax call 
                     }
                 }
             });
