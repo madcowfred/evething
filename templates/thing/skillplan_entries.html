@@ -16,7 +16,7 @@
                         {% for entry in entries -%}
                         
                         {% if entry.sp_remap -%}
-                        <tr class="c">
+                        <tr class="c" data-position="{{ entry.position }}" data-id="{{ entry.id }}">
                             <td></td>
                             <td class="l" colspan="6">
                                 <i class="icon-user"></i> Remap to
@@ -28,7 +28,7 @@
                             </td>
                             
                         {%- else %}
-                        <tr class="c" data-position="{{ entry.position }}" data-id="{{ entry.id }}" data-skill-id="{{ entry.sp_skill.skill.item.id }}" data-level="{{ entry.sp_skill.level }}" data-parents="{{ entry.z_parents|join(',')}}">
+                        <tr class="c" data-position="{{ entry.position }}" data-id="{{ entry.id }}" data-skill-id="{{ entry.sp_skill.skill.item.id }}" data-level="{{ entry.sp_skill.level }}">
                             <td class="sp-trained">
                             {% if entry.z_training -%}
                                 <i class="icon-flag"></i>
