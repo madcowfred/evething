@@ -127,7 +127,7 @@ def skillplan_edit(request, skillplan_id):
 # ---------------------------------------------------------------------------
 # Render the table entries of the skillplan
 @login_required
-def skillplan_render_entries(request, skillplan_id, character_id, implants, show_trained):
+def skillplan_ajax_render_entries(request, skillplan_id, character_id, implants, show_trained):
     skillplan = get_object_or_404(SkillPlan, user=request.user, pk=skillplan_id)
     
     try:
@@ -145,7 +145,7 @@ def skillplan_render_entries(request, skillplan_id, character_id, implants, show
 
 # ---------------------------------------------------------------------------
 # Move an entry in another position
-def skillplan_reorder_entry(request, skillplan_id, skill_entry, new_position):
+def skillplan_ajax_reorder_entry(request, skillplan_id, skill_entry, new_position):
     pass
 
 
@@ -208,7 +208,7 @@ def skillplan_ajax_add_remap(request):
 # ---------------------------------------------------------------------------
 # Add a given skill & prerequisites
 @login_required
-def skillplan_add_skill(request):
+def skillplan_ajax_add_skill(request):
     """
     Add a skill and all of it's prerequisite (not already in the plan)
     into the skill plan
