@@ -32,6 +32,7 @@ EVEthing.skillplan = {
             container: 'body'
         }).on('click', 
             function() {
+            
                 // popover on click, but only display one popover.
                 if(EVEthing.skillplan.current_popover_id) {
                     if(EVEthing.skillplan.current_popover_id != $(this).attr('id')) {
@@ -44,7 +45,7 @@ EVEthing.skillplan = {
                 $('.btn-plan-skill').on('click',
                     function() {
                         var plan_to_level   = $(this).attr('data-level');
-                        var plan_skill_id   = $(this).attr('data-skill-id');
+                        var plan_skill_id   = $(this).attr('data-id');
                         EVEthing.skillplan.addSkillInPlan(plan_skill_id, plan_to_level);
                         return false;
                     }
@@ -61,6 +62,7 @@ EVEthing.skillplan = {
             crossDomain: false,
             url: EVEthing.skillplan.addRemapInPlanUrl,
             data: { skillplan_id:EVEthing.skillplan.skillplanId },
+            type:'post',
             beforeSend: function(xhr, settings) {
                 xhr.setRequestHeader("X-CSRFToken", $.cookie('csrftoken'));
             },
