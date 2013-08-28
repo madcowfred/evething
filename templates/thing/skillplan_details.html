@@ -6,10 +6,10 @@
 {% block extra_js %}
     <script type="text/javascript">
         // current skill popover displayed
-        EVEthing.skillplan.addSkillInPlanUrl = "{{ url('thing.views.skillplan_add_skill') }}"
-        EVEthing.skillplan.addRemapInPlanUrl = "{{ url('thing.views.skillplan_add_remap') }}"
-        EVEthing.skillplan.skillPlanEntriesUrl = "{{ url('thing.views.skillplan_render_entries', 99999999999, 88888888888, 77777777777, 66666666666 )  }}"
-        EVEthing.skillplan.reorderEntriesUrl = "{{ url('thing.views.skillplan_reorder_entry') }}"
+        EVEthing.skillplan.addSkillInPlanUrl = "{{ url('thing.views.skillplan_ajax_add_skill') }}"
+        EVEthing.skillplan.addRemapInPlanUrl = "{{ url('thing.views.skillplan_ajax_add_remap') }}"
+        EVEthing.skillplan.skillPlanEntriesUrl = "{{ url('thing.views.skillplan_ajax_render_entries', 99999999999, 88888888888, 77777777777, 66666666666 )  }}"
+        EVEthing.skillplan.reorderEntriesUrl = "{{ url('thing.views.skillplan_ajax_reorder_entry') }}"
         EVEthing.skillplan.skillplanId = {{ skillplan.id }}
         $(document).ready(EVEthing.skillplan.onload);
     </script>

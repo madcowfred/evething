@@ -173,7 +173,7 @@
     
     {# skillplan: edit modal -#}
     <div class="modal hide" id="edit-skillplan-modal">
-        <form action="{{ url('thing.views.skillplan_info_edit') }}" method="POST" class="form-horizontal">
+        <form action="{{ url('thing.views.skillplan_edit_info') }}" method="POST" class="form-horizontal">
             {{ csrf() }}
             <input type="hidden" name="skillplan_id" value="" id="edit-skillplan-id">
             <div class="modal-header">
