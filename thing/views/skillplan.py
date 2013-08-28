@@ -146,7 +146,65 @@ def skillplan_ajax_render_entries(request, skillplan_id, character_id, implants,
 # ---------------------------------------------------------------------------
 # Move an entry in another position
 def skillplan_ajax_reorder_entry(request, skillplan_id, skill_entry, new_position):
-    pass
+    """
+    Add a remap to the skillplan
+        
+    This function will return a json with status "ok" or a http error code.
+    
+    POST:   skillplan_id : id of the plan
+    """
+    tt = TimerThing('skill_add_skill')
+
+    tt.add_time('init')
+    
+    if request.is_ajax():
+        skillplan_id     = request.POST.get('skillplan_id', '')
+        moved_entry_id   = request.POST.get('entry_id', '')
+        new_position     = request.POST.get('new_position', '')
+        
+        if skillplan_id.isdigit() and moved_entry_id.isdigit():
+        
+            try:
+                skillplan   = SkillPlan.objects.get(user=request.user, id=skillplan_id)
+                moved_entry = SPEntry.objects.get(id=moved_entry_id)
+
+            except SkillPlan.DoesNotExist:
+                return HttpResponse(content='That skillplan does not exist', status=500)     
+
+
+            except SPEntry.DoesNotExist:
+                return HttpResponse(content='That entry does not exist', status=500)     
+
+            last_position = skillplan.entries.count();
+            
+            if new_position < 0:
+                new_position = 0
+            elif new_position >= last_position:
+                new_position = last_position-1
+                
+            tt.add_time('Fix new position')
+            
+            # everything is ok now, let's move that skill and its parents/children
+            
+            # first we need to know how much parent / children are between both start/end position
+            if new_position > moved_entry.position:
+                entries = skillplan.entries.filter(position__gt = moved_entry.position, position_lte = new_position)
+                delta_position = -1
+                
+            elif new_position < moved_entry.position:
+                entries = skillplan.entries.filter(position__lt = moved_entry.position, position_gte = new_position)
+                delta_position = 1
+
+            else:   
+                return HttpResponse(json.dumps({'status':'nothing_changed'}), status=200)
+
+            return HttpResponse(json.dumps({'status':'ok'}), status=200)
+        
+        else:
+            return HttpResponse(content='Cannot add the remap : no skillplan provided', status=500)       
+    else:
+        return HttpResponse(content='Cannot call this page directly', status=403)
+
 
 
 # ---------------------------------------------------------------------------
