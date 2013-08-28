@@ -190,14 +190,25 @@ def skillplan_ajax_reorder_entry(request, skillplan_id, skill_entry, new_positio
             if new_position > moved_entry.position:
                 entries = skillplan.entries.filter(position__gt = moved_entry.position, position_lte = new_position)
                 delta_position = -1
+                # get parents to check
                 
             elif new_position < moved_entry.position:
                 entries = skillplan.entries.filter(position__lt = moved_entry.position, position_gte = new_position)
                 delta_position = 1
+                # get children to check
 
             else:   
                 return HttpResponse(json.dumps({'status':'nothing_changed'}), status=200)
-
+            
+            # count parent/children in entries
+            #
+            # loop on entries
+            # add to entry position : 
+            # - if not parent/children : entry.position += delta_position + (delta_position * number of parents not already moved)
+            # - if parent/children : entry.position = new_position, new_position -= delta_position
+            # loop.
+            # moved_entry.position = new_position
+            
             return HttpResponse(json.dumps({'status':'ok'}), status=200)
         
         else:
