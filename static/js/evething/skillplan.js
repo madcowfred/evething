@@ -128,7 +128,17 @@ EVEthing.skillplan = {
                 containment: "parent" ,
                 cursor: "move",
                 handle: ".skill_entry_handler",
-                helper: "clone",
+                helper: function(e, tr)
+                {
+                    var $originals = tr.children();
+                    var $helper = tr.clone();
+                    $helper.children().each(function(index)
+                    {
+                        // Set helper cell sizes to match the original sizes
+                        $(this).width($originals.eq(index).width());
+                    });
+                    return $helper;
+                },
                 start: function(event, ui) {    
                     EVEthing.skillplan.previous_entries_number = ui.item.prevAll().length;
                 },
