@@ -27,6 +27,13 @@ import cPickle
 import math
 
 from django.db import models
+from django.db import models
+try:
+    from collections import OrderedDict
+except ImportError:
+    from ordereddict import OrderedDict
+    
+
 
 from thing.models.item import Item
 from thing.models.skillparent import SkillParent
@@ -77,9 +84,13 @@ class Skill(models.Model):
                                     , symmetrical=False)
 
 
+    # only used with is_xxx. Else it's not required to init these.
+    children_list = None
+    parents_list = None
+    
     class Meta:
         app_label = 'thing'
-
+        
     def __unicode__(self):
         return '%s (Rank %d; %s/%s)' % (self.item.name, self.rank, self.get_primary_attribute_display(),
             self.get_secondary_attribute_display())
@@ -142,11 +153,39 @@ class Skill(models.Model):
         return SkillParent.objects.filter(
             child_skill=self)
             
-    def get_skill_children(self):
+    def get_skill_children(self, level=1):
         return SkillParent.objects.filter(
-            parent_skill=self)
+            parent_skill=self,
+            level__gte=level)
+        
+    def is_child(self, skill, level):
+        """
+        Check if the current skill at level "level" has "skill" as a child
+        """
+
+        if self.children_list is None:
+            self.children_list = OrderedDict()
+        
+        if level not in self.children_list:
+            self.children_list[level] = Skill.get_all_children(skill,level)
+
+        if skill.item.id in self.children_list[level]:
+            return True
+        return False
 
 
+    def is_parent(self, skill, level): 
+        """
+        Check if the current skill has "skill" at level "level" as a parent
+        """
+
+        if self.parents_list is None:
+            self.parents_list = Skill.get_all_parents(skill)
+        
+        if skill.item.id in self.parents_list and self.parents_list[skill.item.id] >= level:
+            return True
+        return False
+        
     # ------------------------------------------------------------------------------
 
     @staticmethod
@@ -163,6 +202,50 @@ class Skill(models.Model):
 
         # Return a reversed list so it's in training order
         return list(reversed(prereqs))
+        
+    @staticmethod
+    def get_all_parents(skill):
+        'Get all the parents of a given skill'
+        
+        parents = skill.get_skill_parent()
+        if parents is None:
+            return OrderedDict()
+        
+        list_parent=OrderedDict()
+        
+        for parent in parents:
+            list_parent[parent.parent_skill.item.id] = parent.level
+            
+            skill_list = Skill.get_all_parents(parent.parent_skill)
+            if len(skill_list) > 0: 
+                print(skill_list)
+                for skill_id,level in skill_list:
+                    if skill_id in list_parent: 
+                        list_parent[skill_id] = max(list_parent[skill_id], level)
+                    else:
+                        list_parent[skill_id] = level
+        
+        return list_parent
 
+    @staticmethod
+    def get_all_children(skill, level):
+        """
+            Get all the parents of a given skill
+            
+            skill : the skill used to get the children 
+            level : the level of the skill (children depend on the parent level)
+        """
+        
+        children = skill.get_skill_children(level)
+        if children is None:
+            return {}
+        
+        list_children=set()
+        
+        for child in children:
+            list_children.add(child.child_skill.item.id)
+            list_children.update(Skill.get_all_children(child.child_skill,1))
+        
+        return list_children
 
 # ------------------------------------------------------------------------------
