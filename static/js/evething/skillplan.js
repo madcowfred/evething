@@ -167,7 +167,7 @@ EVEthing.skillplan = {
     reorderEntry: function(entry, new_position) {
         $.ajax({
             crossDomain: false,
-            url: EVEthing.skillplan.addSkillInPlanUrl,
+            url: EVEthing.skillplan.reorderEntriesUrl,
             data: { entry_id:entry
                   , new_position:new_position
                   , skillplan_id:EVEthing.skillplan.skillplanId },
