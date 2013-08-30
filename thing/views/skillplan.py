@@ -145,7 +145,7 @@ def skillplan_ajax_render_entries(request, skillplan_id, character_id, implants,
 
 # ---------------------------------------------------------------------------
 # Move an entry in another position
-def skillplan_ajax_reorder_entry(request, skillplan_id, skill_entry, new_position):
+def skillplan_ajax_reorder_entry(request):
     """
     Add a remap to the skillplan
         
@@ -160,8 +160,8 @@ def skillplan_ajax_reorder_entry(request, skillplan_id, skill_entry, new_positio
     if request.is_ajax():
         skillplan_id     = request.POST.get('skillplan_id', '')
         moved_entry_id   = request.POST.get('entry_id', '')
-        new_position     = request.POST.get('new_position', '')
-        
+        new_position     = int(request.POST.get('new_position', ''))
+
         if skillplan_id.isdigit() and moved_entry_id.isdigit():
         
             try:
@@ -183,32 +183,79 @@ def skillplan_ajax_reorder_entry(request, skillplan_id, skill_entry, new_positio
                 new_position = last_position-1
                 
             tt.add_time('Fix new position')
-            
+            print(new_position)
             # everything is ok now, let's move that skill and its parents/children
             
+            skill_relatives = set()
+            
+            print(moved_entry.position)
             # first we need to know how much parent / children are between both start/end position
             if new_position > moved_entry.position:
-                entries = skillplan.entries.filter(position__gt = moved_entry.position, position_lte = new_position)
+                entries = skillplan.entries.select_related('sp_skill__skill__item').filter(position__gt = moved_entry.position, position__lte = new_position)
                 delta_position = -1
-                # get parents to check
+                # check the number of parents
+                for entry in entries:
+                    if entry.sp_remap is not None:
+                        continue
+
+                    if  (moved_entry.sp_skill.skill.is_parent(entry.sp_skill.skill, entry.sp_skill.level) or 
+                        (moved_entry.sp_skill.skill.item.id == entry.sp_skill.skill.item.id and 
+                            moved_entry.sp_skill.level > entry.sp_skill.level)):
+                        skill_relatives.add(entry.id)                
                 
             elif new_position < moved_entry.position:
-                entries = skillplan.entries.filter(position__lt = moved_entry.position, position_gte = new_position)
+                entries = (
+                    skillplan.entries
+                    .select_related('sp_skill__skill__item')
+                    .filter(position__lt = moved_entry.position, position__gte = new_position)
+                    .order_by('position')
+                )
+                
                 delta_position = 1
-                # get children to check
+
+                # check the number of children
+                for entry in entries:
+                    if entry.sp_remap is not None:
+                        continue
+
+                    if  (moved_entry.sp_skill.skill.is_child(entry.sp_skill.skill, moved_entry.sp_skill.level) or 
+                        (moved_entry.sp_skill.skill.item.id == entry.sp_skill.skill.item.id and 
+                            moved_entry.sp_skill.level < entry.sp_skill.level)):
+                        skill_relatives.add(entry.id)
 
             else:   
                 return HttpResponse(json.dumps({'status':'nothing_changed'}), status=200)
             
-            # count parent/children in entries
-            #
+            tt.add_time('Entries + relatives')
+            
             # loop on entries
             # add to entry position : 
             # - if not parent/children : entry.position += delta_position + (delta_position * number of parents not already moved)
             # - if parent/children : entry.position = new_position, new_position -= delta_position
             # loop.
             # moved_entry.position = new_position
+            for entry in entries:
+                if entry.sp_remap is not None:
+                    continue
+
+                if entry.id in skill_relatives:
+                    skill_relatives.remove(entry.id)
+                    entry.position = new_position
+                    new_position -= delta_position
+                    entry.save()
+                    continue
+                
+                entry.position += delta_position + (delta_position * len(skill_relatives))
+                entry.save()
+                
+            moved_entry.position = new_position
+            moved_entry.save()
             
+            tt.add_time('Reorder')
+            
+            if settings.DEBUG:
+                tt.finished()   
+                
             return HttpResponse(json.dumps({'status':'ok'}), status=200)
         
         else:
