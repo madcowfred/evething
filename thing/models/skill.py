@@ -167,7 +167,7 @@ class Skill(models.Model):
             self.children_list = OrderedDict()
         
         if level not in self.children_list:
-            self.children_list[level] = Skill.get_all_children(skill,level)
+            self.children_list[level] = Skill.get_all_children(self,level)
 
         if skill.item.id in self.children_list[level]:
             return True
@@ -180,7 +180,7 @@ class Skill(models.Model):
         """
 
         if self.parents_list is None:
-            self.parents_list = Skill.get_all_parents(skill)
+            self.parents_list = Skill.get_all_parents(self)
         
         if skill.item.id in self.parents_list and self.parents_list[skill.item.id] >= level:
             return True
@@ -216,14 +216,11 @@ class Skill(models.Model):
         for parent in parents:
             list_parent[parent.parent_skill.item.id] = parent.level
             
-            skill_list = Skill.get_all_parents(parent.parent_skill)
-            if len(skill_list) > 0: 
-                print(skill_list)
-                for skill_id,level in skill_list:
-                    if skill_id in list_parent: 
-                        list_parent[skill_id] = max(list_parent[skill_id], level)
-                    else:
-                        list_parent[skill_id] = level
+            for skill_id,level in Skill.get_all_parents(parent.parent_skill).items():
+                if skill_id in list_parent: 
+                    list_parent[skill_id] = max(list_parent[skill_id], level)
+                else:
+                    list_parent[skill_id] = level
         
         return list_parent
 
