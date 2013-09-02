@@ -150,7 +150,7 @@ EVEthing.skillplan = {
                         var new_position = 0;
                         
                         if(ui.item.prev().length != 0) {
-                            if(ui.item.prev().attr('data-position') < ui.item.attr('data-position')) {
+                            if(parseInt(ui.item.prev().attr('data-position')) < parseInt(ui.item.attr('data-position'))) {
                                 new_position = ui.item.next().attr('data-position');
                             } else {
                                 new_position = ui.item.prev().attr('data-position');
