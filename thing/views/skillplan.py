@@ -127,7 +127,7 @@ def skillplan_edit(request, skillplan_id):
 # ---------------------------------------------------------------------------
 # Render the table entries of the skillplan
 @login_required
-def skillplan_ajax_render_entries(request, skillplan_id, character_id, implants, show_trained):
+def skillplan_ajax_render_entries_edit(request, skillplan_id, character_id, implants, show_trained):
     skillplan = get_object_or_404(SkillPlan, user=request.user, pk=skillplan_id)
     
     try:
