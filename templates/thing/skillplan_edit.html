@@ -22,7 +22,7 @@
 
 <div class="row-fluid">
     <div class="span12">
-        <h2>Edit Skillplan - {{ skillplan.name }}</h2>
+        <h2>Edit Skill Plan - {{ skillplan.name }}</h2>
         
         <ul class="nav nav-tabs" id="skillplan-tab">
             <li class="active"><a href="#tab-skillplan" data-toggle="tab">Skillplan</a></li>
@@ -40,23 +40,7 @@
                         <div class="row-fluid">
                             <div class="span12 form-inline well well-small">
                                 <div class="margin-half-bot">
-                                    <strong class="large">Skillplan : {{ skillplan.name }}</strong>
-                                </div>
-
-                                <div class="pull-right">
-                                    <div class="btn-group">
-                                        <a class="btn dropdown-toggle btn-success" data-toggle="dropdown" href="#">
-                                            Optimize
-                                            <span class="caret"></span>
-                                        </a>
-                                        <ul class="dropdown-menu">
-                                            <li><a href="#">Attributes</a></li>
-                                            <li><a href="#">Remap</a></li>
-                                            <!-- dropdown menu links -->
-                                        </ul>
-                                    </div>
-                                    &nbsp;
-                                    <a  href="#" class="btn btn-info" id="add_remap">Add Remap</a>
+                                    <strong class="large">Skillplan actions</strong>
                                 </div>
                                 
                                 <label class="select">
@@ -84,7 +68,12 @@
                                     <input type="checkbox" id="show_trained" name="show_trained"{% if show_trained %} checked{% endif %}> Show already trained skills
                                 </label>
                                 &nbsp;
-                                <button type="submit" id="apply_filter" class="btn btn-primary">Apply</button>
+                                <button id="apply_filter" class="btn btn-primary">Apply filters</button>
+                                <br />
+                                <button class="btn btn-primary" id="add_remap">Add Remap</button>
+                                <button class="btn btn-info" id="optimize_attr">Optimize Attributes</button>
+                                <button class="btn btn-info" id="optimize_remap">Optimize Remap</button>
+                                <button class="btn btn-danger" id="optimize_remap">Clean</button>
                             </div>
                         </div>
                         
