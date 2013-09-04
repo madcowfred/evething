@@ -6,10 +6,6 @@
 {% block extra_js %}
     <script type="text/javascript">
         // current skill popover displayed
-        EVEthing.skillplan.addSkillInPlanUrl = "{{ url('thing.views.skillplan_ajax_add_skill') }}"
-        EVEthing.skillplan.addRemapInPlanUrl = "{{ url('thing.views.skillplan_ajax_add_remap') }}"
-        EVEthing.skillplan.skillPlanEntriesUrl = "{{ url('thing.views.skillplan_ajax_render_entries', 99999999999, 88888888888, 77777777777, 66666666666 )  }}"
-        EVEthing.skillplan.reorderEntriesUrl = "{{ url('thing.views.skillplan_ajax_reorder_entry') }}"
         EVEthing.skillplan.skillplanId = {{ skillplan.id }}
         $(document).ready(EVEthing.skillplan.onload);
     </script>
@@ -18,31 +14,17 @@
 
 {% block title %}Skill Plan{% endblock %}
 
-{% block content %}    
+{% block content %}
+
 <div class="row-fluid">
-    <div class="span9">
+    <div class="span12">
+        <h2>Skillplan - {{ skillplan.name }}</h2>
         <div class="row-fluid">
             <div class="span12 form-inline well well-small">
                 <div class="margin-half-bot">
-                    <strong class="large">Skillplan : {{ skillplan.name }}</strong>
+                    <strong class="large">Parameters</strong>
                 </div>
 
-                <div class="pull-right">
-                    <div class="btn-group">
-                        <a class="btn dropdown-toggle btn-success" data-toggle="dropdown" href="#">
-                            Optimize
-                            <span class="caret"></span>
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li><a href="#">Attributes</a></li>
-                            <li><a href="#">Remap</a></li>
-                            <!-- dropdown menu links -->
-                        </ul>
-                    </div>
-                    &nbsp;
-                    <a  href="#" class="btn btn-info" id="add_remap">Add Remap</a>
-                </div>
-                
                 <label class="select">
                     <select name="character" id="characters">
                         <option value="-1">New Character (no remap)</option>
@@ -92,39 +74,6 @@
             </div>
         </div>
     </div>
-    <div class="span3">
-        <div class="well well-small sidebar-nav" id="skill_list">
-            <div class="input-prepend">
-                <span class="add-on"><i class="icon-search"></i></span>
-                <input id="searchSkill" type="text" placeholder="Search Skill">
-            </div>
-            {% for market_group, skills in skill_list.items() -%}
-            <ul class="nav nav-list ">
-                <li class="nav-header collapsed" data-toggle="collapse" data-parent="#skill_list" data-target=".mg-{{ market_group.id }}">
-                    <i class="icon-folder-open"></i>
-                    {{ market_group.name }}
-                </li>
-                {% for skill in skills -%}
-                <li id="skill-{{ skill.item.id }}" class="mg-{{ market_group.id }} collapse skill" data-name="{{ skill.item.name }}" data-group="{{ market_group.name }}" data-prim="{{ skill.primary_attribute }}" data-sec="{{ skill.secondary_attribute }}" data-planned-to="0" data-skilled-to="0">
-                    <a>
-                        <span class="skill-list-hover {{ extra_class}}" rel="popover" title="{{ skill.item.name }}" id="skill-list-hover-{{ skill.item.id }}" data-content="
-                            {{ skill }}
-                            <br><br>
-                            <strong>Plan to level:</strong> <br>
-                            <a href='#' data-level='1' data-id='{{ skill.item.id }}' class='btn btn-small btn-inverse btn-plan-skill'><strong>I</strong></a>&nbsp;
-                            <a href='#' data-level='2' data-id='{{ skill.item.id }}' class='btn btn-small btn-inverse btn-plan-skill'><strong>II</strong></a>&nbsp;
-                            <a href='#' data-level='3' data-id='{{ skill.item.id }}' class='btn btn-small btn-inverse btn-plan-skill'><strong>III</strong></a>&nbsp;
-                            <a href='#' data-level='4' data-id='{{ skill.item.id }}' class='btn btn-small btn-inverse btn-plan-skill'><strong>IV</strong></a>&nbsp;
-                            <a href='#' data-level='5' data-id='{{ skill.item.id }}' class='btn btn-small btn-inverse btn-plan-skill'><strong>V</strong></a>">
-                            {{ skill.item.name }}{% if level %} {{ level|roman }}{% endif %}
-                        </span>
-                    </a>
-                </li>
-                {%- endfor %}  
-            </ul>
-            {%- endfor %}
-        </div>
-    </div>       
 </div>
 
 
