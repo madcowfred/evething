@@ -5,7 +5,7 @@ EVEthing.skillplan = {
     skillplanId: 0,
     addSkillInPlanUrl: "",
     addRemapInPlanUrl: "",
-    skillPlanEntriesUrl: "",
+    skillPlanEntriesEditUrl: "",
     reorderEntriesUrl: "",
     
     onload: function() {
@@ -112,10 +112,10 @@ EVEthing.skillplan = {
         var implants     = $('#implants').val();
         var character_id = Math.max($('#characters').val(), 0);
         var show_trained = ($('#show_trained').is(':checked')) ? 1 : 0;
-        var url          = EVEthing.skillplan.skillPlanEntriesUrl.replace('99999999999', EVEthing.skillplan.skillplanId)
-                                                                 .replace('88888888888', character_id)
-                                                                 .replace('77777777777', implants)
-                                                                 .replace('66666666666', show_trained)
+        var url          = EVEthing.skillplan.skillPlanEntriesEditUrl.replace('99999999999', EVEthing.skillplan.skillplanId)
+                                                                     .replace('88888888888', character_id)
+                                                                     .replace('77777777777', implants)
+                                                                     .replace('66666666666', show_trained)
         
         $.get(url, function(data) {
             $('#skillplan').html(data); 
