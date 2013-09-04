@@ -109,7 +109,7 @@ def skillplan_edit(request, skillplan_id):
             implants = 0
 
         return render_page(
-            'thing/skillplan_details.html',
+            'thing/skillplan_edit.html',
             {   
                 'skillplan'         : skillplan,
                 'skill_list'        : skill_list,
