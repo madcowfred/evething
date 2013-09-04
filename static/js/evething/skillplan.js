@@ -125,9 +125,9 @@ EVEthing.skillplan = {
             $('.skill-hover').popover({ animation: false, trigger: 'hover', html: true });
             $('#skillplan tbody').sortable({
                 axis: "y",
-                containment: "parent" ,
+                containment: "#skillplan" ,
                 cursor: "move",
-                handle: ".skill_entry_handler",
+                //handle: ".skill_entry_handler",
                 helper: function(e, tr)
                 {
                     var $originals = tr.children();
