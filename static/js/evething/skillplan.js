@@ -123,6 +123,7 @@ EVEthing.skillplan = {
             
             // we need to reset the hover
             $('.skill-hover').popover({ animation: false, trigger: 'hover', html: true });
+            $('.tooltips').tooltip();
             $('#skillplan tbody').sortable({
                 axis: "y",
                 containment: "#skillplan" ,
