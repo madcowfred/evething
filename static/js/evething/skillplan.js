@@ -14,14 +14,14 @@ EVEthing.skillplan = {
         $('#apply_filter').click(
             function(e){
                 EVEthing.skillplan.reloadEntries();
-                e.stopPropagation();
+                e.preventDefault();
             }
         );        
         
         $('#add_remap').click(
             function(e) {
                 EVEthing.skillplan.addRemapPoint();
-                e.stopPropagation();
+                e.preventDefault();
             }
         );       
         
@@ -31,7 +31,7 @@ EVEthing.skillplan = {
                 if(confirmDelete) {
                     EVEthing.skillplan.cleanSkillPlan();
                 }
-                e.stopPropagation();
+                e.preventDefault();
             }
         );
         
@@ -63,7 +63,7 @@ EVEthing.skillplan = {
                     }
                 );
                 
-                e.stopPropagation();
+                e.preventDefault();
             }
         );
         EVEthing.skillplan.reloadEntries()
@@ -95,7 +95,7 @@ EVEthing.skillplan = {
                     if(confirmDelete) {
                         EVEthing.skillplan.deleteEntry($(this).attr('data-id'));
                     }
-                    e.stopPropagation();
+                    e.preventDefault();
                 }
             );
                         
