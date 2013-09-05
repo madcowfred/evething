@@ -25,6 +25,20 @@ EVEthing.skillplan = {
             }
         );       
         
+        $('#optimize_attr').click(
+            function(e) {
+                EVEthing.skillplan.optimizeAttributes();
+                e.preventDefault();
+            }
+        );   
+        
+        $('#optimize_remap').click(
+            function(e) {
+                EVEthing.skillplan.optimizeRemaps();
+                e.preventDefault();
+            }
+        );       
+        
         $('#clean_skillplan').click(
             function(e) {
                 var confirmDelete = confirm("Are you sure you want to remove all entries from this skillplan ?")
@@ -205,7 +219,7 @@ EVEthing.skillplan = {
             alert('Reorder Skill URL is not set');
             return;
         }
-        var data = { entry_id:ui.item.attr('data-id')
+        var data = { entry_id:entry
                    , new_position:new_position
                    , skillplan_id:EVEthing.skillplan.skillplanId };
                    
@@ -213,11 +227,11 @@ EVEthing.skillplan = {
     },
     
     optimizeAttributes: function() {
-    
+        alert('not working yet');
     },
     
     optimizeRemaps: function() {
-    
+        alert('not working yet');
     },
 
     ajaxCall: function(url, data, reloadIfError) {    
