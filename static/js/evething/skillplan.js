@@ -7,19 +7,21 @@ EVEthing.skillplan = {
     addRemapInPlanUrl: "",
     skillPlanEntriesEditUrl: "",
     reorderEntriesUrl: "",
+    deleteEntryUrl: "",
+    cleanSkillplanUrl: "",
     
     onload: function() {
         $('#apply_filter').click(
-            function(){
+            function(e){
                 EVEthing.skillplan.reloadEntries();
-                return false;
+                e.stopPropagation();
             }
         );        
         
         $('#add_remap').click(
-            function() {
+            function(e) {
                 EVEthing.skillplan.addRemapPoint();
-                return false;
+                e.stopPropagation();
             }
         );       
         
@@ -31,7 +33,7 @@ EVEthing.skillplan = {
             placement: 'left',
             container: 'body'
         }).on('click', 
-            function() {
+            function(e) {
             
                 // popover on click, but only display one popover.
                 if(EVEthing.skillplan.current_popover_id) {
@@ -51,7 +53,7 @@ EVEthing.skillplan = {
                     }
                 );
                 
-                return false;
+                e.stopPropagation();
             }
         );
         EVEthing.skillplan.reloadEntries()
@@ -67,7 +69,7 @@ EVEthing.skillplan = {
                 xhr.setRequestHeader("X-CSRFToken", $.cookie('csrftoken'));
             },
             success: function(json) {
-                response = $.parseJSON(json);
+                var response = $.parseJSON(json);
                 if(response.status == "ok"){
                     EVEthing.skillplan.reloadEntries();
                 }
@@ -92,7 +94,7 @@ EVEthing.skillplan = {
                 xhr.setRequestHeader("X-CSRFToken", $.cookie('csrftoken'));
             },
             success: function(json) {
-                response = $.parseJSON(json);
+                var response = $.parseJSON(json);
                 if(response.status == "ok"){
                     $('#'+EVEthing.skillplan.current_popover_id).popover('hide');
                     EVEthing.skillplan.reloadEntries();
@@ -107,8 +109,7 @@ EVEthing.skillplan = {
     
     reloadEntries: function() {
         // call a page with a $.get to grab the skillplan entries.
-        ajax_wait = true;
-
+        
         var implants     = $('#implants').val();
         var character_id = Math.max($('#characters').val(), 0);
         var show_trained = ($('#show_trained').is(':checked')) ? 1 : 0;
@@ -121,9 +122,11 @@ EVEthing.skillplan = {
             $('#skillplan').html(data); 
             
             
-            // we need to reset the hover
+            // we need to reset bindings in the loaded page
             $('.skill-hover').popover({ animation: false, trigger: 'hover', html: true });
             $('.tooltips').tooltip();
+            
+            // create the sortable bind
             $('#skillplan tbody').sortable({
                 axis: "y",
                 containment: "#skillplan" ,
