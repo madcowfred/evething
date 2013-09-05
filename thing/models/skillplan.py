@@ -31,10 +31,14 @@ class SkillPlan(models.Model):
     PRIVATE_VISIBILITY = 1
     PUBLIC_VISIBILITY = 2
     GLOBAL_VISIBILITY = 3
+    CORPORATION_VISIBILITY = 4
+    ALLIANCE_VISIBILITY = 5
     VISIBILITY_CHOICES = (
         (PRIVATE_VISIBILITY, 'Private'),
         (PUBLIC_VISIBILITY, 'Public'),
         (GLOBAL_VISIBILITY, 'Global'),
+        (CORPORATION_VISIBILITY, 'Corporation'),
+        (ALLIANCE_VISIBILITY, 'Alliance'),
     )
 
     user = models.ForeignKey(User)
