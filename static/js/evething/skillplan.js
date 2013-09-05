@@ -25,6 +25,16 @@ EVEthing.skillplan = {
             }
         );       
         
+        $('#clean_skillplan').click(
+            function(e) {
+                var confirmDelete = confirm("Are you sure you want to remove all entries from this skillplan ?")
+                if(confirmDelete) {
+                    EVEthing.skillplan.cleanSkillPlan();
+                }
+                e.stopPropagation();
+            }
+        );
+        
         // hover thing for skill descriptions
         $('.skill-list-hover').popover({ 
             animation: false, 
@@ -59,54 +69,6 @@ EVEthing.skillplan = {
         EVEthing.skillplan.reloadEntries()
     },
     
-    addRemapPoint: function() {
-        $.ajax({
-            crossDomain: false,
-            url: EVEthing.skillplan.addRemapInPlanUrl,
-            data: { skillplan_id:EVEthing.skillplan.skillplanId },
-            type:'post',
-            beforeSend: function(xhr, settings) {
-                xhr.setRequestHeader("X-CSRFToken", $.cookie('csrftoken'));
-            },
-            success: function(json) {
-                var response = $.parseJSON(json);
-                if(response.status == "ok"){
-                    EVEthing.skillplan.reloadEntries();
-                }
-            },
-            error: function(xhr, status, error) {
-                // TODO : 
-                // display the error for the user (at least !)
-            }
-        });
-
-    },
-    
-    addSkillInPlan: function(skill_id, level) {
-        $.ajax({
-            crossDomain: false,
-            url: EVEthing.skillplan.addSkillInPlanUrl,
-            data: { skill_id:skill_id
-                  , skill_level:level
-                  , skillplan_id:EVEthing.skillplan.skillplanId },
-            type:'post',
-            beforeSend: function(xhr, settings) {
-                xhr.setRequestHeader("X-CSRFToken", $.cookie('csrftoken'));
-            },
-            success: function(json) {
-                var response = $.parseJSON(json);
-                if(response.status == "ok"){
-                    $('#'+EVEthing.skillplan.current_popover_id).popover('hide');
-                    EVEthing.skillplan.reloadEntries();
-                }
-            },
-            error: function(xhr, status, error) {
-                // TODO : 
-                // display the error for the user (at least !)
-            }
-        });
-    },
-    
     reloadEntries: function() {
         // call a page with a $.get to grab the skillplan entries.
         
@@ -126,6 +88,17 @@ EVEthing.skillplan = {
             $('.skill-hover').popover({ animation: false, trigger: 'hover', html: true });
             $('.tooltips').tooltip();
             
+            // init the delete bind
+            $('.remove-entry').click(
+                function(e) {
+                    var confirmDelete = confirm("Are you sure you want to delete this entry?\nNote: All entries depending on that skill will be deleted in the process.")
+                    if(confirmDelete) {
+                        EVEthing.skillplan.deleteEntry($(this).attr('data-id'));
+                    }
+                    e.stopPropagation();
+                }
+            );
+                        
             // create the sortable bind
             $('#skillplan tbody').sortable({
                 axis: "y",
@@ -167,14 +140,93 @@ EVEthing.skillplan = {
             });
         })
     },
+
+    addRemapPoint: function() {
+        if(EVEthing.skillplan.addRemapInPlanUrl == "") {
+            alert('Add Remap URL is not set');
+            return;
+        }
+        var data = { skillplan_id:EVEthing.skillplan.skillplanId };        
+        EVEthing.skillplan.ajaxCall(EVEthing.skillplan.addRemapInPlanUrl, data); 
+    },
     
-    reorderEntry: function(entry, new_position) {
+    cleanSkillPlan: function() {
+        if(EVEthing.skillplan.cleanSkillplanUrl == "") {
+            alert('Clean SkillPlan URL is not set');
+            return;
+        }
+        var data = { skillplan_id:EVEthing.skillplan.skillplanId };        
+        EVEthing.skillplan.ajaxCall(EVEthing.skillplan.cleanSkillplanUrl, data); 
+    },
+    
+    deleteEntry: function(entry_id) {
+        if(EVEthing.skillplan.deleteEntryUrl == "") {
+            alert('Delete entry URL is not set');
+            return;
+        }
+        var data = { skillplan_id:EVEthing.skillplan.skillplanId
+                   , entry_id:entry_id};        
+        EVEthing.skillplan.ajaxCall(EVEthing.skillplan.deleteEntryUrl, data); 
+    },
+    
+    addSkillInPlan: function(skill_id, level) {
+
+        if(EVEthing.skillplan.addSkillInPlanUrl == "") {
+            alert('Add Skill URL is not set');
+            return;
+        }
+        
+        // need to do the full ajax, since we need to manage the popover :(
         $.ajax({
             crossDomain: false,
-            url: EVEthing.skillplan.reorderEntriesUrl,
-            data: { entry_id:entry
-                  , new_position:new_position
+            url: EVEthing.skillplan.addSkillInPlanUrl,
+            data: { skill_id:skill_id
+                  , skill_level:level
                   , skillplan_id:EVEthing.skillplan.skillplanId },
+            type:'post',
+            beforeSend: function(xhr, settings) {
+                xhr.setRequestHeader("X-CSRFToken", $.cookie('csrftoken'));
+            },
+            success: function(json) {
+                var response = $.parseJSON(json);
+                if(response.status == "ok"){
+                    $('#'+EVEthing.skillplan.current_popover_id).popover('hide');
+                    EVEthing.skillplan.reloadEntries();
+                }
+            },
+            error: function(xhr, status, error) {
+                alert("Error " + xhr.status + ": " +xhr.responseText)
+            }
+        });
+    },
+   
+    reorderEntry: function(entry, new_position) {
+        if(EVEthing.skillplan.reorderEntriesUrl == "") {
+            alert('Reorder Skill URL is not set');
+            return;
+        }
+        var data = { entry_id:ui.item.attr('data-id')
+                   , new_position:new_position
+                   , skillplan_id:EVEthing.skillplan.skillplanId };
+                   
+        EVEthing.skillplan.ajaxCall(EVEthing.skillplan.reorderEntriesUrl, data, true); 
+    },
+    
+    optimizeAttributes: function() {
+    
+    },
+    
+    optimizeRemaps: function() {
+    
+    },
+
+    ajaxCall: function(url, data, reloadIfError) {    
+        reloadIfError = (typeof reloadIfError === 'undefined') ? false : reloadIfError;
+        
+        $.ajax({
+            crossDomain: false,
+            url: url,
+            data: data,
             type:'post',
             beforeSend: function(xhr, settings) {
                 xhr.setRequestHeader("X-CSRFToken", $.cookie('csrftoken'));
@@ -186,18 +238,11 @@ EVEthing.skillplan = {
                 }
             },
             error: function(xhr, status, error) {
-                // TODO : 
-                // display the error for the user (at least !)
+                alert("Error " + xhr.status + ": " +xhr.responseText)
+                if(reloadIfError) {
+                    EVEthing.skillplan.reloadEntries();
+                }
             }
         });
-    },
-    
-    optimizeAttributes: function() {
-    
-    },
-    
-    optimizeRemaps: function() {
-    
-    },
-
+    }
 }
