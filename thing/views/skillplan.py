@@ -245,14 +245,14 @@ def skillplan_ajax_reorder_entry(request):
                     skill_relatives.remove(entry.id)
                     entry.position = new_position
                     new_position += delta_position
-                    entry.save(update_field=['position'])
+                    entry.save(update_fields=['position'])
                     continue
                 
                 entry.position += delta_position + (delta_position * len(skill_relatives))                   
-                entry.save(update_field=['position'])
+                entry.save(update_fields=['position'])
             
             moved_entry.position = new_position
-            moved_entry.save(update_field=['position'])
+            moved_entry.save(update_fields=['position'])
             
             tt.add_time('Reorder')
             
@@ -478,12 +478,12 @@ def skillplan_ajax_delete_entry(request):
                             continue
                     
                 entry.position -= nb_entry_deleted           
-                entry.save(update_field=['position'])
+                entry.save(update_fields=['position'])
             
             if del_entry.sp_skill is not None:
-                entry.sp_skill.delete()
+                del_entry.sp_skill.delete()
             else: 
-                entry.sp_remap.delete()
+                del_entry.sp_remap.delete()
             del_entry.delete()
             
             tt.add_time('Delete')
