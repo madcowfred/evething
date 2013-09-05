@@ -8,6 +8,8 @@
         // current skill popover displayed
         EVEthing.skillplan.addSkillInPlanUrl = "{{ url('thing.views.skillplan_ajax_add_skill') }}"
         EVEthing.skillplan.addRemapInPlanUrl = "{{ url('thing.views.skillplan_ajax_add_remap') }}"
+        EVEthing.skillplan.deleteEntryUrl = "{{ url('thing.views.skillplan_ajax_delete_entry') }}"
+        EVEthing.skillplan.cleanSkillplanUrl = "{{ url('thing.views.skillplan_ajax_clean') }}"
         EVEthing.skillplan.skillPlanEntriesEditUrl = "{{ url('thing.views.skillplan_ajax_render_entries_edit', 99999999999, 88888888888, 77777777777, 66666666666 )  }}"
         EVEthing.skillplan.reorderEntriesUrl = "{{ url('thing.views.skillplan_ajax_reorder_entry') }}"
         EVEthing.skillplan.skillplanId = {{ skillplan.id }}
@@ -16,7 +18,7 @@
 {% endblock %}
 
 
-{% block title %}Skill Plan{% endblock %}
+{% block title %}Edit Skill Plan - {{ skillplan.name }}{% endblock %}
 
 {% block content %}
 
@@ -26,9 +28,9 @@
         
         <ul class="nav nav-tabs" id="skillplan-tab">
             <li class="active"><a href="#tab-skillplan" data-toggle="tab">Skillplan</a></li>
-            {#-<li><a href="#tab-items" data-toggle="tab">Items</a></li>
-            <li><a href="#tab-ships" data-toggle="tab">Ships</a></li>
-            <li><a href="#tab-certificates" data-toggle="tab">Certificates</a></li>-#}
+            {#-<li><a href="#tab-items" data-toggle="tab">Item Browser</a></li>
+            <li><a href="#tab-ships" data-toggle="tab">Ship Browser</a></li>
+            <li><a href="#tab-certificates" data-toggle="tab">Certificate Browser</a></li>-#}
         </ul>
 
         <div class="tab-content">
@@ -71,9 +73,9 @@
                                 <button id="apply_filter" class="btn btn-primary">Apply filters</button>
                                 <br />
                                 <button class="btn btn-primary" id="add_remap">Add Remap</button>
-                                <button class="btn btn-info" id="optimize_attr">Optimize Attributes</button>
-                                <button class="btn btn-info" id="optimize_remap">Optimize Remap</button>
-                                <button class="btn btn-danger" id="optimize_remap">Clean</button>
+                                <button class="btn btn-success" id="optimize_attr">Optimize Attributes</button>
+                                <button class="btn btn-success" id="optimize_remap">Optimize Remap</button>
+                                <button class="btn btn-danger" id="clean_skillplan">Clean</button>
                             </div>
                         </div>
                         
@@ -104,7 +106,7 @@
                                 <input id="searchSkill" type="text" placeholder="Search Skill">
                             </div>
                             {% for market_group, skills in skill_list.items() -%}
-                            <ul class="nav nav-list ">
+                            <ul class="nav nav-list">
                                 <li class="nav-header collapsed" data-toggle="collapse" data-parent="#skill_list" data-target=".mg-{{ market_group.id }}">
                                     <i class="icon-folder-open"></i>
                                     {{ market_group.name }}
@@ -112,7 +114,7 @@
                                 {% for skill in skills -%}
                                 <li id="skill-{{ skill.item.id }}" class="mg-{{ market_group.id }} collapse skill" data-name="{{ skill.item.name }}" data-group="{{ market_group.name }}" data-prim="{{ skill.primary_attribute }}" data-sec="{{ skill.secondary_attribute }}" data-planned-to="0" data-skilled-to="0">
                                     <a>
-                                        <span class="skill-list-hover {{ extra_class}}" rel="popover" title="{{ skill.item.name }}" id="skill-list-hover-{{ skill.item.id }}" data-content="
+                                        <span class="skill-list-hover {{ extra_class}}" title="{{ skill.item.name }}" id="skill-list-hover-{{ skill.item.id }}" data-content="
                                             {{ skill }}
                                             <br><br>
                                             <strong>Plan to level:</strong> <br>

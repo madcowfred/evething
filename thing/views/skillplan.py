@@ -145,6 +145,7 @@ def skillplan_ajax_render_entries_edit(request, skillplan_id, character_id, impl
 
 # ---------------------------------------------------------------------------
 # Move an entry in another position
+@login_required
 def skillplan_ajax_reorder_entry(request):
     """
     Add a remap to the skillplan
@@ -166,7 +167,7 @@ def skillplan_ajax_reorder_entry(request):
             new_position = int(new_position)
             try:
                 skillplan   = SkillPlan.objects.get(user=request.user, id=skillplan_id)
-                moved_entry = SPEntry.objects.get(id=moved_entry_id)
+                moved_entry = SPEntry.objects.select_related('sp_remap', 'sp_skill__skill__item').get(id=moved_entry_id)
 
             except SkillPlan.DoesNotExist:
                 return HttpResponse(content='That skillplan does not exist', status=500)     
@@ -244,15 +245,14 @@ def skillplan_ajax_reorder_entry(request):
                     skill_relatives.remove(entry.id)
                     entry.position = new_position
                     new_position += delta_position
-                    entry.save()
+                    entry.save(update_field=['position'])
                     continue
                 
-                
                 entry.position += delta_position + (delta_position * len(skill_relatives))                   
-                entry.save()
+                entry.save(update_field=['position'])
             
             moved_entry.position = new_position
-            moved_entry.save()
+            moved_entry.save(update_field=['position'])
             
             tt.add_time('Reorder')
             
@@ -265,8 +265,6 @@ def skillplan_ajax_reorder_entry(request):
             return HttpResponse(content='Cannot add the remap : no skillplan provided, entry or position given', status=500)       
     else:
         return HttpResponse(content='Cannot call this page directly', status=403)
-
-
 
 # ---------------------------------------------------------------------------
 # Add a remap to the skillplan
@@ -320,9 +318,6 @@ def skillplan_ajax_add_remap(request):
             return HttpResponse(content='Cannot add the remap : no skillplan provided', status=500)       
     else:
         return HttpResponse(content='Cannot call this page directly', status=403)
-
-
-
 
 # ---------------------------------------------------------------------------
 # Add a given skill & prerequisites
@@ -427,6 +422,104 @@ def skillplan_ajax_add_skill(request):
         
         else:
             return HttpResponse(content='Cannot add the skill : no skill or no skillplan provided', status=500)       
+    else:
+        return HttpResponse(content='Cannot call this page directly', status=403)
+
+# ---------------------------------------------------------------------------
+# Delete an entry and all of its dependencies 
+@login_required
+def skillplan_ajax_delete_entry(request):
+    """
+    Remove an entry from the skillplan, also remove all the skill dependencies if required
+        
+    This function will return a json with status "ok" or a http error code.
+    
+    POST:   skillplan_id : id of the plan
+    """
+    tt = TimerThing('skill_delete_entry')
+
+    tt.add_time('init')
+    
+    if request.is_ajax():
+        skillplan_id     = request.POST.get('skillplan_id', '')
+        entry_id         = request.POST.get('entry_id', '')
+
+        if skillplan_id.isdigit() and entry_id.isdigit():
+            try:
+                skillplan   = SkillPlan.objects.get(user=request.user, id=skillplan_id)
+                del_entry   = SPEntry.objects.select_related('sp_remap', 'sp_skill__skill__item').get(id=entry_id)
+
+            except SkillPlan.DoesNotExist:
+                return HttpResponse(content='That skillplan does not exist', status=500)     
+
+
+            except SPEntry.DoesNotExist:
+                return HttpResponse(content='That entry does not exist', status=500)     
+
+            tt.add_time('Get objects')
+            
+            nb_entry_deleted = 1
+
+            entries = (
+                skillplan.entries
+                .select_related('sp_skill__skill__item')
+                .filter(position__gt = del_entry.position)
+            )
+            
+            for entry in entries:
+                if del_entry.sp_skill is not None and entry.sp_skill is not None:
+                    if  (del_entry.sp_skill.skill.is_child(entry.sp_skill.skill, del_entry.sp_skill.level) or
+                        (del_entry.sp_skill.skill.item.id == entry.sp_skill.skill.item.id and 
+                            del_entry.sp_skill.level < entry.sp_skill.level)):
+                            
+                            entry.sp_skill.delete()
+                            entry.delete()
+                            nb_entry_deleted += 1
+                            continue
+                    
+                entry.position -= nb_entry_deleted           
+                entry.save(update_field=['position'])
+            
+            if del_entry.sp_skill is not None:
+                entry.sp_skill.delete()
+            else: 
+                entry.sp_remap.delete()
+            del_entry.delete()
+            
+            tt.add_time('Delete')
+            
+            if settings.DEBUG:
+                tt.finished()   
+                
+            return HttpResponse(json.dumps({'status':'ok'}), status=200)
+        
+        else:
+            return HttpResponse(content='Cannot delete the entry : no skillplan or entry given', status=500)       
+    else:
+        return HttpResponse(content='Cannot call this page directly', status=403)
+
+# ---------------------------------------------------------------------------
+# Delete all entries from a skillplan 
+def skillplan_ajax_clean(request):
+    if request.is_ajax():
+        skillplan_id = request.POST.get('skillplan_id', '')
+        if skillplan_id.isdigit():
+            try:
+                skillplan = SkillPlan.objects.get(user=request.user, id=skillplan_id)
+            
+            except SkillPlan.DoesNotExist:
+                return HttpResponse(content='That skillplan does not exist', status=500)     
+             
+            # Delete all of the random things for this skillplan
+            entries = SPEntry.objects.filter(skill_plan=skillplan)
+            SPRemap.objects.filter(pk__in=[e.sp_remap_id for e in entries if e.sp_remap_id]).delete()
+            SPSkill.objects.filter(pk__in=[e.sp_skill_id for e in entries if e.sp_skill_id]).delete()
+            entries.delete()
+                
+            return HttpResponse(json.dumps({'status':'ok'}), status=200)
+            
+        else:
+            return HttpResponse(content='Cannot delete the entry : no skillplan or entry given', status=500)       
     else:
         return HttpResponse(content='Cannot call this page directly', status=403)
 
@@ -795,7 +888,6 @@ def _get_skill_parents(skill):
         list_parent.update(_get_skill_parents(parent.parent_skill))
     
     return list_parent
-
     
 # ---------------------------------------------------------------------------
 # Return a dict with all the prerequisite of a given skill
