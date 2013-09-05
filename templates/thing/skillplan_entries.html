@@ -39,9 +39,9 @@
                             <td class="l{% if entry.z_training %} training-highlight{% endif %} skill_entry_handler">
                                 {{ common.skill_hover(entry.sp_skill.skill, entry.sp_skill.level)}}
                                 {% if entry.z_injected -%}
-                                <i class="icon-book pull-right tooltips" title="Skillbook is injected"</i>
+                                <i class="icon-book pull-right tooltips" title="Skillbook is injected"></i>
                                 {%- elif entry.z_buy %}
-                                <i class="icon-shopping-cart pull-right tooltips" title="Skillbook is not injected"</i>
+                                <i class="icon-shopping-cart pull-right tooltips" title="Skillbook is not injected"></i>
                                 {%- endif %}
                             </td>
                             <td class="sp-group skill_entry_handler">{{ entry.sp_skill.skill.item.item_group }}</td>
@@ -50,7 +50,7 @@
                             <td class="sp-small skill_entry_handler">{{ entry.z_spph|commas }}</td>
                             <td class="r sp-time skill_entry_handler">{{ entry.z_remaining|duration }}</td>
                         {%- endif %}
-                            <td><a href="#" id="remove-entry" data-id="{{ entry.id }}"><i class="icon-remove"></i></a></td>
+                            <td><a href="#" class="remove-entry" data-id="{{ entry.id }}"><i class="icon-remove"></i></a></td>
                         </tr>
                     {%- else %}
                         <tr>
