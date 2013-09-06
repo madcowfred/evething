@@ -471,11 +471,11 @@ def skillplan_ajax_delete_entry(request):
                     if  (del_entry.sp_skill.skill.is_child(entry.sp_skill.skill, del_entry.sp_skill.level) or
                         (del_entry.sp_skill.skill.item.id == entry.sp_skill.skill.item.id and 
                             del_entry.sp_skill.level < entry.sp_skill.level)):
-                            
-                            entry.sp_skill.delete()
-                            entry.delete()
-                            nb_entry_deleted += 1
-                            continue
+                        
+                        entry.sp_skill.delete()
+                        entry.delete()
+                        nb_entry_deleted += 1
+                        continue
                     
                 entry.position -= nb_entry_deleted           
                 entry.save(update_fields=['position'])
