@@ -5,13 +5,13 @@
     <script type="text/javascript">$(document).ready(EVEthing.account.onload);</script>
 {% endblock %}
 
-{% block title %}Account Management{% endblock %}
+{% block title %}My Account{% endblock %}
 
 {% block content %}
       <div class="row-fluid">
         <div class="span12">
           <h2>Account Management</h2>
-          
+
           {%- if message %}
           <div class="alert alert-{{ message_type }}">
             <strong>{{ message_type|capitalize }}:</strong> {{ message }}
@@ -282,7 +282,7 @@
                     <strong>Note:</strong> EVEthing requires specific API key flags for various features, tick some boxes and the 'Create a key'
                     link at the bottom will magically update. When adding a key the 'Name' field is for your reference only.
                   </p>
-                  
+
                   <div class="row-fluid margin-full-top">
                     <div class="span4">
                       <h4>EVEthing features:</h4>
@@ -368,7 +368,7 @@
                     {%- endfor %}
                   </tbody>
                 </table>
-                
+
                 <h4>Add new skill plan</h4>
                 <form class="well form-horizontal" action="{{ url('thing.views.account_skillplan_add') }}" method="POST" enctype="multipart/form-data">
                   {{ csrf() }}
@@ -440,7 +440,7 @@
               </form>
             </div>
             {%- endif %}
-                  
+
             {# apikeys: purge modal -#}
             <div class="modal hide" id="purge-apikey-modal">
               <form action="{{ url('thing.views.account_apikey_purge') }}" method="POST" class="form-inline">
