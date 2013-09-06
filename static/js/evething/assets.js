@@ -2,7 +2,7 @@ EVEthing.assets = {
     onload: function() {
         // Bind filter events
         EVEthing.filters.bind_events();
-        
+
         // Load filters
         EVEthing.filters.load_filters(EVEthing.assets.filters);
 

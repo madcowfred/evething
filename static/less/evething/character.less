@@ -7,28 +7,82 @@
   padding: 0;
 }
 
-div.character-main {
+.character-main {
   float: right;
   margin-left: -276px;
 }
-div.character-content {
+.character-content {
   margin-left: 276px;
 }
-div.character-side {
+.character-side {
   float: right;
   width: 256px;
   margin-right: 20px;
+
+  .character-image {
+    position: relative;
+    width: 256px;
+    height: 256px;
+    .border-radius(6px);
+
+    .icon-list {
+      position: absolute;
+      bottom: 0px;
+      left: 5px;
+      color: #fff;
+      text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black;
+    }
+
+    .icon-cog {
+      position: absolute;
+      bottom: 1px;
+      right: 5px;
+      color: #fff;
+      text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black;
+    }
+  }
+
+  .character-sidenav {
+    //margin: 30px 0 0;
+    //padding: 0;
+    padding-top: 3px;
+    padding-bottom: 3px;
+    border: 1px solid @tableBorder;
+    .border-radius(6px);
+    width: 224px;
+
+    .divider {
+      background-color: @tableBorder;
+      border-bottom: 1px solid @tableBorder;
+    }
+    li a {
+      display: block;
+      margin: 0 0 -1px;
+      padding: 0;
+      //border: 1px solid #e5e5e5;
+    }
+    .icon-chevron-right {
+      float: right;
+      margin-right: -6px;
+      /*margin-top: 3px;
+      margin-left: 5px;*/
+      opacity: 0.6;
+    }
+  }
+  .character-sidenav.affix {
+    top: 55px;
+  }
 }
 
 @media (max-width: 767px) {
-  div.character-main {
+  .character-main {
     float: none;
     margin-left: 0;
   }
-  div.character-content {
+  .character-content {
     margin-left: 0;
   }
-  div.character-side {
+  .character-side {
     float: none;
     margin-right: 0;
     display: block;
@@ -36,7 +90,7 @@ div.character-side {
   }
 }
 
-div.character-sp {
+.character-sp {
   text-align: right;
   margin-right: 0.8em;
   width: 6.5em;

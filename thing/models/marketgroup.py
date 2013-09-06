@@ -24,6 +24,7 @@
 # ------------------------------------------------------------------------------
 
 from django.db import models
+from django.utils.text import slugify
 
 from mptt.models import MPTTModel, TreeForeignKey
 
@@ -43,5 +44,8 @@ class MarketGroup(MPTTModel):
 
     def __unicode__(self):
         return self.name
+
+    def slug(self):
+        return slugify(unicode(self.name))
 
 # ------------------------------------------------------------------------------
