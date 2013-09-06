@@ -1,5 +1,6 @@
 EVEthing.character = {
     anon_checked: null,
+    sidenav_top: 0,
 
     onload: function() {
         EVEthing.misc.setup_tab_hash();
@@ -25,6 +26,25 @@ EVEthing.character = {
 
         // AJAX for settings form
         $('#settings-form').on('submit', EVEthing.character.settings_submit);
+
+        // Affix the sidenav
+        $('#sidenav').affix({
+            offset: EVEthing.character.sidenav_offset,
+        });
+    },
+
+    // Magic object with a function to calculate the sidenav offset
+    sidenav_offset: {
+        top: function() {
+            var window_h = window.innerHeight;
+            var sidenav_h = $('#sidenav').height();
+            if (window_h >= (sidenav_h + 75)) {
+                return $('#sidenav-offset').offset().top - 50;
+            }
+            else {
+                return 999999;
+            }
+        },
     },
 
     public_checkbox_change: function() {

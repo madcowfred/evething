@@ -101,6 +101,7 @@
 
             <div class="tab-content">
               <div class="tab-pane active" id="tab_skills">
+                <div class="anchor" id="skills-top"></div>
                 {% for mg, css in skills.items() -%}
                 <div class="anchor" id="{{ mg.slug() }}"></div>
                 <span class="char-skill-group">{{ mg.name }}</span>
@@ -184,7 +185,7 @@
         </div>
 
         {%- if not public %}
-        <div id="settings-box" class="well well-small" style="display: none;">
+        <div id="settings-box" class="well well-small hidey-box" style="display: none;">
           <h4 class="nomargin">Settings</h4>
           <form id="settings-form" action="{{ url('thing.views.character_settings', char.name) }}" method="POST" style="margin: 0">
             {{ csrf() }}
@@ -248,7 +249,7 @@
         {%- endif %}
 
         {% if user_plans -%}
-        <div id="skillplans-personal" class="well well-small" style="display: none;">
+        <div id="skillplans-personal" class="well well-small hidey-box" style="display: none;">
           <h4 class="nomargin">My Skill Plans</h4>
           <ul class="unstyled">
             {% for sp in user_plans -%}
@@ -263,7 +264,7 @@
 
         {% if public_plans -%}
         {% set authed = user.is_authenticated() -%}
-        <div id="skillplans-global" class="well well-small" style="display: none;">
+        <div id="skillplans-global" class="well well-small hidey-box" style="display: none;">
           <h4 class="nomargin">Global Skill Plans</h4>
           <ul class="unstyled">
             {% for sp in public_plans -%}
@@ -282,8 +283,9 @@
         </div>
         {%- endif %}
 
+        <div id="sidenav-offset"></div>
         <div>
-          <ul class="nav nav-list character-sidenav">
+          <ul id="sidenav" class="nav nav-list character-sidenav">
 {% for mg, css in skills.items() -%}
             <li><a href="#{{ mg.slug() }}"><i class="icon-chevron-right"></i> {{ mg.name }}</a></li>
 {% endfor %}
