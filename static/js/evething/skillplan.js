@@ -11,35 +11,36 @@ EVEthing.skillplan = {
     cleanSkillplanUrl: "",
     
     onload: function() {
-        $('#apply_filter').click(
+        $('#apply_filter').on('click',
             function(e){
                 EVEthing.skillplan.reloadEntries();
                 e.preventDefault();
             }
         );        
         
-        $('#add_remap').click(
+        $('#add_remap').on('click',
             function(e) {
                 EVEthing.skillplan.addRemapPoint();
                 e.preventDefault();
             }
         );       
         
-        $('#optimize_attr').click(
+        $('#optimize_attr').on('click',
             function(e) {
                 EVEthing.skillplan.optimizeAttributes();
                 e.preventDefault();
             }
         );   
         
-        $('#optimize_remap').click(
+        $('#optimize_remap').on('click',
             function(e) {
                 EVEthing.skillplan.optimizeRemaps();
                 e.preventDefault();
             }
         );       
         
-        $('#clean_skillplan').click(
+        $('#searchSkill').on('keyup',EVEthing.skillplan.searchSkill);
+        $('#clean_skillplan').on('click',
             function(e) {
                 var confirmDelete = confirm("Are you sure you want to remove all entries from this skillplan ?")
                 if(confirmDelete) {
@@ -103,7 +104,7 @@ EVEthing.skillplan = {
             $('.tooltips').tooltip();
             
             // init the delete bind
-            $('.remove-entry').click(
+            $('.remove-entry').on('click',
                 function(e) {
                     var confirmDelete = confirm("Are you sure you want to delete this entry?\nNote: All entries depending on that skill will be deleted in the process.")
                     if(confirmDelete) {
@@ -258,5 +259,38 @@ EVEthing.skillplan = {
                 }
             }
         });
-    }
+    },
+    
+    searchSkill: function() {
+        var text = $('#searchSkill').val().toLowerCase();
+        $('#skill_list ul').each(
+            function() {
+                var found = false;
+                $(this).css('display','none');
+                var children = $(this).find('.nav-header').attr('data-target');
+                
+                $(this).find(children).each(
+                    function() {
+                        if($(this).attr('data-name').toLowerCase().indexOf(text) >= 0) {
+                            found = true;
+                            $(this).addClass('in').css('height','auto');
+                        } else {
+                            $(this).removeClass('in').css('height','0px');
+                        }
+                    }
+                );
+                
+                
+                if(found || text.length == 0) {
+                    $(this).css('display','');
+                    
+                    if(text.length == 0) {
+                        $(this).find(children).removeClass('in').css('height','0px');
+                    }
+                }
+            }
+        );
+    },
+    
+
 }
