@@ -4,6 +4,17 @@ EVEthing.character = {
     onload: function() {
         EVEthing.misc.setup_tab_hash();
 
+        // Bind skillplans toggle
+        $('#skillplans-toggle').on('click', function() {
+            $('#skillplans-personal').toggle();
+            $('#skillplans-global').toggle();
+        });
+
+        // Bind settings toggle
+        $('#settings-toggle').on('click', function() {
+            $('#settings-box').toggle();
+        });
+
         // Bind enable/disable of all public sub-checkboxes when public changes
         $("#public-checkbox").change(EVEthing.character.public_checkbox_change);
         EVEthing.character.public_checkbox_change();
