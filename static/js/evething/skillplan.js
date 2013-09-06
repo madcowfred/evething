@@ -3,12 +3,16 @@ EVEthing.skillplan = {
     current_popover_id: false,
     
     skillplanId: 0,
+    
     addSkillInPlanUrl: "",
     addRemapInPlanUrl: "",
     skillPlanEntriesEditUrl: "",
     reorderEntriesUrl: "",
     deleteEntryUrl: "",
     cleanSkillplanUrl: "",
+    optimizeSkillplanUrl: "",
+    optimizeSkillplanRemapsUrl = "",
+
     
     onload: function() {
         $('#apply_filter').on('click',

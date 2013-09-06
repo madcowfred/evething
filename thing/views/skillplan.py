@@ -25,6 +25,7 @@
 
 import gzip
 import json
+import datetime
 
 from django.http import HttpResponse
 from django.conf import settings
@@ -320,6 +321,74 @@ def skillplan_ajax_add_remap(request):
         return HttpResponse(content='Cannot call this page directly', status=403)
 
 # ---------------------------------------------------------------------------
+# return the best remap for a given skillplan
+@login_required
+def skillplan_ajax_optimize_skillplan(request):
+    tt = TimerThing('skill_add_skill')
+
+    tt.add_time('init')
+    
+    if request.is_ajax():
+        skillplan_id    = request.POST.get('skillplan_id', '')
+        
+        if skillplan_id.isdigit():
+            try:
+                skillplan = SkillPlan.objects.get(user=request.user, id=skillplan_id)
+
+            except SkillPlan.DoesNotExist:
+                return HttpResponse(content='That skillplan does not exist', status=500)     
+
+            entries = skillplan.entries.select_related('sp_remap', 'sp_skill__skill__item');
+            tt.add_time('Get all entries')
+            
+            # we only check for the first year of the plan, since we can remap after 1 year
+            remap = _optimize_attribute(entries, 365 * 24 * 60 * 60)
+            
+            tt.add_time('optimize remap')
+                
+            if settings.DEBUG:
+                tt.finished()    
+            
+            response = {'status':'ok'}
+            response['remap'] = remap
+            
+            return HttpResponse(json.dumps(response), status=200)
+        
+        else:
+            return HttpResponse(content='Cannot optimize attribute for skillplan : no skillplan provided', status=500)       
+    else:
+        return HttpResponse(content='Cannot call this page directly', status=403)
+
+# ---------------------------------------------------------------------------
+# Optimize remap for each remap point for a given skillplan
+@login_required
+def skillplan_ajax_optimize_skillplan(request):
+    tt = TimerThing('skill_add_skill')
+
+    tt.add_time('init')
+    
+    if request.is_ajax():
+        skillplan_id    = request.POST.get('skillplan_id', '')
+        
+        if skillplan_id.isdigit():
+            try:
+                skillplan = SkillPlan.objects.get(user=request.user, id=skillplan_id)
+
+            except SkillPlan.DoesNotExist:
+                return HttpResponse(content='That skillplan does not exist', status=500)     
+            
+            response = {'status':'ok'}
+            return HttpResponse(json.dumps(response), status=200)
+        
+        else:
+            return HttpResponse(content='Cannot optimize remaps for skillplan : no skillplan provided', status=500)       
+    else:
+        return HttpResponse(content='Cannot call this page directly', status=403)
+
+
+    
+    
+# ---------------------------------------------------------------------------
 # Add a given skill & prerequisites
 @login_required
 def skillplan_ajax_add_skill(request):
@@ -500,6 +569,7 @@ def skillplan_ajax_delete_entry(request):
 
 # ---------------------------------------------------------------------------
 # Delete all entries from a skillplan 
+@login_required
 def skillplan_ajax_clean(request):
     if request.is_ajax():
         skillplan_id = request.POST.get('skillplan_id', '')
@@ -918,3 +988,91 @@ def _get_skill_prerequisites(skill, skill_list, skills_in_plan):
         for level in range(skill_start_level, parent.level+1):
             skill_list[len(skill_list)] = {'id':parent.parent_skill.item.id, 'level':level}
     return
+
+# ---------------------------------------------------------------------------
+# Return the best remap for a given entries list
+def _optimize_attribute(entries, max_duration):
+    # training time (skill.get_sp_at_level(entry.sp_skill.level) - skill.get_sp_at_level(entry.sp_skill.level - 1)) / entry.z_sppm * 60
+    
+    max_remap_points_per_attr = 10
+    max_spare_points_on_remap = 14
+    base_attribute_points = 17
+    max_implant_points = 5
+    
+    best_skill_count = 0
+    best_duration = max_duration
+
+    implant_stats = {'int' : 0, 'mem' : 0, 'per' : 0, 'wil' : 0, 'cha' : 0}
+
+    # max combination number : 11^4 = 14,641
+    # PER
+    for per in range (0,max_remap_points_per_attr+1):
+        
+        # WIL
+        max_wil = min(14 - per, max_remap_points_per_attr)
+        for wil in range (0,max_wil + 1):
+        
+            # INT
+            max_int = min(max_wil - wil, max_remap_points_per_attr)
+            for int in range (0,max_int + 1):
+                
+                # MEM
+                max_mem = min(max_int - int, max_remap_points_per_attr)
+                for mem in range (0,max_mem + 1):
+                
+                    # CHA
+                    cha = max_mem - mem
+                    
+                    if cha > max_remap_points_per_attr: 
+                        continue
+            
+                    remap_stats = dict(
+                        int_attribute=base_attribute_points + int,
+                        mem_attribute=base_attribute_points + mem,
+                        per_attribute=base_attribute_points + per,
+                        wil_attribute=base_attribute_points + wil,
+                        cha_attribute=base_attribute_points + cha,
+                    )
+                    
+                    current_remap_duration = 0
+                    current_skill_count = 0
+                    
+                    for entry is entries:   
+                        if entry.sp_remap is not None:
+                            continue
+                            
+                        skill = entry.sp_skill.skill
+                        
+                        entry.z_sppm = skill.get_sppm_stats(remap_stats, implant_stats)
+                        
+                        current_skill_count += 1
+                        current_remap_duration += (skill.get_sp_at_level(entry.sp_skill.level) - skill.get_sp_at_level(entry.sp_skill.level - 1)) / entry.z_sppm * 60
+                    
+                        # did we just go over max_duration ?
+                        if current_remap_duration > max_duration:
+                            break
+                            
+                        # did we do less skill in more time than best duration ?
+                        if current_skill_count <= best_skill_count and current_remap_duration > best_duration:
+                            break
+                    
+                    # did we manage to train more skill before the max duration, or did we train the same number in lesser time ?
+                    if current_skill_count <= best_skill_count and (current_skill_count != best_skill_count or current_remap_duration >= best_duration):
+                        continue
+                    
+                    best_skill_count = current_skill_count
+                    best_duration = current_remap_duration
+                    best_remap = remap_stats
+                    
+    return best_remap              
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
