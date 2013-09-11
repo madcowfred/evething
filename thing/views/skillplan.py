@@ -1098,10 +1098,11 @@ def _optimize_attribute(entries, max_duration):
                     # did we manage to train more skill before the max duration, or did we train the same number in lesser time ?
                     if current_skill_count <= best_skill_count and (current_skill_count != best_skill_count or current_remap_duration >= best_duration):
                         continue
-       
-                    best_skill_count = current_skill_count
-                    best_duration = current_remap_duration
-                    best_remap = remap_stats
+                    
+                    if best_duration > current_remap_duration:
+                        best_skill_count = current_skill_count
+                        best_duration = current_remap_duration
+                        best_remap = remap_stats
                     
     return best_remap              
                     
