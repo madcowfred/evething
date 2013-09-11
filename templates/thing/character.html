@@ -101,7 +101,9 @@
 
             <div class="tab-content">
               <div class="tab-pane active" id="tab_skills">
+                <div class="anchor" id="skills-top"></div>
                 {% for mg, css in skills.items() -%}
+                <div class="anchor" id="{{ mg.slug() }}"></div>
                 <span class="char-skill-group">{{ mg.name }}</span>
                 --
                 <strong>{{ css|length }}</strong> skill(s) trained for <strong>{{ mg.z_total_sp|commas }}</strong> SP
@@ -170,12 +172,20 @@
       </div>
 
       <div class="character-side">
-        <div class="image">
-          <img src="{% if anonymous %}{{ STATIC_URL }}img/anonymous_character.jpg{% else %}http://image.eveonline.com/Character/{{ char.id }}_256.jpg{% endif %}" height="256" width="256" class="img-rounded">
+{% if anonymous %}
+{% set img = STATIC_URL + 'img/anonymous_character.jpg' %}
+{% else %}
+{% set img = 'http://image.eveonline.com/Character/%s_256.jpg' % (char.id) %}
+{% endif %}
+        <div class="image character-image" style="background-image: url('{{ img }}');">
+          <i id="skillplans-toggle" class="icon-list icon-2x clickable" rel="tooltip" title="Toggle skillplans"></i>
+{% if not public %}
+          <i id="settings-toggle" class="icon-cog icon-2x clickable" rel="tooltip" title="Toggle settings"></i>
+{% endif %}
         </div>
 
         {%- if not public %}
-        <div class="well well-small">
+        <div id="settings-box" class="well well-small hidey-box" style="display: none;">
           <h4 class="nomargin">Settings</h4>
           <form id="settings-form" action="{{ url('thing.views.character_settings', char.name) }}" method="POST" style="margin: 0">
             {{ csrf() }}
@@ -239,7 +249,7 @@
         {%- endif %}
 
         {% if user_plans -%}
-        <div class="well well-small">
+        <div id="skillplans-personal" class="well well-small hidey-box" style="display: none;">
           <h4 class="nomargin">My Skill Plans</h4>
           <ul class="unstyled">
             {% for sp in user_plans -%}
@@ -254,7 +264,7 @@
 
         {% if public_plans -%}
         {% set authed = user.is_authenticated() -%}
-        <div class="well well-small">
+        <div id="skillplans-global" class="well well-small hidey-box" style="display: none;">
           <h4 class="nomargin">Global Skill Plans</h4>
           <ul class="unstyled">
             {% for sp in public_plans -%}
@@ -272,6 +282,15 @@
           </ul>
         </div>
         {%- endif %}
+
+        <div id="sidenav-offset"></div>
+        <div>
+          <ul id="sidenav" class="nav nav-list character-sidenav">
+{% for mg, css in skills.items() -%}
+            <li><a href="#{{ mg.slug() }}"><i class="icon-chevron-right"></i> {{ mg.name }}</a></li>
+{% endfor %}
+          </ul>
+        </div>
       </div>
 
       <div class="clearfix"></div>
