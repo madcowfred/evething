@@ -26,6 +26,7 @@
 import gzip
 import json
 import datetime
+import thread
 
 from django.http import HttpResponse
 from django.conf import settings
@@ -324,7 +325,7 @@ def skillplan_ajax_add_remap(request):
 # return the best remap for a given skillplan
 @login_required
 def skillplan_ajax_optimize_skillplan(request):
-    tt = TimerThing('skill_add_skill')
+    tt = TimerThing('skillplan_optimize_skillplan')
 
     tt.add_time('init')
     
@@ -362,8 +363,8 @@ def skillplan_ajax_optimize_skillplan(request):
 # ---------------------------------------------------------------------------
 # Optimize remap for each remap point for a given skillplan
 @login_required
-def skillplan_ajax_optimize_skillplan(request):
-    tt = TimerThing('skill_add_skill')
+def skillplan_ajax_optimize_remaps(request):
+    tt = TimerThing('skillplan_opti_remaps')
 
     tt.add_time('init')
     
@@ -377,7 +378,44 @@ def skillplan_ajax_optimize_skillplan(request):
             except SkillPlan.DoesNotExist:
                 return HttpResponse(content='That skillplan does not exist', status=500)     
             
+            # we want all remaps from the end to beginning of the plan
+            remaps = skillplan.entries.select_related('sp_remap').filter(sp_remap__isnull=False).order_by('-position')
+            
+            # prefetch all entries, not to have a query for each entries per remaps
+            entries = skillplan.entries.select_related('sp_remap', 'sp_skill__skill__item')
+            end_position = entries.count();
+            
+            print(remaps)
+            tt.add_time('get entries') 
+            remap_list=[]
+            
+            
+            for remap in remaps:
+                start_position = remap.position
+                print("start %d, stop : %d" % (start_position, end_position))
+                current_remap_entries = entries.filter(position__gt=start_position, position__lt=end_position)
+                remapped_attribute = _optimize_attribute(entries, datetime.timedelta.max.days * 24 * 60 * 60)
+                print(remapped_attribute)
+                
+                remap.sp_remap.int_stat = remapped_attribute['int_attribute']
+                remap.sp_remap.mem_stat = remapped_attribute['mem_attribute']
+                remap.sp_remap.per_stat = remapped_attribute['per_attribute']
+                remap.sp_remap.wil_stat = remapped_attribute['wil_attribute']
+                remap.sp_remap.cha_stat = remapped_attribute['cha_attribute']
+                
+                remap.sp_remap.save()
+                
+                remap_list.append(remapped_attribute)
+                
+                end_position = remap.position
+            
+            
+            tt.add_time('remap')
+            if settings.DEBUG:
+                tt.finished()    
+            
             response = {'status':'ok'}
+            response['remaps'] = remap_list.reverse()
             return HttpResponse(json.dumps(response), status=200)
         
         else:
@@ -992,8 +1030,6 @@ def _get_skill_prerequisites(skill, skill_list, skills_in_plan):
 # ---------------------------------------------------------------------------
 # Return the best remap for a given entries list
 def _optimize_attribute(entries, max_duration):
-    # training time (skill.get_sp_at_level(entry.sp_skill.level) - skill.get_sp_at_level(entry.sp_skill.level - 1)) / entry.z_sppm * 60
-    
     max_remap_points_per_attr = 10
     max_spare_points_on_remap = 14
     base_attribute_points = 17
@@ -1002,7 +1038,7 @@ def _optimize_attribute(entries, max_duration):
     best_skill_count = 0
     best_duration = max_duration
 
-    implant_stats = {'int' : 0, 'mem' : 0, 'per' : 0, 'wil' : 0, 'cha' : 0}
+    implant_stats = {'int_bonus' : 0, 'mem_bonus' : 0, 'per_bonus' : 0, 'wil_bonus' : 0, 'cha_bonus' : 0}
 
     # max combination number : 11^4 = 14,641
     # PER
@@ -1036,8 +1072,10 @@ def _optimize_attribute(entries, max_duration):
                     
                     current_remap_duration = 0
                     current_skill_count = 0
+
                     
-                    for entry is entries:   
+                    
+                    for entry in entries:   
                         if entry.sp_remap is not None:
                             continue
                             
@@ -1047,7 +1085,7 @@ def _optimize_attribute(entries, max_duration):
                         
                         current_skill_count += 1
                         current_remap_duration += (skill.get_sp_at_level(entry.sp_skill.level) - skill.get_sp_at_level(entry.sp_skill.level - 1)) / entry.z_sppm * 60
-                    
+                        
                         # did we just go over max_duration ?
                         if current_remap_duration > max_duration:
                             break
@@ -1056,10 +1094,11 @@ def _optimize_attribute(entries, max_duration):
                         if current_skill_count <= best_skill_count and current_remap_duration > best_duration:
                             break
                     
+                    
                     # did we manage to train more skill before the max duration, or did we train the same number in lesser time ?
                     if current_skill_count <= best_skill_count and (current_skill_count != best_skill_count or current_remap_duration >= best_duration):
                         continue
-                    
+       
                     best_skill_count = current_skill_count
                     best_duration = current_remap_duration
                     best_remap = remap_stats
