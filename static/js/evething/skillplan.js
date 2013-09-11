@@ -11,7 +11,7 @@ EVEthing.skillplan = {
     deleteEntryUrl: "",
     cleanSkillplanUrl: "",
     optimizeSkillplanUrl: "",
-    optimizeSkillplanRemapsUrl = "",
+    optimizeSkillplanRemapsUrl: "",
 
     
     onload: function() {
@@ -232,11 +232,13 @@ EVEthing.skillplan = {
     },
     
     optimizeAttributes: function() {
-        alert('not working yet');
+        EVEthing.skillplan.ajaxCall(EVEthing.skillplan.optimizeSkillplanUrl
+                                   , {skillplan_id:EVEthing.skillplan.skillplanId})
     },
     
     optimizeRemaps: function() {
-        alert('not working yet');
+        EVEthing.skillplan.ajaxCall(EVEthing.skillplan.optimizeSkillplanRemapsUrl
+                                   , {skillplan_id:EVEthing.skillplan.skillplanId})
     },
 
     ajaxCall: function(url, data, reloadIfError) {    

@@ -45,7 +45,6 @@ urlpatterns += patterns('thing.views',
     (r'^skillplan/import$', 'skillplan_import_emp'),
     (r'^skillplan/info/edit$', 'skillplan_edit_info'),
 
-
     (r'^assets/$', 'assets_summary'),
     (r'^assets/filter/$', 'assets_filter'),
 
