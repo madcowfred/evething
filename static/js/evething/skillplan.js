@@ -102,7 +102,6 @@ EVEthing.skillplan = {
         $.get(url, function(data) {
             $('#skillplan').html(data); 
             
-            
             // we need to reset bindings in the loaded page
             $('.skill-hover').popover({ animation: false, trigger: 'hover', html: true });
             $('.tooltips').tooltip();
@@ -232,11 +231,20 @@ EVEthing.skillplan = {
     },
     
     optimizeAttributes: function() {
+        if(EVEthing.skillplan.optimizeSkillplanUrl == "") {
+            alert('Optimize attribute URL is not set');
+            return;
+        }
+
         EVEthing.skillplan.ajaxCall(EVEthing.skillplan.optimizeSkillplanUrl
                                    , {skillplan_id:EVEthing.skillplan.skillplanId})
     },
     
     optimizeRemaps: function() {
+        if(EVEthing.skillplan.optimizeSkillplanRemapsUrl == "") {
+            alert('Optimize remaps URL is not set');
+            return;
+        }
         EVEthing.skillplan.ajaxCall(EVEthing.skillplan.optimizeSkillplanRemapsUrl
                                    , {skillplan_id:EVEthing.skillplan.skillplanId})
     },
