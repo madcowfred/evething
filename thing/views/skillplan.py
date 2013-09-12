@@ -70,8 +70,8 @@ def skillplan_edit(request, skillplan_id):
 
     if skillplan_id.isdigit():
         skillplan = get_object_or_404(SkillPlan, user=request.user, pk=skillplan_id)
-                
-
+        characters = Character.objects.filter(apikeys__user=request.user).select_related('config','details').distinct()
+            
         # Init the global skill list
         skill_list           = OrderedDict()
         current_market_group = None
@@ -92,33 +92,12 @@ def skillplan_edit(request, skillplan_id):
             
             skill_list[current_market_group].append(skill)
         
-        characters = Character.objects.filter(
-            apikeys__user=request.user,
-        ).select_related(
-            'config',
-            'details',
-        ).distinct()
-
-        try:
-            selected_char = characters.get(id=request.GET.get('character'))
-        except Character.DoesNotExist:
-            selected_char = False
-        
-        implants = request.GET.get('implants', '')
-        if implants.isdigit() and 0 <= int(implants) <= 5:
-            implants = int(implants)
-        else:
-            implants = 0
-
         return render_page(
             'thing/skillplan_edit.html',
             {   
                 'skillplan'         : skillplan,
                 'skill_list'        : skill_list,
-                'show_trained'      : ('show_trained' in request.GET),
-                'implants'          : implants,
                 'characters'        : characters,
-                'selected_character': selected_char
             },
             request,
         )
@@ -129,7 +108,7 @@ def skillplan_edit(request, skillplan_id):
 # ---------------------------------------------------------------------------
 # Render the table entries of the skillplan
 @login_required
-def skillplan_ajax_render_entries_edit(request, skillplan_id, character_id, implants, show_trained):
+def skillplan_ajax_render_entries(request, skillplan_id, character_id, implants, show_trained):
     skillplan = get_object_or_404(SkillPlan, user=request.user, pk=skillplan_id)
     
     try:
@@ -143,25 +122,27 @@ def skillplan_ajax_render_entries_edit(request, skillplan_id, character_id, impl
         implants = 0 
     
     show_trained=bool(int(show_trained))
+    
     return _skillplan_list(request, skillplan, character, implants, show_trained)
 
 # ---------------------------------------------------------------------------
 # Move an entry in another position
 @login_required
-def skillplan_ajax_reorder_entry(request):
+def skillplan_ajax_reorder_entry(request, skillplan_id):
     """
     Add a remap to the skillplan
         
     This function will return a json with status "ok" or a http error code.
     
-    POST:   skillplan_id : id of the plan
+    GET:    skillplan_id
+    POST:   moved_entry_id 
+    POST:   new_position
     """
-    tt = TimerThing('skill_add_skill')
+    tt = TimerThing('skillplan_reorder_entry')
 
     tt.add_time('init')
     
     if request.is_ajax():
-        skillplan_id     = request.POST.get('skillplan_id', '')
         moved_entry_id   = request.POST.get('entry_id', '')
         new_position     = request.POST.get('new_position', '')
 
@@ -189,51 +170,49 @@ def skillplan_ajax_reorder_entry(request):
 
             skill_relatives = set()
                 
-            # first we need to know how much parent / children are between both start/end position
+            # get entries and count parent/child skills 
+            # - Moving upward
             if new_position < moved_entry.position:
-                entries = (
-                    skillplan.entries
-                    .select_related('sp_skill__skill__item')
-                    .filter(position__lt = moved_entry.position, position__gte = new_position)
-                )
-                
+                entries = skillplan.entries.select_related('sp_skill__skill__item') \
+                                   .filter(position__lt = moved_entry.position, position__gte = new_position) \
+                                   .only('position','sp_skill')
                 delta_position = 1
-                
+
+                # check the number of parents if we move a skill
                 if moved_entry.sp_remap is None:
-                    # check the number of parents if we move something else than a remap
+                    moved_skill = moved_entry.sp_skill.skill
                     for entry in entries:
                         if entry.sp_remap is not None:
                             continue
-                        if  (moved_entry.sp_skill.skill.is_parent(entry.sp_skill.skill, entry.sp_skill.level) or 
-                            (moved_entry.sp_skill.skill.item.id == entry.sp_skill.skill.item.id and 
-                                moved_entry.sp_skill.level > entry.sp_skill.level)):
+                        
+                        if moved_skill.is_parent(entry.sp_skill.skill, entry.sp_skill.level) or \
+                          (moved_skill.item_id == entry.sp_skill.skill.item_id and moved_entry.sp_skill.level > entry.sp_skill.level):
                             skill_relatives.add(entry.id)   
-                
+
+            # - Moving downward                
             elif new_position > moved_entry.position:
-                entries = (
-                    skillplan.entries
-                    .select_related('sp_skill__skill__item')
-                    .filter(position__gt = moved_entry.position, position__lte = new_position)
-                    .order_by('-position')
-                )
-                
+                entries = skillplan.entries.select_related('sp_skill__skill__item') \
+                                   .filter(position__gt = moved_entry.position, position__lte = new_position) \
+                                   .order_by('-position') \
+                                   .only('position','sp_skill')
                 delta_position = -1
                 
-                # check the number of children if we move something else than a remap
+                # check the number of children if we move a skill
                 if moved_entry.sp_remap is None:
+                    moved_skill = moved_entry.sp_skill.skill
                     for entry in entries:
                         if entry.sp_remap is not None:                        
                             continue
                             
-                        if  (moved_entry.sp_skill.skill.is_child(entry.sp_skill.skill, moved_entry.sp_skill.level) or
-                            (moved_entry.sp_skill.skill.item.id == entry.sp_skill.skill.item.id and 
-                                moved_entry.sp_skill.level < entry.sp_skill.level)):
-                            skill_relatives.add(entry.id)                        
+                        if moved_skill.is_child(entry.sp_skill.skill, moved_entry.sp_skill.level) or \
+                          (moved_skill.item_id == entry.sp_skill.skill.item_id and moved_entry.sp_skill.level < entry.sp_skill.level):
+                            skill_relatives.add(entry.id)
 
+            # - Same position
             else:   
                 return HttpResponse(json.dumps({'status':'nothing_changed'}), status=200)
             
-            tt.add_time('Entries + relatives')
+            tt.add_time('Entries')
            
             # loop on entries
             # add to entry position : 
@@ -242,7 +221,8 @@ def skillplan_ajax_reorder_entry(request):
             # loop.
             # moved_entry.position = new_position
             for entry in entries:
-
+                print('loop %d '%(entry.id,))
+            
                 if entry.id in skill_relatives:
                     skill_relatives.remove(entry.id)
                     entry.position = new_position
@@ -271,7 +251,7 @@ def skillplan_ajax_reorder_entry(request):
 # ---------------------------------------------------------------------------
 # Add a remap to the skillplan
 @login_required
-def skillplan_ajax_add_remap(request):
+def skillplan_ajax_add_remap(request, skillplan_id):
     """
     Add a remap to the skillplan
         
@@ -284,7 +264,6 @@ def skillplan_ajax_add_remap(request):
     tt.add_time('init')
     
     if request.is_ajax():
-        skillplan_id    = request.POST.get('skillplan_id', '')
         
         if skillplan_id.isdigit():
             try:
@@ -324,13 +303,12 @@ def skillplan_ajax_add_remap(request):
 # ---------------------------------------------------------------------------
 # return the best remap for a given skillplan
 @login_required
-def skillplan_ajax_optimize_skillplan(request):
+def skillplan_ajax_optimize_skillplan(request, skillplan_id):
     tt = TimerThing('skillplan_optimize_skillplan')
 
     tt.add_time('init')
     
     if request.is_ajax():
-        skillplan_id    = request.POST.get('skillplan_id', '')
         
         if skillplan_id.isdigit():
             try:
@@ -363,13 +341,12 @@ def skillplan_ajax_optimize_skillplan(request):
 # ---------------------------------------------------------------------------
 # Optimize remap for each remap point for a given skillplan
 @login_required
-def skillplan_ajax_optimize_remaps(request):
+def skillplan_ajax_optimize_remaps(request, skillplan_id):
     tt = TimerThing('skillplan_opti_remaps')
 
     tt.add_time('init')
     
     if request.is_ajax():
-        skillplan_id    = request.POST.get('skillplan_id', '')
         
         if skillplan_id.isdigit():
             try:
@@ -429,7 +406,7 @@ def skillplan_ajax_optimize_remaps(request):
 # ---------------------------------------------------------------------------
 # Add a given skill & prerequisites
 @login_required
-def skillplan_ajax_add_skill(request):
+def skillplan_ajax_add_skill(request, skillplan_id):
     """
     Add a skill and all of it's prerequisite (not already in the plan)
     into the skill plan
@@ -446,7 +423,6 @@ def skillplan_ajax_add_skill(request):
     
     if request.is_ajax():
         skill_id        = request.POST.get('skill_id', '')
-        skillplan_id    = request.POST.get('skillplan_id', '')
         skill_level     = request.POST.get('skill_level', '')
         
         if not skill_level.isdigit() or int(skill_level) < 1 or int(skill_level) > 5:
@@ -475,7 +451,7 @@ def skillplan_ajax_add_skill(request):
                 if entry.sp_remap is not None:
                     continue
                 if entry.sp_skill is not None:
-                    skills_in_plan[entry.sp_skill.skill.item.id] = entry.sp_skill.level
+                    skills_in_plan[entry.sp_skill.skill.item_id] = entry.sp_skill.level
                 last_position = entry.position + 1
                 
             tt.add_time('Get skillplan entries')
@@ -535,7 +511,7 @@ def skillplan_ajax_add_skill(request):
 # ---------------------------------------------------------------------------
 # Delete an entry and all of its dependencies 
 @login_required
-def skillplan_ajax_delete_entry(request):
+def skillplan_ajax_delete_entry(request, skillplan_id):
     """
     Remove an entry from the skillplan, also remove all the skill dependencies if required
         
@@ -548,7 +524,6 @@ def skillplan_ajax_delete_entry(request):
     tt.add_time('init')
     
     if request.is_ajax():
-        skillplan_id     = request.POST.get('skillplan_id', '')
         entry_id         = request.POST.get('entry_id', '')
 
         if skillplan_id.isdigit() and entry_id.isdigit():
@@ -576,7 +551,7 @@ def skillplan_ajax_delete_entry(request):
             for entry in entries:
                 if del_entry.sp_skill is not None and entry.sp_skill is not None:
                     if  (del_entry.sp_skill.skill.is_child(entry.sp_skill.skill, del_entry.sp_skill.level) or
-                        (del_entry.sp_skill.skill.item.id == entry.sp_skill.skill.item.id and 
+                        (del_entry.sp_skill.skill.item_id == entry.sp_skill.skill.item_id and 
                             del_entry.sp_skill.level < entry.sp_skill.level)):
                         
                         entry.sp_skill.delete()
@@ -608,9 +583,8 @@ def skillplan_ajax_delete_entry(request):
 # ---------------------------------------------------------------------------
 # Delete all entries from a skillplan 
 @login_required
-def skillplan_ajax_clean(request):
+def skillplan_ajax_clean(request, skillplan_id):
     if request.is_ajax():
-        skillplan_id = request.POST.get('skillplan_id', '')
         if skillplan_id.isdigit():
             try:
                 skillplan = SkillPlan.objects.get(user=request.user, id=skillplan_id)
@@ -752,7 +726,7 @@ def _skillplan_list(request, skillplan, character, implants, show_trained):
         if learned is None:
             learned = {}
             for cs in CharacterSkill.objects.filter(character=character).select_related('skill__item'):
-                learned[cs.skill.item.id] = cs
+                learned[cs.skill.item_id] = cs
             cache.set(cache_key, learned, 300)
     
         tt.add_time('char skills')
@@ -826,7 +800,7 @@ def _skillplan_list(request, skillplan, character, implants, show_trained):
             skill = entry.sp_skill.skill
             
             # If this skill is already learned
-            cs = learned.get(skill.item.id, None)
+            cs = learned.get(skill.item_id, None)
             if cs is not None:
                 # Mark it as injected if level 0
                 if cs.level == 0:
@@ -862,12 +836,7 @@ def _skillplan_list(request, skillplan, character, implants, show_trained):
             # Add time remaining to total
             if not hasattr(entry, 'z_trained'):
                 total_remaining += entry.z_remaining
-            
-            # using a dict to save parents reduce by like 4 or 5 the time required
-            if skill.item.id not in parent_list:
-                parent_list[skill.item.id] = _get_skill_parents(skill)
-            entry.z_parents = parent_list[skill.item.id]  
-            
+                       
         entries.append(entry)
 
     tt.add_time('skillplan loop')
@@ -981,21 +950,6 @@ def _parse_emp_plan(skillplan, root):
         position += 1
 
     SPEntry.objects.bulk_create(entries)
-
-# ---------------------------------------------------------------------------
-# Return a set of all parents for a given skill (do not return the level, only id)
-def _get_skill_parents(skill):
-    parents = skill.get_skill_parent()
-    if parents is None:
-        return {}
-    
-    list_parent=set()
-    
-    for parent in parents:
-        list_parent.add(parent.parent_skill.item.id)
-        list_parent.update(_get_skill_parents(parent.parent_skill))
-    
-    return list_parent
     
 # ---------------------------------------------------------------------------
 # Return a dict with all the prerequisite of a given skill
@@ -1010,21 +964,21 @@ def _get_skill_prerequisites(skill, skill_list, skills_in_plan):
         _get_skill_prerequisites(parent.parent_skill, skill_list, skills_in_plan)
         
         # check to what level we already added the skill, and update it 
-        if parent.parent_skill.item.id in skills_in_plan:
-            skill_start_level = skills_in_plan[parent.parent_skill.item.id]
-            if skills_in_plan[parent.parent_skill.item.id] < parent.level:
-                skills_in_plan[parent.parent_skill.item.id] = parent.level
+        if parent.parent_skill.item_id in skills_in_plan:
+            skill_start_level = skills_in_plan[parent.parent_skill.item_id]
+            if skills_in_plan[parent.parent_skill.item_id] < parent.level:
+                skills_in_plan[parent.parent_skill.item_id] = parent.level
             
             # we do not need to re-add the skill, since we already added it into the list
             if parent.level == skill_start_level:
                 continue
         else:
             skill_start_level = 1
-            skills_in_plan[parent.parent_skill.item.id] = parent.level
+            skills_in_plan[parent.parent_skill.item_id] = parent.level
         
         # add all level of the skill needed
         for level in range(skill_start_level, parent.level+1):
-            skill_list[len(skill_list)] = {'id':parent.parent_skill.item.id, 'level':level}
+            skill_list[len(skill_list)] = {'id':parent.parent_skill.item_id, 'level':level}
     return
 
 # ---------------------------------------------------------------------------

@@ -28,7 +28,7 @@
                             </td>
                             
                         {%- else %}
-                        <tr class="c" data-position="{{ entry.position }}" data-id="{{ entry.id }}" data-skill-id="{{ entry.sp_skill.skill.item.id }}" data-level="{{ entry.sp_skill.level }}" data-parents="{{ entry.z_parents|join(',')}}">
+                        <tr class="c" data-position="{{ entry.position }}" data-id="{{ entry.id }}" data-skill-id="{{ entry.sp_skill.skill.item.id }}" data-level="{{ entry.sp_skill.level }}">
                             <td class="sp-trained skill_entry_handler">
                             {% if entry.z_training -%}
                                 <i class="icon-flag"></i>

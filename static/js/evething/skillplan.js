@@ -1,9 +1,7 @@
 EVEthing.skillplan = {
     // current skill popover displayed
     current_popover_id: false,
-    
-    skillplanId: 0,
-    
+        
     addSkillInPlanUrl: "",
     addRemapInPlanUrl: "",
     skillPlanEntriesEditUrl: "",
@@ -94,8 +92,7 @@ EVEthing.skillplan = {
         var implants     = $('#implants').val();
         var character_id = Math.max($('#characters').val(), 0);
         var show_trained = ($('#show_trained').is(':checked')) ? 1 : 0;
-        var url          = EVEthing.skillplan.skillPlanEntriesEditUrl.replace('99999999999', EVEthing.skillplan.skillplanId)
-                                                                     .replace('88888888888', character_id)
+        var url          = EVEthing.skillplan.skillPlanEntriesEditUrl.replace('88888888888', character_id)
                                                                      .replace('77777777777', implants)
                                                                      .replace('66666666666', show_trained)
         
@@ -164,8 +161,7 @@ EVEthing.skillplan = {
             alert('Add Remap URL is not set');
             return;
         }
-        var data = { skillplan_id:EVEthing.skillplan.skillplanId };        
-        EVEthing.skillplan.ajaxCall(EVEthing.skillplan.addRemapInPlanUrl, data); 
+        EVEthing.skillplan.ajaxCall(EVEthing.skillplan.addRemapInPlanUrl, {}); 
     },
     
     cleanSkillPlan: function() {
@@ -173,8 +169,7 @@ EVEthing.skillplan = {
             alert('Clean SkillPlan URL is not set');
             return;
         }
-        var data = { skillplan_id:EVEthing.skillplan.skillplanId };        
-        EVEthing.skillplan.ajaxCall(EVEthing.skillplan.cleanSkillplanUrl, data); 
+        EVEthing.skillplan.ajaxCall(EVEthing.skillplan.cleanSkillplanUrl); 
     },
     
     deleteEntry: function(entry_id) {
@@ -182,8 +177,7 @@ EVEthing.skillplan = {
             alert('Delete entry URL is not set');
             return;
         }
-        var data = { skillplan_id:EVEthing.skillplan.skillplanId
-                   , entry_id:entry_id};        
+        var data = {entry_id:entry_id};        
         EVEthing.skillplan.ajaxCall(EVEthing.skillplan.deleteEntryUrl, data); 
     },
     
@@ -199,8 +193,7 @@ EVEthing.skillplan = {
             crossDomain: false,
             url: EVEthing.skillplan.addSkillInPlanUrl,
             data: { skill_id:skill_id
-                  , skill_level:level
-                  , skillplan_id:EVEthing.skillplan.skillplanId },
+                  , skill_level:level},
             type:'post',
             beforeSend: function(xhr, settings) {
                 xhr.setRequestHeader("X-CSRFToken", $.cookie('csrftoken'));
@@ -224,8 +217,7 @@ EVEthing.skillplan = {
             return;
         }
         var data = { entry_id:entry
-                   , new_position:new_position
-                   , skillplan_id:EVEthing.skillplan.skillplanId };
+                   , new_position:new_position};
                    
         EVEthing.skillplan.ajaxCall(EVEthing.skillplan.reorderEntriesUrl, data, true); 
     },
@@ -236,8 +228,7 @@ EVEthing.skillplan = {
             return;
         }
 
-        EVEthing.skillplan.ajaxCall(EVEthing.skillplan.optimizeSkillplanUrl
-                                   , {skillplan_id:EVEthing.skillplan.skillplanId})
+        EVEthing.skillplan.ajaxCall(EVEthing.skillplan.optimizeSkillplanUrl, {})
     },
     
     optimizeRemaps: function() {
@@ -245,8 +236,7 @@ EVEthing.skillplan = {
             alert('Optimize remaps URL is not set');
             return;
         }
-        EVEthing.skillplan.ajaxCall(EVEthing.skillplan.optimizeSkillplanRemapsUrl
-                                   , {skillplan_id:EVEthing.skillplan.skillplanId})
+        EVEthing.skillplan.ajaxCall(EVEthing.skillplan.optimizeSkillplanRemapsUrl, {})
     },
 
     ajaxCall: function(url, data, reloadIfError) {    

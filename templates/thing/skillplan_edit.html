@@ -6,14 +6,14 @@
 {% block extra_js %}
     <script type="text/javascript">
         // current skill popover displayed
-        EVEthing.skillplan.addSkillInPlanUrl = "{{ url('thing.views.skillplan_ajax_add_skill') }}"
-        EVEthing.skillplan.addRemapInPlanUrl = "{{ url('thing.views.skillplan_ajax_add_remap') }}"
-        EVEthing.skillplan.cleanSkillplanUrl = "{{ url('thing.views.skillplan_ajax_clean') }}"
-        EVEthing.skillplan.deleteEntryUrl = "{{ url('thing.views.skillplan_ajax_delete_entry') }}"
-        EVEthing.skillplan.optimizeSkillplanUrl = "{{ url('thing.views.skillplan_ajax_optimize_skillplan') }}"
-        EVEthing.skillplan.optimizeSkillplanRemapsUrl = "{{ url('thing.views.skillplan_ajax_optimize_remaps') }}"
-        EVEthing.skillplan.reorderEntriesUrl = "{{ url('thing.views.skillplan_ajax_reorder_entry') }}"
-        EVEthing.skillplan.skillPlanEntriesEditUrl = "{{ url('thing.views.skillplan_ajax_render_entries_edit', 99999999999, 88888888888, 77777777777, 66666666666 )  }}"
+        EVEthing.skillplan.addSkillInPlanUrl = "{{ url('thing.views.skillplan_ajax_add_skill', skillplan.id) }}"
+        EVEthing.skillplan.addRemapInPlanUrl = "{{ url('thing.views.skillplan_ajax_add_remap', skillplan.id) }}"
+        EVEthing.skillplan.cleanSkillplanUrl = "{{ url('thing.views.skillplan_ajax_clean', skillplan.id) }}"
+        EVEthing.skillplan.deleteEntryUrl = "{{ url('thing.views.skillplan_ajax_delete_entry', skillplan.id) }}"
+        EVEthing.skillplan.optimizeSkillplanUrl = "{{ url('thing.views.skillplan_ajax_optimize_skillplan', skillplan.id) }}"
+        EVEthing.skillplan.optimizeSkillplanRemapsUrl = "{{ url('thing.views.skillplan_ajax_optimize_remaps', skillplan.id) }}"
+        EVEthing.skillplan.reorderEntriesUrl = "{{ url('thing.views.skillplan_ajax_reorder_entry', skillplan.id) }}"
+        EVEthing.skillplan.skillPlanEntriesEditUrl = "{{ url('thing.views.skillplan_ajax_render_entries', skillplan.id, 88888888888, 77777777777, 66666666666 )  }}"
         EVEthing.skillplan.skillplanId = {{ skillplan.id }}
         $(document).ready(EVEthing.skillplan.onload);
     </script>
@@ -120,11 +120,11 @@
                                             {{ skill }}
                                             <br><br>
                                             <strong>Plan to level:</strong> <br>
-                                            <a href='#' data-level='1' data-id='{{ skill.item.id }}' class='btn btn-small btn-inverse btn-plan-skill'><strong>I</strong></a>&nbsp;
-                                            <a href='#' data-level='2' data-id='{{ skill.item.id }}' class='btn btn-small btn-inverse btn-plan-skill'><strong>II</strong></a>&nbsp;
-                                            <a href='#' data-level='3' data-id='{{ skill.item.id }}' class='btn btn-small btn-inverse btn-plan-skill'><strong>III</strong></a>&nbsp;
-                                            <a href='#' data-level='4' data-id='{{ skill.item.id }}' class='btn btn-small btn-inverse btn-plan-skill'><strong>IV</strong></a>&nbsp;
-                                            <a href='#' data-level='5' data-id='{{ skill.item.id }}' class='btn btn-small btn-inverse btn-plan-skill'><strong>V</strong></a>">
+                                            <button data-level='1' data-id='{{ skill.item.id }}' class='btn btn-small btn-inverse btn-plan-skill'><strong>I</strong></button>&nbsp;
+                                            <button data-level='2' data-id='{{ skill.item.id }}' class='btn btn-small btn-inverse btn-plan-skill'><strong>II</strong></button>&nbsp;
+                                            <button data-level='3' data-id='{{ skill.item.id }}' class='btn btn-small btn-inverse btn-plan-skill'><strong>III</strong></button>&nbsp;
+                                            <button data-level='4' data-id='{{ skill.item.id }}' class='btn btn-small btn-inverse btn-plan-skill'><strong>IV</strong></button>&nbsp;
+                                            <button data-level='5' data-id='{{ skill.item.id }}' class='btn btn-small btn-inverse btn-plan-skill'><strong>V</strong></button>">
                                             {{ skill.item.name }}{% if level %} {{ level|roman }}{% endif %}
                                         </span>
                                     </a>
