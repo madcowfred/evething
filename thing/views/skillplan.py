@@ -32,6 +32,7 @@ from django.http import HttpResponse
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse
+from django.db.models import F
 from django.shortcuts import redirect, get_object_or_404
 from django.views.decorators.debug import sensitive_post_parameters, sensitive_variables
 
@@ -187,7 +188,7 @@ def skillplan_ajax_reorder_entry(request, skillplan_id):
                         
                         if moved_skill.is_parent(entry.sp_skill.skill, entry.sp_skill.level) or \
                           (moved_skill.item_id == entry.sp_skill.skill.item_id and moved_entry.sp_skill.level > entry.sp_skill.level):
-                            skill_relatives.add(entry.id)   
+                            skill_relatives.add(entry)   
 
             # - Moving downward                
             elif new_position > moved_entry.position:
@@ -206,7 +207,7 @@ def skillplan_ajax_reorder_entry(request, skillplan_id):
                             
                         if moved_skill.is_child(entry.sp_skill.skill, moved_entry.sp_skill.level) or \
                           (moved_skill.item_id == entry.sp_skill.skill.item_id and moved_entry.sp_skill.level < entry.sp_skill.level):
-                            skill_relatives.add(entry.id)
+                            skill_relatives.add(entry)
 
             # - Same position
             else:   
@@ -220,21 +221,46 @@ def skillplan_ajax_reorder_entry(request, skillplan_id):
             # - if parent/children : entry.position = new_position, new_position -= delta_position
             # loop.
             # moved_entry.position = new_position
-            for entry in entries:
-                print('loop %d '%(entry.id,))
-            
-                if entry.id in skill_relatives:
-                    skill_relatives.remove(entry.id)
+            #for entry in entries:
+            #    print('loop %d '%(entry.id,))
+            #
+            #    if entry.id in skill_relatives:
+            #        skill_relatives.remove(entry.id)
+            #        entry.position = new_position
+            #        new_position += delta_position
+            #        entry.save(update_fields=['position'])
+            #        continue
+            #    
+            #    entry.position += delta_position + (delta_position * len(skill_relatives))                   
+            #    entry.save(update_fields=['position'])
+            #
+            if moved_entry.sp_remap is None:
+                print('moving from %d to %d' % (moved_entry.position, new_position))
+                start_position = new_position
+                nb_relatives = len(skill_relatives)
+                skill_relatives.add(moved_entry)
+                
+                for entry in skill_relatives:
+                    end_position = entry.position
+                    print('start : %d, stop: %d, nb_relative: %d' % (start_position, end_position, nb_relatives))
+                    
+                    if delta_position == 1:
+                        entries.filter(position__gt=start_position, position__lt=end_position).update(position=F('position') + delta_position + (delta_position * nb_relatives))
+                    else:
+                        entries.filter(position__lt=start_position, position__gt=end_position).update(position=F('position') + delta_position + (delta_position * nb_relatives))
+                        
                     entry.position = new_position
                     new_position += delta_position
                     entry.save(update_fields=['position'])
-                    continue
-                
-                entry.position += delta_position + (delta_position * len(skill_relatives))                   
-                entry.save(update_fields=['position'])
+                    
+                    start_position = end_position
+                    nb_relatives -= 1
+                                
+            else:
+                entries.update(position=F('position') + delta_position)
             
-            moved_entry.position = new_position
-            moved_entry.save(update_fields=['position'])
+                moved_entry.position = new_position
+                moved_entry.save(update_fields=['position'])
             
             tt.add_time('Reorder')
             
