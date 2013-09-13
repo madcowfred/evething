@@ -367,17 +367,14 @@ def skillplan_ajax_optimize_remaps(request, skillplan_id):
             entries = skillplan.entries.select_related('sp_remap', 'sp_skill__skill__item')
             end_position = entries.count();
             
-            print(remaps)
             tt.add_time('get entries') 
             remap_list=[]
             
             
             for remap in remaps:
                 start_position = remap.position
-                print("start %d, stop : %d" % (start_position, end_position))
                 current_remap_entries = entries.filter(position__gt=start_position, position__lt=end_position)
-                remapped_attribute = _optimize_attribute(entries, datetime.timedelta.max.days * 24 * 60 * 60)
-                print(remapped_attribute)
+                remapped_attribute = _optimize_attribute(current_remap_entries, datetime.timedelta.max.days * 24 * 60 * 60)
                 
                 remap.sp_remap.int_stat = remapped_attribute['int_attribute']
                 remap.sp_remap.mem_stat = remapped_attribute['mem_attribute']
@@ -405,9 +402,6 @@ def skillplan_ajax_optimize_remaps(request, skillplan_id):
     else:
         return HttpResponse(content='Cannot call this page directly', status=403)
 
-
-    
-    
 # ---------------------------------------------------------------------------
 # Add a given skill & prerequisites
 @login_required
@@ -998,22 +992,25 @@ def _optimize_attribute(entries, max_duration):
     best_duration = max_duration
 
     implant_stats = {'int_bonus' : 0, 'mem_bonus' : 0, 'per_bonus' : 0, 'wil_bonus' : 0, 'cha_bonus' : 0}
-
+    
     # max combination number : 11^4 = 14,641
     # PER
     for per in range (0,max_remap_points_per_attr+1):
         
         # WIL
-        max_wil = min(14 - per, max_remap_points_per_attr)
-        for wil in range (0,max_wil + 1):
+        max_wil = max_spare_points_on_remap - per
+        max_wil_range = min(max_wil, max_remap_points_per_attr)
+        for wil in range (0, max_wil_range + 1):
         
             # INT
-            max_int = min(max_wil - wil, max_remap_points_per_attr)
-            for int in range (0,max_int + 1):
+            max_int = max_wil - wil
+            max_int_range = min(max_int, max_remap_points_per_attr)
+            for int in range (0,max_int_range + 1):
                 
                 # MEM
-                max_mem = min(max_int - int, max_remap_points_per_attr)
-                for mem in range (0,max_mem + 1):
+                max_mem = max_int - int
+                max_mem_range = min(max_mem, max_remap_points_per_attr)
+                for mem in range (0,max_mem_range + 1):
                 
                     # CHA
                     cha = max_mem - mem
@@ -1040,10 +1037,10 @@ def _optimize_attribute(entries, max_duration):
                             
                         skill = entry.sp_skill.skill
                         
-                        entry.z_sppm = skill.get_sppm_stats(remap_stats, implant_stats)
+                        sp_per_min = skill.get_sppm_stats(remap_stats, implant_stats)
                         
                         current_skill_count += 1
-                        current_remap_duration += (skill.get_sp_at_level(entry.sp_skill.level) - skill.get_sp_at_level(entry.sp_skill.level - 1)) / entry.z_sppm * 60
+                        current_remap_duration += (skill.get_sp_at_level(entry.sp_skill.level) - skill.get_sp_at_level(entry.sp_skill.level - 1)) / sp_per_min * 60
                         
                         # did we just go over max_duration ?
                         if current_remap_duration > max_duration:
@@ -1053,16 +1050,15 @@ def _optimize_attribute(entries, max_duration):
                         if current_skill_count <= best_skill_count and current_remap_duration > best_duration:
                             break
                     
-                    
                     # did we manage to train more skill before the max duration, or did we train the same number in lesser time ?
                     if current_skill_count <= best_skill_count and (current_skill_count != best_skill_count or current_remap_duration >= best_duration):
                         continue
                     
                     if best_duration > current_remap_duration:
+                        
                         best_skill_count = current_skill_count
                         best_duration = current_remap_duration
                         best_remap = remap_stats
-                    
     return best_remap              
                     
                     
