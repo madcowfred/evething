@@ -736,6 +736,7 @@ def _skillplan_list(request, skillplan, character, implants, show_trained):
             sqs = list(SkillQueue.objects.select_related('skill__item').filter(character=character, end_time__gte=utcnow))
             if sqs:
                 training_skill = sqs[0]
+                training_skill[0].z_complete = training_skill[0].get_complete_percentage()
     
         tt.add_time('training')
         
@@ -811,6 +812,11 @@ def _skillplan_list(request, skillplan, character, implants, show_trained):
                         continue
 
                     entry.z_trained = True
+                if cs.points > cs.skill.get_sp_at_level(cs.level):
+                    required_sp = cs.skill.get_sp_at_level(cs.level+1) - cs.skill.get_sp_at_level(cs.level)
+                    sp_done = cs.points-cs.skill.get_sp_at_level(cs.level)
+                    entry.trained_percent = round(sp_done / required_sp * 100, 1)
+                    
             # Not learned, need to buy it
             else:
                 entry.z_buy = True
@@ -827,7 +833,7 @@ def _skillplan_list(request, skillplan, character, implants, show_trained):
 
             # Calculate time remaining
             if training_skill is not None and training_skill.skill_id == entry.sp_skill.skill_id and training_skill.to_level == entry.sp_skill.level:
-                entry.z_remaining = total_seconds(training_skill.end_time - utcnow)
+                entry.z_remaining = (training_skill.end_time - utcnow).total_seconds()
                 entry.z_training = True
             else:
                 entry.z_remaining = (skill.get_sp_at_level(entry.sp_skill.level) - skill.get_sp_at_level(entry.sp_skill.level - 1)) / entry.z_sppm * 60
