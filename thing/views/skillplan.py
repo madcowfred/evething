@@ -45,7 +45,8 @@ try:
     import xml.etree.cElementTree as ET
 except ImportError:
     import xml.etree.ElementTree as ET
-    
+
+from core.util import json_response
 from thing.forms import UploadSkillPlanForm
 from thing.models import *
 from thing.stuff import *
@@ -726,7 +727,7 @@ def _skillplan_list(request, skillplan, character, implants, show_trained):
             learned = {}
             for cs in CharacterSkill.objects.filter(character=character).select_related('skill__item'):
                 learned[cs.skill.item_id] = cs
-            cache.set(cache_key, learned, 300)
+            cache.set(cache_key, learned, 600)
     
         tt.add_time('char skills')
     
@@ -736,7 +737,6 @@ def _skillplan_list(request, skillplan, character, implants, show_trained):
             sqs = list(SkillQueue.objects.select_related('skill__item').filter(character=character, end_time__gte=utcnow))
             if sqs:
                 training_skill = sqs[0]
-                training_skill[0].z_complete = training_skill[0].get_complete_percentage()
     
         tt.add_time('training')
         
@@ -770,95 +770,135 @@ def _skillplan_list(request, skillplan, character, implants, show_trained):
             implant_stats[k] = implants
 
     # Iterate over all entries in this skill plan
-    entries = []
-    parent_list = {}
+    skillplan_json = {
+        'remaining_duration':0,
+        'total_duration':0,
+        'entries':[],
+    }
+    
+    sp_remap = None
 
     total_remaining = 0.0
-    for entry in skillplan.entries.select_related('sp_remap', 'sp_skill__skill__item__item_group', 'sp_skill__skill__parents'):
+    for entry in skillplan.entries.select_related('sp_remap', 'sp_skill__skill__item__item_group'):
+        sp_entry = {
+            'id': entry.id,
+            'position': entry.position,
+            'remap':None,
+            'skill':None,
+        }
+        
         # It's a remap entry
         if entry.sp_remap is not None:
         
             # If the remap have every attributes set to 0, we do not add it.
             # (happen when remap are not set on evemon before exporting .emp
-            if entry.sp_remap.int_stat == 0 and entry.sp_remap.mem_stat == 0 and entry.sp_remap.per_stat == 0 and entry.sp_remap.wil_stat == 0 and entry.sp_remap.cha_stat == 0:
+            if entry.sp_remap.int_stat == 0 and entry.sp_remap.mem_stat == 0 and \
+               entry.sp_remap.per_stat == 0 and entry.sp_remap.wil_stat == 0 and entry.sp_remap.cha_stat == 0:
                continue
                 
             
             # Delete the previous remap if it's two in a row, that makes no sense
-            if entries and entries[-1].sp_remap is not None:
-                entries.pop()
-
-
+            if skillplan_json['entries'] and skillplan_json['entries'][-1]['remap'] is not None:
+                skillplan_json['entries'].pop()
+            
             remap_stats['int_attribute'] = entry.sp_remap.int_stat
             remap_stats['mem_attribute'] = entry.sp_remap.mem_stat
             remap_stats['per_attribute'] = entry.sp_remap.per_stat
             remap_stats['wil_attribute'] = entry.sp_remap.wil_stat
             remap_stats['cha_attribute'] = entry.sp_remap.cha_stat
+            
+            sp_remap = {
+                'int':remap_stats['int_attribute'],
+                'mem':remap_stats['mem_attribute'],
+                'per':remap_stats['per_attribute'],
+                'wil':remap_stats['wil_attribute'],
+                'cha':remap_stats['cha_attribute'],
+                'duration':0,
+                'total_duration':0,
+            }
+            
+            sp_entry['remap'] = sp_remap
 
         # It's a skill entry
         if entry.sp_skill is not None:
             skill = entry.sp_skill.skill
             
+            sp_skill = {
+                'id':skill.item_id,
+                'name':skill.item.name,
+                'level':entry.sp_skill.level,
+                'primary':skill.get_primary_attribute_display(),
+                'secondary':skill.get_secondary_attribute_display(),
+                'injected':False,
+                'training':False,
+                'percent_trained':0,
+                'spph':0,
+                'remaining_time':0,
+            }
+            
             # If this skill is already learned
-            cs = learned.get(skill.item_id, None)
-            if cs is not None:
+            char_skill = learned.get(skill.item_id, None)
+            if char_skill is not None:
                 # Mark it as injected if level 0
-                if cs.level == 0:
-                    entry.z_injected = True
+                if char_skill.level == 0:
+                    sp_skill['injected'] = True
+                    
                 # It might already be trained
-                elif cs.level >= entry.sp_skill.level:
+                elif char_skill.level >= entry.sp_skill.level:
+                
                     # If we don't care about trained skills, skip this skill entirely
                     if not show_trained:
                         continue
 
-                    entry.z_trained = True
-                if cs.points > cs.skill.get_sp_at_level(cs.level):
-                    required_sp = cs.skill.get_sp_at_level(cs.level+1) - cs.skill.get_sp_at_level(cs.level)
-                    sp_done = cs.points-cs.skill.get_sp_at_level(cs.level)
-                    entry.trained_percent = round(sp_done / required_sp * 100, 1)
+                    sp_skill['percent_trained'] = 100
+                    sp_skill['remaining_time'] = 0
+                
+                # Partially trained ?
+                if char_skill.points > char_skill.skill.get_sp_at_level(char_skill.level):
+                    required_sp = char_skill.skill.get_sp_at_level(char_skill.level + 1) - char_skill.skill.get_sp_at_level(char_skill.level)
+                    sp_done = char_skill.points-char_skill.skill.get_sp_at_level(char_skill.level)
+                    sp_skill['percent_trained'] = round(sp_done / required_sp * 100, 1)
                     
-            # Not learned, need to buy it
-            else:
-                entry.z_buy = True
 
             # Calculate SP/hr
             if remap_stats:
-                entry.z_sppm = skill.get_sppm_stats(remap_stats, implant_stats)
+                sp_per_min = skill.get_sppm_stats(remap_stats, implant_stats)
             else:
-                entry.z_sppm = skill.get_sp_per_minute(character)
+                sp_per_min = skill.get_sp_per_minute(character)
             
-            # 0 sppm is bad
-            entry.z_sppm = max(1, entry.z_sppm)
-            entry.z_spph = int(entry.z_sppm * 60)
+            # cannot have 0 for spph as 0/0/0/0/0 is impossible here 
+            sp_skill['spph'] = sp_per_min * 60
 
             # Calculate time remaining
             if training_skill is not None and training_skill.skill_id == entry.sp_skill.skill_id and training_skill.to_level == entry.sp_skill.level:
-                entry.z_remaining = (training_skill.end_time - utcnow).total_seconds()
-                entry.z_training = True
+                sp_skill['remaining_time'] = (training_skill.end_time - utcnow).total_seconds()
+                sp_skill['training'] = True
+                sp_skill['percent_trained'] = training_skill.get_complete_percentage()
             else:
-                entry.z_remaining = (skill.get_sp_at_level(entry.sp_skill.level) - skill.get_sp_at_level(entry.sp_skill.level - 1)) / entry.z_sppm * 60
+                required_sp = skill.get_sp_at_level(entry.sp_skill.level) - skill.get_sp_at_level(entry.sp_skill.level - 1)
+                sp_skill['remaining_time'] = required_sp / sp_per_min * 60
 
             # Add time remaining to total
-            if not hasattr(entry, 'z_trained'):
-                total_remaining += entry.z_remaining
-                       
-        entries.append(entry)
-
+            if sp_skill['percent_trained'] != 100:
+                skillplan_json['remaining_duration'] += sp_skill['remaining_time']
+                
+                if sp_remap is not None:
+                    sp_remap['duration'] += sp_skill['remaining_time']
+                
+            # Total duration, includes already trained skill (to get the whole skillplan duration)
+            skillplan_json['total_duration'] += sp_skill['remaining_time']
+            if sp_remap is not None:
+                sp_remap['total_duration'] += sp_skill['remaining_time']
+                    
+            sp_entry['skill'] = sp_skill
+            
+        skillplan_json['entries'].append(sp_entry)     
+            
     tt.add_time('skillplan loop')
     if settings.DEBUG:
         tt.finished()
 
-    return render_page(
-        'thing/skillplan_entries.html',
-        {   
-            'show_trained': show_trained,
-            'implants': implants,
-            'char': character,
-            'entries': entries,
-            'total_remaining': total_remaining,
-        },
-        request,
-    )
+    return json_response(skillplan_json)
     
 # ---------------------------------------------------------------------------
 # Handle the upload of a .EMP skillplan 
