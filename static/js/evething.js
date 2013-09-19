@@ -38,6 +38,8 @@ var EVEthing = {
             if(minutes > 0) {durationString.push(minutes+"m");}
             if(seconds > 0) {durationString.push(seconds+"s");}
             
+            if (durationString.length == 0) {durationString.push('0s')}
+            
             return durationString.join(' ');
         },
 

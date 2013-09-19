@@ -9,10 +9,9 @@ EVEthing.skillplan = {
     reorderEntriesUrl: "",
     deleteEntryUrl: "",
     cleanSkillplanUrl: "",
-    optimizeSkillplanUrl: "",
     optimizeSkillplanRemapsUrl: "",
     
-    loadSpinner : '<i class="icon-spinner icon-spin"></i>',
+    loadSpinner : '<i id="spin" class="icon-spinner icon-spin"></i>',
     
     levelToRoman: {0:'', 1:'I', 2:'II', 3:'III', 4:'IV', 5:'V'},
     
@@ -30,11 +29,11 @@ EVEthing.skillplan = {
                 + '   <td><a href="#" class="remove-entry" data-id="##id##"><i class="icon-remove"></i></a></td>\n'
                 + '</tr>\n',
 
-    skillEntry : '<tr class="c skill_entry_handler" data-position="##position##" data-id="##id##" data-skill-id="##skill_id##" data-level="##skill_level##">\n'
+    skillEntry : '<tr class="c skill_entry_handler ##skill_highlight##" data-position="##position##" data-id="##id##" data-skill-id="##skill_id##" data-level="##skill_level##">\n'
                + '    <td class="sp-trained">\n'
                + '        <i class="##icon##"></i>'
                + '    </td>\n'
-               + '    <td class="l ##skill_highlight##">\n'
+               + '    <td class="l">\n'
                + '        ##skill##'
                + '        ##skill_injected_buy##'
                + '    </td>\n'
@@ -61,14 +60,7 @@ EVEthing.skillplan = {
                 e.preventDefault();
             }
         );       
-        
-        $('#optimize_attr').on('click',
-            function(e) {
-                EVEthing.skillplan.optimizeAttributes();
-                e.preventDefault();
-            }
-        );   
-        
+                
         $('#optimize_remap').on('click',
             function(e) {
                 EVEthing.skillplan.optimizeRemaps();
@@ -135,6 +127,7 @@ EVEthing.skillplan = {
                                                                      .replace('66666666666', show_trained)
 
         EVEthing.skillplan.ajax = true;
+        $('#skillplan-tab .active a').append(EVEthing.skillplan.loadSpinner);
         $.ajax({
             crossDomain: false,
             url: url,
@@ -144,10 +137,12 @@ EVEthing.skillplan = {
                 xhr.setRequestHeader("X-CSRFToken", $.cookie('csrftoken'));
             },
             success: function(json) {
+                $('#spin').remove();
                 EVEthing.skillplan.ajax = false;
                 EVEthing.skillplan.parseJsonEntries(json);
             },
             error: function(xhr, status, error) {
+                $('#spin').remove();
                 EVEthing.skillplan.ajax = false;
                 alert("Error : cannot load entries");
             }
@@ -180,26 +175,29 @@ EVEthing.skillplan = {
                     duration += ' / '+ EVEthing.util.durationToString(json.total_duration);
                 }
 
-                entries += EVEthing.skillplan.remapEntry.replace(/##position##/    ,entry.position)
-                                                        .replace(/##id##/          ,entry.id)
-                                                        .replace(/##int##/         ,entry.remap.int)
-                                                        .replace(/##mem##/         ,entry.remap.mem)
-                                                        .replace(/##per##/         ,entry.remap.per)
-                                                        .replace(/##wil##/         ,entry.remap.wil)
-                                                        .replace(/##cha##/         ,entry.remap.cha)
-                                                        .replace(/##duration##/    ,duration)
+                entries += EVEthing.skillplan.remapEntry.replace(/##position##/g    ,entry.position)
+                                                        .replace(/##id##/g          ,entry.id)
+                                                        .replace(/##int##/g         ,entry.remap.int)
+                                                        .replace(/##mem##/g         ,entry.remap.mem)
+                                                        .replace(/##per##/g         ,entry.remap.per)
+                                                        .replace(/##wil##/g         ,entry.remap.wil)
+                                                        .replace(/##cha##/g         ,entry.remap.cha)
+                                                        .replace(/##duration##/g    ,duration)
             } else {
                 skillName = entry.skill.name + " " + EVEthing.skillplan.levelToRoman[entry.skill.level];
                 
+                highlight = "";
                 if (entry.skill.training) {
                     statusIcon = "icon-flag";
+                    highlight = 'highlight_training';
                 } else if (entry.skill.percent_trained == 100) {
                     statusIcon = "icon-ok pos"
                 } else if (entry.skill.percent_trained == 0) {
                     statusIcon = "icon-remove neg"
                 } else {
-                    statusIcon = "icon-spinner partial_trained"
+                    statusIcon = "icon-spinner"
                     skillName += " (Trained: " + entry.skill.percent_trained + "%)";
+                    highlight = 'highlight_partial';
                 }
                 
                 injectedBuy = ""
@@ -210,19 +208,19 @@ EVEthing.skillplan = {
                     injectedBuy = '<i class="icon-shopping-cart pull-right tooltips" title="Skillbook is not injected"></i>';
                 }
                 
-                entries += EVEthing.skillplan.skillEntry.replace(/##position##/            ,entry.position)
-                                                        .replace(/##id##/                  ,entry.id)
-                                                        .replace(/##skill_id##/            ,entry.skill.id)
-                                                        .replace(/##skill_level##/         ,entry.skill.level)
-                                                        .replace(/##icon##/                ,statusIcon)
-                                                        .replace(/##skill_highlight##/     ,'')
-                                                        .replace(/##skill##/               ,skillName)
-                                                        .replace(/##skill_injected_buy##/  ,injectedBuy)
-                                                        .replace(/##skill_group##/         ,entry.skill.group)
-                                                        .replace(/##skill_primary##/       ,entry.skill.primary)
-                                                        .replace(/##skill_secondary##/     ,entry.skill.secondary)
-                                                        .replace(/##skill_spph##/          ,entry.skill.spph)
-                                                        .replace(/##skill_remaining##/     ,EVEthing.util.durationToString(entry.skill.remaining_time))
+                entries += EVEthing.skillplan.skillEntry.replace(/##position##/g            ,entry.position)
+                                                        .replace(/##id##/g                  ,entry.id)
+                                                        .replace(/##skill_id##/g            ,entry.skill.id)
+                                                        .replace(/##skill_level##/g         ,entry.skill.level)
+                                                        .replace(/##icon##/g                ,statusIcon)
+                                                        .replace(/##skill_highlight##/g     ,highlight)
+                                                        .replace(/##skill##/g               ,skillName)
+                                                        .replace(/##skill_injected_buy##/g  ,injectedBuy)
+                                                        .replace(/##skill_group##/g         ,entry.skill.group)
+                                                        .replace(/##skill_primary##/g       ,entry.skill.primary)
+                                                        .replace(/##skill_secondary##/g     ,entry.skill.secondary)
+                                                        .replace(/##skill_spph##/g          ,entry.skill.spph)
+                                                        .replace(/##skill_remaining##/g     ,EVEthing.util.durationToString(entry.skill.remaining_time))
             }
         }
         $('#skillplan > tbody').html(entries);
@@ -325,6 +323,7 @@ EVEthing.skillplan = {
         
         // need to do the full ajax, since we need to manage the popover :(
         EVEthing.skillplan.ajax = true;
+        $('#skillplan-tab .active a').append(EVEthing.skillplan.loadSpinner);
         $.ajax({
             crossDomain: false,
             url: EVEthing.skillplan.addSkillInPlanUrl,
@@ -335,6 +334,7 @@ EVEthing.skillplan = {
                 xhr.setRequestHeader("X-CSRFToken", $.cookie('csrftoken'));
             },
             success: function(json) {
+                $('#spin').remove();
                 EVEthing.skillplan.ajax = false;
                 var response = $.parseJSON(json);
                 if(response.status == "ok"){
@@ -344,6 +344,7 @@ EVEthing.skillplan = {
                 
             },
             error: function(xhr, status, error) {
+                $('#spin').remove();
                 EVEthing.skillplan.ajax = false;
                 alert("Error " + xhr.status + ": " +xhr.responseText)
             }
@@ -360,16 +361,7 @@ EVEthing.skillplan = {
                    
         EVEthing.skillplan.simpleAjaxCall(EVEthing.skillplan.reorderEntriesUrl, data, true); 
     },
-    
-    optimizeAttributes: function() {
-        if(EVEthing.skillplan.optimizeSkillplanUrl == "") {
-            alert('Optimize attribute URL is not set');
-            return;
-        }
-
-        EVEthing.skillplan.simpleAjaxCall(EVEthing.skillplan.optimizeSkillplanUrl, {})
-    },
-    
+        
     optimizeRemaps: function() {
         if(EVEthing.skillplan.optimizeSkillplanRemapsUrl == "") {
             alert('Optimize remaps URL is not set');
@@ -386,6 +378,7 @@ EVEthing.skillplan = {
         }
         
         EVEthing.skillplan.ajax = true;
+        $('#skillplan-tab .active a').append(EVEthing.skillplan.loadSpinner);
         $.ajax({
             crossDomain: false,
             url: url,
@@ -395,6 +388,7 @@ EVEthing.skillplan = {
                 xhr.setRequestHeader("X-CSRFToken", $.cookie('csrftoken'));
             },
             success: function(json) {
+                $('#spin').remove();
                 EVEthing.skillplan.ajax = false;
                 response = $.parseJSON(json);
                 if(response.status == "ok"){
@@ -402,6 +396,7 @@ EVEthing.skillplan = {
                 }
             },
             error: function(xhr, status, error) {
+                $('#spin').remove();
                 EVEthing.skillplan.ajax = false;
                 alert("Error " + xhr.status + ": " +xhr.responseText)
                 if(reloadIfError) {
