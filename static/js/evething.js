@@ -23,6 +23,24 @@ var EVEthing = {
                 return 0;
             });
         },
+        
+        durationToString: function(duration) {
+            days = Math.floor(duration / (24 * 3600));
+            duration = duration % (24 * 3600)
+            hours = Math.floor(duration / 3600);
+            duration = duration % 3600;
+            minutes = Math.floor(duration / 60);
+            seconds = Math.floor(duration % 60);
+            
+            durationString = [];
+            if(days > 0)    {durationString.push(days+"d");} 
+            if(hours > 0)   {durationString.push(hours+"h");}
+            if(minutes > 0) {durationString.push(minutes+"m");}
+            if(seconds > 0) {durationString.push(seconds+"s");}
+            
+            return durationString.join(' ');
+        },
+
     },
 
     misc: {
