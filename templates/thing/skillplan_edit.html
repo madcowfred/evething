@@ -10,7 +10,6 @@
         EVEthing.skillplan.addRemapInPlanUrl = "{{ url('thing.views.skillplan_ajax_add_remap', skillplan.id) }}"
         EVEthing.skillplan.cleanSkillplanUrl = "{{ url('thing.views.skillplan_ajax_clean', skillplan.id) }}"
         EVEthing.skillplan.deleteEntryUrl = "{{ url('thing.views.skillplan_ajax_delete_entry', skillplan.id) }}"
-        EVEthing.skillplan.optimizeSkillplanUrl = "{{ url('thing.views.skillplan_ajax_optimize_skillplan', skillplan.id) }}"
         EVEthing.skillplan.optimizeSkillplanRemapsUrl = "{{ url('thing.views.skillplan_ajax_optimize_remaps', skillplan.id) }}"
         EVEthing.skillplan.reorderEntriesUrl = "{{ url('thing.views.skillplan_ajax_reorder_entry', skillplan.id) }}"
         EVEthing.skillplan.skillPlanEntriesEditUrl = "{{ url('thing.views.skillplan_ajax_render_entries', skillplan.id, 88888888888, 77777777777, 66666666666 )  }}"
@@ -72,10 +71,9 @@
                                     <input type="checkbox" id="show_trained" name="show_trained"{% if show_trained %} checked{% endif %}> Show already trained skills
                                 </label>
                                 &nbsp;
-                                <button id="apply_filter" class="btn btn-primary">Apply filters</button>
+                                <button id="apply_filter" class="btn btn-primary">Apply</button>
                                 <br />
                                 <button class="btn btn-primary" id="add_remap">Add Remap</button>
-                                <button class="btn btn-success" id="optimize_attr">Optimize Attributes</button>
                                 <button class="btn btn-success" id="optimize_remap">Optimize Remap</button>
                                 <button class="btn btn-danger" id="clean_skillplan">Clean</button>
                             </div>
@@ -116,7 +114,7 @@
                                     {{ market_group.name }}
                                 </li>
                                 {% for skill in skills -%}
-                                <li id="skill-{{ skill.item.id }}" class="mg-{{ market_group.id }} collapse skill" data-name="{{ skill.item.name }}" data-group="{{ market_group.name }}" data-prim="{{ skill.primary_attribute }}" data-sec="{{ skill.secondary_attribute }}" data-planned-to="0" data-skilled-to="0">
+                                <li id="skill-{{ skill.item.id }}" class="mg-{{ market_group.id }} collapse skill" data-name="{{ skill.item.name }}" data-group="{{ market_group.name }}">
                                     <a>
                                         <span class="skill-list-hover {{ extra_class}}" title="{{ skill.item.name }}" id="skill-list-hover-{{ skill.item.id }}" data-content="
                                             {{ skill }}

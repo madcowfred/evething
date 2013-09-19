@@ -307,44 +307,6 @@ def skillplan_ajax_add_remap(request, skillplan_id):
         return HttpResponse(content='Cannot call this page directly', status=403)
 
 # ---------------------------------------------------------------------------
-# return the best remap for a given skillplan
-@login_required
-def skillplan_ajax_optimize_skillplan(request, skillplan_id):
-    tt = TimerThing('skillplan_optimize_skillplan')
-
-    tt.add_time('init')
-    
-    if request.is_ajax():
-        
-        if skillplan_id.isdigit():
-            try:
-                skillplan = SkillPlan.objects.get(user=request.user, id=skillplan_id)
-
-            except SkillPlan.DoesNotExist:
-                return HttpResponse(content='That skillplan does not exist', status=500)     
-
-            entries = skillplan.entries.select_related('sp_remap', 'sp_skill__skill__item');
-            tt.add_time('Get all entries')
-            
-            # we only check for the first year of the plan, since we can remap after 1 year
-            remap = _optimize_attribute(entries, 365 * 24 * 60 * 60)
-            
-            tt.add_time('optimize remap')
-                
-            if settings.DEBUG:
-                tt.finished()    
-            
-            response = {'status':'ok'}
-            response['remap'] = remap
-            
-            return HttpResponse(json.dumps(response), status=200)
-        
-        else:
-            return HttpResponse(content='Cannot optimize attribute for skillplan : no skillplan provided', status=500)       
-    else:
-        return HttpResponse(content='Cannot call this page directly', status=403)
-
-# ---------------------------------------------------------------------------
 # Optimize remap for each remap point for a given skillplan
 @login_required
 def skillplan_ajax_optimize_remaps(request, skillplan_id):
