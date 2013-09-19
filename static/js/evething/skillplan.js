@@ -1,6 +1,7 @@
 EVEthing.skillplan = {
     // current skill popover displayed
     current_popover_id: false,
+    ajax: false,
         
     addSkillInPlanUrl: "",
     addRemapInPlanUrl: "",
@@ -10,8 +11,42 @@ EVEthing.skillplan = {
     cleanSkillplanUrl: "",
     optimizeSkillplanUrl: "",
     optimizeSkillplanRemapsUrl: "",
-
     
+    loadSpinner : '<i class="icon-spinner icon-spin"></i>',
+    
+    levelToRoman: {0:'', 1:'I', 2:'II', 3:'III', 4:'IV', 5:'V'},
+    
+    remapEntry  : '<tr class="c skill_entry_handler" data-position="##position##" data-id="##id##">\n'
+                + '   <td></td>\n'
+                + '   <td class="l skill_entry_handler" colspan="6">\n'
+                + '       <i class="icon-user"></i> Remap to \n'
+                + '       <strong>##int##</strong> Int /\n'
+                + '       <strong>##mem##</strong> Mem /\n'
+                + '       <strong>##per##</strong> Per /\n'
+                + '       <strong>##wil##</strong> Wil /\n'
+                + '       <strong>##cha##</strong> Cha\n'
+                + '       <span class="pull-right small"><strong>Total remap time</strong>: ##duration##</span>\n'
+                + '   </td>\n'                      
+                + '   <td><a href="#" class="remove-entry" data-id="##id##"><i class="icon-remove"></i></a></td>\n'
+                + '</tr>\n',
+
+    skillEntry : '<tr class="c skill_entry_handler" data-position="##position##" data-id="##id##" data-skill-id="##skill_id##" data-level="##skill_level##">\n'
+               + '    <td class="sp-trained">\n'
+               + '        <i class="##icon##"></i>'
+               + '    </td>\n'
+               + '    <td class="l ##skill_highlight##">\n'
+               + '        ##skill##'
+               + '        ##skill_injected_buy##'
+               + '    </td>\n'
+               + '    <td class="sp-group">##skill_group##</td>\n'
+               + '    <td class="sp-small">##skill_primary##</td>\n'
+               + '    <td class="sp-small">##skill_secondary##</td>\n'
+               + '    <td class="sp-small">##skill_spph##</td>\n'
+               + '    <td class="r sp-time">##skill_remaining##</td>\n'                    
+               + '   <td><a href="#" class="remove-entry" data-id="##id##"><i class="icon-remove"></i></a></td>\n'
+               + '</tr>\n',
+
+                  
     onload: function() {
         $('#apply_filter').on('click',
             function(e){
@@ -87,6 +122,9 @@ EVEthing.skillplan = {
     },
     
     reloadEntries: function() {
+        if(EVEthing.skillplan.ajax) {
+            return;
+        }
         // call a page with a $.get to grab the skillplan entries.
         
         var implants     = $('#implants').val();
@@ -95,73 +133,166 @@ EVEthing.skillplan = {
         var url          = EVEthing.skillplan.skillPlanEntriesEditUrl.replace('88888888888', character_id)
                                                                      .replace('77777777777', implants)
                                                                      .replace('66666666666', show_trained)
-        
-        $.get(url, function(data) {
-            $('#skillplan').html(data); 
-            
-            // we need to reset bindings in the loaded page
-            $('.skill-hover').popover({ animation: false, trigger: 'hover', html: true });
-            $('.tooltips').tooltip();
-            
-            // init the delete bind
-            $('.remove-entry').on('click',
-                function(e) {
-                    var confirmDelete = confirm("Are you sure you want to delete this entry?\nNote: All entries depending on that skill will be deleted in the process.")
-                    if(confirmDelete) {
-                        EVEthing.skillplan.deleteEntry($(this).attr('data-id'));
-                    }
-                    e.preventDefault();
-                }
-            );
-                        
-            // create the sortable bind
-            $('#skillplan tbody').sortable({
-                axis: "y",
-                containment: "#skillplan" ,
-                cursor: "move",
-                //handle: ".skill_entry_handler",
-                helper: function(e, tr)
-                {
-                    var $originals = tr.children();
-                    var $helper = tr.clone();
-                    $helper.children().each(function(index)
-                    {
-                        // Set helper cell sizes to match the original sizes
-                        $(this).width($originals.eq(index).width());
-                    });
-                    return $helper;
-                },
-                start: function(event, ui) {    
-                    EVEthing.skillplan.previous_entries_number = ui.item.prevAll().length;
-                },
-                stop: function(event, ui) {
-                    // if we have the same number of previous entries, it's like we didn't move the entry
-                    if(ui.item.prevAll().length != EVEthing.skillplan.previous_entries_number) {
-                                               
-                        // what is the new position ?
-                        var new_position = 0;
-                        
-                        if(ui.item.prev().length != 0) {
-                            if(parseInt(ui.item.prev().attr('data-position')) < parseInt(ui.item.attr('data-position'))) {
-                                new_position = ui.item.next().attr('data-position');
-                            } else {
-                                new_position = ui.item.prev().attr('data-position');
-                            }
-                        }
-                        
-                        EVEthing.skillplan.reorderEntry(ui.item.attr('data-id'), new_position);                    
-                    }
-                }
-            });
-        })
+
+        EVEthing.skillplan.ajax = true;
+        $.ajax({
+            crossDomain: false,
+            url: url,
+            dataType: "json",
+            type:'post',
+            beforeSend: function(xhr, settings) {
+                xhr.setRequestHeader("X-CSRFToken", $.cookie('csrftoken'));
+            },
+            success: function(json) {
+                EVEthing.skillplan.ajax = false;
+                EVEthing.skillplan.parseJsonEntries(json);
+            },
+            error: function(xhr, status, error) {
+                EVEthing.skillplan.ajax = false;
+                alert("Error : cannot load entries");
+            }
+        });
+
     },
 
+    parseJsonEntries: function(json) {
+        if(json.entries.length == 0) {
+            $('#skillplan > tbody').html('<tr><td></td><td colspan="7">This skill plan is empty.</td></tr>');
+            $('#skillplan > tfoot').html('');
+            return;
+        }
+        footer='<tr><td></td><td colspan="7" class="r"><strong>Total time remaining</strong>: ##duration##</td></tr>';
+        
+        duration=EVEthing.util.durationToString(json.remaining_duration);
+        if(json.remaining_duration != json.total_duration) {
+            duration += ' / '+ EVEthing.util.durationToString(json.total_duration);
+        }
+        
+        $('#skillplan > tfoot').html(footer.replace(/##duration##/,duration));
+        
+        entries = "";
+        for(var i=0, size=json.entries.length; i < size; i++) {
+            entry = json.entries[i];
+            
+            if(entry.remap != null) {
+                duration=EVEthing.util.durationToString(entry.remap.duration);
+                if(entry.remap.duration != entry.remap.total_duration) {
+                    duration += ' / '+ EVEthing.util.durationToString(json.total_duration);
+                }
+
+                entries += EVEthing.skillplan.remapEntry.replace(/##position##/    ,entry.position)
+                                                        .replace(/##id##/          ,entry.id)
+                                                        .replace(/##int##/         ,entry.remap.int)
+                                                        .replace(/##mem##/         ,entry.remap.mem)
+                                                        .replace(/##per##/         ,entry.remap.per)
+                                                        .replace(/##wil##/         ,entry.remap.wil)
+                                                        .replace(/##cha##/         ,entry.remap.cha)
+                                                        .replace(/##duration##/    ,duration)
+            } else {
+                skillName = entry.skill.name + " " + EVEthing.skillplan.levelToRoman[entry.skill.level];
+                
+                if (entry.skill.training) {
+                    statusIcon = "icon-flag";
+                } else if (entry.skill.percent_trained == 100) {
+                    statusIcon = "icon-ok pos"
+                } else if (entry.skill.percent_trained == 0) {
+                    statusIcon = "icon-remove neg"
+                } else {
+                    statusIcon = "icon-spinner partial_trained"
+                    skillName += " (Trained: " + entry.skill.percent_trained + "%)";
+                }
+                
+                injectedBuy = ""
+                if (entry.skill.injected) {
+                    injectedBuy = '<i class="icon-book pull-right tooltips" title="Skillbook is injected"></i>';
+                }
+                if (!entry.skill.injected && entry.skill.percent_trained == 0) {
+                    injectedBuy = '<i class="icon-shopping-cart pull-right tooltips" title="Skillbook is not injected"></i>';
+                }
+                
+                entries += EVEthing.skillplan.skillEntry.replace(/##position##/            ,entry.position)
+                                                        .replace(/##id##/                  ,entry.id)
+                                                        .replace(/##skill_id##/            ,entry.skill.id)
+                                                        .replace(/##skill_level##/         ,entry.skill.level)
+                                                        .replace(/##icon##/                ,statusIcon)
+                                                        .replace(/##skill_highlight##/     ,'')
+                                                        .replace(/##skill##/               ,skillName)
+                                                        .replace(/##skill_injected_buy##/  ,injectedBuy)
+                                                        .replace(/##skill_group##/         ,entry.skill.group)
+                                                        .replace(/##skill_primary##/       ,entry.skill.primary)
+                                                        .replace(/##skill_secondary##/     ,entry.skill.secondary)
+                                                        .replace(/##skill_spph##/          ,entry.skill.spph)
+                                                        .replace(/##skill_remaining##/     ,EVEthing.util.durationToString(entry.skill.remaining_time))
+            }
+        }
+        $('#skillplan > tbody').html(entries);
+               
+        EVEthing.skillplan.bindEntriesEvents();
+    },
+    
+    bindEntriesEvents: function() {
+        // we need to reset bindings in the loaded page
+        $('.skill-hover').popover({ animation: false, trigger: 'hover', html: true });
+        $('.tooltips').tooltip();
+        
+        // init the delete bind
+        $('.remove-entry').on('click',
+            function(e) {
+                var confirmDelete = confirm("Are you sure you want to delete this entry?\nNote: All entries depending on that skill will be deleted in the process.")
+                if(confirmDelete) {
+                    EVEthing.skillplan.deleteEntry($(this).attr('data-id'));
+                }
+                e.preventDefault();
+            }
+        );
+                    
+        // create the sortable bind
+        $('#skillplan tbody').sortable({
+            axis: "y",
+            containment: "#skillplan" ,
+            cursor: "move",
+            //handle: ".skill_entry_handler",
+            helper: function(e, tr)
+            {
+                var $originals = tr.children();
+                var $helper = tr.clone();
+                $helper.children().each(function(index)
+                {
+                    // Set helper cell sizes to match the original sizes
+                    $(this).width($originals.eq(index).width());
+                });
+                return $helper;
+            },
+            start: function(event, ui) {    
+                EVEthing.skillplan.previous_entries_number = ui.item.prevAll().length;
+            },
+            stop: function(event, ui) {
+                // if we have the same number of previous entries, it's like we didn't move the entry
+                if(ui.item.prevAll().length != EVEthing.skillplan.previous_entries_number) {
+                                           
+                    // what is the new position ?
+                    var new_position = 0;
+                    
+                    if(ui.item.prev().length != 0) {
+                        if(parseInt(ui.item.prev().attr('data-position')) < parseInt(ui.item.attr('data-position'))) {
+                            new_position = ui.item.next().attr('data-position');
+                        } else {
+                            new_position = ui.item.prev().attr('data-position');
+                        }
+                    }
+                    
+                    EVEthing.skillplan.reorderEntry(ui.item.attr('data-id'), new_position);                    
+                }
+            }
+        });
+    },
+    
     addRemapPoint: function() {
         if(EVEthing.skillplan.addRemapInPlanUrl == "") {
             alert('Add Remap URL is not set');
             return;
         }
-        EVEthing.skillplan.ajaxCall(EVEthing.skillplan.addRemapInPlanUrl, {}); 
+        EVEthing.skillplan.simpleAjaxCall(EVEthing.skillplan.addRemapInPlanUrl, {}); 
     },
     
     cleanSkillPlan: function() {
@@ -169,7 +300,7 @@ EVEthing.skillplan = {
             alert('Clean SkillPlan URL is not set');
             return;
         }
-        EVEthing.skillplan.ajaxCall(EVEthing.skillplan.cleanSkillplanUrl); 
+        EVEthing.skillplan.simpleAjaxCall(EVEthing.skillplan.cleanSkillplanUrl); 
     },
     
     deleteEntry: function(entry_id) {
@@ -178,7 +309,7 @@ EVEthing.skillplan = {
             return;
         }
         var data = {entry_id:entry_id};        
-        EVEthing.skillplan.ajaxCall(EVEthing.skillplan.deleteEntryUrl, data); 
+        EVEthing.skillplan.simpleAjaxCall(EVEthing.skillplan.deleteEntryUrl, data); 
     },
     
     addSkillInPlan: function(skill_id, level) {
@@ -188,7 +319,12 @@ EVEthing.skillplan = {
             return;
         }
         
+        if(EVEthing.skillplan.ajax) {
+            return;
+        }
+        
         // need to do the full ajax, since we need to manage the popover :(
+        EVEthing.skillplan.ajax = true;
         $.ajax({
             crossDomain: false,
             url: EVEthing.skillplan.addSkillInPlanUrl,
@@ -199,13 +335,16 @@ EVEthing.skillplan = {
                 xhr.setRequestHeader("X-CSRFToken", $.cookie('csrftoken'));
             },
             success: function(json) {
+                EVEthing.skillplan.ajax = false;
                 var response = $.parseJSON(json);
                 if(response.status == "ok"){
                     $('#'+EVEthing.skillplan.current_popover_id).popover('hide');
                     EVEthing.skillplan.reloadEntries();
                 }
+                
             },
             error: function(xhr, status, error) {
+                EVEthing.skillplan.ajax = false;
                 alert("Error " + xhr.status + ": " +xhr.responseText)
             }
         });
@@ -219,7 +358,7 @@ EVEthing.skillplan = {
         var data = { entry_id:entry
                    , new_position:new_position};
                    
-        EVEthing.skillplan.ajaxCall(EVEthing.skillplan.reorderEntriesUrl, data, true); 
+        EVEthing.skillplan.simpleAjaxCall(EVEthing.skillplan.reorderEntriesUrl, data, true); 
     },
     
     optimizeAttributes: function() {
@@ -228,7 +367,7 @@ EVEthing.skillplan = {
             return;
         }
 
-        EVEthing.skillplan.ajaxCall(EVEthing.skillplan.optimizeSkillplanUrl, {})
+        EVEthing.skillplan.simpleAjaxCall(EVEthing.skillplan.optimizeSkillplanUrl, {})
     },
     
     optimizeRemaps: function() {
@@ -236,12 +375,17 @@ EVEthing.skillplan = {
             alert('Optimize remaps URL is not set');
             return;
         }
-        EVEthing.skillplan.ajaxCall(EVEthing.skillplan.optimizeSkillplanRemapsUrl, {})
+        EVEthing.skillplan.simpleAjaxCall(EVEthing.skillplan.optimizeSkillplanRemapsUrl, {})
     },
 
-    ajaxCall: function(url, data, reloadIfError) {    
+    simpleAjaxCall: function(url, data, reloadIfError) {    
         reloadIfError = (typeof reloadIfError === 'undefined') ? false : reloadIfError;
         
+        if(EVEthing.skillplan.ajax) {
+            return;
+        }
+        
+        EVEthing.skillplan.ajax = true;
         $.ajax({
             crossDomain: false,
             url: url,
@@ -251,12 +395,14 @@ EVEthing.skillplan = {
                 xhr.setRequestHeader("X-CSRFToken", $.cookie('csrftoken'));
             },
             success: function(json) {
+                EVEthing.skillplan.ajax = false;
                 response = $.parseJSON(json);
                 if(response.status == "ok"){
                     EVEthing.skillplan.reloadEntries();
                 }
             },
             error: function(xhr, status, error) {
+                EVEthing.skillplan.ajax = false;
                 alert("Error " + xhr.status + ": " +xhr.responseText)
                 if(reloadIfError) {
                     EVEthing.skillplan.reloadEntries();
