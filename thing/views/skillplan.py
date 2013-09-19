@@ -826,6 +826,7 @@ def _skillplan_list(request, skillplan, character, implants, show_trained):
             sp_skill = {
                 'id':skill.item_id,
                 'name':skill.item.name,
+                'group':skill.item.item_group.name,
                 'level':entry.sp_skill.level,
                 'primary':skill.get_primary_attribute_display(),
                 'secondary':skill.get_secondary_attribute_display(),
@@ -893,7 +894,7 @@ def _skillplan_list(request, skillplan, character, implants, show_trained):
             sp_entry['skill'] = sp_skill
             
         skillplan_json['entries'].append(sp_entry)     
-            
+           
     tt.add_time('skillplan loop')
     if settings.DEBUG:
         tt.finished()
