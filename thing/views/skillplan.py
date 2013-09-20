@@ -402,8 +402,8 @@ def skillplan_ajax_add_skill(request, skillplan_id):
             except SkillPlan.DoesNotExist:
                 return HttpResponse(content='That skillplan does not exist', status=500)     
 
-            skill_list = OrderedDict()
-            skills_in_plan = {}
+            skill_list = []
+            seen = {}
             last_position = 0
             
             tt.add_time('Get objects')
@@ -413,49 +413,46 @@ def skillplan_ajax_add_skill(request, skillplan_id):
                 if entry.sp_remap is not None:
                     continue
                 if entry.sp_skill is not None:
-                    skills_in_plan[entry.sp_skill.skill.item_id] = entry.sp_skill.level
+                    seen[entry.sp_skill.skill.item_id] = entry.sp_skill.level
                 last_position = entry.position + 1
-                
+            
             tt.add_time('Get skillplan entries')
             
             # if the skill is not already in the plan at the same level, we'll try to add it.
-            if (skill.item_id in skills_in_plan and skill_level > skills_in_plan[skill.item_id]) or skill.item_id not in skills_in_plan:
+            if (skill.item_id in seen and skill_level > seen[skill.item_id]) or skill.item_id not in seen:
             
                 # fetch all prerequisites
-                _get_skill_prerequisites(skill, skill_list, skills_in_plan)
+                _get_skill_prerequisites(skill, skill_list)
+                
+                # finally add the current skill 
+                skill_list.append((skill.item_id, skill_level)) 
                 
                 tt.add_time('Get skills prerequisites')
                 
-                if skill.item_id in skills_in_plan:
-                    start_level = skills_in_plan[skill.item_id] + 1
-                else: 
-                    start_level = 1
-                
-                
-                # add the skill (we want to add) to the list
-                for level in range(start_level, skill_level+1):
-                    skill_list[len(skill_list)] = {'id':skill.item_id, 'level':level}
             
             # if we have any new skill to add, just create the new entries :)
             entries = []
             
-            for skill_to_add in skill_list.values():
-                try:
-                    sps = SPSkill.objects.create(
-                        skill_id=skill_to_add['id'],
-                        level=skill_to_add['level'],
-                        priority=2,
-                    )
-                except:
-                    continue
-            
-                entries.append(SPEntry(
-                    skill_plan=skillplan,
-                    position=last_position,
-                    sp_skill=sps,
-                ))
+            for skill_id, level in skill_list:
+                for l in range(seen.get(skill_id, 0) + 1, level + 1):
+                    try:
+                        sps = SPSkill.objects.create(
+                            skill_id = skill_id,
+                            level = l,
+                            priority=3,
+                        )
+                    except:
+                        continue
+                        
+                    seen[skill_id] = l
+                    
+                    entries.append(SPEntry(
+                        skill_plan=skillplan,
+                        position=last_position,
+                        sp_skill=sps,
+                    ))
 
-                last_position += 1
+                    last_position += 1
                 
             SPEntry.objects.bulk_create(entries)
             
@@ -928,6 +925,7 @@ def _handle_skillplan_upload(request):
 def _parse_emp_plan(skillplan, root):
     entries = []
     position = 0
+    seen = {}
     for entry in root.findall('entry'):
         # Create the various objects for the remapping if it exists
         remapping = entry.find('remapping')
@@ -948,55 +946,63 @@ def _parse_emp_plan(skillplan, root):
             ))
 
             position += 1
-
-        # Create the various objects for the skill
+        
+        # Grab some data we'll need
+        skillID = int(entry.attrib['skillID'])
+        level = int(entry.attrib['level'])
+        priority = int(entry.attrib['priority'])
+        
         try:
-            sps = SPSkill.objects.create(
-                skill_id=entry.attrib['skillID'],
-                level=entry.attrib['level'],
-                priority=entry.attrib['priority'],
-            )
-        except:
+            skill = Skill.objects.get(item__id=skillID)
+                
+        except Skill.DoesNotExist:
             continue
-            
-        entries.append(SPEntry(
-            skill_plan=skillplan,
-            position=position,
-            sp_skill=sps,
-        ))
+        
+        # fetch prerequisites
+        skill_list = []
+        _get_skill_prerequisites(skill, skill_list)
+        
+        # and add the current skill 
+        skill_list.append((skillID, level)) 
+ 
+        for skill_id, skill_level in skill_list:
+            for l in range(seen.get(skill_id, 0) + 1, skill_level + 1):
+                try:
+                    sps = SPSkill.objects.create(
+                        skill_id = skill_id,
+                        level = l,
+                        priority=priority,
+                    )
+                except:
+                    continue
+                    
+                seen[skill_id] = l
+                
+                entries.append(SPEntry(
+                    skill_plan=skillplan,
+                    position=position,
+                    sp_skill=sps,
+                ))
 
-        position += 1
+                position += 1
 
     SPEntry.objects.bulk_create(entries)
     
 # ---------------------------------------------------------------------------
 # Return a dict with all the prerequisite of a given skill
-def _get_skill_prerequisites(skill, skill_list, skills_in_plan):
+def _get_skill_prerequisites(skill, skill_list):
     parents = skill.get_skill_parent()
     if parents is None:
-        return 
+        return
         
     for parent in parents:
         parent_skill = parent.parent_skill
         
-        _get_skill_prerequisites(parent_skill, skill_list, skills_in_plan)
+        # get prereq of the current parent
+        _get_skill_prerequisites(parent_skill, skill_list)
         
-        # check to what level we already added the skill, and update it 
-        if parent_skill.item_id in skills_in_plan:
-            skill_start_level = skills_in_plan[parent_skill.item_id] + 1
-            if skills_in_plan[parent_skill.item_id] < parent.level:
-                skills_in_plan[parent_skill.item_id] = parent.level
-            
-            # we do not need to re-add the skill, since we already added it into the list
-            if parent.level == skill_start_level:
-                continue
-        else:            
-            skill_start_level = 1
-            skills_in_plan[parent_skill.item_id] = parent.level
-        
-        # add all level of the skill needed
-        for level in range(skill_start_level, parent.level+1):
-            skill_list[len(skill_list)] = {'id':parent_skill.item_id, 'level':level}
+        # and add the skill into the list too
+        skill_list.append((parent_skill.item_id, parent.level))
     return
 
 # ---------------------------------------------------------------------------
