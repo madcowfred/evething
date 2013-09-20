@@ -382,12 +382,13 @@ def character_skillplan_common(request, character, skillplan, public=True, anony
             cha_attribute=character.details.cha_attribute,
         )
     else:
+        # 0/0/0/0/0 stats is not possible. So we take new char default remap as base
         remap_stats = dict(
-            int_attribute=0,
-            mem_attribute=0,
-            per_attribute=0,
-            wil_attribute=0,
-            cha_attribute=0,
+            int_attribute=20,
+            mem_attribute=20,
+            per_attribute=20,
+            wil_attribute=20,
+            cha_attribute=19,
         )
 
     implant_stats = {}
@@ -401,9 +402,19 @@ def character_skillplan_common(request, character, skillplan, public=True, anony
     # Iterate over all entries in this skill plan
     entries = []
     total_remaining = 0.0
+    total_duration = 0.0
+    last_remap = None
+    
     for entry in skillplan.entries.select_related('sp_remap', 'sp_skill__skill__item__item_group'):
         # It's a remap entry
         if entry.sp_remap is not None:
+            
+            # If the remap have every attributes set to 0, we do not add it.
+            # (happen when remap are not set on evemon before exporting .emp
+            if entry.sp_remap.int_stat == 0 and entry.sp_remap.mem_stat == 0 and \
+               entry.sp_remap.per_stat == 0 and entry.sp_remap.wil_stat == 0 and entry.sp_remap.cha_stat == 0:
+               continue
+               
             # Delete the previous remap if it's two in a row, that makes no sense
             if entries and entries[-1].sp_remap is not None:
                 entries.pop()
@@ -414,10 +425,16 @@ def character_skillplan_common(request, character, skillplan, public=True, anony
             remap_stats['wil_attribute'] = entry.sp_remap.wil_stat
             remap_stats['cha_attribute'] = entry.sp_remap.cha_stat
 
+            entry.z_duration = 0.0
+            entry.z_total_duration = 0.0
+            
+            last_remap = entry
+            
         # It's a skill entry
         if entry.sp_skill is not None:
             skill = entry.sp_skill.skill
-
+            entry.z_percent_trained = 0
+            
             # If this skill is already learned
             cs = learned.get(skill.item.id, None)
             if cs is not None:
@@ -431,10 +448,18 @@ def character_skillplan_common(request, character, skillplan, public=True, anony
                         continue
 
                     entry.z_trained = True
+                    
+                elif cs.points > cs.skill.get_sp_at_level(cs.level):
+                    required_sp = cs.skill.get_sp_at_level(cs.level + 1) - cs.skill.get_sp_at_level(cs.level)
+                    sp_done = cs.points-cs.skill.get_sp_at_level(cs.level)
+                    entry.z_percent_trained = round(sp_done / required_sp * 100, 1)
+                    entry.z_partial_trained = True
+                    
             # Not learned, need to buy it
             else:
                 entry.z_buy = True
 
+            
             # Calculate SP/hr
             if remap_stats:
                 entry.z_sppm = skill.get_sppm_stats(remap_stats, implant_stats)
@@ -452,12 +477,21 @@ def character_skillplan_common(request, character, skillplan, public=True, anony
             if training_skill is not None and training_skill.skill_id == entry.sp_skill.skill_id and training_skill.to_level == entry.sp_skill.level:
                 entry.z_remaining = total_seconds(training_skill.end_time - utcnow)
                 entry.z_training = True
+                entry.z_percent_trained = training_skill.get_complete_percentage()
             else:
                 entry.z_remaining = (skill.get_sp_at_level(entry.sp_skill.level) - skill.get_sp_at_level(entry.sp_skill.level - 1)) / entry.z_sppm * 60
 
             # Add time remaining to total
             if not hasattr(entry, 'z_trained'):
                 total_remaining += entry.z_remaining
+                if last_remap is not None:
+                    last_remap.z_duration = entry.z_remaining
+                    
+            total_duration += entry.z_remaining
+            
+            # add time to remap if we had one
+            if last_remap is not None:
+                last_remap.z_total_duration = entry.z_remaining
 
         entries.append(entry)
 

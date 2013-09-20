@@ -53,8 +53,8 @@
             </thead>
             <tbody>
               {% for entry in entries -%}
-              <tr class="c">
-                {% if entry.sp_remap -%}
+               {% if entry.sp_remap -%}
+               <tr class="c">
                 <td></td>
                 <td class="l" colspan="6">
                   <i class="icon-user"></i> Remap to
@@ -64,17 +64,30 @@
                   <strong>{{ entry.sp_remap.wil_stat }}</strong> Wil /
                   <strong>{{ entry.sp_remap.cha_stat }}</strong> Cha
                   </strong>
+                  <span class="pull-right small">
+                    <strong>Total remap time</strong>:
+                    {{ entry.z_duration|duration }}
+                    {% if entry.z_total_duration = entry.z_duration %}
+                    / {{ entry.z_total_duration|duration }}
+                    {% endif %}
+                  </span>
                 </td>
-                {%- else %}
+               {%- else %}
+               <tr class="c {% if entry.z_training %}highlight_training{% elif entry.z_partial_trained %}highlight_partial{% endif %}">
                 <td class="sp-trained">
                   {% if entry.z_training -%}
                   <i class="icon-flag"></i>
+                  {% elif entry.z_partial_trained %}
+                  <i class="icon-spinner"></i>
                   {%- else -%}
                   {{ icons.success_fail(entry.z_trained) }}
                   {%- endif %}
                 </td>
-                <td class="l{% if entry.z_training %} training-highlight{% endif %}">
+                <td class="l">
                   {{ common.skill_hover(entry.sp_skill.skill, entry.sp_skill.level)}}
+                  {% if entry.z_partial_trained %}
+                  (Trained: {{ entry.z_percent_trained }}%)
+                  {% endif %}
                   {% if entry.z_injected -%}
                   <i class="icon-book pull-right" rel="tooltip" title="Skillbook is injected"</i>
                   {%- elif entry.z_buy %}
@@ -86,7 +99,7 @@
                 <td class="sp-small">{{ entry.sp_skill.skill.get_secondary_attribute_display() }}</td>
                 <td class="sp-small">{{ entry.z_spph|commas }}</td>
                 <td class="r sp-time">{{ entry.z_remaining|duration }}</td>
-                {%- endif %}
+              {%- endif %}
               </tr>
               {%- else %}
               <tr>
@@ -99,7 +112,12 @@
             <tfoot>
               <tr>
                 <td></td>
-                <td colspan="6" class="r"><strong>Total time remaining</strong>: {{ total_remaining|duration }}</td>
+                <td colspan="6" class="r">
+                  <strong>Total time remaining</strong>: {{ total_remaining|duration }}
+                  {% if total_duration = total_remaining %}
+                  / {{ total_duration|duration }}
+                  {% endif %}
+                </td>
               </tr>
             </tfoot>
             {%- endif %}
