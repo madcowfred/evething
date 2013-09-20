@@ -39,6 +39,12 @@
 
 * tasks:
   - Make SystemEvent objects for admin-related events
+  - Do something about fixing the godawful mess where adding a task requires editing multiple places.
+    Maybe move task settings (queue, required mask, URL) to class variables and hack together some
+    sort of Celery task autodiscover? I'm sure it's possible :v
+
+* tasks.industryjobs:
+  - SIGH. Work out what in the hell is going on here.
 
 * tasks.price_updater:
   - Add support for other sources of market data (EVE-Central, EVEMarketData?)
@@ -59,6 +65,10 @@
 
 * views.assets:
   - Filter by unit price, < = > comparisons.
+  - Change the default query type from exact match to contains.
+  - Add a fourth query type which is does not contain.
+  - Add the ability to query only personal assets, corp assets or both.
+  - Add summary by region and filter by region.
 
 * views.blueprints:
   - Work out a sane way to be able to say "I want to make 100 Blackbirds and 300 rigs to go on them" and get
@@ -74,8 +84,13 @@
   - Skill tooltips:
     = Should display training time for each further level
 
+* views.character_skillplan:
+  - When visiting a skill plan with a character, it seems the remaining time does not take into account the sp
+    already spent on this skill, unless it's currently training.
+
 * views.contracts:
   - Summary table similar to orders
 
 * views.home:
   - Add options to hide corp wallet/event log sections
+  - Add options to ignore specific notifications for specific characters.
