@@ -125,7 +125,7 @@ def skillplan_ajax_render_entries(request, skillplan_id, character_id, implants,
     
     show_trained=bool(int(show_trained))
     
-    return _skillplan_list(request, skillplan, character, implants, show_trained)
+    return _skillplan_list_json(request, skillplan, character, implants, show_trained)
 
 # ---------------------------------------------------------------------------
 # Move an entry in another position
@@ -670,8 +670,8 @@ def skillplan_edit_info(request):
 
 # ---------------------------------------------------------------------------
 # Return the entries of a given skillplan
-def _skillplan_list(request, skillplan, character, implants, show_trained):
-    tt = TimerThing('skillplan_list_entries')
+def _skillplan_list_json(request, skillplan, character, implants, show_trained):
+    tt = TimerThing('skillplan_list_entries_json')
 
     utcnow = datetime.datetime.utcnow()
 
