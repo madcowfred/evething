@@ -733,14 +733,13 @@ def _skillplan_list_json(request, skillplan, character, implants, show_trained):
 
     # Iterate over all entries in this skill plan
     skillplan_json = {
-        'remaining_duration':0,
-        'total_duration':0,
+        'remaining_duration':0.0,
+        'total_duration':0.0,
         'entries':[],
     }
     
     sp_remap = None
 
-    total_remaining = 0.0
     for entry in skillplan.entries.select_related('sp_remap', 'sp_skill__skill__item__item_group'):
         sp_entry = {
             'id': entry.id,
@@ -817,7 +816,7 @@ def _skillplan_list_json(request, skillplan, character, implants, show_trained):
                     sp_skill['remaining_time'] = 0
                 
                 # Partially trained ?
-                if char_skill.points > char_skill.skill.get_sp_at_level(char_skill.level):
+                elif char_skill.points > char_skill.skill.get_sp_at_level(char_skill.level):
                     required_sp = char_skill.skill.get_sp_at_level(char_skill.level + 1) - char_skill.skill.get_sp_at_level(char_skill.level)
                     sp_done = char_skill.points-char_skill.skill.get_sp_at_level(char_skill.level)
                     sp_skill['percent_trained'] = round(sp_done / required_sp * 100, 1)
@@ -837,6 +836,12 @@ def _skillplan_list_json(request, skillplan, character, implants, show_trained):
                 sp_skill['remaining_time'] = (training_skill.end_time - utcnow).total_seconds()
                 sp_skill['training'] = True
                 sp_skill['percent_trained'] = training_skill.get_complete_percentage()
+                
+            elif sp_skill['percent_trained'] < 100 and sp_skill['percent_trained'] > 0:
+                remaining_sp = skill.get_sp_at_level(entry.sp_skill.level) - skill.get_sp_at_level(entry.sp_skill.level - 1) - entry.z_sp_done
+                sp_skill['remaining_time'] = (remaining_sp - entry.z_sp_done) / entry.z_sppm * 60
+                sp_skill['total_time'] = remaining_sp / entry.z_sppm * 60
+                
             else:
                 required_sp = skill.get_sp_at_level(entry.sp_skill.level) - skill.get_sp_at_level(entry.sp_skill.level - 1)
                 sp_skill['remaining_time'] = required_sp / sp_per_min * 60
@@ -849,10 +854,15 @@ def _skillplan_list_json(request, skillplan, character, implants, show_trained):
                     sp_remap['duration'] += sp_skill['remaining_time']
                 
             # Total duration, includes already trained skill (to get the whole skillplan duration)
-            skillplan_json['total_duration'] += sp_skill['remaining_time']
-            if sp_remap is not None:
-                sp_remap['total_duration'] += sp_skill['remaining_time']
-                    
+            if sp_skill['percent_trained'] < 100 and sp_skill['percent_trained'] > 0:
+                skillplan_json['total_duration'] += sp_skill['total_time']
+                if sp_remap is not None:
+                    sp_remap['total_duration'] += sp_skill['total_time']
+            else:
+                skillplan_json['total_duration'] += sp_skill['remaining_time']
+                if sp_remap is not None:
+                    sp_remap['total_duration'] += sp_skill['remaining_time']
+                        
             sp_entry['skill'] = sp_skill
             
         skillplan_json['entries'].append(sp_entry)     
