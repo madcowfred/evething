@@ -23,7 +23,6 @@
 # OF SUCH DAMAGE.
 # ------------------------------------------------------------------------------
 
-import cPickle
 import math
 
 from django.db import models
@@ -38,13 +37,6 @@ except ImportError:
 from thing.models.item import Item
 from thing.models.skillparent import SkillParent
 
-
-# ------------------------------------------------------------------------------
-
-try:
-    SKILL_MAP = cPickle.load(open('skill_map.pickle', 'r'))
-except:
-    SKILL_MAP = {}
 
 # ------------------------------------------------------------------------------
 
@@ -186,23 +178,24 @@ class Skill(models.Model):
             return True
         return False
         
+    def get_prerequisites(self):
+        parents = self.get_skill_parent()
+        skill_list = []
+        if parents is None:
+            return skill_list
+            
+        for parent in parents:
+            parent_skill = parent.parent_skill
+            
+            # get prereq of the current parent
+            skill_list.extend(parent_skill.get_prerequisites())
+            
+            # and add the skill into the list too
+            skill_list.append((parent_skill.item_id, parent.level))
+            
+        return skill_list
     # ------------------------------------------------------------------------------
-
-    @staticmethod
-    def get_prereqs(skill_id):
-        'Get all pre-requisite skills for a given skill ID'
-
-        def _recurse_prereqs(prereqs, skill):
-            for sid, level in SKILL_MAP.get(skill, {}).values():
-                prereqs.append([sid, level])
-                _recurse_prereqs(prereqs, sid)
-
-        prereqs = []
-        _recurse_prereqs(prereqs, skill_id)
-
-        # Return a reversed list so it's in training order
-        return list(reversed(prereqs))
-        
+    
     @staticmethod
     def get_all_parents(skill):
         'Get all the parents of a given skill'

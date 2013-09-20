@@ -422,7 +422,7 @@ def skillplan_ajax_add_skill(request, skillplan_id):
             if (skill.item_id in seen and skill_level > seen[skill.item_id]) or skill.item_id not in seen:
             
                 # fetch all prerequisites
-                _get_skill_prerequisites(skill, skill_list)
+                skill_list = skill.get_prerequisites()
                 
                 # finally add the current skill 
                 skill_list.append((skill.item_id, skill_level)) 
@@ -959,8 +959,7 @@ def _parse_emp_plan(skillplan, root):
             continue
         
         # fetch prerequisites
-        skill_list = []
-        _get_skill_prerequisites(skill, skill_list)
+        skill_list = skill.get_prerequisites()
         
         # and add the current skill 
         skill_list.append((skillID, level)) 
@@ -988,23 +987,6 @@ def _parse_emp_plan(skillplan, root):
 
     SPEntry.objects.bulk_create(entries)
     
-# ---------------------------------------------------------------------------
-# Return a dict with all the prerequisite of a given skill
-def _get_skill_prerequisites(skill, skill_list):
-    parents = skill.get_skill_parent()
-    if parents is None:
-        return
-        
-    for parent in parents:
-        parent_skill = parent.parent_skill
-        
-        # get prereq of the current parent
-        _get_skill_prerequisites(parent_skill, skill_list)
-        
-        # and add the skill into the list too
-        skill_list.append((parent_skill.item_id, parent.level))
-    return
-
 # ---------------------------------------------------------------------------
 # Return the best remap for a given entries list
 def _optimize_attribute(entries, max_duration):
