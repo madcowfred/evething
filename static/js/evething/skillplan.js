@@ -5,7 +5,7 @@ EVEthing.skillplan = {
         
     addSkillInPlanUrl: "",
     addRemapInPlanUrl: "",
-    skillPlanEntriesEditUrl: "",
+    skillPlanEntriesJsonUrl: "",
     reorderEntriesUrl: "",
     deleteEntryUrl: "",
     cleanSkillplanUrl: "",
@@ -88,7 +88,9 @@ EVEthing.skillplan = {
             container: 'body'
         }).on('click', 
             function(e) {
-            
+                var skill_id         = $(this).attr('data-id');
+                var skill_planned_to = $(this).attr('data-plan-to-level');
+
                 // popover on click, but only display one popover.
                 if(EVEthing.skillplan.current_popover_id) {
                     if(EVEthing.skillplan.current_popover_id != $(this).attr('id')) {
@@ -107,6 +109,12 @@ EVEthing.skillplan = {
                     }
                 );
                 
+                $('.btn-plan-skill[data-id=' + skill_id + ']').filter(
+                    function(index) {   
+                        return $(this).attr('data-level') <= skill_planned_to;
+                    }
+                ).attr('disabled',true);
+                
                 e.preventDefault();
             }
         );
@@ -122,7 +130,7 @@ EVEthing.skillplan = {
         var implants     = $('#implants').val();
         var character_id = Math.max($('#characters').val(), 0);
         var show_trained = ($('#show_trained').is(':checked')) ? 1 : 0;
-        var url          = EVEthing.skillplan.skillPlanEntriesEditUrl.replace('88888888888', character_id)
+        var url          = EVEthing.skillplan.skillPlanEntriesJsonUrl.replace('88888888888', character_id)
                                                                      .replace('77777777777', implants)
                                                                      .replace('66666666666', show_trained)
 
@@ -165,6 +173,9 @@ EVEthing.skillplan = {
         
         $('#skillplan > tfoot').html(footer.replace(/##duration##/,duration));
         
+        // set all planned level to 0 in the skill tree
+        //$('.skill-list-hover').attr('data-plan-to-level', 0);        
+        
         entries = "";
         for(var i=0, size=json.entries.length; i < size; i++) {
             entry = json.entries[i];
@@ -184,6 +195,7 @@ EVEthing.skillplan = {
                                                         .replace(/##cha##/g         ,entry.remap.cha)
                                                         .replace(/##duration##/g    ,duration)
             } else {
+          
                 skillName = entry.skill.name + " " + EVEthing.skillplan.levelToRoman[entry.skill.level];
                 
                 highlight = "";
@@ -220,7 +232,10 @@ EVEthing.skillplan = {
                                                         .replace(/##skill_primary##/g       ,entry.skill.primary)
                                                         .replace(/##skill_secondary##/g     ,entry.skill.secondary)
                                                         .replace(/##skill_spph##/g          ,entry.skill.spph)
-                                                        .replace(/##skill_remaining##/g     ,EVEthing.util.durationToString(entry.skill.remaining_time))
+                                                        .replace(/##skill_remaining##/g     ,EVEthing.util.durationToString(entry.skill.remaining_time));
+                
+                // set the planned level for the current skill 
+                $('#skill-list-hover-' + entry.skill.id).attr('data-plan-to-level', entry.skill.level);      
             }
         }
         $('#skillplan > tbody').html(entries);

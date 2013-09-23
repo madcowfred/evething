@@ -12,8 +12,7 @@
         EVEthing.skillplan.deleteEntryUrl = "{{ url('thing.views.skillplan_ajax_delete_entry', skillplan.id) }}"
         EVEthing.skillplan.optimizeSkillplanRemapsUrl = "{{ url('thing.views.skillplan_ajax_optimize_remaps', skillplan.id) }}"
         EVEthing.skillplan.reorderEntriesUrl = "{{ url('thing.views.skillplan_ajax_reorder_entry', skillplan.id) }}"
-        EVEthing.skillplan.skillPlanEntriesEditUrl = "{{ url('thing.views.skillplan_ajax_render_entries', skillplan.id, 88888888888, 77777777777, 66666666666 )  }}"
-        EVEthing.skillplan.skillplanId = {{ skillplan.id }}
+        EVEthing.skillplan.skillPlanEntriesJsonUrl = "{{ url('thing.views.skillplan_ajax_render_entries', skillplan.id, 88888888888, 77777777777, 66666666666 )  }}"
         $(document).ready(EVEthing.skillplan.onload);
     </script>
 {% endblock %}
@@ -116,7 +115,7 @@
                                 {% for skill in skills -%}
                                 <li id="skill-{{ skill.item.id }}" class="mg-{{ market_group.id }} collapse skill" data-name="{{ skill.item.name }}" data-group="{{ market_group.name }}">
                                     <a>
-                                        <span class="skill-list-hover {{ extra_class}}" title="{{ skill.item.name }}" id="skill-list-hover-{{ skill.item.id }}" data-content="
+                                        <span class="skill-list-hover {{ extra_class}}" title="{{ skill.item.name }}" id="skill-list-hover-{{ skill.item.id }}" data-id="{{ skill.item.id }}" data-content="
                                             {{ skill }}
                                             <br><br>
                                             <strong>Plan to level:</strong> <br>
