@@ -64,7 +64,7 @@ Features
      clickable item names that lead to Transactions pages.
 - Skillplan page: lets you create/import/export/edit skillplans. While editing, you can still view
   the plan as a specific character, but the view link is still available from your character page. 
-  `Screenshot <https://raw.github.com/Kyria/evething/develop/doc-images/skillplan.jpg>`_ `Screenshot <https://raw.github.com/Kyria/evething/develop/doc-images/skillplan_edit.jpg>`_
+  `Screenshot <doc-images/skillplan.png>`_ `Screenshot <doc-images/skillplan_edit.png>`_
 - Transactions page: displays a log of market transactions for all items or a specific
   item. `Screenshot <https://github.com/madcowfred/evething/raw/develop/doc-images/transactions.png>`_
    * All transactions page has clickable item links that lead to specific items.
