@@ -83,3 +83,6 @@
 * views.home:
   - Add options to hide corp wallet/event log sections
   - Add options to ignore specific notifications for specific characters.
+
+* views.skillplan
+  - Add items/ships/certificates browser to add skill based on these points.
