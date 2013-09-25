@@ -32,7 +32,6 @@
               <ul class="nav" id="nav-list">
 {% if authed %}
 {% set profile = user.get_profile() %}
-                <li><a href="{{ url('thing.views.skillplan') }}">Skillplans</a></li>
                 {% if profile.show_assets %}<li><a href="{{ url('thing.views.assets_summary') }}">Assets</a></li>{% endif %}
                 {% if profile.show_blueprints %}<li><a href="{{ url('thing.views.blueprints') }}">Blueprints</a></li>{% endif %}
 {% if profile.show_contracts %}
@@ -52,6 +51,7 @@
                 </li>
 {% endif %}{# profile.show_industry #}
                 {% if profile.show_orders %}<li><a href="{{ url('thing.views.orders') }}">Orders</a></li>{% endif %}
+                {% if profile.show_skillplan %}<li><a href="{{ url('thing.views.skillplan') }}">Skillplans</a></li>{% endif %}
                 {% if profile.show_trade %}<li><a href="{{ url('thing.views.trade') }}">Trade</a></li>{% endif %}
                 {% if profile.show_transactions %}<li><a href="{{ url('thing.views.transactions') }}">Transactions</a></li>{% endif %}
                 {% if profile.show_wallet_journal %}<li><a href="{{ url('thing.views.wallet_journal') }}">Wallet Journal</a></li>{% endif %}
