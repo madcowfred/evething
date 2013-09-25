@@ -18,7 +18,7 @@
               <a href="{{ url('thing.views.character_sheet', char.name) }}">{{ char.name }}</a>
               {%- endif %}
             </li>
-            <li><strong>Skill Plan</strong>: {{ skillplan.name }}</li>
+            <li><strong>Skill Plan</strong>: {{ skillplan.name }} <a class="download-skillplan" href="{{ url('thing.views.skillplan_export',skillplan.id) }}"><i class="icon-download-alt"></i></a></li>
           </ul>
 
           <form class="form-inline" action="">

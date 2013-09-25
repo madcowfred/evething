@@ -27,6 +27,7 @@ import gzip
 import json
 import datetime
 import thread
+import StringIO
 
 from django.http import HttpResponse
 from django.conf import settings
@@ -615,13 +616,91 @@ def skillplan_create(request):
 # Export Skillplan
 @login_required
 def skillplan_export(request, skillplan_id):
-    # path = os.expanduser('~/files/pdf/')
-    # f = open(path+filename, "r")
-    # response = HttpResponse(FileWrapper(f), content_type='application/x-gzip')
-    # response ['Content-Disposition'] = 'attachment; filename=yourFile.emp'
-    # f.close()
-    return response
+    if skillplan_id.isdigit():
+        skillplan = get_object_or_404(SkillPlan, user=request.user, pk=skillplan_id)     
+        # register namespaces 
+        xsi = "http://www.w3.org/2001/XMLSchema-instance" 
+        xsd = "http://www.w3.org/2001/XMLSchema"
+        
+        # since we want to use "tostring" and not "write", we need to manually add
+        # namespace declaration into "plan" node...
+        # <plan xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" name="test">
+        plan_attributes = {
+            'name':skillplan.name,
+            'xmlns:xsi':xsi,
+            'xmlns:xsd':xsd,
+            'revision':'4116',
+        }
+        root = ET.Element('plan', plan_attributes)
+        
+        # <sorting criteria="None" order="None" groupByPriority="false" />
+        sorting_attributes = {
+            'criteria':'None',
+            'order':'None',
+            'groupByPriority':'false',
+        }
+        root.append(ET.Element('sorting', sorting_attributes))
+        
+        
+        # now loop on entries, and fill that xml
+        remap_element = None
+        for entry in skillplan.entries.select_related('sp_remap', 'sp_skill__skill__item__item_group'):
+            
+            if entry.sp_remap is not None:
+                #   <remapping status="UpToDate" per="27" int="17" mem="17" wil="21" cha="17" 
+                #               description="" />
+                description = '&#xD;&#xA;Intelligence (-3) = 17 = (17 + 0 + 0) \
+                               &#xD;&#xA;Perception (+7) = 27 = (17 + 10 + 0) \
+                               &#xD;&#xA;Charisma (-2) = 17 = (17 + 0 + 0) \
+                               &#xD;&#xA;Willpower (+1) = 21 = (17 + 4 + 0) \
+                               &#xD;&#xA;Memory (-3) = 17 = (17 + 0 + 0)'
+                               
+                remap_attributes = {
+                    'int':str(entry.sp_remap.int_stat),
+                    'mem':str(entry.sp_remap.mem_stat),
+                    'per':str(entry.sp_remap.per_stat),
+                    'wil':str(entry.sp_remap.wil_stat),
+                    'cha':str(entry.sp_remap.cha_stat),
+                    'status':'UpToDate',
+                    'description':'this is a remap...'
+                }
+                remap_element = ET.Element('remapping', remap_attributes)
+                continue
+            
+            #<entry skillID="ID" skill="skill_name" level="" priority="3" type="Planned">
+            #   <notes>skill_name</notes>
+            
+            entry_attributes = {
+                'skillID':str(entry.sp_skill.skill.item_id),
+                'skill':entry.sp_skill.skill.item.name,
+                'level':str(entry.sp_skill.level),
+                'priority':str(entry.sp_skill.priority),
+                'type':'Planned',
+            }
+            entry_element = ET.Element('entry', entry_attributes)
+            notes = ET.Element('notes')
+            notes.text = entry.sp_skill.skill.item.name
+            entry_element.append(notes)
+            
+            if remap_element is not None:
+                entry_element.append(remap_element)
+                remap_element = None
+            
+            root.append(entry_element)
+        
+        xml_string = StringIO()
+        f = gzip.GzipFile(fileobj=xml_string, mode='w')
+        f.write(ET.tostring(root))
+        f.close()
 
+        
+        response = HttpResponse(xml_string.getvalue(), content_type='application/x-gzip')
+        response['Content-Disposition'] = 'attachment; filename=%s.emp' % skillplan.name
+        return response
+        
+    else:
+        redirect('thing.views.skillplan')
+        
 # ---------------------------------------------------------------------------
 # Delete a skillplan
 @login_required

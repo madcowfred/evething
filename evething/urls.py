@@ -42,6 +42,7 @@ urlpatterns += patterns('thing.views',
     (r'^skillplan/edit/(?P<skillplan_id>\d+)$', 'skillplan_edit'),
     (r'^skillplan/edit/$', lambda x: HttpResponseRedirect('/skillplan/')),
     (r'^skillplan/import/$', 'skillplan_import_emp'),
+    (r'^skillplan/export/(?P<skillplan_id>\d+)$', 'skillplan_export'),
     (r'^skillplan/info/edit/$', 'skillplan_edit_info'),
 
     (r'^assets/$', 'assets_summary'),

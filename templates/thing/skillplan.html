@@ -73,7 +73,7 @@
                         <td class="c sp-time">{{ skillplan.get_visibility_display() }}</td>
                         <td class="c sp-btn">
                             <a class="view-skillplan" href="{{ url('thing.views.skillplan_edit',skillplan.id) }}"><i class="icon-th-list"></i></a>
-                            <a class="download-skillplan" href="#"><i class="icon-download-alt"></i></a>
+                            <a class="download-skillplan" href="{{ url('thing.views.skillplan_export',skillplan.id) }}"><i class="icon-download-alt"></i></a>
                             <a class="edit-skillplan-info" data-toggle="modal" href="#edit-skillplan-modal"><i class="icon-edit"></i></a>
                             <a class="delete-skillplan" data-toggle="modal" href="#delete-skillplan-modal"><i class="icon-remove"></i></a>
                         </td>
