@@ -55,10 +55,19 @@ from thing.stuff import *
 # ---------------------------------------------------------------------------
 # List all skillplans
 @login_required
-def skillplan(request):
+def skillplan(request):    
+    if 'message' in request.session:
+        message = request.session.pop('message')
+        message_type = request.session.pop('message_type')
+    else:
+        message = None
+        message_type = None
+
     return render_page(
         'thing/skillplan.html',
         {
+            'message': message,
+            'message_type': message_type,
             'skillplans': SkillPlan.objects.filter(user=request.user).order_by('id'),
             'visibilities': SkillPlan.VISIBILITY_CHOICES,
         },
@@ -586,14 +595,19 @@ def skillplan_import_emp(request):
 # Create a skillplan
 @login_required
 def skillplan_create(request):
-
-    skillplan = SkillPlan.objects.create(
-        user=request.user,
-        name=request.POST['name'],
-        visibility=request.POST['visibility'],
-    )
-    
-    skillplan.save()
+    if request.method == 'POST':
+        skillplan = SkillPlan.objects.create(
+            user=request.user,
+            name=request.POST['name'],
+            visibility=request.POST['visibility'],
+        )
+        
+        skillplan.save()
+        request.session['message_type'] = 'success'
+        request.session['message'] = "Skill plan %s uploaded successfully." % request.POST['name']
+    else:
+        request.session['message_type'] = 'error'
+        request.session['message'] = "That doesn't look like a POST request!"
     
     return redirect('thing.views.skillplan')
     
@@ -918,7 +932,7 @@ def _handle_skillplan_upload(request):
     _parse_emp_plan(skillplan, root)
 
     request.session['message_type'] = 'success'
-    request.session['message'] = "Skill plan uploaded successfully."
+    request.session['message'] = "Skill plan %s uploaded successfully." % name
 
 # ---------------------------------------------------------------------------
 # Parse an emp skillplan and save it into the database
