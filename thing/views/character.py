@@ -453,7 +453,7 @@ def character_skillplan_common(request, character, skillplan, public=True, anony
                     required_sp = cs.skill.get_sp_at_level(cs.level + 1) - cs.skill.get_sp_at_level(cs.level)
                     sp_done = cs.points-cs.skill.get_sp_at_level(cs.level)
                     entry.z_sp_done = sp_done
-                    entry.z_percent_trained = round(sp_done / required_sp * 100, 1)
+                    entry.z_percent_trained = round(sp_done / float(required_sp) * 100, 1)
                     entry.z_partial_trained = True
                     
             # Not learned, need to buy it
@@ -480,7 +480,7 @@ def character_skillplan_common(request, character, skillplan, public=True, anony
                 entry.z_training = True
                 entry.z_percent_trained = training_skill.get_complete_percentage()
                 
-            elif entry.z_partial_trained:
+            elif hasattr(entry, 'z_partial_trained'):
                 remaining_sp = skill.get_sp_at_level(entry.sp_skill.level) - skill.get_sp_at_level(entry.sp_skill.level - 1)
                 entry.z_remaining = (remaining_sp - entry.z_sp_done) / entry.z_sppm * 60
                 entry.z_total_time = remaining_sp / entry.z_sppm * 60
@@ -491,16 +491,16 @@ def character_skillplan_common(request, character, skillplan, public=True, anony
             if not hasattr(entry, 'z_trained'):
                 total_remaining += entry.z_remaining
                 if last_remap is not None:
-                    last_remap.z_duration = entry.z_remaining
+                    last_remap.z_duration += entry.z_remaining
             
             if hasattr(entry, 'z_total_time'):
                 total_duration += entry.z_total_time
                 if last_remap is not None:
-                    last_remap.z_total_duration = entry.z_total_time
+                    last_remap.z_total_duration += entry.z_total_time
             else: 
                 total_duration += entry.z_remaining                
                 if last_remap is not None:
-                    last_remap.z_total_duration = entry.z_remaining
+                    last_remap.z_total_duration += entry.z_remaining
 
                 
 
@@ -519,6 +519,7 @@ def character_skillplan_common(request, character, skillplan, public=True, anony
             'skillplan': skillplan,
             'entries': entries,
             'total_remaining': total_remaining,
+            'total_duration': total_duration,
         },
         request,
     )

@@ -779,7 +779,7 @@ def _skillplan_list_json(request, skillplan, character, implants, show_trained):
             learned = {}
             for cs in CharacterSkill.objects.filter(character=character).select_related('skill__item'):
                 learned[cs.skill.item_id] = cs
-            cache.set(cache_key, learned, 600)
+            cache.set(cache_key, learned, 300)
     
         tt.add_time('char skills')
     
@@ -908,9 +908,8 @@ def _skillplan_list_json(request, skillplan, character, implants, show_trained):
                 # Partially trained ?
                 elif char_skill.points > char_skill.skill.get_sp_at_level(char_skill.level):
                     required_sp = char_skill.skill.get_sp_at_level(char_skill.level + 1) - char_skill.skill.get_sp_at_level(char_skill.level)
-                    sp_done = char_skill.points-char_skill.skill.get_sp_at_level(char_skill.level)
-                    sp_skill['percent_trained'] = round(sp_done / required_sp * 100, 1)
-                    
+                    sp_skill['sp_done'] = char_skill.points-char_skill.skill.get_sp_at_level(char_skill.level)
+                    sp_skill['percent_trained'] = round(sp_skill['sp_done'] / float(required_sp) * 100, 1)
 
             # Calculate SP/hr
             if remap_stats:
@@ -924,14 +923,16 @@ def _skillplan_list_json(request, skillplan, character, implants, show_trained):
             # Calculate time remaining
             if training_skill is not None and training_skill.skill_id == entry.sp_skill.skill_id and training_skill.to_level == entry.sp_skill.level:
                 sp_skill['remaining_time'] = (training_skill.end_time - utcnow).total_seconds()
+                sp_skill['total_time'] = (training_skill.end_time - training_skill.start_time).total_seconds()
                 sp_skill['training'] = True
                 sp_skill['percent_trained'] = training_skill.get_complete_percentage()
                 
-            elif sp_skill['percent_trained'] < 100 and sp_skill['percent_trained'] > 0:
-                remaining_sp = skill.get_sp_at_level(entry.sp_skill.level) - skill.get_sp_at_level(entry.sp_skill.level - 1) - entry.z_sp_done
-                sp_skill['remaining_time'] = (remaining_sp - entry.z_sp_done) / entry.z_sppm * 60
-                sp_skill['total_time'] = remaining_sp / entry.z_sppm * 60
                 
+            elif sp_skill['percent_trained'] < 100 and sp_skill['percent_trained'] > 0:
+                remaining_sp = skill.get_sp_at_level(entry.sp_skill.level) - skill.get_sp_at_level(entry.sp_skill.level - 1) - sp_skill['sp_done']
+                sp_skill['remaining_time'] = (remaining_sp) / sp_per_min * 60
+                sp_skill['total_time'] = (remaining_sp + sp_skill['sp_done']) / sp_per_min * 60
+                print(remaining_sp , sp_skill['sp_done'])
             else:
                 required_sp = skill.get_sp_at_level(entry.sp_skill.level) - skill.get_sp_at_level(entry.sp_skill.level - 1)
                 sp_skill['remaining_time'] = required_sp / sp_per_min * 60

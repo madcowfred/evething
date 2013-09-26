@@ -29,11 +29,11 @@ EVEthing.skillplan = {
                 + '   <td><a href="#" class="remove-entry" data-id="##id##"><i class="icon-remove"></i></a></td>\n'
                 + '</tr>\n',
 
-    skillEntry : '<tr class="c skill_entry_handler ##skill_highlight##" data-position="##position##" data-id="##id##" data-skill-id="##skill_id##" data-level="##skill_level##">\n'
+    skillEntry : '<tr class="c skill_entry_handler" data-position="##position##" data-id="##id##" data-skill-id="##skill_id##" data-level="##skill_level##">\n'
                + '    <td class="sp-trained">\n'
                + '        <i class="##icon##"></i>'
                + '    </td>\n'
-               + '    <td class="l">\n'
+               + '    <td class="l  ##skill_highlight##">\n'
                + '        ##skill##'
                + '        ##skill_injected_buy##'
                + '    </td>\n'
@@ -168,7 +168,7 @@ EVEthing.skillplan = {
         
         duration=EVEthing.util.durationToString(json.remaining_duration);
         if(json.remaining_duration != json.total_duration) {
-            duration += ' / '+ EVEthing.util.durationToString(json.total_duration);
+            duration += ' <span class="muted">(<strong>Total:</strong> '+ EVEthing.util.durationToString(json.total_duration) +')</span>';
         }
         
         $('#skillplan > tfoot').html(footer.replace(/##duration##/,duration));
@@ -183,7 +183,7 @@ EVEthing.skillplan = {
             if(entry.remap != null) {
                 duration=EVEthing.util.durationToString(entry.remap.duration);
                 if(entry.remap.duration != entry.remap.total_duration) {
-                    duration += ' / '+ EVEthing.util.durationToString(json.total_duration);
+                    duration += ' <span class="muted">(<strong>Total:</strong> ' + EVEthing.util.durationToString(entry.remap.total_duration) +')</span>';
                 }
 
                 entries += EVEthing.skillplan.remapEntry.replace(/##position##/g    ,entry.position)
@@ -200,14 +200,15 @@ EVEthing.skillplan = {
                 
                 highlight = "";
                 if (entry.skill.training) {
-                    statusIcon = "icon-flag";
+                    statusIcon = "icon-spinner";
+                    skillName += " (Trained: " + entry.skill.percent_trained + "%)";
                     highlight = 'highlight_training';
                 } else if (entry.skill.percent_trained == 100) {
                     statusIcon = "icon-ok pos"
                 } else if (entry.skill.percent_trained == 0) {
                     statusIcon = "icon-remove neg"
                 } else {
-                    statusIcon = "icon-spinner"
+                    statusIcon = "icon-flag"
                     skillName += " (Trained: " + entry.skill.percent_trained + "%)";
                     highlight = 'highlight_partial';
                 }
