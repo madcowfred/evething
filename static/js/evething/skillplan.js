@@ -208,7 +208,7 @@ EVEthing.skillplan = {
                 } else if (entry.skill.percent_trained == 0) {
                     statusIcon = "icon-remove neg"
                 } else {
-                    statusIcon = "icon-flag"
+                    statusIcon = "icon-star-half-empty"
                     skillName += " (Trained: " + entry.skill.percent_trained + "%)";
                     highlight = 'highlight_partial';
                 }
