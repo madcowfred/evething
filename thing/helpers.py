@@ -28,6 +28,7 @@ from decimal import *
 
 from django.contrib.staticfiles.storage import staticfiles_storage
 from django.template.defaultfilters import stringfilter
+from django.conf import settings
 
 from jingo import register
 
@@ -202,3 +203,10 @@ def spanif(value, arg):
 @register.function
 def static(path):
     return staticfiles_storage.url(path)
+
+@register.filter
+def can_register(user):
+    if (not settings.ALLOW_REGISTRATION) or user.is_authenticated():
+        return False
+
+    return True

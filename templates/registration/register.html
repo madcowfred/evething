@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}Register{% endblock %}
+
+{% block content %}
+        <div class="row-fluid">
+          <div class="span12">
+            <form method="post" action="" class="form-horizontal">
+              <fieldset>
+                <legend>Register</legend>
+                <div class="control-group">
+                  {{ csrf() }}
+                  <input type="hidden" name="next" value="{{ next }}" />
+                </div>
+                {% for field in form %}
+                <div class="control-group{% if form.errors %} error{% endif %}">
+                  <label class="control-label" for="{{ field.auto_id }}">{{ field.label }}</label>
+                  <div class="controls">
+                    {{ field|safe }}
+                  </div>
+                </div>
+                {% endfor %}
+                <div class="form-actions">
+                  <input type="submit" value="Register" class="btn btn-primary">
+                </div>
+              </fieldset>
+            </form>
+          </div>
+        </div>
+{% endblock %}

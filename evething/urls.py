@@ -15,6 +15,7 @@ urlpatterns = patterns('',
     # Authentication things
     url(r'^accounts/login/$', 'django.contrib.auth.views.login', name="auth_login"),
     url(r'^accounts/logout/$', 'django.contrib.auth.views.logout', {'next_page': '/'}, name="auth_logout"),
+    url(r'^accounts/register/$', 'thing.views.account_register')
 )
 
 urlpatterns += patterns('thing.views',
