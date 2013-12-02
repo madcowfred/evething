@@ -348,6 +348,7 @@ def character_skillplan_common(request, character, skillplan, public=True, anony
         implants = 3
 
     show_trained = ('show_trained' in request.GET)
+    show_cumulative = ('show_cumulative' in request.GET)
 
     tt.add_time('init')
 
@@ -403,6 +404,7 @@ def character_skillplan_common(request, character, skillplan, public=True, anony
     entries = []
     total_remaining = 0.0
     total_duration = 0.0
+    skill_cumulative_time = 0.0
     last_remap = None
     
     for entry in skillplan.entries.select_related('sp_remap', 'sp_skill__skill__item__item_group'):
@@ -487,7 +489,12 @@ def character_skillplan_common(request, character, skillplan, public=True, anony
                 entry.z_total_time = remaining_sp / entry.z_sppm * 60
             else:
                 entry.z_remaining = (skill.get_sp_at_level(entry.sp_skill.level) - skill.get_sp_at_level(entry.sp_skill.level - 1)) / entry.z_sppm * 60
-
+            
+            if not hasattr(entry, 'z_trained'):
+                # set the cumulative time
+                skill_cumulative_time += entry.z_remaining
+            entry.z_cumulative = skill_cumulative_time
+            
             # Add time remaining to total
             if not hasattr(entry, 'z_trained'):
                 total_remaining += entry.z_remaining
@@ -513,6 +520,7 @@ def character_skillplan_common(request, character, skillplan, public=True, anony
         'thing/character_skillplan.html',
         {
             'show_trained': show_trained,
+            'show_cumulative': show_cumulative,
             'implants': implants,
             'implants_visible': implants_visible,
             'anonymous': anonymous,

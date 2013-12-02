@@ -35,6 +35,9 @@
             <label class="checkbox">
               <input type="checkbox" name="show_trained"{% if show_trained %} checked{% endif %}> Show already trained skills
             </label>
+            <label class="checkbox">
+              <input type="checkbox" name="show_cumulative"{% if show_cumulative %} checked{% endif %}> Show cumulative skill time
+            </label>
             &nbsp;
             <button type="submit" class="btn">Apply</button>
           </form>
@@ -49,6 +52,7 @@
                 <th>Sec</th>
                 <th>SP/hr</th>
                 <th>Time</th>
+                {% if show_cumulative %}<th><span style="border-bottom:1px dotted;" rel="tooltip" title="Cumulative Time (Does not count trained skills)">&Sigma;Time</span></th>{% endif %}
               </tr>
             </thead>
             <tbody>
@@ -56,7 +60,7 @@
                {% if entry.sp_remap -%}
                <tr class="c">
                 <td></td>
-                <td class="l" colspan="6">
+                <td class="l" colspan="{% if show_cumulative %}7{% else %}6{% endif %}">
                   <i class="icon-user"></i> Remap to
                   <strong>{{ entry.sp_remap.int_stat }}</strong> Int /
                   <strong>{{ entry.sp_remap.mem_stat }}</strong> Mem /
@@ -99,12 +103,13 @@
                 <td class="sp-small">{{ entry.sp_skill.skill.get_secondary_attribute_display() }}</td>
                 <td class="sp-small">{{ entry.z_spph|commas }}</td>
                 <td class="r sp-time">{{ entry.z_remaining|duration }}</td>
+                {% if show_cumulative %}<td class="r sp-time {% if entry.z_trained %}muted{% endif %}">{{ entry.z_cumulative|duration }}</td>{% endif %}
               {%- endif %}
               </tr>
               {%- else %}
               <tr>
                 <td></td>
-                <td colspan="6">This skill plan is empty.</td>
+                <td colspan="{% if show_cumulative %}7{% else %}6{% endif %}">This skill plan is empty.</td>
               </tr>
               {%- endfor %}
             </tbody>
@@ -112,7 +117,7 @@
             <tfoot>
               <tr>
                 <td></td>
-                <td colspan="6" class="r">
+                <td colspan="{% if show_cumulative %}8{% else %}7{% endif %}" class="r">
                   <strong>Total time remaining</strong>: {{ total_remaining|duration }}
                   {% if total_duration != total_remaining %}
                   <span class="muted">(<strong>Total:</strong> {{ total_duration|duration }})</span>

@@ -42,6 +42,7 @@ EVEthing.skillplan = {
                + '    <td class="sp-small">##skill_secondary##</td>\n'
                + '    <td class="sp-small">##skill_spph##</td>\n'
                + '    <td class="r sp-time">##skill_remaining##</td>\n'                    
+               + '    <td class="r sp-time">##skill_time_cumulative##</td>\n'                    
                + '   <td><a href="#" class="remove-entry" data-id="##id##"><i class="icon-remove"></i></a></td>\n'
                + '</tr>\n',
 
@@ -160,11 +161,11 @@ EVEthing.skillplan = {
 
     parseJsonEntries: function(json) {
         if(json.entries.length == 0) {
-            $('#skillplan > tbody').html('<tr><td></td><td colspan="7">This skill plan is empty.</td></tr>');
+            $('#skillplan > tbody').html('<tr><td></td><td colspan="8">This skill plan is empty.</td></tr>');
             $('#skillplan > tfoot').html('');
             return;
         }
-        footer='<tr><td></td><td colspan="7" class="r"><strong>Total time remaining</strong>: ##duration##</td></tr>';
+        footer='<tr><td></td><td colspan="8" class="r"><strong>Total time remaining</strong>: ##duration##</td></tr>';
         
         duration=EVEthing.util.durationToString(json.remaining_duration);
         if(json.remaining_duration != json.total_duration) {
@@ -177,6 +178,7 @@ EVEthing.skillplan = {
         //$('.skill-list-hover').attr('data-plan-to-level', 0);        
         
         entries = "";
+        cumulative_skill_time = 0;
         for(var i=0, size=json.entries.length; i < size; i++) {
             entry = json.entries[i];
             
@@ -221,19 +223,21 @@ EVEthing.skillplan = {
                     injectedBuy = '<i class="icon-shopping-cart pull-right tooltips" title="Skillbook is not injected"></i>';
                 }
                 
-                entries += EVEthing.skillplan.skillEntry.replace(/##position##/g            ,entry.position)
-                                                        .replace(/##id##/g                  ,entry.id)
-                                                        .replace(/##skill_id##/g            ,entry.skill.id)
-                                                        .replace(/##skill_level##/g         ,entry.skill.level)
-                                                        .replace(/##icon##/g                ,statusIcon)
-                                                        .replace(/##skill_highlight##/g     ,highlight)
-                                                        .replace(/##skill##/g               ,skillName)
-                                                        .replace(/##skill_injected_buy##/g  ,injectedBuy)
-                                                        .replace(/##skill_group##/g         ,entry.skill.group)
-                                                        .replace(/##skill_primary##/g       ,entry.skill.primary)
-                                                        .replace(/##skill_secondary##/g     ,entry.skill.secondary)
-                                                        .replace(/##skill_spph##/g          ,entry.skill.spph)
-                                                        .replace(/##skill_remaining##/g     ,EVEthing.util.durationToString(entry.skill.remaining_time));
+                cumulative_skill_time += entry.skill.remaining_time;
+                entries += EVEthing.skillplan.skillEntry.replace(/##position##/g              ,entry.position)
+                                                        .replace(/##id##/g                    ,entry.id)
+                                                        .replace(/##skill_id##/g              ,entry.skill.id)
+                                                        .replace(/##skill_level##/g           ,entry.skill.level)
+                                                        .replace(/##icon##/g                  ,statusIcon)
+                                                        .replace(/##skill_highlight##/g       ,highlight)
+                                                        .replace(/##skill##/g                 ,skillName)
+                                                        .replace(/##skill_injected_buy##/g    ,injectedBuy)
+                                                        .replace(/##skill_group##/g           ,entry.skill.group)
+                                                        .replace(/##skill_primary##/g         ,entry.skill.primary)
+                                                        .replace(/##skill_secondary##/g       ,entry.skill.secondary)
+                                                        .replace(/##skill_spph##/g            ,entry.skill.spph)
+                                                        .replace(/##skill_remaining##/g       ,EVEthing.util.durationToString(entry.skill.remaining_time))
+                                                        .replace(/##skill_time_cumulative##/g ,EVEthing.util.durationToString(cumulative_skill_time));
                 
                 // set the planned level for the current skill 
                 $('#skill-list-hover-' + entry.skill.id).attr('data-plan-to-level', entry.skill.level);      
