@@ -449,7 +449,8 @@ def character_skillplan_common(request, character, skillplan, public=True, anony
 
                     entry.z_trained = True
                     
-                elif cs.points > cs.skill.get_sp_at_level(cs.level):
+                # check if current skill SP > level SP AND planned skill lvl - 1 = learned skill level
+                elif cs.points > cs.skill.get_sp_at_level(cs.level) and entry.sp_skill.level-1 == cs.level:
                     required_sp = cs.skill.get_sp_at_level(cs.level + 1) - cs.skill.get_sp_at_level(cs.level)
                     sp_done = cs.points-cs.skill.get_sp_at_level(cs.level)
                     entry.z_sp_done = sp_done

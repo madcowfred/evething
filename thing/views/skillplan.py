@@ -906,7 +906,8 @@ def _skillplan_list_json(request, skillplan, character, implants, show_trained):
                     sp_skill['remaining_time'] = 0
                 
                 # Partially trained ?
-                elif char_skill.points > char_skill.skill.get_sp_at_level(char_skill.level):
+                # check if current skill SP > level SP AND planned skill lvl - 1 = learned skill level
+                elif char_skill.points > char_skill.skill.get_sp_at_level(char_skill.level) and entry.sp_skill.level-1 == char_skill.level:
                     required_sp = char_skill.skill.get_sp_at_level(char_skill.level + 1) - char_skill.skill.get_sp_at_level(char_skill.level)
                     sp_skill['sp_done'] = char_skill.points-char_skill.skill.get_sp_at_level(char_skill.level)
                     sp_skill['percent_trained'] = round(sp_skill['sp_done'] / float(required_sp) * 100, 1)
