@@ -25,7 +25,10 @@
 
 import json
 
-from collections import OrderedDict
+try:
+    from collections import OrderedDict
+except ImportError:
+    from ordereddict import OrderedDict
 
 #from django.conf import settings
 from django.contrib.auth.decorators import login_required
@@ -100,7 +103,7 @@ def wallet_journal(request):
         page = int(request.GET.get('page', '1'))
     except ValueError:
         page = 1
-    
+
     # If page request is out of range, deliver last page of results
     try:
         paginated = paginator.page(request.GET.get('page'))
@@ -114,7 +117,7 @@ def wallet_journal(request):
     # Actually execute the query to avoid a nested subquery
     paginated_ids = list(paginated.object_list.all())
     entries = JournalEntry.objects.filter(pk__in=paginated_ids).select_related('character', 'corp_wallet__corporation')
-    
+
     # Do page number things
     hp = paginated.has_previous()
     hn = paginated.has_next()
@@ -170,7 +173,7 @@ def wallet_journal(request):
         # Owner 1
         if entry.owner1_id in character_ids:
             entry.z_owner1_mine = True
-        
+
         entry.z_owner1_char = char_map.get(entry.owner1_id)
         entry.z_owner1_corp = corp_map.get(entry.owner1_id)
         entry.z_owner1_alliance = alliance_map.get(entry.owner1_id)
@@ -298,7 +301,7 @@ def wallet_journal_aggregate(request):
     for k, v in group_by.items():
         if v:
             empty_colspan += 1
-    
+
     if group_by['owner1']:
         values.append('owner1_id')
     if group_by['owner2']:
@@ -567,7 +570,7 @@ def _journal_queryset(request, character_ids, corporation_ids):
         days = 0
     else:
         days = max(0, min(days, 9999))
-    
+
     if days > 0:
         limit = datetime.datetime.utcnow() - datetime.timedelta(days)
         journal_ids = journal_ids.filter(date__gte=limit)
