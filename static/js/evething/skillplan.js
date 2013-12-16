@@ -35,17 +35,14 @@ EVEthing.skillplan = {
                + '    </td>\n'
                + '    <td class="l  ##skill_highlight##">\n'
                + '        ##skill##'
-               + '        ##skill_injected_buy##'
                + '    </td>\n'
                + '    <td class="sp-group">##skill_group##</td>\n'
                + '    <td class="sp-small">##skill_primary##</td>\n'
                + '    <td class="sp-small">##skill_secondary##</td>\n'
                + '    <td class="sp-small">##skill_spph##</td>\n'
-               + '    <td class="r sp-time">##skill_remaining##</td>\n'                    
-               + '    <td class="r sp-time">##skill_time_cumulative##</td>\n'                    
+               + '    <td class="r sp-time">##skill_remaining##</td>\n'                          
                + '   <td><a href="#" class="remove-entry" data-id="##id##"><i class="icon-remove"></i></a></td>\n'
                + '</tr>\n',
-
                   
     onload: function() {
         $('#apply_filter').on('click',
@@ -165,7 +162,7 @@ EVEthing.skillplan = {
             $('#skillplan > tfoot').html('');
             return;
         }
-        footer='<tr><td></td><td colspan="8" class="r"><strong>Total time remaining</strong>: ##duration##</td></tr>';
+        footer='<tr><td></td><td colspan=7" class="r"><strong>Total time remaining</strong>: ##duration##</td></tr>';
         
         duration=EVEthing.util.durationToString(json.remaining_duration);
         if(json.remaining_duration != json.total_duration) {
@@ -175,7 +172,7 @@ EVEthing.skillplan = {
         $('#skillplan > tfoot').html(footer.replace(/##duration##/,duration));
         
         // set all planned level to 0 in the skill tree
-        //$('.skill-list-hover').attr('data-plan-to-level', 0);        
+        $('.skill-list-hover').attr('data-plan-to-level', 0);        
         
         entries = "";
         cumulative_skill_time = 0;
@@ -215,14 +212,6 @@ EVEthing.skillplan = {
                     highlight = 'highlight_partial';
                 }
                 
-                injectedBuy = ""
-                if (entry.skill.injected) {
-                    injectedBuy = '<i class="icon-book pull-right tooltips" title="Skillbook is injected"></i>';
-                }
-                if (!entry.skill.injected && entry.skill.percent_trained == 0) {
-                    injectedBuy = '<i class="icon-shopping-cart pull-right tooltips" title="Skillbook is not injected"></i>';
-                }
-                
                 cumulative_skill_time += entry.skill.remaining_time;
                 entries += EVEthing.skillplan.skillEntry.replace(/##position##/g              ,entry.position)
                                                         .replace(/##id##/g                    ,entry.id)
@@ -231,7 +220,6 @@ EVEthing.skillplan = {
                                                         .replace(/##icon##/g                  ,statusIcon)
                                                         .replace(/##skill_highlight##/g       ,highlight)
                                                         .replace(/##skill##/g                 ,skillName)
-                                                        .replace(/##skill_injected_buy##/g    ,injectedBuy)
                                                         .replace(/##skill_group##/g           ,entry.skill.group)
                                                         .replace(/##skill_primary##/g         ,entry.skill.primary)
                                                         .replace(/##skill_secondary##/g       ,entry.skill.secondary)
