@@ -54,7 +54,6 @@ class UserProfile(models.Model):
     show_contracts = models.BooleanField(default=True)
     show_industry = models.BooleanField(default=True)
     show_orders = models.BooleanField(default=True)
-    show_skillplan = models.BooleanField(default=True)
     show_trade = models.BooleanField(default=True)
     show_transactions = models.BooleanField(default=True)
     show_wallet_journal = models.BooleanField(default=True)

@@ -17,18 +17,9 @@ class Migration(SchemaMigration):
         ))
         db.send_create_signal('thing', ['SkillParent'])
 
-        # Adding field 'UserProfile.show_skillplan'
-        db.add_column(u'thing_userprofile', 'show_skillplan',
-                      self.gf('django.db.models.fields.BooleanField')(default=True),
-                      keep_default=False)
-
-
     def backwards(self, orm):
         # Deleting model 'SkillParent'
         db.delete_table(u'thing_skillparent')
-
-        # Deleting field 'UserProfile.show_skillplan'
-        db.delete_column(u'thing_userprofile', 'show_skillplan')
 
 
     models = {
@@ -574,7 +565,6 @@ class Migration(SchemaMigration):
             'show_industry': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
             'show_item_icons': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'show_orders': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
-            'show_skillplan': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
             'show_trade': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
             'show_transactions': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
             'show_wallet_journal': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
