@@ -68,13 +68,6 @@ class Skill(models.Model):
     primary_attribute = models.SmallIntegerField(choices=ATTRIBUTE_CHOICES)
     secondary_attribute = models.SmallIntegerField(choices=ATTRIBUTE_CHOICES)
 
-    parents = models.ManyToManyField('self'
-                                    , blank=True
-                                    , null=True
-                                    , through="SkillParent"
-                                    , related_name="children"
-                                    , symmetrical=False)
-
 
     # only used with is_xxx. Else it's not required to init these.
     children_list = None
