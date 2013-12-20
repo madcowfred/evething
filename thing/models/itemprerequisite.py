@@ -28,9 +28,9 @@ from django.db import models
 #----------------------------------------------------------------------
 
 class ItemPrerequisite(models.Model):
-    item_id  = models.ForeignKey('Item', related_name="prereq_skill")
-    skill_id = models.ForeignKey('Skill', related_name="parent_skill")
-    level    = models.SmallIntegerField()
+    item   = models.ForeignKey('Item', related_name="prereq_skill")
+    skill  = models.ForeignKey('Skill', related_name="required_for_item")
+    level  = models.SmallIntegerField()
 
     def get_roman_level(self):
         return ['', 'I', 'II', 'III', 'IV', 'V'][self.level]
