@@ -622,70 +622,6 @@ class Importer:
         if new:
             Skill.objects.bulk_create(new)
 
-        # skill prerequisites
-        self.cursor.execute("""
-            SELECT 
-                i.typeID         as skillID, 
-                ip.typeID        as prerqSkillID,
-                dtal.valueInt    as prerqSkillLevelInt,
-                dtal.valueFloat  as prerqSkillLevelFloat
-            FROM invGroups g
-            LEFT JOIN invTypes i 
-                ON i.groupID = g.groupID
-            LEFT JOIN dgmTypeAttributes dta
-                ON dta.typeID = i.typeID AND
-                   dta.attributeID IN (182, 183, 184, 1285, 1289, 1290)
-            LEFT JOIN dgmTypeAttributes dtal 
-                ON dtal.typeID = dta.typeID AND 
-                (
-                    (dtal.attributeID = 277 AND dta.attributeID = 182) OR
-                    (dtal.attributeID = 278 AND dta.attributeID = 183) OR
-                    (dtal.attributeID = 279 AND dta.attributeID = 184) OR
-                    (dtal.attributeID = 1286 AND dta.attributeID = 1285) OR
-                    (dtal.attributeID = 1287 AND dta.attributeID = 1289) OR
-                    (dtal.attributeID = 1288 AND dta.attributeID = 1290)
-                )
-            LEFT JOIN invTypes ip 
-                ON ip.typeID = dta.valueInt OR
-                   ip.typeID = dta.valueFloat
-            
-            WHERE i.typeID NOT IN (19430, 9955) 
-                AND g.categoryID = 16 
-                AND i.published = 1
-            ORDER BY g.groupName DESC        
-        """)
-        
-        skills = Skill.objects.all()
-        
-        # clean all parents, it's easier to re-add all parents
-        # than checking if it didn't change
-        for skill in skills:
-            skill.clean_parents()
-        
-        for row in self.cursor:
-            # if no parent skills, continue
-            if row[1] is None:
-                continue
-            
-            # get the skill where we'll add some parent skills
-            try:
-                skill = Skill.objects.get(item_id=row[0])
-            except Skill.DoesNotExist:
-                continue
-            
-            # get the parent skill
-            try:
-                parentSkill = Skill.objects.get(item_id=row[1])
-            except Skill.DoesNotExist:
-                continue
-            
-            # get the skill level required
-            if row[2]:
-                level = row[2]
-            else:
-                level = row[3]
-                        
-            skill.add_parent(parentSkill, level)
         return added
 
 # :skills:
@@ -819,6 +755,78 @@ class Importer:
             Corporation.objects.bulk_create(new)
 
         return added
+
+
+    # -----------------------------------------------------------------------
+    # Items prerequisites
+    def import_item_prerequisites(self):
+        
+        # skill prerequisites
+        self.cursor.execute("""
+            SELECT 
+                i.typeID         as skillID, 
+                ip.typeID        as prerqSkillID,
+                dtal.valueInt    as prerqSkillLevelInt,
+                dtal.valueFloat  as prerqSkillLevelFloat
+            FROM invGroups g
+            LEFT JOIN invTypes i 
+                ON i.groupID = g.groupID
+            LEFT JOIN dgmTypeAttributes dta
+                ON dta.typeID = i.typeID AND
+                   dta.attributeID IN (182, 183, 184, 1285, 1289, 1290)
+            LEFT JOIN dgmTypeAttributes dtal 
+                ON dtal.typeID = dta.typeID AND 
+                (
+                    (dtal.attributeID = 277 AND dta.attributeID = 182) OR
+                    (dtal.attributeID = 278 AND dta.attributeID = 183) OR
+                    (dtal.attributeID = 279 AND dta.attributeID = 184) OR
+                    (dtal.attributeID = 1286 AND dta.attributeID = 1285) OR
+                    (dtal.attributeID = 1287 AND dta.attributeID = 1289) OR
+                    (dtal.attributeID = 1288 AND dta.attributeID = 1290)
+                )
+            JOIN invTypes ip 
+                ON ip.typeID = dta.valueInt OR
+                   ip.typeID = dta.valueFloat
+            
+            WHERE i.typeID NOT IN (19430, 9955) 
+                AND g.categoryID = 16 
+                AND i.published = 1
+            ORDER BY g.groupName DESC        
+        """)
+        
+        skills = Skill.objects.all()
+        
+        # clean all parents, it's easier to re-add all parents
+        # than checking if it didn't change
+        for skill in skills:
+            skill.clean_parents()
+        
+        for row in self.cursor:
+            # if no parent skills, continue
+            if row[1] is None:
+                continue
+            
+            # get the skill where we'll add some parent skills
+            try:
+                skill = Skill.objects.get(item_id=row[0])
+            except Skill.DoesNotExist:
+                continue
+            
+            # get the parent skill
+            try:
+                parentSkill = Skill.objects.get(item_id=row[1])
+            except Skill.DoesNotExist:
+                continue
+            
+            # get the skill level required
+            if row[2]:
+                level = row[2]
+            else:
+                level = row[3]
+                        
+            skill.add_parent(parentSkill, level)
+
+
 
 # ---------------------------------------------------------------------------
 
