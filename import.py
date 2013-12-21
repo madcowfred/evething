@@ -123,6 +123,7 @@ class Importer:
         time_func('InventoryFlag', self.import_inventoryflag)
         time_func('NPCFaction', self.import_npcfaction)
         time_func('NPCCorporation', self.import_npccorporation)
+        time_func('Item Prerequisite', self.import_item_prerequisite)
 
     # -----------------------------------------------------------------------
     # Regions
@@ -759,12 +760,13 @@ class Importer:
 
     # -----------------------------------------------------------------------
     # Items prerequisites
-    def import_item_prerequisites(self):
-        
+    def import_item_prerequisite(self):
+        added = 0
+ 
         # skill prerequisites
         self.cursor.execute("""
             SELECT 
-                i.typeID         as skillID, 
+                i.typeID         as itemID, 
                 ip.typeID        as prerqSkillID,
                 dtal.valueInt    as prerqSkillLevelInt,
                 dtal.valueFloat  as prerqSkillLevelFloat
@@ -789,32 +791,28 @@ class Importer:
                    ip.typeID = dta.valueFloat
             
             WHERE i.typeID NOT IN (19430, 9955) 
-                AND g.categoryID = 16 
                 AND i.published = 1
+                AND g.categoryID NOT IN (0,1,2,3,25)
             ORDER BY g.groupName DESC        
         """)
         
-        skills = Skill.objects.all()
-        
-        # clean all parents, it's easier to re-add all parents
-        # than checking if it didn't change
-        for skill in skills:
-            skill.clean_parents()
+        ItemPrerequisite.objects.all().delete()
+        new=[]
         
         for row in self.cursor:
             # if no parent skills, continue
             if row[1] is None:
                 continue
             
-            # get the skill where we'll add some parent skills
+            # get the item where we'll add some prereq skills
             try:
-                skill = Skill.objects.get(item_id=row[0])
-            except Skill.DoesNotExist:
+                item = Item.objects.get(id=row[0])
+            except Item.DoesNotExist:
                 continue
             
-            # get the parent skill
+            # get the prereq skill
             try:
-                parentSkill = Skill.objects.get(item_id=row[1])
+                skill = Skill.objects.get(item_id=row[1])
             except Skill.DoesNotExist:
                 continue
             
@@ -823,9 +821,20 @@ class Importer:
                 level = row[2]
             else:
                 level = row[3]
-                        
-            skill.add_parent(parentSkill, level)
+                
+            prereq = ItemPrerequisite(
+                item=item,
+                skill=skill,
+                level=level
+            )
+            new.append(prereq)
+            
+            added += 1
 
+        if new:
+            ItemPrerequisite.objects.bulk_create(new)
+
+        return added
 
 
 # ---------------------------------------------------------------------------
