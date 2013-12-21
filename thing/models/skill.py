@@ -68,10 +68,6 @@ class Skill(models.Model):
     primary_attribute = models.SmallIntegerField(choices=ATTRIBUTE_CHOICES)
     secondary_attribute = models.SmallIntegerField(choices=ATTRIBUTE_CHOICES)
 
-
-    # only used with is_xxx. Else it's not required to init these.
-    children_list = None
-    parents_list = None
     
     class Meta:
         app_label = 'thing'
@@ -116,119 +112,61 @@ class Skill(models.Model):
         return pri + (sec / 2.0)
     
 
-    def add_parent(self, skill, level):
-        parent_skill, created = SkillParent.objects.get_or_create(
-            child_skill=self,
-            parent_skill=skill,
-            level=level)
-        return parent_skill
+    # ------------------------------------------------------------------------------
+    # Item Prerequisite methods
     
-    def remove_parent(self, skill):
-        SkillParent.objects.filter(
-            child_skill=self,
-            parent_skill=skill).delete()
-        return self
+    # dict of all unlocked item for a given skill and level    
+    unlocked_list = None
     
-    def clean_parents(self):
-        SkillParent.objects.filter(
-            child_skill=self).delete()
-        return self
-
-    def get_skill_parent(self):
-        return SkillParent.objects.filter(
-            child_skill=self)
-            
-    def get_skill_children(self, level=1):
-        return SkillParent.objects.filter(
-            parent_skill=self,
+    # return the list of item that need the skill as a prerequisite
+    def get_items_unlocked_by_skill(self, level=1):
+        return ItemPrerequisite.objects.filter(
+            skill=self,
             level__gte=level)
         
-    def is_child(self, skill, level):
+    def is_unlocked_by_skill(self, item, level):
         """
-        Check if the current skill at level "level" has "skill" as a child
+        Return true if the given item is unlocked by the current skill at the given level
         """
 
-        if self.children_list is None:
-            self.children_list = OrderedDict()
+        if self.unlocked_list is None:
+            self.unlocked_list = dict()
         
-        if level not in self.children_list:
-            self.children_list[level] = Skill.get_all_children(self,level)
+        if level not in self.unlocked_list:
+            self.unlocked_list[level] = Skill.get_all_items_unlocked_by_skill(self,level)
 
-        if skill.item.id in self.children_list[level]:
+        if skill.item.id in self.unlocked_list[level]:
             return True
         return False
 
-
-    def is_parent(self, skill, level): 
-        """
-        Check if the current skill has "skill" at level "level" as a parent
-        """
-
-        if self.parents_list is None:
-            self.parents_list = Skill.get_all_parents(self)
-        
-        if skill.item.id in self.parents_list and self.parents_list[skill.item.id] >= level:
-            return True
-        return False
-        
-    def get_prerequisites(self):
-        parents = self.get_skill_parent()
-        skill_list = []
-        if parents is None:
-            return skill_list
-            
-        for parent in parents:
-            parent_skill = parent.parent_skill
-            
-            # get prereq of the current parent
-            skill_list.extend(parent_skill.get_prerequisites())
-            
-            # and add the skill into the list too
-            skill_list.append((parent_skill.item_id, parent.level))
-            
-        return skill_list
     # ------------------------------------------------------------------------------
     
     @staticmethod
-    def get_all_parents(skill):
-        'Get all the parents of a given skill'
-        
-        parents = skill.get_skill_parent()
-        if parents is None:
-            return OrderedDict()
-        
-        list_parent=OrderedDict()
-        
-        for parent in parents:
-            list_parent[parent.parent_skill.item.id] = parent.level
-            
-            for skill_id,level in Skill.get_all_parents(parent.parent_skill).items():
-                if skill_id in list_parent: 
-                    list_parent[skill_id] = max(list_parent[skill_id], level)
-                else:
-                    list_parent[skill_id] = level
-        
-        return list_parent
-
-    @staticmethod
-    def get_all_children(skill, level):
+    def get_all_items_unlocked_by_skill(skill, level):
         """
-            Get all the parents of a given skill
-            
-            skill : the skill used to get the children 
-            level : the level of the skill (children depend on the parent level)
+            Get all the items unlocked by a skill at a given level 
         """
         
-        children = skill.get_skill_children(level)
-        if children is None:
+        # return a list of ItemPrerequisite
+        unlocked_items = skill.get_skill_children(level)
+        if unlocked_items is None:
             return {}
         
-        list_children=set()
+        list_unlocked_item=set()
         
-        for child in children:
-            list_children.add(child.child_skill.item.id)
-            list_children.update(Skill.get_all_children(child.child_skill,1))
+        for itemprereq in unlocked_items:
+            # add the item found (can be a skill or something else)
+            list_unlocked_item.add(itemprereq.item_id)
+            
+            # if it's a skill, we need to dig deeper
+            try:
+                skill_unlocked = Skill.objects.get(item__id=itemprereq.item_id)
+                
+            except Skill.DoesNotExist:
+                continue 
+
+            list_unlocked_item.update(Skill.get_all_items_unlocked_by_skill(skill_unlocked,1))
         
-        return list_children
+        return list_unlocked_item
 
 # ------------------------------------------------------------------------------

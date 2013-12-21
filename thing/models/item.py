@@ -62,4 +62,73 @@ class Item(models.Model):
         else:
             return Decimal(str(agg['movement__sum']))
 
+    # ------------------------------------------------------------------------------
+    # Item Prerequisite methods
+    
+    # dict of all prerequisites for a given item    
+    prerequisite_list = None
+    
+    def add_prerequisite(self, skill, level):
+        prereq_skill, created = ItemPrerequisite.objects.get_or_create(
+            item=self,
+            skill=skill,
+            level=level)
+        return prereq_skill
+    
+    def remove_prerequisite(self, skill):
+        ItemPrerequisite.objects.filter(
+            item=self,
+            skill=skill).delete()
+        return self
+    
+    def clean_prerequisites(self):
+        ItemPrerequisite.objects.filter(
+            item=self).delete()
+        return self
+
+    def get_prerequisites(self):
+        """
+        Return the "first level" of prerequisites.
+        """
+        return ItemPrerequisite.objects.filter(
+            item=self)
+
+    def is_prerequisite(self, skill, level): 
+        """
+        Return true if a given skill at a given level is a prerequisite of the current item
+        """
+
+        if self.prerequisite_list is None:
+            self.prerequisite_list = Item.get_all_parents(self)
+        
+        if skill.item_id in self.prerequisite_list and self.prerequisite_list[skill.item_id] >= level:
+            return True
+        return False
+        
+    # ------------------------------------------------------------------------------
+    # static methods
+    
+    @staticmethod
+    def get_all_prerequisites(item):
+        'Get all the prerequisites of a given item (search in all dependencies)'
+        
+        # return a list of ItemPrerequisite
+        prereqs = item.get_prerequisites()
+        
+        if prereqs is None:
+            return dict()
+        
+        list_prereqs=dict()
+        
+        for itemprereq in prereqs:
+            list_prereqs[itemprereq.skill.item_id] = itemprereq.level
+            
+            for skill_id,level in Item.get_all_prerequisites(itemprereq.skill.item).items():
+                if skill_id in list_prereqs: 
+                    list_prereqs[skill_id] = max(list_prereqs[skill_id], level)
+                else:
+                    list_prereqs[skill_id] = level
+        
+        return list_prereqs
+
 # ------------------------------------------------------------------------------
