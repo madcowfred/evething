@@ -97,10 +97,6 @@ def skillplan_edit(request, skillplan_id):
             if market_group != current_market_group:
                 current_market_group = market_group
                 skill_list[current_market_group] = []
-
-            # TODO : add char skill level for plan creation
-            # maybe create a list with "allowed skill"
-            # and "not reached prerequisite" skills
             
             skill_list[current_market_group].append(skill)
         
@@ -432,7 +428,7 @@ def skillplan_ajax_add_skill(request, skillplan_id):
             if (skill.item_id in seen and skill_level > seen[skill.item_id]) or skill.item_id not in seen:
             
                 # fetch all prerequisites
-                skill_list = skill.get_prerequisites()
+                skill_list = skill.item.get_flat_prerequisites()
                 
                 # finally add the current skill 
                 skill_list.append((skill.item_id, skill_level)) 
@@ -1054,7 +1050,7 @@ def _parse_emp_plan(skillplan, root):
             continue
         
         # fetch prerequisites
-        skill_list = skill.get_prerequisites()
+        skill_list = skill.item.get_flat_prerequisites()
         
         # and add the current skill 
         skill_list.append((skillID, level)) 
