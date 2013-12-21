@@ -31,6 +31,9 @@ from django.db.models import Sum
 from thing.models.itemgroup import ItemGroup
 from thing.models.marketgroup import MarketGroup
 
+from thing.models.itemprerequisite import ItemPrerequisite
+
+
 # ------------------------------------------------------------------------------
 
 class Item(models.Model):
@@ -92,6 +95,24 @@ class Item(models.Model):
         """
         return ItemPrerequisite.objects.filter(
             item=self)
+
+    def get_flat_prerequisites(self):
+        prerequisites = self.get_prerequisites()
+        skill_list = []
+        if prerequisites is None:
+            return skill_list
+            
+        for itemprereq in prerequisites:
+            prereq_skill = itemprereq.skill
+            
+            # get prereq of the current parent
+            skill_list.extend(prereq_skill.item.get_flat_prerequisites())
+            
+            # and add the skill into the list too
+            skill_list.append((prereq_skill.item_id, itemprereq.level))
+            
+        return skill_list
+
 
     def is_prerequisite(self, skill, level): 
         """

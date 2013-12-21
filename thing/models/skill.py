@@ -32,10 +32,7 @@ try:
 except ImportError:
     from ordereddict import OrderedDict
     
-
-
 from thing.models.item import Item
-from thing.models.skillparent import SkillParent
 
 
 # ------------------------------------------------------------------------------
