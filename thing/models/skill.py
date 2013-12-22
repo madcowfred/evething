@@ -33,6 +33,7 @@ except ImportError:
     from ordereddict import OrderedDict
     
 from thing.models.item import Item
+from thing.models.itemprerequisite import ItemPrerequisite
 
 
 # ------------------------------------------------------------------------------
@@ -132,7 +133,7 @@ class Skill(models.Model):
         if level not in self.unlocked_list:
             self.unlocked_list[level] = Skill.get_all_items_unlocked_by_skill(self,level)
 
-        if skill.item.id in self.unlocked_list[level]:
+        if item.id in self.unlocked_list[level]:
             return True
         return False
 
@@ -145,7 +146,7 @@ class Skill(models.Model):
         """
         
         # return a list of ItemPrerequisite
-        unlocked_items = skill.get_skill_children(level)
+        unlocked_items = skill.get_items_unlocked_by_skill(level)
         if unlocked_items is None:
             return {}
         

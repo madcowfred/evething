@@ -120,7 +120,7 @@ class Item(models.Model):
         """
 
         if self.prerequisite_list is None:
-            self.prerequisite_list = Item.get_all_parents(self)
+            self.prerequisite_list = Item.get_all_prerequisites(self)
         
         if skill.item_id in self.prerequisite_list and self.prerequisite_list[skill.item_id] >= level:
             return True
