@@ -178,7 +178,7 @@ def skillplan_ajax_reorder_entry(request, skillplan_id):
 
             skill_relatives = []
                 
-            # get entries and count parent/child skills 
+            # get entries and count prereqs skills/unlocked item 
             # - Moving upward
             if new_position < moved_entry.position:
                 entries = skillplan.entries.select_related('sp_skill__skill__item') \
@@ -186,14 +186,14 @@ def skillplan_ajax_reorder_entry(request, skillplan_id):
                                    .only('position','sp_skill')
                 delta_position = 1
 
-                # check the number of parents if we move a skill
+                # check the number of prerequisite if we move a skill
                 if moved_entry.sp_remap is None:
                     moved_skill = moved_entry.sp_skill.skill
                     for entry in entries:
                         if entry.sp_remap is not None:
                             continue
                         
-                        if moved_skill.is_parent(entry.sp_skill.skill, entry.sp_skill.level) or \
+                        if moved_skill.item.is_prerequisite(entry.sp_skill.skill, entry.sp_skill.level) or \
                           (moved_skill.item_id == entry.sp_skill.skill.item_id and moved_entry.sp_skill.level > entry.sp_skill.level):
                             skill_relatives.append(entry.id)   
 
@@ -205,14 +205,14 @@ def skillplan_ajax_reorder_entry(request, skillplan_id):
                                    .only('position','sp_skill')
                 delta_position = -1
                 
-                # check the number of children if we move a skill
+                # check the number of unlocked_skills if we move a skill
                 if moved_entry.sp_remap is None:
                     moved_skill = moved_entry.sp_skill.skill
                     for entry in entries:
                         if entry.sp_remap is not None:                        
                             continue
                             
-                        if moved_skill.is_child(entry.sp_skill.skill, moved_entry.sp_skill.level) or \
+                        if moved_skill.is_unlocked_by_skill(entry.sp_skill.skill.item, moved_entry.sp_skill.level) or \
                           (moved_skill.item_id == entry.sp_skill.skill.item_id and moved_entry.sp_skill.level < entry.sp_skill.level):
                             skill_relatives.append(entry.id)
 
@@ -224,8 +224,8 @@ def skillplan_ajax_reorder_entry(request, skillplan_id):
            
             # loop on entries
             # add to entry position : 
-            # - if not parent/children : entry.position += delta_position + (delta_position * number of parents not already moved)
-            # - if parent/children : entry.position = new_position, new_position -= delta_position
+            # - if not prerequisite or unlocked_skills : entry.position += delta_position + (delta_position * number of prerequisite not already moved)
+            # - if prerequisite or unlocked_skills : entry.position = new_position, new_position -= delta_position
             # loop.
             # moved_entry.position = new_position
 
@@ -515,7 +515,7 @@ def skillplan_ajax_delete_entry(request, skillplan_id):
             
             for entry in entries:
                 if del_entry.sp_skill is not None and entry.sp_skill is not None:
-                    if  (del_entry.sp_skill.skill.is_child(entry.sp_skill.skill, del_entry.sp_skill.level) or
+                    if  (del_entry.sp_skill.skill.is_unlocked_by_skill(entry.sp_skill.skill.item, del_entry.sp_skill.level) or
                         (del_entry.sp_skill.skill.item_id == entry.sp_skill.skill.item_id and 
                             del_entry.sp_skill.level < entry.sp_skill.level)):
                         
