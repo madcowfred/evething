@@ -337,9 +337,7 @@ def skillplan_ajax_import_eft(request, skillplan_id):
             seen          = {}
             response      = {'fail':[]}
             last_position = 0
-            
-            success = {}
-            
+                        
             tt.add_time('Get objects')
             
             # get the list of all skills already in the plan
@@ -352,15 +350,19 @@ def skillplan_ajax_import_eft(request, skillplan_id):
             
             tt.add_time('Get skillplan entries')
             
-            try:
-                ship = Item.objects.get(name=eft_parsed['ship_type'])
-                skill_list = ship.get_flat_prerequisites()
-                
-            except Item.DoesNotExist:
-                response['fail'].append(eft_parsed['ship_type'])
+            if eft_parsed['ship_type']:
+                try:
+                    ship = Item.objects.get(name=eft_parsed['ship_type'])
+                    skill_list = ship.get_flat_prerequisites()
+                    
+                except Item.DoesNotExist:
+                    response['fail'].append(eft_parsed['ship_type'])
             
             # get all modules skill prereqs
-            for item_name, charge_name in eft_parsed['modules']:
+            for items in eft_parsed['modules']:
+                item_name   = items['name']
+                charge_name = items['charge']
+
                 try:
                     item        = Item.objects.get(name = item_name)
                     skill_list  = skill_list+item.get_flat_prerequisites()
@@ -374,10 +376,11 @@ def skillplan_ajax_import_eft(request, skillplan_id):
                         skill_list  = skill_list+charge.get_flat_prerequisites()
                         
                     except Item.DoesNotExist:
-                        response['fail'].append(item_name)
+                        response['fail'].append(charge_name)
             
             # get all charges and drones skill prereqs
-            for item_name, unused in eft_parsed['cargodrones']:
+            for items in eft_parsed['cargodrones']:
+                item_name   = items['name']
                 try:
                     item        = Item.objects.get(name = item_name)
                     skill_list  = skill_list+item.get_flat_prerequisites()
@@ -402,9 +405,8 @@ def skillplan_ajax_import_eft(request, skillplan_id):
                         continue
                         
                     seen[skill_id]    = l
-                    success[skill_id] = l
                     
-                    entries.append(SPEntry(
+                    added_entries.append(SPEntry(
                         skill_plan=skillplan,
                         position=last_position,
                         sp_skill=sps,
@@ -412,14 +414,13 @@ def skillplan_ajax_import_eft(request, skillplan_id):
 
                     last_position += 1
                 
-            SPEntry.objects.bulk_create(entries)
+            SPEntry.objects.bulk_create(added_entries)
             
             tt.add_time('Skill Entries creation')
             if settings.DEBUG:
                 tt.finished()    
             
             response['status']  = 'ok'
-            response['success'] = success.items()
             return HttpResponse(json.dumps(response), status=200)
 
 

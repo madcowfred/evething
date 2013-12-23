@@ -29,6 +29,7 @@
         
         <ul class="nav nav-tabs" id="skillplan-tab">
             <li class="active"><a href="#tab-skillplan" data-toggle="tab">Skillplan</a></li>
+            <li><a href="#tab-eft" data-toggle="tab">EFT Textblock</a></li>
             {#-<li><a href="#tab-items" data-toggle="tab">Item Browser</a></li>
             <li><a href="#tab-ships" data-toggle="tab">Ship Browser</a></li>
             <li><a href="#tab-certificates" data-toggle="tab">Certificate Browser</a></li>-#}
@@ -138,6 +139,26 @@
                 </div>
             </div>
 
+            {#- import eft clipboard -#}
+            <div class="tab-pane" id="tab-eft">
+                <div class="span12">
+                    <div       
+                    <div class="well">
+                        <div class="margin-half-bot">
+                            <strong class="large">Import EFT Textblock</strong>
+                        </div>
+                        <p>
+                            This tab allows you to add skills to your skillplan using an EFT Textblock.
+                        </p>
+                        <div class="alert alert-success" id="eft-success" style="display:none"></div>
+                        <div class="alert alert-error" id="eft-error" style="display:none"></div>
+                        <textarea name="eft_textblock" id="eft_textblock" class="span6" rows="15" placeholder="Your EFT Text Block here !"></textarea>
+                        <br />
+                        <button id="btn-eft-submit" class="btn btn-primary">Submit</button>
+                    </div>
+                </div>
+            </div>
+     
             {#- items -#}
             <div class="tab-pane" id="tab-items">
                 <div class="span12">
