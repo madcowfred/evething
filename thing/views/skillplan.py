@@ -51,67 +51,436 @@ from core.util import json_response
 from thing.forms import UploadSkillPlanForm
 from thing.models import *
 from thing.stuff import *
+from thing.utils.eftparser import EFTParser
 
 
 # ---------------------------------------------------------------------------
-# List all skillplans
+# Delete all entries from a skillplan 
 @login_required
-def skillplan(request):    
-    if 'message' in request.session:
-        message = request.session.pop('message')
-        message_type = request.session.pop('message_type')
+def skillplan_ajax_clean(request, skillplan_id):
+    if request.is_ajax():
+        if skillplan_id.isdigit():
+            try:
+                skillplan = SkillPlan.objects.get(user=request.user, id=skillplan_id)
+            
+            except SkillPlan.DoesNotExist:
+                return HttpResponse(content='That skillplan does not exist', status=500)     
+             
+            # Delete all of the random things for this skillplan
+            entries = SPEntry.objects.filter(skill_plan=skillplan)
+            SPRemap.objects.filter(pk__in=[e.sp_remap_id for e in entries if e.sp_remap_id]).delete()
+            SPSkill.objects.filter(pk__in=[e.sp_skill_id for e in entries if e.sp_skill_id]).delete()
+            entries.delete()
+                
+            return HttpResponse(json.dumps({'status':'ok'}), status=200)
+            
+        else:
+            return HttpResponse(content='Cannot delete the entry : no skillplan or entry given', status=500)       
     else:
-        message = None
-        message_type = None
-
-    return render_page(
-        'thing/skillplan.html',
-        {
-            'message': message,
-            'message_type': message_type,
-            'skillplans': SkillPlan.objects.filter(user=request.user).order_by('id'),
-            'visibilities': SkillPlan.VISIBILITY_CHOICES,
-        },
-        request,
-    )
+        return HttpResponse(content='Cannot call this page directly', status=403)
 
 # ---------------------------------------------------------------------------
-# Create a skillplan
+# Add a remap to the skillplan
 @login_required
-def skillplan_edit(request, skillplan_id):
-
-    if skillplan_id.isdigit():
-        skillplan = get_object_or_404(SkillPlan, user=request.user, pk=skillplan_id)
-        characters = Character.objects.filter(apikeys__user=request.user).select_related('config','details').distinct()
-            
-        # Init the global skill list
-        skill_list           = OrderedDict()
-        current_market_group = None
-
-        skills = Skill.objects.filter(item__market_group__isnull=False)
-        skills = skills.select_related('item__market_group')
-        skills = skills.order_by('item__market_group__name', 'item__name')
+def skillplan_ajax_add_remap(request, skillplan_id):
+    """
+    Add a remap to the skillplan
         
-        for skill in skills:
-            market_group = skill.item.market_group
-            if market_group != current_market_group:
-                current_market_group = market_group
-                skill_list[current_market_group] = []
-            
-            skill_list[current_market_group].append(skill)
-        
-        return render_page(
-            'thing/skillplan_edit.html',
-            {   
-                'skillplan'         : skillplan,
-                'skill_list'        : skill_list,
-                'characters'        : characters,
-            },
-            request,
-        )
+    This function will return a json with status "ok" or a http error code.
+    
+    POST:   skillplan_id : id of the plan
+    """
+    tt = TimerThing('skill_add_skill')
 
+    tt.add_time('init')
+    
+    if request.is_ajax():
+        
+        if skillplan_id.isdigit():
+            try:
+                skillplan = SkillPlan.objects.get(user=request.user, id=skillplan_id)
+
+            except SkillPlan.DoesNotExist:
+                return HttpResponse(content='That skillplan does not exist', status=500)     
+
+            last_position = skillplan.entries.count();
+            tt.add_time('SkillPlan last pos')
+                        
+            skill_remap = SPRemap.objects.create(
+                int_stat=20,
+                mem_stat=20,
+                per_stat=20,
+                wil_stat=20,
+                cha_stat=19,
+            )
+
+            SPEntry.objects.create(
+                skill_plan=skillplan,
+                position=last_position,
+                sp_remap=skill_remap,
+            )
+            
+            tt.add_time('Remap entry creation')
+            if settings.DEBUG:
+                tt.finished()    
+                
+            return HttpResponse(json.dumps({'status':'ok'}), status=200)
+        
+        else:
+            return HttpResponse(content='Cannot add the remap : no skillplan provided', status=500)       
     else:
-        redirect('thing.views.skillplan')
+        return HttpResponse(content='Cannot call this page directly', status=403)
+
+# ---------------------------------------------------------------------------
+# Add a given skill & prerequisites
+@login_required
+def skillplan_ajax_add_skill(request, skillplan_id):
+    """
+    Add a skill and all of it's prerequisite (not already in the plan)
+    into the skill plan
+    
+    This function will return a json with status "ok" or a http error code.
+    
+    POST:   skillplan_id : id of the plan
+            skill_id : skill to add 
+            skill_level : the level of the skill to add
+    """
+    tt = TimerThing('skill_add_skill')
+
+    tt.add_time('init')
+    
+    if request.is_ajax():
+        skill_id        = request.POST.get('skill_id', '')
+        skill_level     = request.POST.get('skill_level', '')
+        
+        if not skill_level.isdigit() or int(skill_level) < 1 or int(skill_level) > 5:
+            skill_level = 1
+        skill_level = int(skill_level)
+        
+        if skill_id.isdigit() and skillplan_id.isdigit():
+            try:
+                skillplan = SkillPlan.objects.get(user=request.user, id=skillplan_id)
+                skill = Skill.objects.get(item__id=skill_id)
+                
+            except Skill.DoesNotExist:
+                return HttpResponse(content='That skill does not exist', status=500) 
+                
+            except SkillPlan.DoesNotExist:
+                return HttpResponse(content='That skillplan does not exist', status=500)     
+
+            skill_list = []
+            seen = {}
+            last_position = 0
+            
+            tt.add_time('Get objects')
+            
+            # get the list of all skills already in the plan
+            for entry in skillplan.entries.select_related('sp_skill__skill__item'):         
+                if entry.sp_skill is not None:
+                    seen[entry.sp_skill.skill.item_id] = entry.sp_skill.level
+                last_position = entry.position + 1
+            
+            tt.add_time('Get skillplan entries')
+            
+            # if the skill is not already in the plan at the same level, we'll try to add it.
+            if (skill.item_id in seen and skill_level > seen[skill.item_id]) or skill.item_id not in seen:
+            
+                # fetch all prerequisites
+                skill_list = skill.item.get_flat_prerequisites()
+                
+                # finally add the current skill 
+                skill_list.append((skill.item_id, skill_level)) 
+                
+                tt.add_time('Get skills prerequisites')
+                
+            
+            # if we have any new skill to add, just create the new entries :)
+            entries = []
+            
+            for skill_id, level in skill_list:
+                for l in range(seen.get(skill_id, 0) + 1, level + 1):
+                    try:
+                        sps = SPSkill.objects.create(
+                            skill_id = skill_id,
+                            level = l,
+                            priority=3,
+                        )
+                    except:
+                        continue
+                        
+                    seen[skill_id] = l
+                    
+                    entries.append(SPEntry(
+                        skill_plan=skillplan,
+                        position=last_position,
+                        sp_skill=sps,
+                    ))
+
+                    last_position += 1
+                
+            SPEntry.objects.bulk_create(entries)
+            
+            tt.add_time('Skill Entries creation')
+            if settings.DEBUG:
+                tt.finished()    
+                
+            return HttpResponse(json.dumps({'status':'ok'}), status=200)
+        
+        else:
+            return HttpResponse(content='Cannot add the skill : no skill or no skillplan provided', status=500)       
+    else:
+        return HttpResponse(content='Cannot call this page directly', status=403)
+
+# ---------------------------------------------------------------------------
+# Delete an entry and all of its dependencies 
+@login_required
+def skillplan_ajax_delete_entry(request, skillplan_id):
+    """
+    Remove an entry from the skillplan, also remove all the skill dependencies if required
+        
+    This function will return a json with status "ok" or a http error code.
+    
+    POST:   skillplan_id : id of the plan
+    """
+    tt = TimerThing('skill_delete_entry')
+
+    tt.add_time('init')
+    
+    if request.is_ajax():
+        entry_id         = request.POST.get('entry_id', '')
+
+        if skillplan_id.isdigit() and entry_id.isdigit():
+            try:
+                skillplan   = SkillPlan.objects.get(user=request.user, id=skillplan_id)
+                del_entry   = SPEntry.objects.select_related('sp_remap', 'sp_skill__skill__item').get(id=entry_id)
+
+            except SkillPlan.DoesNotExist:
+                return HttpResponse(content='That skillplan does not exist', status=500)     
+
+
+            except SPEntry.DoesNotExist:
+                return HttpResponse(content='That entry does not exist', status=500)     
+
+            tt.add_time('Get objects')
+            
+            nb_entry_deleted = 1
+
+            entries = (
+                skillplan.entries
+                .select_related('sp_skill__skill__item')
+                .filter(position__gt = del_entry.position)
+            )
+            
+            for entry in entries:
+                if del_entry.sp_skill is not None and entry.sp_skill is not None:
+                    if  (del_entry.sp_skill.skill.is_unlocked_by_skill(entry.sp_skill.skill.item, del_entry.sp_skill.level) or
+                        (del_entry.sp_skill.skill.item_id == entry.sp_skill.skill.item_id and 
+                            del_entry.sp_skill.level < entry.sp_skill.level)):
+                        
+                        entry.sp_skill.delete()
+                        entry.delete()
+                        nb_entry_deleted += 1
+                        continue
+                    
+                entry.position -= nb_entry_deleted           
+                entry.save(update_fields=['position'])
+            
+            if del_entry.sp_skill is not None:
+                del_entry.sp_skill.delete()
+            else: 
+                del_entry.sp_remap.delete()
+            del_entry.delete()
+            
+            tt.add_time('Delete')
+            
+            if settings.DEBUG:
+                tt.finished()   
+                
+            return HttpResponse(json.dumps({'status':'ok'}), status=200)
+        
+        else:
+            return HttpResponse(content='Cannot delete the entry : no skillplan or entry given', status=500)       
+    else:
+        return HttpResponse(content='Cannot call this page directly', status=403)
+
+# ---------------------------------------------------------------------------
+# Import the skill related to an EFT Textblock into the skillplan 
+@login_required
+def skillplan_ajax_import_eft(request, skillplan_id):
+    """
+        Add skills into the skillplan using an EFT Textblock.
+        
+        POST : eft_textblock
+        RETURN : json with status, skills injected, skills not injected
+    """
+    tt = TimerThing('skillplan_import_eft_textblock')
+
+    tt.add_time('init')
+    
+    if request.is_ajax():
+    
+        eft_text_block = request.POST.get('eft_textblock', '').strip()
+        
+        if len(eft_text_block) == 0:
+            return HttpResponse(content='EFT Text block cannot be empty', status=500)
+        
+        if skillplan_id.isdigit():
+            try:
+                skillplan = SkillPlan.objects.get(user=request.user, id=skillplan_id)
+
+            except SkillPlan.DoesNotExist:
+                return HttpResponse(content='That skillplan does not exist', status=500)     
+
+            eft_parsed = EFTParser.parse(eft_text_block)
+
+            skill_list    = []
+            seen          = {}
+            response      = {'fail':[]}
+            last_position = 0
+            
+            success = {}
+            
+            tt.add_time('Get objects')
+            
+            # get the list of all skills already in the plan
+            entries = skillplan.entries.select_related('sp_skill__skill__item')
+            
+            for entry in entries:         
+                if entry.sp_skill is not None:
+                    seen[entry.sp_skill.skill.item_id] = entry.sp_skill.level
+                last_position = entry.position + 1
+            
+            tt.add_time('Get skillplan entries')
+            
+            try:
+                ship = Item.objects.get(name=eft_parsed['ship_type'])
+                skill_list = ship.get_flat_prerequisites()
+                
+            except Item.DoesNotExist:
+                response['fail'].append(eft_parsed['ship_type'])
+            
+            # get all modules skill prereqs
+            for item_name, charge_name in eft_parsed['modules']:
+                try:
+                    item        = Item.objects.get(name = item_name)
+                    skill_list  = skill_list+item.get_flat_prerequisites()
+                    
+                except Item.DoesNotExist:
+                    response['fail'].append(item_name)
+                
+                if charge_name:
+                    try:
+                        charge      = Item.objects.get(name = charge_name)
+                        skill_list  = skill_list+charge.get_flat_prerequisites()
+                        
+                    except Item.DoesNotExist:
+                        response['fail'].append(item_name)
+            
+            # get all charges and drones skill prereqs
+            for item_name, unused in eft_parsed['cargodrones']:
+                try:
+                    item        = Item.objects.get(name = item_name)
+                    skill_list  = skill_list+item.get_flat_prerequisites()
+                    
+                except Item.DoesNotExist:
+                    response['fail'].append(item_name)
+
+            tt.add_time('Get items prereqs')
+            
+            # if we have any new skill to add, just create the new entries :)
+            added_entries = []
+            
+            for skill_id, level in skill_list:
+                for l in range(seen.get(skill_id, 0) + 1, level + 1):
+                    try:
+                        sps = SPSkill.objects.create(
+                            skill_id = skill_id,
+                            level = l,
+                            priority=3,
+                        )
+                    except:
+                        continue
+                        
+                    seen[skill_id]    = l
+                    success[skill_id] = l
+                    
+                    entries.append(SPEntry(
+                        skill_plan=skillplan,
+                        position=last_position,
+                        sp_skill=sps,
+                    ))
+
+                    last_position += 1
+                
+            SPEntry.objects.bulk_create(entries)
+            
+            tt.add_time('Skill Entries creation')
+            if settings.DEBUG:
+                tt.finished()    
+            
+            response['status']  = 'ok'
+            response['success'] = success.items()
+            return HttpResponse(json.dumps(response), status=200)
+
+
+# ---------------------------------------------------------------------------
+# Optimize remap for each remap point for a given skillplan
+@login_required
+def skillplan_ajax_optimize_remaps(request, skillplan_id):
+    tt = TimerThing('skillplan_opti_remaps')
+
+    tt.add_time('init')
+    
+    if request.is_ajax():
+        
+        if skillplan_id.isdigit():
+            try:
+                skillplan = SkillPlan.objects.get(user=request.user, id=skillplan_id)
+
+            except SkillPlan.DoesNotExist:
+                return HttpResponse(content='That skillplan does not exist', status=500)     
+            
+            # we want all remaps from the end to beginning of the plan
+            remaps = skillplan.entries.select_related('sp_remap').filter(sp_remap__isnull=False).order_by('-position')
+            
+            # prefetch all entries, not to have a query for each entries per remaps
+            entries = skillplan.entries.select_related('sp_remap', 'sp_skill__skill__item')
+            end_position = entries.count();
+            
+            tt.add_time('get entries') 
+            remap_list=[]
+            
+            
+            for remap in remaps:
+                start_position = remap.position
+                current_remap_entries = entries.filter(position__gt=start_position, position__lt=end_position)
+                remapped_attribute = _optimize_attribute(current_remap_entries, datetime.timedelta.max.days * 24 * 60 * 60)
+                
+                remap.sp_remap.int_stat = remapped_attribute['int_attribute']
+                remap.sp_remap.mem_stat = remapped_attribute['mem_attribute']
+                remap.sp_remap.per_stat = remapped_attribute['per_attribute']
+                remap.sp_remap.wil_stat = remapped_attribute['wil_attribute']
+                remap.sp_remap.cha_stat = remapped_attribute['cha_attribute']
+                
+                remap.sp_remap.save()
+                
+                remap_list.append(remapped_attribute)
+                
+                end_position = remap.position
+            
+            
+            tt.add_time('remap')
+            if settings.DEBUG:
+                tt.finished()    
+            
+            response = {'status':'ok'}
+            response['remaps'] = remap_list.reverse()
+            return HttpResponse(json.dumps(response), status=200)
+        
+        else:
+            return HttpResponse(content='Cannot optimize remaps for skillplan : no skillplan provided', status=500)       
+    else:
+        return HttpResponse(content='Cannot call this page directly', status=403)
 
 # ---------------------------------------------------------------------------
 # Render the table entries of the skillplan
@@ -260,315 +629,66 @@ def skillplan_ajax_reorder_entry(request, skillplan_id):
     else:
         return HttpResponse(content='Cannot call this page directly', status=403)
 
-# ---------------------------------------------------------------------------
-# Add a remap to the skillplan
-@login_required
-def skillplan_ajax_add_remap(request, skillplan_id):
-    """
-    Add a remap to the skillplan
-        
-    This function will return a json with status "ok" or a http error code.
-    
-    POST:   skillplan_id : id of the plan
-    """
-    tt = TimerThing('skill_add_skill')
-
-    tt.add_time('init')
-    
-    if request.is_ajax():
-        
-        if skillplan_id.isdigit():
-            try:
-                skillplan = SkillPlan.objects.get(user=request.user, id=skillplan_id)
-
-            except SkillPlan.DoesNotExist:
-                return HttpResponse(content='That skillplan does not exist', status=500)     
-
-            last_position = skillplan.entries.count();
-            tt.add_time('SkillPlan last pos')
-                        
-            skill_remap = SPRemap.objects.create(
-                int_stat=20,
-                mem_stat=20,
-                per_stat=20,
-                wil_stat=20,
-                cha_stat=19,
-            )
-
-            SPEntry.objects.create(
-                skill_plan=skillplan,
-                position=last_position,
-                sp_remap=skill_remap,
-            )
-            
-            tt.add_time('Remap entry creation')
-            if settings.DEBUG:
-                tt.finished()    
-                
-            return HttpResponse(json.dumps({'status':'ok'}), status=200)
-        
-        else:
-            return HttpResponse(content='Cannot add the remap : no skillplan provided', status=500)       
-    else:
-        return HttpResponse(content='Cannot call this page directly', status=403)
 
 # ---------------------------------------------------------------------------
-# Optimize remap for each remap point for a given skillplan
+# List all skillplans
 @login_required
-def skillplan_ajax_optimize_remaps(request, skillplan_id):
-    tt = TimerThing('skillplan_opti_remaps')
-
-    tt.add_time('init')
-    
-    if request.is_ajax():
-        
-        if skillplan_id.isdigit():
-            try:
-                skillplan = SkillPlan.objects.get(user=request.user, id=skillplan_id)
-
-            except SkillPlan.DoesNotExist:
-                return HttpResponse(content='That skillplan does not exist', status=500)     
-            
-            # we want all remaps from the end to beginning of the plan
-            remaps = skillplan.entries.select_related('sp_remap').filter(sp_remap__isnull=False).order_by('-position')
-            
-            # prefetch all entries, not to have a query for each entries per remaps
-            entries = skillplan.entries.select_related('sp_remap', 'sp_skill__skill__item')
-            end_position = entries.count();
-            
-            tt.add_time('get entries') 
-            remap_list=[]
-            
-            
-            for remap in remaps:
-                start_position = remap.position
-                current_remap_entries = entries.filter(position__gt=start_position, position__lt=end_position)
-                remapped_attribute = _optimize_attribute(current_remap_entries, datetime.timedelta.max.days * 24 * 60 * 60)
-                
-                remap.sp_remap.int_stat = remapped_attribute['int_attribute']
-                remap.sp_remap.mem_stat = remapped_attribute['mem_attribute']
-                remap.sp_remap.per_stat = remapped_attribute['per_attribute']
-                remap.sp_remap.wil_stat = remapped_attribute['wil_attribute']
-                remap.sp_remap.cha_stat = remapped_attribute['cha_attribute']
-                
-                remap.sp_remap.save()
-                
-                remap_list.append(remapped_attribute)
-                
-                end_position = remap.position
-            
-            
-            tt.add_time('remap')
-            if settings.DEBUG:
-                tt.finished()    
-            
-            response = {'status':'ok'}
-            response['remaps'] = remap_list.reverse()
-            return HttpResponse(json.dumps(response), status=200)
-        
-        else:
-            return HttpResponse(content='Cannot optimize remaps for skillplan : no skillplan provided', status=500)       
+def skillplan(request):    
+    if 'message' in request.session:
+        message = request.session.pop('message')
+        message_type = request.session.pop('message_type')
     else:
-        return HttpResponse(content='Cannot call this page directly', status=403)
+        message = None
+        message_type = None
+
+    return render_page(
+        'thing/skillplan.html',
+        {
+            'message': message,
+            'message_type': message_type,
+            'skillplans': SkillPlan.objects.filter(user=request.user).order_by('id'),
+            'visibilities': SkillPlan.VISIBILITY_CHOICES,
+        },
+        request,
+    )
 
 # ---------------------------------------------------------------------------
-# Add a given skill & prerequisites
+# Create a skillplan
 @login_required
-def skillplan_ajax_add_skill(request, skillplan_id):
-    """
-    Add a skill and all of it's prerequisite (not already in the plan)
-    into the skill plan
-    
-    This function will return a json with status "ok" or a http error code.
-    
-    POST:   skillplan_id : id of the plan
-            skill_id : skill to add 
-            skill_level : the level of the skill to add
-    """
-    tt = TimerThing('skill_add_skill')
+def skillplan_edit(request, skillplan_id):
 
-    tt.add_time('init')
-    
-    if request.is_ajax():
-        skill_id        = request.POST.get('skill_id', '')
-        skill_level     = request.POST.get('skill_level', '')
-        
-        if not skill_level.isdigit() or int(skill_level) < 1 or int(skill_level) > 5:
-            skill_level = 1
-        skill_level = int(skill_level)
-        
-        if skill_id.isdigit() and skillplan_id.isdigit():
-            try:
-                skillplan = SkillPlan.objects.get(user=request.user, id=skillplan_id)
-                skill = Skill.objects.get(item__id=skill_id)
-                
-            except Skill.DoesNotExist:
-                return HttpResponse(content='That skill does not exist', status=500) 
-                
-            except SkillPlan.DoesNotExist:
-                return HttpResponse(content='That skillplan does not exist', status=500)     
+    if skillplan_id.isdigit():
+        skillplan = get_object_or_404(SkillPlan, user=request.user, pk=skillplan_id)
+        characters = Character.objects.filter(apikeys__user=request.user).select_related('config','details').distinct()
+            
+        # Init the global skill list
+        skill_list           = OrderedDict()
+        current_market_group = None
 
-            skill_list = []
-            seen = {}
-            last_position = 0
-            
-            tt.add_time('Get objects')
-            
-            # get the list of all skills already in the plan
-            for entry in skillplan.entries.select_related('sp_skill__skill__item'):         
-                if entry.sp_remap is not None:
-                    continue
-                if entry.sp_skill is not None:
-                    seen[entry.sp_skill.skill.item_id] = entry.sp_skill.level
-                last_position = entry.position + 1
-            
-            tt.add_time('Get skillplan entries')
-            
-            # if the skill is not already in the plan at the same level, we'll try to add it.
-            if (skill.item_id in seen and skill_level > seen[skill.item_id]) or skill.item_id not in seen:
-            
-                # fetch all prerequisites
-                skill_list = skill.item.get_flat_prerequisites()
-                
-                # finally add the current skill 
-                skill_list.append((skill.item_id, skill_level)) 
-                
-                tt.add_time('Get skills prerequisites')
-                
-            
-            # if we have any new skill to add, just create the new entries :)
-            entries = []
-            
-            for skill_id, level in skill_list:
-                for l in range(seen.get(skill_id, 0) + 1, level + 1):
-                    try:
-                        sps = SPSkill.objects.create(
-                            skill_id = skill_id,
-                            level = l,
-                            priority=3,
-                        )
-                    except:
-                        continue
-                        
-                    seen[skill_id] = l
-                    
-                    entries.append(SPEntry(
-                        skill_plan=skillplan,
-                        position=last_position,
-                        sp_skill=sps,
-                    ))
-
-                    last_position += 1
-                
-            SPEntry.objects.bulk_create(entries)
-            
-            tt.add_time('Skill Entries creation')
-            if settings.DEBUG:
-                tt.finished()    
-                
-            return HttpResponse(json.dumps({'status':'ok'}), status=200)
+        skills = Skill.objects.filter(item__market_group__isnull=False)
+        skills = skills.select_related('item__market_group')
+        skills = skills.order_by('item__market_group__name', 'item__name')
         
-        else:
-            return HttpResponse(content='Cannot add the skill : no skill or no skillplan provided', status=500)       
+        for skill in skills:
+            market_group = skill.item.market_group
+            if market_group != current_market_group:
+                current_market_group = market_group
+                skill_list[current_market_group] = []
+            
+            skill_list[current_market_group].append(skill)
+        
+        return render_page(
+            'thing/skillplan_edit.html',
+            {   
+                'skillplan'         : skillplan,
+                'skill_list'        : skill_list,
+                'characters'        : characters,
+            },
+            request,
+        )
+
     else:
-        return HttpResponse(content='Cannot call this page directly', status=403)
-
-# ---------------------------------------------------------------------------
-# Delete an entry and all of its dependencies 
-@login_required
-def skillplan_ajax_delete_entry(request, skillplan_id):
-    """
-    Remove an entry from the skillplan, also remove all the skill dependencies if required
-        
-    This function will return a json with status "ok" or a http error code.
-    
-    POST:   skillplan_id : id of the plan
-    """
-    tt = TimerThing('skill_delete_entry')
-
-    tt.add_time('init')
-    
-    if request.is_ajax():
-        entry_id         = request.POST.get('entry_id', '')
-
-        if skillplan_id.isdigit() and entry_id.isdigit():
-            try:
-                skillplan   = SkillPlan.objects.get(user=request.user, id=skillplan_id)
-                del_entry   = SPEntry.objects.select_related('sp_remap', 'sp_skill__skill__item').get(id=entry_id)
-
-            except SkillPlan.DoesNotExist:
-                return HttpResponse(content='That skillplan does not exist', status=500)     
-
-
-            except SPEntry.DoesNotExist:
-                return HttpResponse(content='That entry does not exist', status=500)     
-
-            tt.add_time('Get objects')
-            
-            nb_entry_deleted = 1
-
-            entries = (
-                skillplan.entries
-                .select_related('sp_skill__skill__item')
-                .filter(position__gt = del_entry.position)
-            )
-            
-            for entry in entries:
-                if del_entry.sp_skill is not None and entry.sp_skill is not None:
-                    if  (del_entry.sp_skill.skill.is_unlocked_by_skill(entry.sp_skill.skill.item, del_entry.sp_skill.level) or
-                        (del_entry.sp_skill.skill.item_id == entry.sp_skill.skill.item_id and 
-                            del_entry.sp_skill.level < entry.sp_skill.level)):
-                        
-                        entry.sp_skill.delete()
-                        entry.delete()
-                        nb_entry_deleted += 1
-                        continue
-                    
-                entry.position -= nb_entry_deleted           
-                entry.save(update_fields=['position'])
-            
-            if del_entry.sp_skill is not None:
-                del_entry.sp_skill.delete()
-            else: 
-                del_entry.sp_remap.delete()
-            del_entry.delete()
-            
-            tt.add_time('Delete')
-            
-            if settings.DEBUG:
-                tt.finished()   
-                
-            return HttpResponse(json.dumps({'status':'ok'}), status=200)
-        
-        else:
-            return HttpResponse(content='Cannot delete the entry : no skillplan or entry given', status=500)       
-    else:
-        return HttpResponse(content='Cannot call this page directly', status=403)
-
-# ---------------------------------------------------------------------------
-# Delete all entries from a skillplan 
-@login_required
-def skillplan_ajax_clean(request, skillplan_id):
-    if request.is_ajax():
-        if skillplan_id.isdigit():
-            try:
-                skillplan = SkillPlan.objects.get(user=request.user, id=skillplan_id)
-            
-            except SkillPlan.DoesNotExist:
-                return HttpResponse(content='That skillplan does not exist', status=500)     
-             
-            # Delete all of the random things for this skillplan
-            entries = SPEntry.objects.filter(skill_plan=skillplan)
-            SPRemap.objects.filter(pk__in=[e.sp_remap_id for e in entries if e.sp_remap_id]).delete()
-            SPSkill.objects.filter(pk__in=[e.sp_skill_id for e in entries if e.sp_skill_id]).delete()
-            entries.delete()
-                
-            return HttpResponse(json.dumps({'status':'ok'}), status=200)
-            
-        else:
-            return HttpResponse(content='Cannot delete the entry : no skillplan or entry given', status=500)       
-    else:
-        return HttpResponse(content='Cannot call this page directly', status=403)
+        redirect('thing.views.skillplan')
 
 # ---------------------------------------------------------------------------
 # Import a skillplan
@@ -608,6 +728,7 @@ def skillplan_create(request):
     
     return redirect('thing.views.skillplan')
     
+
 # ---------------------------------------------------------------------------
 # Export Skillplan
 @login_required
@@ -697,6 +818,7 @@ def skillplan_export(request, skillplan_id):
     else:
         redirect('thing.views.skillplan')
         
+
 # ---------------------------------------------------------------------------
 # Delete a skillplan
 @login_required
@@ -961,6 +1083,7 @@ def _skillplan_list_json(request, skillplan, character, implants, show_trained):
 
     return json_response(skillplan_json)
     
+
 # ---------------------------------------------------------------------------
 # Handle the upload of a .EMP skillplan 
 def _handle_skillplan_upload(request):
@@ -1078,6 +1201,7 @@ def _parse_emp_plan(skillplan, root):
 
     SPEntry.objects.bulk_create(entries)
     
+
 # ---------------------------------------------------------------------------
 # Return the best remap for a given entries list
 def _optimize_attribute(entries, max_duration):

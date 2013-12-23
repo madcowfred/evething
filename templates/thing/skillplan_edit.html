@@ -6,13 +6,14 @@
 {% block extra_js %}
     <script type="text/javascript">
         // current skill popover displayed
-        EVEthing.skillplan.addSkillInPlanUrl = "{{ url('thing.views.skillplan_ajax_add_skill', skillplan.id) }}"
-        EVEthing.skillplan.addRemapInPlanUrl = "{{ url('thing.views.skillplan_ajax_add_remap', skillplan.id) }}"
-        EVEthing.skillplan.cleanSkillplanUrl = "{{ url('thing.views.skillplan_ajax_clean', skillplan.id) }}"
-        EVEthing.skillplan.deleteEntryUrl = "{{ url('thing.views.skillplan_ajax_delete_entry', skillplan.id) }}"
+        EVEthing.skillplan.addSkillInPlanUrl          = "{{ url('thing.views.skillplan_ajax_add_skill', skillplan.id) }}"
+        EVEthing.skillplan.addRemapInPlanUrl          = "{{ url('thing.views.skillplan_ajax_add_remap', skillplan.id) }}"
+        EVEthing.skillplan.cleanSkillplanUrl          = "{{ url('thing.views.skillplan_ajax_clean', skillplan.id) }}"
+        EVEthing.skillplan.deleteEntryUrl             = "{{ url('thing.views.skillplan_ajax_delete_entry', skillplan.id) }}"
         EVEthing.skillplan.optimizeSkillplanRemapsUrl = "{{ url('thing.views.skillplan_ajax_optimize_remaps', skillplan.id) }}"
-        EVEthing.skillplan.reorderEntriesUrl = "{{ url('thing.views.skillplan_ajax_reorder_entry', skillplan.id) }}"
-        EVEthing.skillplan.skillPlanEntriesJsonUrl = "{{ url('thing.views.skillplan_ajax_render_entries', skillplan.id, 88888888888, 77777777777, 66666666666 )  }}"
+        EVEthing.skillplan.importEFTTextBlockUrl      = "{{ url('thing.views.skillplan_ajax_import_eft', skillplan.id) }}"
+        EVEthing.skillplan.reorderEntriesUrl          = "{{ url('thing.views.skillplan_ajax_reorder_entry', skillplan.id) }}"
+        EVEthing.skillplan.skillPlanEntriesJsonUrl    = "{{ url('thing.views.skillplan_ajax_render_entries', skillplan.id, 88888888888, 77777777777, 66666666666 )  }}"
         $(document).ready(EVEthing.skillplan.onload);
     </script>
 {% endblock %}
