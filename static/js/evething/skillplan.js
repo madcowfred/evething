@@ -5,6 +5,7 @@ EVEthing.skillplan = {
         
     addSkillInPlanUrl: "",
     addRemapInPlanUrl: "",
+    importEFTTextBlockUrl: "",
     skillPlanEntriesJsonUrl: "",
     reorderEntriesUrl: "",
     deleteEntryUrl: "",
@@ -45,6 +46,8 @@ EVEthing.skillplan = {
                + '</tr>\n',
                   
     onload: function() {
+    
+        // skillplan bindings
         $('#apply_filter').on('click',
             function(e){
                 EVEthing.skillplan.reloadEntries();
@@ -65,6 +68,7 @@ EVEthing.skillplan = {
                 e.preventDefault();
             }
         );       
+        
         
         $('#searchSkill').on('keyup',EVEthing.skillplan.searchSkill);
         $('#clean_skillplan').on('click',
@@ -116,6 +120,15 @@ EVEthing.skillplan = {
                 e.preventDefault();
             }
         );
+        
+        // eft tab bindings
+        $('#btn-eft-submit').on('click',
+            function(e) {
+                EVEthing.skillplan.importEftTextBlock();
+                e.preventDefault();
+            }
+        );            
+        // start
         EVEthing.skillplan.reloadEntries()
     },
     
@@ -445,5 +458,64 @@ EVEthing.skillplan = {
         );
     },
     
+    importEftTextBlock: function() {
+        if(EVEthing.skillplan.importEFTTextBlockUrl == "") {
+            alert('Import EFT TextBlock URL is not set');
+            return;
+        }
+        
+        if(EVEthing.skillplan.ajax) {
+            return;
+        }
+        
+        if($('#eft_textblock').val().length == 0) {
+            alert('You need to fill the textarea with an EFT text block');
+            return;
+        }
+        // need to do the full ajax, since we need to manage the popover :(
+        EVEthing.skillplan.ajax = true;
+        
+        $('#skillplan-tab .active a').append(EVEthing.skillplan.loadSpinner);
 
+        $('#eft-success').html('');
+        $('#eft-error').html('');
+        $('#eft-success').css('display','none');
+        $('#eft-error').css('display','none');
+        
+        $.ajax({
+            crossDomain: false,
+            url: EVEthing.skillplan.importEFTTextBlockUrl,
+            data: {eft_textblock:$('#eft_textblock').val()},
+            type:'post',
+            beforeSend: function(xhr, settings) {
+                xhr.setRequestHeader("X-CSRFToken", $.cookie('csrftoken'));
+            },
+            success: function(json) {
+                $('#spin').remove();
+                EVEthing.skillplan.ajax = false;
+                var response = $.parseJSON(json);
+                if(response.status == "ok"){
+                    if(response.fail.length > 0) {
+                        html = "The following item(s) have not been parsed: <ul>";
+                        for(var i=0, size=response.fail.length; i<size; i++) {
+                            html += "<li>"+response.fail[i]+'</li>';
+                        }
+                        html += "</ul>";
+                        $('#eft-error').css('display','block');
+                        $('#eft-error').html(html);
+                    }
+                    $('#eft-success').css('display','block');
+                    $('#eft-success').html('Skills have been added to the skill plan');
+                    EVEthing.skillplan.reloadEntries();
+                }
+                
+            },
+            error: function(xhr, status, error) {
+                $('#spin').remove();
+                EVEthing.skillplan.ajax = false;
+                alert("Error " + xhr.status + ": " +xhr.responseText)
+            }
+        });
+
+    },
 }

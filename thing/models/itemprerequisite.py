@@ -27,10 +27,10 @@ from django.db import models
 
 #----------------------------------------------------------------------
 
-class SkillParent(models.Model):   
-    parent_skill = models.ForeignKey('Skill', related_name="child_skill")
-    child_skill  = models.ForeignKey('Skill', related_name="parent_skill")
-    level        = models.SmallIntegerField()
+class ItemPrerequisite(models.Model):
+    item   = models.ForeignKey('Item', related_name="prereq_skill")
+    skill  = models.ForeignKey('Skill', related_name="required_for_item")
+    level  = models.SmallIntegerField()
 
     def get_roman_level(self):
         return ['', 'I', 'II', 'III', 'IV', 'V'][self.level]
