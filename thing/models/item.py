@@ -41,7 +41,7 @@ class Item(models.Model):
     name = models.CharField(max_length=128)
 
     item_group = models.ForeignKey(ItemGroup)
-    market_group = models.ForeignKey(MarketGroup, blank=True, null=True)
+    market_group = models.ForeignKey(MarketGroup, blank=True, null=True, related_name='items')
 
     portion_size = models.IntegerField()
     # 0.0025 -> 10,000,000,000
@@ -53,6 +53,7 @@ class Item(models.Model):
 
     class Meta:
         app_label = 'thing'
+        #ordering = ('meta','name')
 
     def __unicode__(self):
         return self.name
