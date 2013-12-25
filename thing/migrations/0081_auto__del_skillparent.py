@@ -8,22 +8,19 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Adding model 'ItemPrerequisite'
-        db.create_table(u'thing_itemprerequisite', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('item', self.gf('django.db.models.fields.related.ForeignKey')(related_name='prereq_skill', to=orm['thing.Item'])),
-            ('skill', self.gf('django.db.models.fields.related.ForeignKey')(related_name='required_for_item', to=orm['thing.Skill'])),
-            ('level', self.gf('django.db.models.fields.SmallIntegerField')()),
-        ))
-
-        db.send_create_signal('thing', ['ItemPrerequisite'])
-
         # Deleting model 'SkillParent'
         db.delete_table(u'thing_skillparent')
 
+
     def backwards(self, orm):
-        # Deleting model 'ItemPrerequisite'
-        db.delete_table(u'thing_itemprerequisite')
+        # Adding model 'SkillParent'
+        db.create_table(u'thing_skillparent', (
+            ('child_skill', self.gf('django.db.models.fields.related.ForeignKey')(related_name='parent_skill', to=orm['thing.Skill'])),
+            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('parent_skill', self.gf('django.db.models.fields.related.ForeignKey')(related_name='child_skill', to=orm['thing.Skill'])),
+            ('level', self.gf('django.db.models.fields.SmallIntegerField')()),
+        ))
+        db.send_create_signal('thing', ['SkillParent'])
 
 
     models = {
@@ -347,7 +344,7 @@ class Migration(SchemaMigration):
             'buy_price': ('django.db.models.fields.DecimalField', [], {'default': '0', 'max_digits': '15', 'decimal_places': '2'}),
             'id': ('django.db.models.fields.IntegerField', [], {'primary_key': 'True'}),
             'item_group': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['thing.ItemGroup']"}),
-            'market_group': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['thing.MarketGroup']", 'null': 'True', 'blank': 'True'}),
+            'market_group': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'items'", 'null': 'True', 'to': "orm['thing.MarketGroup']"}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '128'}),
             'portion_size': ('django.db.models.fields.IntegerField', [], {}),
             'sell_price': ('django.db.models.fields.DecimalField', [], {'default': '0', 'max_digits': '15', 'decimal_places': '2'}),
@@ -465,13 +462,6 @@ class Migration(SchemaMigration):
             'primary_attribute': ('django.db.models.fields.SmallIntegerField', [], {}),
             'rank': ('django.db.models.fields.SmallIntegerField', [], {}),
             'secondary_attribute': ('django.db.models.fields.SmallIntegerField', [], {})
-        },
-        'thing.skillparent': {
-            'Meta': {'object_name': 'SkillParent'},
-            'child_skill': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'parent_skill'", 'to': "orm['thing.Skill']"}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'level': ('django.db.models.fields.SmallIntegerField', [], {}),
-            'parent_skill': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'child_skill'", 'to': "orm['thing.Skill']"})
         },
         'thing.skillplan': {
             'Meta': {'ordering': "('name',)", 'object_name': 'SkillPlan'},
