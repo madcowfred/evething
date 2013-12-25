@@ -388,8 +388,22 @@ class Importer:
     def import_item(self):
         added = 0
 
-        self.cursor.execute('SELECT typeID, typeName, groupID, marketGroupID, portionSize, volume, basePrice FROM invTypes')
-
+        self.cursor.execute("""
+            SELECT 
+                  i.typeID
+                , i.typeName
+                , i.groupID
+                , i.marketGroupID
+                , i.portionSize
+                , i.volume
+                , i.basePrice 
+                , COALESCE(dta.valueInt, dta.valueFloat)
+            FROM invTypes i
+            LEFT JOIN dgmTypeAttributes dta
+                ON  dta.typeID      = i.typeID
+                AND dta.attributeID = 633
+        """)
+				
         bulk_data = {}
         mg_ids = set()
         for row in self.cursor:
@@ -399,9 +413,9 @@ class Importer:
 
         data_map = Item.objects.in_bulk(bulk_data.keys())
         mg_map = MarketGroup.objects.in_bulk(mg_ids)
-
         new = []
         for id, data in bulk_data.items():
+
             if not data[0] or not data[1]:
                 continue
 
@@ -421,13 +435,14 @@ class Importer:
             item = data_map.get(id, None)
             if item is not None:
                 if item.name != data[0] or item.portion_size != portion_size or item.volume != volume or \
-                   item.base_price != base_price or item.market_group_id != mg_id:
+                   item.base_price != base_price or item.market_group_id != mg_id or item.meta_level != data[6]:
                     print '==> Updated data for #%s (%r)' % (item.id, item.name)
-                    item.name = data[0]
-                    item.portion_size = portion_size
-                    item.volume = volume
-                    item.base_price = base_price
+                    item.name            = data[0]
+                    item.portion_size    = portion_size
+                    item.volume          = volume
+                    item.base_price      = base_price
                     item.market_group_id = mg_id
+                    item.meta_level      = data[6]
                     item.save()
                 continue
 
@@ -439,6 +454,7 @@ class Importer:
                 portion_size=portion_size,
                 volume=volume,
                 base_price=base_price,
+                meta_level=data[7]
             )
             new.append(item)
             added += 1

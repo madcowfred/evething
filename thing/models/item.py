@@ -46,6 +46,7 @@ class Item(models.Model):
     portion_size = models.IntegerField()
     # 0.0025 -> 10,000,000,000
     volume = models.DecimalField(max_digits=16, decimal_places=4, default=0)
+    meta_level = models.IntegerField(null=True)
 
     base_price = models.DecimalField(max_digits=15, decimal_places=2, default=0)
     sell_price = models.DecimalField(max_digits=15, decimal_places=2, default=0)
@@ -53,7 +54,7 @@ class Item(models.Model):
 
     class Meta:
         app_label = 'thing'
-        #ordering = ('meta','name')
+        ordering = ('meta_level','name')
 
     def __unicode__(self):
         return self.name
