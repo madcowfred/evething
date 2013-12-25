@@ -684,6 +684,7 @@ def skillplan_edit(request, skillplan_id):
                 'skillplan'         : skillplan,
                 'skill_list'        : skill_list,
                 'characters'        : characters,
+                'marketgroup_list'  : MarketGroup.objects.filter(parent=None).select_related('items').all(),
             },
             request,
         )
