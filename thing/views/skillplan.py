@@ -657,11 +657,11 @@ def skillplan(request):
 # Create a skillplan
 @login_required
 def skillplan_edit(request, skillplan_id):
-
+    tt = TimerThing('skillplan_edit_page')
     if skillplan_id.isdigit():
-        skillplan = get_object_or_404(SkillPlan, user=request.user, pk=skillplan_id)
-        characters = Character.objects.filter(apikeys__user=request.user).select_related('config','details').distinct()
-            
+        skillplan        = get_object_or_404(SkillPlan, user=request.user, pk=skillplan_id)
+        characters       = Character.objects.filter(apikeys__user=request.user).select_related('config','details').distinct()
+                    
         # Init the global skill list
         skill_list           = OrderedDict()
         current_market_group = None
@@ -678,16 +678,24 @@ def skillplan_edit(request, skillplan_id):
             
             skill_list[current_market_group].append(skill)
         
+        tt.add_time('skill list')
+        
+        
+        tt.add_time('marketgroup list')
+        if settings.DEBUG:
+            tt.finished()
+            
         return render_page(
             'thing/skillplan_edit.html',
             {   
                 'skillplan'         : skillplan,
                 'skill_list'        : skill_list,
                 'characters'        : characters,
-                'marketgroup_list'  : MarketGroup.objects.filter(parent=None).select_related('items').all(),
             },
             request,
         )
+        
+
 
     else:
         redirect('thing.views.skillplan')
