@@ -175,9 +175,10 @@ EVEthing.skillplan = {
             $('#skillplan > tfoot').html('');
             return;
         }
-        footer='<tr><td></td><td colspan=7" class="r"><strong>Total time remaining</strong>: ##duration##</td></tr>';
+        var footer = '<tr><td></td><td colspan=7" class="r"><strong>Total time remaining</strong>: ##duration##</td></tr>';
         
-        duration=EVEthing.util.durationToString(json.remaining_duration);
+        var duration = EVEthing.util.durationToString(json.remaining_duration);
+        
         if(json.remaining_duration != json.total_duration) {
             duration += ' <span class="muted">(<strong>Total:</strong> '+ EVEthing.util.durationToString(json.total_duration) +')</span>';
         }
@@ -187,10 +188,10 @@ EVEthing.skillplan = {
         // set all planned level to 0 in the skill tree
         $('.skill-list-hover').attr('data-plan-to-level', 0);        
         
-        entries = "";
-        cumulative_skill_time = 0;
+        var entries = "";
+        var cumulative_skill_time = 0;
         for(var i=0, size=json.entries.length; i < size; i++) {
-            entry = json.entries[i];
+            var entry = json.entries[i];
             
             if(entry.remap != null) {
                 duration=EVEthing.util.durationToString(entry.remap.duration);
@@ -208,9 +209,10 @@ EVEthing.skillplan = {
                                                         .replace(/##duration##/g    ,duration)
             } else {
           
-                skillName = entry.skill.name + " " + EVEthing.skillplan.levelToRoman[entry.skill.level];
+                var skillName = entry.skill.name + " " + EVEthing.skillplan.levelToRoman[entry.skill.level];
+                var statusIcon = "";
+                var highlight = "";
                 
-                highlight = "";
                 if (entry.skill.training) {
                     statusIcon = "icon-spinner";
                     skillName += " (Trained: " + entry.skill.percent_trained + "%)";
@@ -411,7 +413,7 @@ EVEthing.skillplan = {
             success: function(json) {
                 $('#spin').remove();
                 EVEthing.skillplan.ajax = false;
-                response = $.parseJSON(json);
+                var response = $.parseJSON(json);
                 if(response.status == "ok"){
                     EVEthing.skillplan.reloadEntries();
                 }
@@ -496,7 +498,7 @@ EVEthing.skillplan = {
                 var response = $.parseJSON(json);
                 if(response.status == "ok"){
                     if(response.fail.length > 0) {
-                        html = "The following item(s) have not been parsed: <ul>";
+                        var html = "The following item(s) have not been parsed: <ul>";
                         for(var i=0, size=response.fail.length; i<size; i++) {
                             html += "<li>"+response.fail[i]+'</li>';
                         }
