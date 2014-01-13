@@ -95,6 +95,11 @@
                 <li>
                   <a href="{{ url('auth_login') }}">Login</a>
                 </li>
+{% if user|can_register %}
+                <li>
+                  <a href="{{ url('thing.views.account_register') }}">Register</a>
+                </li>
+{% endif %}
 {% endif %}{# authed #}
               </ul>
             </div>

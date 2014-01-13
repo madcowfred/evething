@@ -29,8 +29,10 @@ from cStringIO import StringIO
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse
-from django.shortcuts import redirect
+from django.http import HttpResponseForbidden
+from django.shortcuts import redirect, render
 from django.views.decorators.debug import sensitive_post_parameters, sensitive_variables
+from django.contrib.auth.forms import UserCreationForm
 
 from core.util import get_minimum_keyid
 from thing.forms import UploadSkillPlanForm
@@ -282,3 +284,22 @@ def account_apikey_purge(request):
 
 
 # ---------------------------------------------------------------------------
+# Register Account
+def account_register(request):
+    if not settings.ALLOW_REGISTRATION:
+        return HttpResponseForbidden()
+
+    if request.user.is_authenticated():
+        return redirect(reverse('home'))
+
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            new_user = form.save()
+            return redirect(reverse('home'))
+    else:
+        form = UserCreationForm()
+
+    return render(request, "registration/register.html", {
+        'form': form,
+    })
