@@ -38,7 +38,10 @@ CAPITAL_SHIP_GROUPS = (
     'Titan',
 )
 PRICE_PER_REQUEST = 100
-PRICE_URL = 'http://goonmetrics.com/api/price_data/?station_id=60003760&type_id=%s'
+#PRICE_URL = 'http://goonmetrics.com/api/price_data/?station_id=60003760&type_id=%s'
+PRICE_URL = 'http://api.eve-central.com/api/marketstat/?station_id=60003760&typeid=%s'
+
+XML_BASE_PATH = PRICE_URL.split('?')[0].strip('/').rsplit('/', 1)[1]
 
 # ---------------------------------------------------------------------------
 
@@ -70,7 +73,7 @@ class PriceUpdater(APITask):
             root = self.parse_xml(data)
 
             # Update item prices
-            for t in root.findall('price_data/type'):
+            for t in root.findall(XML_BASE_PATH + '/type'):
                 item = item_map[int(t.attrib['id'])]
                 item.buy_price = t.find('buy/max').text
                 item.sell_price = t.find('sell/min').text
