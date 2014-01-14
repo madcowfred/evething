@@ -454,7 +454,7 @@ class Importer:
                 portion_size=portion_size,
                 volume=volume,
                 base_price=base_price,
-                meta_level=data[7]
+                meta_level=data[6]
             )
             new.append(item)
             added += 1
