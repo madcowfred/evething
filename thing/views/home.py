@@ -334,9 +334,8 @@ def home(request):
     if corporations is None:
         corp_ids = APIKey.objects.filter(
             user=request.user.id,
+            key_type=APIKey.CORPORATION_TYPE,
             valid=True,
-        ).exclude(
-            corp_character=None
         ).values(
             'corp_character__corporation'
         )

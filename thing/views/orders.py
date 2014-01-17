@@ -86,10 +86,24 @@ def orders(request):
     }
 
     # Retrieve all orders
-    #character_ids = list(Character.objects.filter(apikeys__user=request.user.id).distinct().values_list('id', flat=True))
-    #corporation_ids = list(APIKey.objects.filter(user=request.user).exclude(corp_character=None).values_list('corp_character__corporation__id', flat=True))
-    character_ids = Character.objects.filter(apikeys__user=request.user.id).values('id').distinct()
-    corporation_ids = APIKey.objects.filter(user=request.user).exclude(corp_character=None).values('corp_character__corporation__id')
+    character_ids = list(Character.objects.filter(
+        apikeys__user=request.user.id,
+        apikeys__valid=True,
+    )exclude(
+        key_type=APIKey.CORPORATION_TYPE,
+    ).distinct().values_list(
+        'id',
+        flat=True,
+    ))
+
+    corporation_ids = list(APIKey.objects.filter(
+        user=request.user,
+        key_type=APIKey.CORPORATION_TYPE,
+        valid=True,
+    ).values_list(
+        'corp_character__corporation__id',
+        flat=True,
+    ))
 
     orders = MarketOrder.objects.filter(
         Q(character__in=character_ids, corp_wallet__isnull=True)

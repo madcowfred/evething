@@ -80,10 +80,19 @@ def wallet_journal(request):
     # Get profile
     profile = request.user.get_profile()
 
-    characters = Character.objects.filter(apikeys__user=request.user.id)
+    characters = Character.objects.filter(
+        apikeys__user=request.user,
+        apikeys__valid=True,
+    )exclude(
+        apikeys__key_type=APIKey.CORPORATION_TYPE,
+    ).distinct()
     character_ids = [c.id for c in characters]
 
-    corporations = Corporation.objects.filter(pk__in=APIKey.objects.filter(user=request.user).exclude(corp_character=None).values('corp_character__corporation'))
+    corporations = Corporation.objects.filter(
+        apikeys__user=request.user,
+        apikeys__valid=True,
+        apikeys__key_type=APIKey.CORPORATION_TYPE,
+    ).distinct()
     corporation_ids = [c.id for c in corporations]
 
     # Parse filters and apply magic
