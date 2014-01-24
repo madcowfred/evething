@@ -89,8 +89,8 @@ def orders(request):
     character_ids = list(Character.objects.filter(
         apikeys__user=request.user.id,
         apikeys__valid=True,
-    )exclude(
-        key_type=APIKey.CORPORATION_TYPE,
+    ).exclude(
+        apikeys__key_type=APIKey.CORPORATION_TYPE,
     ).distinct().values_list(
         'id',
         flat=True,

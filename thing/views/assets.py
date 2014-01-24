@@ -80,7 +80,7 @@ def assets_summary(request):
     characters = Character.objects.filter(
         apikeys__user=request.user,
         apikeys__valid=True,
-    )exclude(
+    ).exclude(
         apikeys__key_type=APIKey.CORPORATION_TYPE,
     ).distinct()
 
@@ -91,9 +91,9 @@ def assets_summary(request):
         character_map[character.id] = character
 
     corporations = Corporation.objects.filter(
-        apikeys__user=request.user,
-        apikeys__valid=True,
-        apikeys__key_type=APIKey.CORPORATION_TYPE,
+        character__apikeys__user=request.user,
+        character__apikeys__valid=True,
+        character__apikeys__key_type=APIKey.CORPORATION_TYPE,
     ).distinct()
 
     corporation_ids = []
