@@ -490,7 +490,11 @@ def skillplan_ajax_render_entries(request, skillplan_id, character_id, implants,
     skillplan = get_object_or_404(SkillPlan, user=request.user, pk=skillplan_id)
     
     try:
-        character = Character.objects.select_related('config','details').get(apikeys__user=request.user, id=character_id)
+        character = Character.objects.select_related('config','details').get(
+            apikeys__user=request.user,
+            id=character_id,
+            apikeys__valid=True
+        )
     except Character.DoesNotExist:
         character = False
     
@@ -660,7 +664,10 @@ def skillplan_edit(request, skillplan_id):
     tt = TimerThing('skillplan_edit_page')
     if skillplan_id.isdigit():
         skillplan        = get_object_or_404(SkillPlan, user=request.user, pk=skillplan_id)
-        characters       = Character.objects.filter(apikeys__user=request.user).select_related('config','details').distinct()
+        characters       = Character.objects.filter(
+            apikeys__user=request.user,
+            apikeys__valid=True
+        ).select_related('config','details').distinct()
                     
         # Init the global skill list
         skill_list           = OrderedDict()
