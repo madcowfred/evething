@@ -13,7 +13,7 @@ THEME_OUT := $(addprefix static/css/,$(addsuffix .min.css,$(THEMES)))
 all : css handlebars js
 css : $(THEME_OUT)
 handlebars : static/js/templates.js
-js  : static/js/bootstrap.js static/js/evething-combined.min.js
+js  : static/js/bootstrap.js static/js/evething-combined.min.js static/js/evething-combined.min.js.map
 
 # Compile and minify LESS -> CSS
 static/css/%.min.css : static/less/%/ static/less/bootstrap/ static/less/evething.less static/less/evething/
@@ -36,10 +36,9 @@ static/js/templates.js : static/handlebars/*.handlebars
 # Combine and minify all JS
 static/js/evething-combined.min.js : $(ALL_JS)
 	@echo -n Combining and minifying $(notdir $@)...
-	@cat $(ALL_JS) > static/js/evething-combined.js
-	@uglifyjs static/js/evething-combined.js --compress --mangle > static/js/evething-combined.min.js
+	@uglifyjs $(ALL_JS) --source-map static/js/evething-combined.min.js.map --output static/js/evething-combined.min.js --source-map-root=../../ --source-map-url=/static/js/evething-combined.min.js.map --compile --mangle 
 	@echo \ done!
 
 clean :
-	rm -f static/js/bootstrap.js static/js/templates.js static/js/evething-combined.min.js
+	rm -f static/js/bootstrap.js static/js/templates.js static/js/evething-combined.min.js static/js/evething-combined.min.js.map
 	rm -f $(THEME_OUT)
