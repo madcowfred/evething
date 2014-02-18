@@ -19,6 +19,7 @@ urlpatterns = patterns('',
 
 urlpatterns += patterns('thing.views',
     url(r'^$', 'home', name='home'),
+    (r'^home/api$', 'home_api'),
 
     (r'^account/$', 'account'),
     (r'^account/change_password/$', 'account_change_password'),

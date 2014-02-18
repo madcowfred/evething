@@ -1,0 +1,37 @@
+  <div class="well-small well home-character">
+    <div>
+      <span class="large">
+        <a href="character/{{ character.name }}" class="sensitive character-name">{{ character.name }}</a>
+      </span>
+      <span class="small pull-right sensitive apikey-name">[{{ character.apikey.name }}]</span>
+    </div>
+
+    <div>
+      <span>{{ character.details.wallet_balance }} ISK</span>
+      <span class="small pull-right">{{ character.details.total_sp }} SP</span>
+    </div>
+
+    {{#if profile.HOME_SHOW_LOCATIONS }}
+    {{#if profile.HOME_SHOW_SEPARATORS }}<hr>{{/if}}
+    <div class="sensitive character-location{{#unless profile.HOME_SHOW_SEPARATORS}} margin-half-top{{/unless}}">
+      {{ character.details.last_known_location }}
+      {{#if character.details.ship_item_id }}
+      -- {{ lookup ships character.details.ship_item_id }}
+      {{/if}}
+    </div>
+    {{/if}}
+
+    {{#if character.skill_queue }}
+    {{#if profile.HOME_SHOW_SEPARATORS }}<hr>{{/if}}
+    <div{{#unless profile.HOME_SHOW_SEPARATORS}} class="margin-half-top"{{/unless}}>
+      <span class="skill-hover" rel="popover" title="{{ character.skill_queue.0.skill.name }}" data-content="{{{ character.skill_queue.0.skill.html }}}">{{ character.skill_queue.0.skill.name }} {{#if character.skill_queue.0.to_level}}{{ roman character.skill_queue.0.to_level }}{{/if}}</span>
+      <span class="small">(Rank {{ character.skill_queue.0.skill.rank }})</span>
+      <br>
+      <em class="small">{{ character.skill_queue.0.duration }} @ {{ character.skill_queue.0.sp_per_hour }} SP/hr</em>
+      <em class="small pull-right">Queue: {{ character.skill_queue_duration }}</em>
+      <div class="progress{{#if character.skill_queue_low }} progress-danger{{/if}}">
+        <div class="bar" style="width: {{ character.skill_queue.0.complete_percent }}%">{{ character.skill_queue.0.complete_percent }}%</div>
+      </div>
+    </div>
+    {{/if}}
+  </div>

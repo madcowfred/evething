@@ -39,6 +39,11 @@ from thing.models import *
 from thing.stuff import *
 from thing.templatetags.thing_extras import commas, duration, shortduration
 
+
+from django.http import HttpResponse
+from django.core.serializers.json import DjangoJSONEncoder
+import json
+
 # ---------------------------------------------------------------------------
 
 ONE_DAY = 24 * 60 * 60
@@ -48,348 +53,208 @@ EXPIRE_WARNING = 10 * ONE_DAY
 # Home page
 @login_required
 def home(request):
-    tt = TimerThing('home')
+    # We will be splitting the home page up into multiple
+    # JSON Deliverable components, so this method will just
+    # return the template
+    return render_page('thing/home.html', {}, request)
 
+
+#TODO: Caching
+
+@login_required
+def __characters(request, out):
     profile = request.user.get_profile()
-
-    tt.add_time('profile')
 
     # Make a set of characters to hide
     hide_characters = set(int(c) for c in profile.home_hide_characters.split(',') if c)
 
-    # Initialise various data structures
-    now = datetime.datetime.utcnow()
-    total_balance = 0
+    characters = Character.objects.filter(
+        apikeys__user=request.user,
+        apikeys__valid=True,
+        apikeys__key_type__in=(APIKey.ACCOUNT_TYPE, APIKey.CHARACTER_TYPE)
+    ).exclude(
+        pk__in=hide_characters
+    ).select_related(
+        'config',
+    ).distinct()
 
-    api_keys = set()
-    training = set()
-    chars = {}
+    limit_to = request.REQUEST.get('characters', None)
+    if limit_to:
+        limit_to = [int(c) for c in limit_to.split(',')]
+
+    corporation_ids = set()
+
+    for char in characters:
+        if limit_to:
+            if char.pk not in limit_to: continue
+
+        if char.pk not in out['characters'].keys():
+            out['characters'][char.pk] = {}
+
+        out['characters'][char.pk]['id'] = char.pk
+        out['characters'][char.pk]['name'] = char.name
+        out['characters'][char.pk]['corporation'] = char.corporation_id
+
+        if char.corporation_id not in out['corporations'].keys():
+            out['corporations'][char.corporation_id] = {}
+
+        corporation_ids.add(char.corporation_id)
+
+        if 'config' not in out['characters'][char.pk]:
+            out['characters'][char.pk]['config'] = {}
+        for key, value in vars(char.config).items():
+            if key.startswith('_'): continue
+            if key == 'character_id': continue
+
+            out['characters'][char.pk]['config'][key] = value
+
+    return out
+
+
+def __details(request, out):
+    details =  CharacterDetails.objects.filter(pk__in=out['characters'].keys())
+
     ship_item_ids = set()
 
-    # Try retrieving characters from cache
-    cache_key = 'home:characters:%d' % (request.user.id)
-    characters = cache.get(cache_key)
-    # Not cached, fetch from database and cache
-    if characters is None:
-        character_qs = Character.objects.filter(
-            apikeys__user=request.user,
-            apikeys__valid=True,
-            apikeys__key_type__in=(APIKey.ACCOUNT_TYPE, APIKey.CHARACTER_TYPE),
-        ).prefetch_related(
-            'apikeys',
-        ).select_related(
-            'config',
-            'details',
-        ).distinct()
+    for detail in details:
+        if 'details' not in out['characters'][detail.pk]:
+            out['characters'][detail.pk]['details'] = {}
 
-        # Django 1.5 workaround for the stupid change from a non-existent reverse
-        # relation returning None to it raising self.related.model.DoesNotExist :(
-        characters = []
-        char_map = {}
-        for c in character_qs:
-            try:
-                blah = c.details is not None
-            except:
-                pass
-            else:
-                characters.append(c)
-                char_map[c.id] = c
+        if detail.ship_item_id is not None:
+            ship_item_ids.add(detail.ship_item_id)
 
-        tt.add_time('c1')
+        for key, value in vars(detail).items():
+            if key.startswith('_'): continue
+            if key == 'character_id': continue
 
-        # Fetch skill data now WITHOUT Unpublished SP
-        cskill_qs = CharacterSkill.objects.filter(
-            character__in=char_map.keys(),
-            skill__item__market_group__isnull=False,
-        ).values(
-            'character',
-        ).annotate(
-            total_sp=Sum('points'),
-        )
-        for cskill in cskill_qs:
-            char_map[cskill['character']].total_sp = cskill['total_sp']
+            out['characters'][detail.pk]['details'][key] = value
 
-        cache.set(cache_key, characters, 300)
+    out['ships'] = {pk: ship.name for pk, ship in Item.objects.in_bulk(ship_item_ids).items()}
 
-        tt.add_time('c2')
+    # Fetch skill data now WITHOUT Unpublished SP
+    cskill_qs = CharacterSkill.objects.filter(
+        character__in=out['characters'].keys(),
+        skill__item__market_group__isnull=False,
+    ).values(
+        'character',
+    ).annotate(
+        total_sp=Sum('points'),
+    )
+    for cskill in cskill_qs:
+        out['characters'][cskill['character']]['details']['total_sp'] = cskill['total_sp']
 
-    for character in characters:
-        char_keys = [ak for ak in character.apikeys.all() if ak.user_id == request.user.id]
-        api_keys.update(char_keys)
+    return out
 
-        chars[character.id] = character
-        character.z_apikey = char_keys[0]
-        character.z_training = {}
-
-        total_balance += character.details.wallet_balance
-        if character.details.ship_item_id is not None:
-            ship_item_ids.add(character.details.ship_item_id)
-
-    tt.add_time('characters')
-
-    # Retrieve ship information
-    ship_map = Item.objects.in_bulk(ship_item_ids)
-    tt.add_time('ship_items')
+def __skill_queues(request, out):
+    now = datetime.datetime.now()
 
     # Do skill training check - this can't be in the model because it
     # scales like crap doing individual queries
     skill_qs = []
 
-    queues = SkillQueue.objects.filter(character__in=chars, end_time__gte=now)
-    queues = queues.select_related('skill__item')
-    for sq in queues:
-        char = chars[sq.character_id]
-        duration = total_seconds(sq.end_time - now)
+    skill_queues = SkillQueue.objects.filter(
+        character__in=out['characters'].keys(),
+        end_time__gte=now
+    ).select_related('skill__item')
 
-        if 'sq' not in char.z_training:
-            char.z_training['sq'] = sq
-            char.z_training['skill_duration'] = duration
-            char.z_training['sp_per_hour'] = int(sq.skill.get_sp_per_minute(char) * 60)
-            char.z_training['complete_per'] = sq.get_complete_percentage(now, char)
-            training.add(char.z_apikey)
+    for skill_queue in skill_queues:
+        if 'skill_queue' not in out['characters'][skill_queue.character_id].keys():
+            out['characters'][skill_queue.character_id]['skill_queue'] = []
+            out['characters'][skill_queue.character_id]['skill_queue_duration'] = 0
 
-            skill_qs.append(Q(character=char, skill=sq.skill))
+        duration = total_seconds(skill_queue.end_time - now)
 
-        char.z_training['queue_duration'] = duration
+        item = {}
+        for key, value in vars(skill_queue).items():
+            if key.startswith('_'): continue
+            if key == 'character_id': continue
+            item[key] = value
 
-    tt.add_time('training')
+        del item['skill_id']
+        item['skill'] = {
+            'primary_attribute': Skill.ATTRIBUTE_MAP[skill_queue.skill.primary_attribute],
+            'secondary_attribute': Skill.ATTRIBUTE_MAP[skill_queue.skill.secondary_attribute],
+            'name': skill_queue.skill.item.name,
+            'description': skill_queue.skill.description,
+            'rank': skill_queue.skill.rank,
+            'html': skill_queue.skill.__html__(),
+            'id': skill_queue.skill.item.pk
+        }
 
-    # Retrieve training skill information
-    if skill_qs:
-        for cs in CharacterSkill.objects.filter(reduce(operator.ior, skill_qs)):
-            chars[cs.character_id].z_tskill = cs
+        item['duration'] = duration
 
-    tt.add_time('training skills')
+        out['characters'][skill_queue.character_id]['skill_queue'].append(item)
+        out['characters'][skill_queue.character_id]['skill_queue_duration'] += duration
 
-    # Do total skill point aggregation
-    total_sp = 0
-    for char in characters:
-        char.z_total_sp = getattr(char, 'total_sp', 0)
-        if 'sq' in char.z_training and hasattr(char, 'z_tskill'):
-            char.z_total_sp += int(char.z_training['sq'].get_completed_sp(char.z_tskill, now, char))
+        skill_qs.append(Q(character=skill_queue.character_id, skill=skill_queue.skill))
 
-        total_sp += char.z_total_sp
+    return out
 
-    tt.add_time('total_sp')
+def __corporations(request, out):
+    for corp in Corporation.objects.filter(pk__in=out['corporations'].keys()):
+        out['corporations'][corp.pk] = {}
+        out['corporations'][corp.pk]['id'] = corp.pk
+        out['corporations'][corp.pk]['name'] = corp.name
+        out['corporations'][corp.pk]['alliance'] = corp.alliance_id
 
-    # Try retrieving total asset value from cache
-    cache_key = 'home:total_assets:%d' % (request.user.id)
-    total_assets = cache.get(cache_key)
-    # Not cached, fetch from database and cache
-    if total_assets is None:
-        total_assets = AssetSummary.objects.filter(
-            character__in=chars.keys(),
-            corporation_id=0,
-        ).aggregate(
-            t=Sum('total_value'),
-        )['t']
-        cache.set(cache_key, total_assets, 300)
+        if corp.alliance_id and (corp.alliance_id not in out['alliances'].keys()):
+            out['alliances'][corp.alliance_id] = {}
 
-    tt.add_time('total_assets')
+    return out
 
-    # Work out who is and isn't training
-    not_training = api_keys - training
+def __alliances(request, out):
+    for alliance in Alliance.objects.filter(pk__in=out['alliances'].keys()):
+        out['alliances'][alliance.pk] = {}
+        out['alliances'][alliance.pk]['id'] = alliance.pk
+        out['alliances'][alliance.pk]['name'] = alliance.name
 
-    # Do notifications
-    for char_id, char in chars.items():
-        char.z_notifications = []
+    return out
 
-        # Game time warnings
-        if char.z_apikey.paid_until:
-            timediff = total_seconds(char.z_apikey.paid_until - now)
 
-            if timediff < 0:
-                char.z_notifications.append({
-                    'icon': 'time',
-                    'text': 'Expired',
-                    'tooltip': 'Game time has expired!',
-                    'span_class': 'low-game-time',
-                })
+ALL_OPTIONS = OrderedDict([
+    ('characters', __characters),
+    ('details', __details),
+    ('skill_queues', __skill_queues),
 
-            elif timediff < EXPIRE_WARNING:
-                char.z_notifications.append({
-                    'icon': 'time',
-                    'text': shortduration(timediff),
-                    'tooltip': 'Remaining game time is low!',
-                    'span_class': 'low-game-time',
-                })
+    ('corporations', __corporations),
+    ('alliances', __alliances)
+])
 
-        # API key warnings
-        if char.z_apikey.expires:
-            timediff = total_seconds(char.z_apikey.expires - now)
-            if timediff < EXPIRE_WARNING:
-                char.z_notifications.append({
-                    'icon': 'key',
-                    'text': shortduration(timediff),
-                    'tooltip': 'API key is close to expiring!',
-                })
+@login_required
+def home_api(request):
+    tt = TimerThing('home')
 
-        # Empty skill queue
-        if char.z_apikey in not_training:
-            char.z_notifications.append({
-                'icon': 'list-ol',
-                'text': 'Empty!',
-                'tooltip': 'Skill queue is empty!',
-            })
+    request_options = request.REQUEST.getlist('options')
 
-        if char.z_training:
-            # Room in skill queue
-            if char.z_training['queue_duration'] < ONE_DAY:
-                timediff = ONE_DAY - char.z_training['queue_duration']
-                char.z_notifications.append({
-                    'icon': 'list-ol',
-                    'text': shortduration(timediff),
-                    'tooltip': 'Skill queue is not full!',
-                })
+    out = {}
+    out['characters'] = {}
+    out['corporations'] = {}
+    out['alliances'] = {}
 
-            # Missing implants
-            skill = char.z_training['sq'].skill
-            pri_attrs = Skill.ATTRIBUTE_MAP[skill.primary_attribute]
-            sec_attrs = Skill.ATTRIBUTE_MAP[skill.secondary_attribute]
-            pri_bonus = getattr(char.details, pri_attrs[1])
-            sec_bonus = getattr(char.details, sec_attrs[1])
 
-            t = []
-            if pri_bonus == 0:
-                t.append(skill.get_primary_attribute_display())
-            if sec_bonus == 0:
-                t.append(skill.get_secondary_attribute_display())
+    char_ids = request.REQUEST.getlist('characters')
+    if char_ids:
+        for id in char_ids.split(','):
+            out['characters'][int(id)] = {}
 
-            if t:
-                char.z_notifications.append({
-                    'icon': 'lightbulb',
-                    'text': ', '.join(t),
-                    'tooltip': 'Missing stat implants for currently training skill!',
-                })
+    corp_ids = request.REQUEST.getlist('corporations')
+    if corp_ids:
+        for id in corp_ids.split(','):
+            out['corporations'][int(id)] = {}
 
-        # Insufficient clone
-        if hasattr(char, 'z_total_sp') and char.z_total_sp > char.details.clone_skill_points:
-            char.z_notifications.append({
-                'icon': 'user-md',
-                'text': '%s' % (commas(char.details.clone_skill_points)),
-                'tooltip': 'Insufficient clone!',
-            })
+    alliance_ids = request.REQUEST.getlist('alliances')
+    if alliance_ids:
+        for id in alliance_ids.split(','):
+            out['alliances'][int(id)] = {}
 
-        # Sort out well classes here ugh
-        classes = []
-        if char.z_apikey in not_training:
-            if profile.home_highlight_backgrounds:
-                classes.append('background-error')
-            if profile.home_highlight_borders:
-                classes.append('border-error')
-        elif char.z_notifications:
-            if profile.home_highlight_backgrounds:
-                classes.append('background-warn')
-            if profile.home_highlight_borders:
-                classes.append('border-warn')
-        else:
-            if profile.home_highlight_backgrounds:
-                classes.append('background-success')
-            if profile.home_highlight_borders:
-                classes.append('border-success')
+    tt.add_time('prep')
 
-        if classes:
-            char.z_well_class = ' %s' % (' '.join(classes))
-        else:
-            char.z_well_class = ''
+    for opt in ALL_OPTIONS.keys():
+        if opt in request_options:
+            out = ALL_OPTIONS[opt](request, out)
+            tt.add_time(opt)
 
-    tt.add_time('notifications')
-
-    # Decorate/sort based on settings, ugh
-    char_list = chars.values()
-    if profile.home_sort_order == 'apiname':
-        temp = [(c.z_apikey.group_name or 'ZZZ', c.z_apikey.name, c.name.lower(), c) for c in char_list]
-    elif profile.home_sort_order == 'charname':
-        temp = [(c.z_apikey.group_name or 'ZZZ', c.name.lower(), c) for c in char_list]
-    elif profile.home_sort_order == 'corpname':
-        temp = [(c.z_apikey.group_name or 'ZZZ', c.corporation.name.lower(), c.name.lower(), c) for c in char_list]
-    elif profile.home_sort_order == 'totalsp':
-        temp = [(c.z_apikey.group_name or 'ZZZ', getattr(c, 'z_total_sp', 0), c) for c in char_list]
-    elif profile.home_sort_order == 'wallet':
-        temp = [(c.z_apikey.group_name or 'ZZZ', c.details and c.details.wallet_balance, c.name.lower(), c) for c in char_list]
-
-    temp.sort()
-    if profile.home_sort_descending:
-        temp.reverse()
-
-    tt.add_time('sort')
-
-    # Now group based on group_name
-    bleh = OrderedDict()
-    for temp_data in temp:
-        bleh.setdefault(temp_data[0], []).append(temp_data[-1])
-
-    char_lists = []
-    for char_list in bleh.values():
-        first = [char for char in char_list if char.z_training and char.id not in hide_characters]
-        last = [char for char in char_list if not char.z_training and char.id not in hide_characters]
-        char_lists.append(first + last)
-
-    tt.add_time('group')
-
-    # Try retrieving corporations from cache
-    cache_key = 'home:corporations:%d' % (request.user.id)
-    corporations = cache.get(cache_key)
-    # Not cached, fetch from database and cache
-    if corporations is None:
-        corp_ids = APIKey.objects.filter(
-            user=request.user.id,
-            key_type=APIKey.CORPORATION_TYPE,
-            valid=True,
-        ).values(
-            'corp_character__corporation'
-        )
-        corp_map = OrderedDict()
-        for corp_wallet in CorpWallet.objects.select_related().filter(corporation__in=corp_ids):
-            if corp_wallet.corporation_id not in corp_map:
-                corp_map[corp_wallet.corporation_id] = corp_wallet.corporation
-                corp_map[corp_wallet.corporation_id].wallets = []
-
-            corp_map[corp_wallet.corporation_id].wallets.append(corp_wallet)
-
-        corporations = corp_map.values()
-        cache.set(cache_key, corporations, 300)
-
-    tt.add_time('corps')
-
-    # Try retrieving total corp asset value from cache
-    cache_key = 'home:corp_assets:%d' % (request.user.id)
-    corp_assets = cache.get(cache_key)
-    # Not cached, fetch from database and cache
-    if corp_assets is None:
-        corp_assets = AssetSummary.objects.filter(
-            corporation_id__in=[c.id for c in corporations],
-        ).aggregate(
-            t=Sum('total_value'),
-        )['t']
-        cache.set(cache_key, corp_assets, 300)
-
-    tt.add_time('corp_assets')
-
-    # Render template
-    out = render_page(
-        'thing/home.html',
-        {
-            'profile': profile,
-            'not_training': not_training,
-            'total_balance': total_balance,
-            'total_sp': total_sp,
-            'total_assets': total_assets,
-            'corp_assets': corp_assets,
-            'corporations': corporations,
-            #'characters': first + last,
-            'characters': char_lists,
-            'events': list(Event.objects.filter(user=request.user)[:10]),
-            'ship_map': ship_map,
-            #'task_count': task_count,
-        },
-        request,
-        chars.keys(),
-        [c.id for c in corporations]
-    )
-
-    tt.add_time('template')
     if settings.DEBUG:
         tt.finished()
 
-    return out
+    return HttpResponse(content=json.dumps(out, cls=DjangoJSONEncoder), content_type='application/json')
