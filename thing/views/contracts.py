@@ -32,8 +32,24 @@ from thing.stuff import *
 # Contracts
 @login_required
 def contracts(request):
-    character_ids = list(Character.objects.filter(apikeys__user=request.user.id).distinct().values_list('id', flat=True))
-    corporation_ids = list(APIKey.objects.filter(user=request.user).exclude(corp_character=None).values_list('corp_character__corporation__id', flat=True))
+    character_ids = list(Character.objects.filter(
+        apikeys__user=request.user.id,
+        apikeys__valid=True,
+    ).exclude(
+        apikeys__key_type=APIKey.CORPORATION_TYPE,
+    ).distinct().values_list(
+        'id',
+        flat=True,
+    ))
+
+    corporation_ids = list(APIKey.objects.filter(
+        user=request.user,
+        key_type=APIKey.CORPORATION_TYPE,
+        valid=True,
+    ).values_list(
+        'corp_character__corporation__id',
+        flat=True,
+    ))
 
     # Whee~
     contracts = Contract.objects.select_related('issuer_char', 'issuer_corp', 'start_station', 'end_station')
@@ -87,7 +103,7 @@ def contracts(request):
             corp = corp_map.get(contract.assignee_id, None)
             if corp is not None:
                 contract.z_assignee_corp = corp
-            
+
             alliance = alliance_map.get(contract.assignee_id, None)
             if alliance is not None:
                 contract.z_assignee_alliance = alliance

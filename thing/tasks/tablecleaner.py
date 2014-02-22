@@ -39,7 +39,7 @@ from thing.models import APIKey, TaskState
 def table_cleaner():
     utcnow = datetime.datetime.utcnow()
 
-    queued_timeout = utcnow - datetime.timedelta(minutes=120)
+    queued_timeout = utcnow - datetime.timedelta(hours=12)
 
     # Build a QuerySet to find broken tasks
     taskstates = TaskState.objects.filter(state=TaskState.QUEUED_STATE, mod_time__lte=queued_timeout)

@@ -75,12 +75,21 @@ def transactions(request):
     # Get profile
     profile = request.user.get_profile()
 
-    characters = Character.objects.filter(apikeys__user=request.user.id)
+    characters = Character.objects.filter(
+        apikeys__user=request.user,
+        apikeys__valid=True,
+    ).exclude(
+        apikeys__key_type=APIKey.CORPORATION_TYPE,
+    ).distinct()
     character_ids = [c.id for c in characters]
 
-    corporations = Corporation.objects.filter(pk__in=APIKey.objects.filter(user=request.user).exclude(corp_character=None).values('corp_character__corporation'))
+    corporations = Corporation.objects.filter(
+        character__apikeys__user=request.user,
+        character__apikeys__valid=True,
+        character__apikeys__key_type=APIKey.CORPORATION_TYPE,
+    ).distinct()
     corporation_ids = [c.id for c in corporations]
-    
+
     tt.add_time('init')
 
     # Get a QuerySet of transactions by this user
@@ -246,7 +255,7 @@ def transactions(request):
         page = int(request.GET.get('page', '1'))
     except ValueError:
         page = 1
-    
+
     # If page request is out of range, deliver last page of results
     try:
         paginated = paginator.page(request.GET.get('page'))
