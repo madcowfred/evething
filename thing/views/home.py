@@ -65,7 +65,7 @@ def home(request):
     training = set()
     chars = {}
     ship_item_ids = set()
-    
+
     # Try retrieving characters from cache
     cache_key = 'home:characters:%d' % (request.user.id)
     characters = cache.get(cache_key)
@@ -73,6 +73,7 @@ def home(request):
     if characters is None:
         character_qs = Character.objects.filter(
             apikeys__user=request.user,
+            apikeys__valid=True,
             apikeys__key_type__in=(APIKey.ACCOUNT_TYPE, APIKey.CHARACTER_TYPE),
         ).prefetch_related(
             'apikeys',
@@ -139,7 +140,7 @@ def home(request):
     for sq in queues:
         char = chars[sq.character_id]
         duration = total_seconds(sq.end_time - now)
-        
+
         if 'sq' not in char.z_training:
             char.z_training['sq'] = sq
             char.z_training['skill_duration'] = duration
@@ -148,7 +149,7 @@ def home(request):
             training.add(char.z_apikey)
 
             skill_qs.append(Q(character=char, skill=sq.skill))
-        
+
         char.z_training['queue_duration'] = duration
 
     tt.add_time('training')
@@ -230,7 +231,7 @@ def home(request):
                 'text': 'Empty!',
                 'tooltip': 'Skill queue is empty!',
             })
-        
+
         if char.z_training:
             # Room in skill queue
             if char.z_training['queue_duration'] < ONE_DAY:
@@ -317,7 +318,7 @@ def home(request):
     bleh = OrderedDict()
     for temp_data in temp:
         bleh.setdefault(temp_data[0], []).append(temp_data[-1])
-    
+
     char_lists = []
     for char_list in bleh.values():
         first = [char for char in char_list if char.z_training and char.id not in hide_characters]
@@ -331,13 +332,19 @@ def home(request):
     corporations = cache.get(cache_key)
     # Not cached, fetch from database and cache
     if corporations is None:
-        corp_ids = APIKey.objects.filter(user=request.user.id).exclude(corp_character=None).values('corp_character__corporation')
+        corp_ids = APIKey.objects.filter(
+            user=request.user.id,
+            key_type=APIKey.CORPORATION_TYPE,
+            valid=True,
+        ).values(
+            'corp_character__corporation'
+        )
         corp_map = OrderedDict()
         for corp_wallet in CorpWallet.objects.select_related().filter(corporation__in=corp_ids):
             if corp_wallet.corporation_id not in corp_map:
                 corp_map[corp_wallet.corporation_id] = corp_wallet.corporation
                 corp_map[corp_wallet.corporation_id].wallets = []
-            
+
             corp_map[corp_wallet.corporation_id].wallets.append(corp_wallet)
 
         corporations = corp_map.values()

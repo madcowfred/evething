@@ -77,14 +77,25 @@ ASSETS_EXPECTED = {
 def assets_summary(request):
     tt = TimerThing('assets_summary')
 
-    characters = Character.objects.filter(apikeys__user=request.user.id).distinct()
+    characters = Character.objects.filter(
+        apikeys__user=request.user,
+        apikeys__valid=True,
+    ).exclude(
+        apikeys__key_type=APIKey.CORPORATION_TYPE,
+    ).distinct()
+
     character_ids = []
     character_map = {}
     for character in characters:
         character_ids.append(character.id)
         character_map[character.id] = character
 
-    corporations = Corporation.objects.filter(pk__in=APIKey.objects.filter(user=request.user).exclude(corp_character=None).values('corp_character__corporation'))
+    corporations = Corporation.objects.filter(
+        character__apikeys__user=request.user,
+        character__apikeys__valid=True,
+        character__apikeys__key_type=APIKey.CORPORATION_TYPE,
+    ).distinct()
+
     corporation_ids = []
     corporation_map = {}
     for corporation in corporations:

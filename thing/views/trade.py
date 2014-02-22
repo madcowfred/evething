@@ -56,7 +56,15 @@ def trade(request):
     #data['net_asset_value'] = data['wallet_balance'] + data['sell_total'] + data['escrow_total']
 
     # Transaction stuff oh god
-    characters = list(Character.objects.filter(apikeys__user=request.user.id).values_list('id', flat=True))
+    characters = list(Character.objects.filter(
+        apikeys__user=request.user,
+        apikeys__valid=True,
+    ).exclude(
+        apikeys__key_type=APIKey.CORPORATION_TYPE,
+    ).values_list(
+        'id',
+        flat=True,
+    ))
     transactions = Transaction.objects.filter(character_id__in=characters)
 
     t_check = []
