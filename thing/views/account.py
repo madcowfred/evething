@@ -139,6 +139,17 @@ def account_settings(request):
         entries_per_page = '100'
     profile.entries_per_page = entries_per_page
 
+    profile.save()
+
+    request.session['message_type'] = 'success'
+    request.session['message'] = 'Settings changed successfully.'
+
+    return redirect(account)
+
+@login_required
+def account_home_page(request):
+    profile = request.user.get_profile()
+
     home_chars_per_row = int(request.POST.get('home_chars_per_row'), 0)
     if home_chars_per_row in (2, 3, 4, 6):
         profile.home_chars_per_row = home_chars_per_row
@@ -153,15 +164,41 @@ def account_settings(request):
     profile.home_highlight_backgrounds = (request.POST.get('home_highlight_backgrounds', '') == 'on')
     profile.home_highlight_borders = (request.POST.get('home_highlight_borders', '') == 'on')
 
-    # hide characters
-    profile.home_hide_characters = ','.join(c for c in request.POST.getlist('home_hide_characters') if c.isdigit())
-
     profile.save()
 
     request.session['message_type'] = 'success'
     request.session['message'] = 'Settings changed successfully.'
 
-    return redirect(account)
+    return redirect('%s#home_page' % (reverse(account)))
+
+@login_required
+def account_characters(request):
+    profile = request.user.get_profile()
+
+    # hide characters
+    profile.home_hide_characters = ','.join(c for c in request.POST.getlist('home_hide_characters') if c.isdigit())
+    profile.save()
+
+    implants = [int(c) for c in request.POST.getlist('implants') if c.isdigit()]
+    low_skill_queue = [int(c) for c in request.POST.getlist('low_skill_queue') if c.isdigit()]
+    empty_skill_queue = [int(c) for c in request.POST.getlist('empty_skill_queue') if c.isdigit()]
+    low_game_time = [int(c) for c in request.POST.getlist('low_game_time') if c.isdigit()]
+    no_game_time = [int(c) for c in request.POST.getlist('no_game_time') if c.isdigit()]
+
+    characters = Character.objects.filter(apikeys__user=request.user).distinct()
+    for char in characters:
+        char.config.home_suppress_implants = char.id in implants
+        char.config.home_suppress_low_skill_queue = char.id in low_skill_queue
+        char.config.home_suppress_empty_skill_queue = char.id in empty_skill_queue
+        char.config.home_suppress_low_game_time = char.id in low_game_time
+        char.config.home_suppress_no_game_time = char.id in no_game_time
+
+        char.config.home_group = request.POST.get('group_' + str(char.id), '')
+
+        char.config.save()
+
+
+    return redirect('%s#characters' % (reverse(account)))
 
 # ---------------------------------------------------------------------------
 # Add an API key
@@ -170,7 +207,6 @@ def account_apikey_add(request):
     keyid = request.POST.get('keyid', '0')
     vcode = request.POST.get('vcode', '').strip()
     name = request.POST.get('name', '')
-    group_name = request.POST.get('group_name', '')
 
     if not keyid.isdigit():
         request.session['message_type'] = 'error'
@@ -199,7 +235,6 @@ def account_apikey_add(request):
                 keyid=keyid,
                 vcode=vcode,
                 name=name,
-                group_name=group_name,
             )
             apikey.save()
 
@@ -249,15 +284,10 @@ def account_apikey_edit(request):
         request.session['message'] = 'API key %s edited successfully!' % (apikey.id)
 
         apikey_name = request.POST.get('name', '')
-        apikey_group_name = request.POST.get('group_name', '')
         dont_edit = request.POST.get('dont_edit', '')
 
         if apikey.name != apikey_name and dont_edit != 'name':
             apikey.name = apikey_name
-            apikey.save()
-
-        elif apikey.group_name != apikey_group_name and dont_edit != 'group_name':
-            apikey.group_name = apikey_group_name
             apikey.save()
 
     return redirect('%s#tab_apikeys' % (reverse(account)))

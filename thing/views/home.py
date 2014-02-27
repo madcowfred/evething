@@ -74,6 +74,8 @@ def __characters(request, out):
         apikeys__key_type__in=(APIKey.ACCOUNT_TYPE, APIKey.CHARACTER_TYPE)
     ).exclude(
         pk__in=hide_characters
+    ).prefetch_related(
+        'apikeys',
     ).select_related(
         'config',
     ).distinct()
@@ -94,6 +96,13 @@ def __characters(request, out):
         out['characters'][char.pk]['id'] = char.pk
         out['characters'][char.pk]['name'] = char.name
         out['characters'][char.pk]['corporation'] = char.corporation_id
+
+        out['characters'][char.pk]['apikey'] = {}
+        for key, value in vars(char.apikeys.all()[0]).items():
+            if key.startswith('_'): continue
+            if key == 'vcode': continue
+            out['characters'][char.pk]['apikey'][key] = value
+
 
         if char.corporation_id not in out['corporations'].keys():
             out['corporations'][char.corporation_id] = {}
@@ -146,7 +155,9 @@ def __details(request, out):
     return out
 
 def __skill_queues(request, out):
-    now = datetime.datetime.now()
+    now = datetime.datetime.utcnow()
+
+    offset = now - datetime.datetime.now()
 
     # Do skill training check - this can't be in the model because it
     # scales like crap doing individual queries
@@ -154,7 +165,7 @@ def __skill_queues(request, out):
 
     skill_queues = SkillQueue.objects.filter(
         character__in=out['characters'].keys(),
-        end_time__gte=now
+        end_time__gte=datetime.datetime.now()
     ).select_related('skill__item')
 
     for skill_queue in skill_queues:
@@ -162,13 +173,16 @@ def __skill_queues(request, out):
             out['characters'][skill_queue.character_id]['skill_queue'] = []
             out['characters'][skill_queue.character_id]['skill_queue_duration'] = 0
 
-        duration = total_seconds(skill_queue.end_time - now)
+        duration = total_seconds((skill_queue.end_time + offset) - now)
 
         item = {}
         for key, value in vars(skill_queue).items():
             if key.startswith('_'): continue
             if key == 'character_id': continue
             item[key] = value
+
+        item['start_time'] = item['start_time'] + offset
+        item['end_time'] = item['end_time'] + offset
 
         del item['skill_id']
         item['skill'] = {
@@ -210,6 +224,37 @@ def __alliances(request, out):
 
     return out
 
+def __event_log(request, out):
+    out['events'] = []
+    for event in Event.objects.filter(user=request.user)[:10]:
+        item = {}
+        item['issued'] = event.issued
+        item['text'] = event.text
+
+        out['events'].append(item)
+
+    return out
+
+def __summary(request, out):
+    out['summary'] = {}
+
+    # Try retrieving total asset value from cache
+    cache_key = 'home:total_assets:%d' % (request.user.id)
+    total_assets = cache.get(cache_key)
+    # Not cached, fetch from database and cache
+    if total_assets is None:
+        total_assets = AssetSummary.objects.filter(
+            character__in=out['characters'].keys(),
+            corporation_id=0,
+        ).aggregate(
+            t=Sum('total_value'),
+        )['t']
+        cache.set(cache_key, total_assets, 300)
+
+    out['summary']['total_assets'] = total_assets
+
+    return out
+
 
 ALL_OPTIONS = OrderedDict([
     ('characters', __characters),
@@ -217,7 +262,10 @@ ALL_OPTIONS = OrderedDict([
     ('skill_queues', __skill_queues),
 
     ('corporations', __corporations),
-    ('alliances', __alliances)
+    ('alliances', __alliances),
+    
+    ('event_log', __event_log),
+    ('summary', __summary),
 ])
 
 @login_required

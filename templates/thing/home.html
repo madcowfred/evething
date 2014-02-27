@@ -8,11 +8,28 @@
         EVEthing.home.PROFILE.CHAR_COL_SPAN = {{ 12 / profile.home_chars_per_row }};
         EVEthing.home.PROFILE.HOME_SHOW_LOCATIONS = {{ profile.home_show_locations|lower }};
         EVEthing.home.PROFILE.HOME_SHOW_SEPARATORS = {{ profile.home_show_separators|lower }};
+        EVEthing.home.PROFILE.HOME_SORT_ORDER = "{{ profile.home_sort_order }}";
 
         $(document).ready(EVEthing.home.onload);
     </script>
 {% endblock %}
 
 {% block content %}
-
+    <ul class="summary-row nav">
+        <li class="title">Totals</li>
+        <li>Skill Points: <output name="total_sp"></output></li>
+        <li>Wallet: <output name="total_wallet">0.00 ISK</output></li>
+        <li>Personal Assets: <output name="personal_assets">0.00 ISK</output></li>
+        <li class="corp-totals hide">Corp Assets: <output name="corp_assets">0.00 ISK</output></li>
+        <li class="pull-right">
+            <i class="js-screenshot clickable icon-picture" title="Screenshot sanitised mode"></i>
+        </li>
+    </ul>
+    </div>
+    <hr class="nomargin event-margin">
+    <div class="row-fluid">
+        <h4>Event log</h4>
+        <ul class="events"></ul>
+        <a href="{{ url('thing.views.events') }}">See all</a>
+    </diV>
 {% endblock %}

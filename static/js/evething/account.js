@@ -94,6 +94,50 @@ EVEthing.account = {
         // Bind apikey build table magic
         $('#build-table').on('change', '.apikey-build', EVEthing.account.build_apikey);
         EVEthing.account.build_apikey();
+
+        EVEthing.account.HOME_GROUP_DATALIST = $('datalist#home_groups');
+        EVEthing.account.build_home_group_list();
+        $('tbody.characters input[type="text"]').change(EVEthing.account.build_home_group_list);
+
+        $.tablesorter.addParser({
+            id: 'inputValueParser',
+            is: function(s, table, cell) {
+                return $(cell).find('input').length > 0
+            },
+            format: function(s, table, cell, cellIndex) {
+                var input = $($(cell).find('input')[0]);
+                if (input.attr('type') == 'checkbox') {
+                    return (input[0].checked == true ? "0" : "1");
+                }
+                return input.val();
+            },
+            parsed: true,
+            type: 'text',
+        });
+
+        $('table.characters').tablesorter({'uitheme': 'bootstrap'});
+    },
+
+    HOME_GROUP_DATALIST: null,
+
+    build_home_group_list: function() {
+        EVEthing.account.HOME_GROUP_DATALIST.empty();
+
+        var home_groups = {};
+        var inputs = $('tbody.characters input[type="text"]');
+        for (var i=0; i<inputs.length; i++) {
+            var item = $(inputs[i]).val();
+
+            if (!(item in home_groups)) {
+                home_groups[item] = true;
+            }
+        }
+
+        home_groups = Object.keys(home_groups);
+        home_groups.sort();
+        for (var i in home_groups) {
+            EVEthing.account.HOME_GROUP_DATALIST.append($('<option value="' + home_groups[i] + '" />'));
+        }
     },
 
     build_apikey: function() {

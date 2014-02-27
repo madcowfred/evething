@@ -40,6 +40,14 @@ class CharacterConfig(models.Model):
     show_wallet = models.BooleanField(default=False)
     anon_key = models.CharField(max_length=16, default='')
 
+    home_group = models.CharField(max_length=64, default='')
+
+    home_suppress_implants = models.BooleanField(default=False)
+    home_suppress_empty_skill_queue = models.BooleanField(default=False)
+    home_suppress_low_skill_queue = models.BooleanField(default=False)
+    home_suppress_no_game_time = models.BooleanField(default=False)
+    home_suppress_low_game_time = models.BooleanField(default=False)
+
     class Meta:
         app_label = 'thing'
 

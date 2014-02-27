@@ -1,0 +1,76 @@
+  <form action="{{ url('thing.views.account_home_page') }}" method="POST" class="form-horizontal">
+    <fieldset>
+      {{ csrf() }}
+      <div class="control-group">
+        <label class="control-label" for="home_chars_per_row">Characters per row</label>
+        <div class="controls">
+          <select name="home_chars_per_row">
+            {%- for n in home_chars_per_row %}
+            <option value="{{ n }}"{% if profile.home_chars_per_row == n %} selected{% endif %}>{{ n }}</option>
+            {%- endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="control-group">
+        <label class="control-label" for="home_sort_order">Sort order</label>
+        <div class="controls">
+          <select name="home_sort_order">
+            {%- for value, name in home_sort_orders %}
+            <option value="{{ value }}"{% if profile.home_sort_order == value %} selected{% endif %}>{{ name }}</option>
+            {%- endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="control-group">
+        <label class="control-label" for="home_sort_descending">Sort descending</label>
+        <div class="controls">
+          <label class="checkbox">
+            <input type="checkbox" name="home_sort_descending"{% if profile.home_sort_descending %} checked{% endif %}>
+          </label>
+        </div>
+      </div>
+      <div class="control-group">
+        <label class="control-label" for="home_sort_descending">Show character locations</label>
+        <div class="controls">
+          <label class="checkbox">
+            <input type="checkbox" name="home_show_locations"{% if profile.home_show_locations %} checked{% endif %}>
+          </label>
+        </div>
+      </div>
+      <div class="control-group">
+        <label class="control-label" for="home_highlight_backgrounds">Highlight backgrounds</label>
+        <div class="controls">
+          <label class="checkbox">
+            <input type="checkbox" name="home_highlight_backgrounds"{% if profile.home_highlight_backgrounds %} checked{% endif %}>
+          </label>
+          <p class="help-block">
+            Highlight character boxes with a background color to signify their status (green = fine, orange = notifications,
+            red = nothing training on this account)
+          </p>
+        </div>
+      </div>
+      <div class="control-group">
+        <label class="control-label" for="home_highlight_borders">Highlight borders</label>
+        <div class="controls">
+          <label class="checkbox">
+            <input type="checkbox" name="home_highlight_borders"{% if profile.home_highlight_borders %} checked{% endif %}>
+          </label>
+          <p class="help-block">Highlight character boxes with a border color to signify their status (see above)</p>
+        </div>
+      </div>
+      <div class="control-group">
+        <label class="control-label" for="home_show_separators">Show separators</label>
+        <div class="controls">
+          <label class="checkbox">
+            <input type="checkbox" name="home_show_separators"{% if profile.home_show_separators %} checked{% endif %}>
+          </label>
+          <p class="help-block">Show separator lines between sections of the character boxes</p>
+        </div>
+      </div>
+    </fieldset>
+    <fieldset>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Save changes</button>
+      </div>
+    </fieldset>
+  </form>

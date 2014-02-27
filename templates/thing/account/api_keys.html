@@ -1,0 +1,139 @@
+
+  <div class="span12">
+    <table class="table table-striped table-bordered table-condensed" id="key-table">
+      <thead>
+        <tr class="c">
+          <th>ID</th>
+          <th>Valid</th>
+          <th>keyID</th>
+          <th>vCode</th>
+          <th>Type</th>
+          <th>Mask</th>
+          <th>Expires</th>
+          <th>Game Time</th>
+          <th>Name</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {%- for apikey in apikeys %}
+        <tr data-id="{{ apikey.id }}">
+          <td class="r api-id">{{ apikey.id }}</td>
+          <td class="c api-valid">
+            {{ icons.success_fail(apikey.valid) }}
+          </td>
+          <td class="r api-keyid">{{ apikey.keyid }}</td>
+          <td class="c fixed api-vcode">{{ apikey.get_masked_vcode() }}</td>
+          <td class="c api-type">{{ apikey.key_type }}</td>
+          <td class="r api-mask">{{ apikey.access_mask }}</td>
+          <td class="c api-expires">
+            {%- if apikey.expires %}
+            {{ apikey.expires }}
+            {%- else %}
+            Never
+            {%- endif %}
+          </td>
+          <td class="c api-time">
+            {%- if apikey.valid and apikey.key_type == 'Account' %}
+            {%- set remaining = apikey.get_remaining_time() %}
+            {%- if remaining < 864000 %}
+            <span class="low-game-time">
+              {%- if remaining <= 0 %}
+              Expired!
+              {%- else %}
+              {{ remaining|shortduration }}
+              {%- endif %}
+            </span>
+            {%- else %}
+            {{ remaining|shortduration }}
+            {%- endif %}
+            {%- endif %}
+          </td>
+          <td class="api-name">
+            {{ apikey.name }}
+            <i class="js-edit-name icon-edit pull-right clickable"></i>
+          </td>
+          <td class="c api-icons">
+            <i class="js-delete icon-trash clickable" data-toggle="modal" href="#delete-apikey-modal" rel="tooltip" title="Delete API key"></i>
+            &nbsp;
+            <i class="js-purge icon-warning-sign neg clickable" data-toggle="modal" href="#purge-apikey-modal" rel="tooltip" title="Purge API key data"></i>
+          </td>
+        </tr>
+        {%- endfor %}
+      </tbody>
+    </table>
+
+    {%- if profile.can_add_keys %}
+    <form action="{{ url('thing.views.account_apikey_add') }}" method="POST" class="form-inline">
+      {{ csrf() }}
+      <input type="text" name="keyid" class="input-small" placeholder="KeyID">
+      <input type="text" name="vcode" class="input-xlarge" placeholder="vCode">
+      <input type="text" name="name" class="input-medium" placeholder="Name" rel="tooltip" title="This is to help you remember what this key is for. It will be displayed on the Home screen.">
+      <button type="submit" class="btn btn-success">Add Key</button>
+    </form>
+    {%- else %}
+    <div class="alert alert-error">
+      Due to multiple permanent API key failures your ability to add keys has been revoked, please contact an admin if you wish to
+      have your access reinstated.
+    </div>
+    {%- endif %}
+
+    <div id="build-table" class="well well-info">
+      <p>
+        <strong>Note:</strong> EVEthing requires specific API key flags for various features, tick some boxes and the 'Create a key'
+        link at the bottom will magically update. When adding a key the 'Name' field is for your reference only.
+      </p>
+
+      <div class="row-fluid margin-full-top">
+        <div class="span4">
+          <h4>EVEthing features:</h4>
+          <form class="margin-half-bot">
+            <label class="checkbox">
+              <input type="checkbox" class="apikey-build" data-masks="8;262144" checked>
+              Skill queue monitoring
+            </label>
+            <label class="checkbox">
+              <input type="checkbox" class="apikey-build" data-masks="33554432" checked>
+              Account expiry warning
+            </label>
+            <label class="checkbox">
+              <input type="checkbox" class="apikey-build" data-masks="524288">
+              Character standings
+            </label>
+            <label class="checkbox">
+              <input type="checkbox" class="apikey-build" data-masks="2097152">
+              Wallet journal
+            </label>
+            <label class="checkbox">
+              <input type="checkbox" class="apikey-build" data-masks="4194304">
+              Wallet transactions
+            </label>
+            <label class="checkbox">
+              <input type="checkbox" class="apikey-build" data-masks="4096">
+              Market orders
+            </label>
+            <label class="checkbox">
+              <input type="checkbox" class="apikey-build" data-masks="2;134217728">
+              Assets
+            </label>
+            <label class="checkbox">
+              <input type="checkbox" class="apikey-build" data-masks="67108864">
+              Contracts
+            </label>
+            <label class="checkbox">
+              <input type="checkbox" class="apikey-build" data-masks="128">
+              Industry jobs
+            </label>
+            <a class="btn btn-primary" id="apikey-link" href="https://community.eveonline.com/support/api-key/CreatePredefined?accessMask=33816584" target="_blank">Create new key</a>
+          </form>
+        </div>
+
+        <div class="span4">
+          <h4>Required flags:</h4>
+          <ul id="apikey-required">
+            <li>None</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>

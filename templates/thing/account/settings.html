@@ -1,0 +1,78 @@
+  <form action="{{ url('thing.views.account_settings') }}" method="POST" class="form-horizontal">
+    <fieldset>
+      {{ csrf() }}
+      <div class="control-group">
+        <label class="control-label" for="theme">Theme</label>
+        <div class="controls">
+          <select name="theme">
+            {%- for value, display in themes %}
+            <option value="{{ value }}"{% if profile.theme == value %} selected{% endif %}>{{ display }}</option>
+            {%- endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="control-group">
+        <label class="control-label" for="show_clock">Show EVE clock</label>
+        <div class="controls">
+          <label class="checkbox">
+            <input type="checkbox" name="show_clock"{% if profile.show_clock %} checked{% endif %}>
+          </label>
+        </div>
+      </div>
+      <div class="control-group">
+        <label class="control-label" for="show_checkboxes">Show sections</label>
+        <div class="controls">
+          <label class="checkbox inline">
+            <input type="checkbox" name="show_assets"{% if profile.show_assets %} checked{% endif %}>Assets</input>
+          </label>
+          <label class="checkbox inline">
+            <input type="checkbox" name="show_blueprints"{% if profile.show_blueprints %} checked{% endif %}>Blueprints</input>
+          </label>
+          <label class="checkbox inline">
+            <input type="checkbox" name="show_contracts"{% if profile.show_contracts %} checked{% endif %}>Contracts</input>
+          </label>
+          <label class="checkbox inline">
+            <input type="checkbox" name="show_industry"{% if profile.show_industry %} checked{% endif %}>Industry</input>
+          </label>
+          <label class="checkbox inline">
+            <input type="checkbox" name="show_orders"{% if profile.show_orders %} checked{% endif %}>Orders</input>
+          </label>
+          <label class="checkbox inline">
+            <input type="checkbox" name="show_trade"{% if profile.show_trade %} checked{% endif %}>Trade</input>
+          </label>
+          <label class="checkbox inline">
+            <input type="checkbox" name="show_transactions"{% if profile.show_transactions %} checked{% endif %}>Transactions</input>
+          </label>
+          <label class="checkbox inline">
+            <input type="checkbox" name="show_wallet_journal"{% if profile.show_wallet_journal %} checked{% endif %}>Wallet Journal</input>
+          </label>
+        </div>
+      </div>
+      <hr>
+      <div class="control-group">
+        <label class="control-label" for="show_item_icons">Show item icons</label>
+        <div class="controls">
+          <label class="checkbox">
+            <input type="checkbox" name="show_item_icons"{% if profile.show_item_icons %} checked{% endif %}>
+          </label>
+          <p class="help-block">Displays 20x20 item icons in various relevant places</p>
+        </div>
+      </div>
+      <div class="control-group">
+        <label class="control-label" for="entries_per_page">Entries per page</label>
+        <div class="controls">
+          <select name="entries_per_page">
+            {%- for n in (100, 200, 300, 400, 500) %}
+            <option value="{{ n }}"{% if n == profile.entries_per_page %} selected{% endif %}>{{ n }}</option>
+            {%- endfor %}
+          </select>
+          <p class="help-block">Transactions, Wallet Journal, etc.</p>
+        </div>
+      </div>
+    </fieldset>
+    <fieldset>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Save changes</button>
+      </div>
+    </fieldset>
+  </form>
