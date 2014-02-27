@@ -570,7 +570,7 @@ EVEthing.home.CharacterDisplay.prototype.animate = function(now) {
 
     var paid_diff = this.character.apikey.paid_until - now;
     if (paid_diff < 0) {
-        if (!this.character.details.home_suppress_no_game_time) {
+        if (!this.character.config.home_suppress_no_game_time) {
             errors = true;
             this.well.find('.home-notifications .no-game-time').show();
         }
@@ -578,7 +578,7 @@ EVEthing.home.CharacterDisplay.prototype.animate = function(now) {
         this.well.find('.home-notifications .no-game-time').hide();
 
         if (paid_diff < EVEthing.home.EXPIRE_WARNING) {
-            if (!this.character.details.home_suppress_low_game_time) {
+            if (!this.character.config.home_suppress_low_game_time) {
                 notifications = true;
                 this.well.find('.home-notifications .low-game-time').show();
                 this.well.find('.home-notifications .low-game-time').text(Handlebars.helpers.shortduration(time_diff));
