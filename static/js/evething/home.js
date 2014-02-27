@@ -494,7 +494,7 @@ EVEthing.home.CharacterDisplay.prototype.animate = function(now) {
             this.well.find('.skillduration').text(Handlebars.helpers.duration(training_time_left) + ' @ ' + Handlebars.helpers.comma(this.character.skill_queue[0].sp_per_hour) + ' SP/h');
 
             var total = training_time_left;
-            for (var i=1; i<this.character.skill_queue; i++) {
+            for (var i=1; i<this.character.skill_queue.length; i++) {
                 total += this.character.skill_queue[i].end_time - this.character.skill_queue[i].start_time;
             }
 
