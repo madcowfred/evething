@@ -560,10 +560,12 @@ EVEthing.home.CharacterDisplay.prototype.animate = function(now) {
         this.well.find('.home-notifications .clone').hide();
     }
 
-    if ((this.character.apikey.expires - now) < EVEthing.home.EXPIRE_WARNING) {
-        this.well.find('.home-notifications .key-expiring').show();
-    } else {
-        this.well.find('.home-notifications .key-expiring').hide();
+    if (this.character.apikey.expires) {
+        if ((this.character.apikey.expires - now) < EVEthing.home.EXPIRE_WARNING) {
+            this.well.find('.home-notifications .key-expiring').show();
+        } else {
+            this.well.find('.home-notifications .key-expiring').hide();
+        }
     }
 
     var paid_diff = this.character.apikey.paid_until - now;
