@@ -422,7 +422,7 @@ EVEthing.home.EventDisplay = function(text, issued) {
     this.html = $('<li></li>');
     this.age = $('<span></span>');
     this.text = $('<span></span>');
-    this.text.text(text);
+    this.text.html(text);
 
     this.html.append(this.age);
     this.html.append($('<strong> / </strong>'));
