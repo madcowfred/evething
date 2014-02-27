@@ -112,7 +112,7 @@ def account_change_password(request):
         request.session['message_type'] = 'error'
         request.session['message'] = 'Old password is incorrect!'
 
-    return redirect('%s#tab_password' % (reverse(account)))
+    return redirect('%s#password' % (reverse(account)))
 
 @login_required
 def account_settings(request):
@@ -241,7 +241,7 @@ def account_apikey_add(request):
             request.session['message_type'] = 'success'
             request.session['message'] = 'API key added successfully!'
 
-    return redirect('%s#tab_apikeys' % (reverse(account)))
+    return redirect('%s#apikeys' % (reverse(account)))
 
 # ---------------------------------------------------------------------------
 # Delete an API key
@@ -266,7 +266,7 @@ def account_apikey_delete(request):
         request.session['message_type'] = 'error'
         request.session['message'] = 'You seem to be doing silly things, stop that.'
 
-    return redirect('%s#tab_apikeys' % (reverse(account)))
+    return redirect('%s#apikeys' % (reverse(account)))
 
 # ---------------------------------------------------------------------------
 # Edit an API key
@@ -290,7 +290,7 @@ def account_apikey_edit(request):
             apikey.name = apikey_name
             apikey.save()
 
-    return redirect('%s#tab_apikeys' % (reverse(account)))
+    return redirect('%s#apikeys' % (reverse(account)))
 
 # ---------------------------------------------------------------------------
 # Purge an API key's data
@@ -315,7 +315,7 @@ def account_apikey_purge(request):
         request.session['message_type'] = 'error'
         request.session['message'] = 'You seem to be doing silly things, stop that.'
 
-    return redirect('%s#tab_apikeys' % (reverse(account)))
+    return redirect('%s#apikeys' % (reverse(account)))
 
 # ---------------------------------------------------------------------------
 # Add a skillplan
@@ -325,7 +325,7 @@ def account_skillplan_add(request):
         form = UploadSkillPlanForm(request.POST, request.FILES)
         if form.is_valid():
             _handle_skillplan_upload(request)
-            return redirect('%s#tab_skillplans' % (reverse(account)))
+            return redirect('%s#skillplans' % (reverse(account)))
         else:
             request.session['message_type'] = 'error'
             request.session['message'] = 'Form validation failed!'
@@ -333,7 +333,7 @@ def account_skillplan_add(request):
         request.session['message_type'] = 'error'
         request.session['message'] = "That doesn't look like a POST request!"
 
-    return redirect('%s#tab_skillplans' % (reverse(account)))
+    return redirect('%s#skillplans' % (reverse(account)))
 
 # ---------------------------------------------------------------------------
 # Delete a skillplan
@@ -363,7 +363,7 @@ def account_skillplan_delete(request):
         request.session['message_type'] = 'error'
         request.session['message'] = 'You seem to be doing silly things, stop that.'
 
-    return redirect('%s#tab_skillplans' % (reverse(account)))
+    return redirect('%s#skillplans' % (reverse(account)))
 
 # ---------------------------------------------------------------------------
 # Edit a skillplan
@@ -390,7 +390,7 @@ def account_skillplan_edit(request):
         request.session['message_type'] = 'error'
         request.session['message'] = 'You seem to be doing silly things, stop that.'
 
-    return redirect('%s#tab_skillplans' % (reverse(account)))
+    return redirect('%s#skillplans' % (reverse(account)))
 
 # ---------------------------------------------------------------------------
 
