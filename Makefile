@@ -3,7 +3,7 @@ BOOTSTRAP_FILES := alert button collapse dropdown modal tooltip popover tab scro
 BOOTSTRAP_JS := $(addsuffix .js,$(addprefix static/js/bootstrap-,$(BOOTSTRAP_FILES)))
 
 # All JS source files that we use
-ALL_FILES := jquery.tablesorter.js jquery.tablesorter.widgets.js bootstrap.js handlebars.runtime.js templates.js evething.js evething/*
+ALL_FILES := jquery.tablesorter.js jquery.tablesorter.widgets.js bootstrap.js requestAnimationFrame.polyfill.js handlebars.runtime.js templates.js evething.js evething/*
 ALL_JS    := $(addprefix static/js/,$(ALL_FILES))
 
 # Themes
