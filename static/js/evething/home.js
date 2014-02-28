@@ -417,7 +417,7 @@ EVEthing.home.GroupDisplay.prototype.draw = function() {
  * Prototype for displaying events
  */
 EVEthing.home.EventDisplay = function(text, issued) {
-    this.issued = Math.round(new Date(issued + '+0000').getTime() / 1000);
+    this.issued = Math.round(new Date(issued + '+00:00').getTime() / 1000);
     
     this.html = $('<li></li>');
     this.age = $('<span></span>');
@@ -628,8 +628,8 @@ EVEthing.home.CharacterDisplay.prototype.parseResponse = function(data) {
             this.character.skill_queue[i].sp_per_hour = this.character.skill_queue[i].sp_per_minute * 60;
 
             // We don't really care about the miliseconds, and they were getting anoying in debuing
-            this.character.skill_queue[i].end_time = Math.round(new Date(this.character.skill_queue[i].end_time + '+0000').getTime() / 1000);
-            this.character.skill_queue[i].start_time = Math.round(new Date(this.character.skill_queue[i].start_time + '+0000').getTime() / 1000);
+            this.character.skill_queue[i].end_time = Math.round(new Date(this.character.skill_queue[i].end_time + '+00:00').getTime() / 1000);
+            this.character.skill_queue[i].start_time = Math.round(new Date(this.character.skill_queue[i].start_time + '+00:00').getTime() / 1000);
         }
 
         /*
@@ -649,9 +649,9 @@ EVEthing.home.CharacterDisplay.prototype.parseResponse = function(data) {
     if (!this.character.hasOwnProperty('skill_queue_duration')) this.character.skill_queue_duration = 0;
 
     if (this.character.apikey.expires)
-        this.character.apikey.expires= Math.round(new Date(this.character.apikey.expires + '+0000').getTime() / 1000);
+        this.character.apikey.expires= Math.round(new Date(this.character.apikey.expires + '+00:00').getTime() / 1000);
     if (this.character.apikey.paid_until)
-        this.character.apikey.paid_until = Math.round(new Date(this.character.apikey.paid_until + '+0000').getTime() / 1000);    
+        this.character.apikey.paid_until = Math.round(new Date(this.character.apikey.paid_until + '+00:00').getTime() / 1000);    
 
     if (data.hasOwnProperty('ships')) EVEthing.home.parseShips(data);
     if (data.hasOwnProperty('alliances')) EVEthing.home.parseAlliances(data);
