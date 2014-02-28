@@ -472,7 +472,7 @@ EVEthing.home.CharacterDisplay.prototype.animate = function(now) {
 
             while (this.character.skill_queue[0].end_time < now) {
                 this.character.details.total_sp = this.character.details.total_sp + this.character.skill_queue[0].end_sp - this.character.skill_queue[0].start_sp;
-                this.character.skill_queue[0].shift();
+                this.character.skill_queue.shift();
 
                 total_sp = this.character.details.total_sp;
 
