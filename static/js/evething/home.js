@@ -179,6 +179,9 @@ EVEthing.home.animate = function(lastFrame) {
 };
 
 EVEthing.home.onSortByClicked = function(event) {
+    event.stopPropagation();
+    event.preventDefault();
+
     var href = event.target.href.split('#')[1];
     var sort_by = EVEthing.home.character_ordering[href];
 
@@ -193,6 +196,8 @@ EVEthing.home.onSortByClicked = function(event) {
     EVEthing.home.sort_characters(sort_by);
 
     EVEthing.home.draw_characters();
+
+    return false;
 };
 
 EVEthing.home.draw_characters = function() {
