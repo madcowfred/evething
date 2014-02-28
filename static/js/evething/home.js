@@ -445,6 +445,7 @@ EVEthing.home.GroupDisplay.prototype.draw = function() {
     }
 
     this.html.append(row);
+    this.html.append('<hr />');
 };
 
 /**
