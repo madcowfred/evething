@@ -157,8 +157,6 @@ def __details(request, out):
 def __skill_queues(request, out):
     now = datetime.datetime.utcnow()
 
-    offset = now - datetime.datetime.now()
-
     # Do skill training check - this can't be in the model because it
     # scales like crap doing individual queries
     skill_qs = []
@@ -173,7 +171,7 @@ def __skill_queues(request, out):
             out['characters'][skill_queue.character_id]['skill_queue'] = []
             out['characters'][skill_queue.character_id]['skill_queue_duration'] = 0
 
-        duration = total_seconds((skill_queue.end_time + offset) - now)
+        duration = total_seconds(skill_queue.end_time - now)
 
         item = {}
         for key, value in vars(skill_queue).items():
@@ -181,8 +179,8 @@ def __skill_queues(request, out):
             if key == 'character_id': continue
             item[key] = value
 
-        item['start_time'] = item['start_time'] + offset
-        item['end_time'] = item['end_time'] + offset
+        item['start_time'] = item['start_time']
+        item['end_time'] = item['end_time']
 
         del item['skill_id']
         item['skill'] = {
