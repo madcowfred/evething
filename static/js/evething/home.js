@@ -182,7 +182,14 @@ EVEthing.home.onSortByClicked = function(event) {
     var href = event.target.href.split('#')[1];
     var sort_by = EVEthing.home.character_ordering[href];
 
-    $('li.sort-by output').val(sort_by.NAME)
+    if ($('li.sort-by output').val() != sort_by.NAME) {
+        $('li.sort-by output').val(sort_by.NAME);
+    } else {
+        $('li.sort-by output').val(sort_by.NAME + ' ' + sort_by.NAME_REVERSE);
+        var __sort_by = sort_by;
+        sort_by = function(a, b) { return __sort_by(b, a); };
+    }
+
     EVEthing.home.sort_characters(sort_by);
 
     EVEthing.home.draw_characters();
@@ -206,16 +213,19 @@ EVEthing.home.character_ordering.skill_queue = function(a, b) {
     return EVEthing.home.CHARACTERS[b].character.skill_queue_duration - EVEthing.home.CHARACTERS[a].character.skill_queue_duration;
 };
 EVEthing.home.character_ordering.skill_queue.NAME = 'Skill Queue Duration';
+EVEthing.home.character_ordering.skill_queue.NAME_REVERSE = 'Asc';
 
 EVEthing.home.character_ordering.api_name = function(a, b) {
     return EVEthing.home.CHARACTERS[a].character.apikey.name.localeCompare(EVEthing.home.CHARACTERS[b].character.apikey.name);
 };
 EVEthing.home.character_ordering.api_name.NAME = 'API Name';
+EVEthing.home.character_ordering.api_name.NAME_REVERSE = 'Desc';
 
 EVEthing.home.character_ordering.char_name = function(a, b) {
     return EVEthing.home.CHARACTERS[a].character.name.localeCompare(EVEthing.home.CHARACTERS[b].character.name);
 };
 EVEthing.home.character_ordering.char_name.NAME = 'Character Name';
+EVEthing.home.character_ordering.char_name.NAME_REVERSE = 'Desc';
 
 EVEthing.home.character_ordering.corp_name = function(a, b) {
     var corp_a = EVEthing.home.CHARACTERS[a].character.corporation;
@@ -224,16 +234,19 @@ EVEthing.home.character_ordering.corp_name = function(a, b) {
     return EVEthing.home.CORPORATIONS[corp_a].name.localeCompare(EVEthing.home.CORPORATIONS[corp_b].name);
 };
 EVEthing.home.character_ordering.corp_name.NAME = 'Corporation Name';
+EVEthing.home.character_ordering.corp_name.NAME_REVERSE = 'Desc';
 
 EVEthing.home.character_ordering.total_sp = function(a, b) {
     return EVEthing.home.CHARACTERS[a].character.details.total_sp - EVEthing.home.CHARACTERS[b].character.details.total_sp;
 };
 EVEthing.home.character_ordering.total_sp.NAME = 'Total Skill Points';
+EVEthing.home.character_ordering.total_sp.NAME_REVERSE = 'Desc';
 
 EVEthing.home.character_ordering.wallet_balance = function(a, b) {
     return EVEthing.home.CHARACTERS[a].character.details.wallet_balance - EVEthing.home.CHARACTERS[b].character.details.wallet_balance;
 };
 EVEthing.home.character_ordering.wallet_balance.NAME = 'Wallet Ballance';
+EVEthing.home.character_ordering.wallet_balance.NAME_REVERSE = 'Desc';
 
 EVEthing.home.sort_characters = function() {
     if (EVEthing.home.CHARACTER_ORDER.length != EVEthing.home.CHARACTERS.length) {
