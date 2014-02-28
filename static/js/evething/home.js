@@ -128,8 +128,25 @@ EVEthing.home.onload = function() {
     // Bind screenshot mode button
     $('body').on('click', '.js-screenshot', EVEthing.home.screenshot_mode);
 
-
     EVEthing.home.initialLoad();
+
+
+    var sort_method = EVEthing.home.character_ordering[EVEthing.home.SORT_PROFILE_TO_FUNC_MAP[EVEthing.home.PROFILE.HOME_SORT_ORDER]];
+
+    var sortSelect = $('<li class="pull-right dropdown sort-by"><a href="#" class="dropdown-toggle" data-toggle="dropdown"><b class="caret"></b>Sort By: <output>' + sort_method.NAME + '</output></a></li>');
+    var sortSelectMenu = $('<ul class="dropdown-menu"></ul>');
+    sortSelect.append(sortSelectMenu);
+
+    for (var i in EVEthing.home.character_ordering) {
+        if (EVEthing.home.character_ordering.hasOwnProperty(i)) {
+            sortSelectMenu.append('<li style="width:98%;"><a href="#' + i + '">' + EVEthing.home.character_ordering[i].NAME + '</a></li>');
+        }
+    }
+
+    sortSelectMenu.find('a').click(EVEthing.home.onSortByClicked);
+
+    $('ul.summary-row li.pull-right').after(sortSelect);
+
 
     // Start the animation loop as though the last frame was 10s ago, to ensure it does an inital render
     window.requestAnimationFrame(function() { EVEthing.home.animate(Math.round(new Date().getTime() / 1000) - 10); });
@@ -161,8 +178,20 @@ EVEthing.home.animate = function(lastFrame) {
     }
 };
 
+EVEthing.home.onSortByClicked = function(event) {
+    var href = event.target.href.split('#')[1];
+    var sort_by = EVEthing.home.character_ordering[href];
+
+    $('li.sort-by output').val(sort_by.NAME)
+    EVEthing.home.sort_characters(sort_by);
+
+    EVEthing.home.draw_characters();
+};
+
 EVEthing.home.draw_characters = function() {
-    if (EVEthing.home.CHARACTER_ORDER.length != EVEthing.home.CHARACTERS.length) EVEthing.home.sort_characters();
+    if (EVEthing.home.CHARACTER_ORDER.length != Object.keys(EVEthing.home.CHARACTERS).length) {
+        EVEthing.home.sort_characters();
+    }
 
     for (var i=0; i<EVEthing.home.GroupDisplay.GROUP_ORDER.length; i++) {
         EVEthing.home.GroupDisplay.GROUPS[EVEthing.home.GroupDisplay.GROUP_ORDER[i]].draw();
@@ -214,7 +243,8 @@ EVEthing.home.sort_characters = function() {
     for (var i in arguments) {
         if (!arguments.hasOwnProperty(i)) continue;
         methods[methods.length] = arguments[i];
-    };
+    }
+
 
     if (methods.length == 0 && EVEthing.home.SORT_PROFILE_TO_FUNC_MAP.hasOwnProperty(EVEthing.home.PROFILE.HOME_SORT_ORDER)) {
         var sort_method = EVEthing.home.SORT_PROFILE_TO_FUNC_MAP[EVEthing.home.PROFILE.HOME_SORT_ORDER];
@@ -222,6 +252,7 @@ EVEthing.home.sort_characters = function() {
             methods[0] = EVEthing.home.character_ordering[sort_method];
         }
     }
+    console.log(methods);
 
     if (methods.length == 0) {
         for (var i in EVEthing.home.character_ordering) {
