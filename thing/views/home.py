@@ -44,6 +44,8 @@ from django.http import HttpResponse
 from django.core.serializers.json import DjangoJSONEncoder
 import json
 
+
+
 # ---------------------------------------------------------------------------
 
 ONE_DAY = 24 * 60 * 60
@@ -124,6 +126,7 @@ def __details(request, out):
     details =  CharacterDetails.objects.filter(pk__in=out['characters'].keys())
 
     ship_item_ids = set()
+    system_names = set()
 
     for detail in details:
         if 'details' not in out['characters'][detail.pk]:
@@ -138,7 +141,11 @@ def __details(request, out):
 
             out['characters'][detail.pk]['details'][key] = value
 
+        system_names.add(detail.last_known_location)
+
     out['ships'] = {pk: ship.name for pk, ship in Item.objects.in_bulk(ship_item_ids).items()}
+
+    out['systems'] = {name: {'constellation': '', 'region': ''} for name in system_names}
 
     # Fetch skill data now WITHOUT Unpublished SP
     cskill_qs = CharacterSkill.objects.filter(
@@ -253,6 +260,47 @@ def __summary(request, out):
 
     return out
 
+def __systems(request, out):
+    if 'systems' in out.keys():
+        system_names = out['systems'].keys()
+        for system in System.objects.all().select_related('constellation__region').filter(name__in=system_names):
+            out['systems'][system.name] = {}
+            out['systems'][system.name]['constellation'] = system.constellation.name
+            out['systems'][system.name]['region'] = system.constellation.region.name
+    
+    return out
+
+def __getRefreshTimes(out):
+    keys = set()
+    urls = set()
+
+    for charid, char in out['characters'].items():
+        keys.add(char['apikey']['keyid'])
+
+        urls.add(u'/account/AccountStatus.xml.aspx')
+
+        if 'skill_queue' in char.keys():
+            urls.add(u'/char/SkillQueue.xml.aspx')
+
+        if 'details' in char.keys():
+            urls.add(u'/char/CharacterSheet.xml.aspx')
+
+    out['refresh_hints'] = {
+        'account': {},
+        'skill_queue': {},
+        'details': {},
+    }
+
+    for task in TaskState.objects.filter(url__in=list(urls), keyid__in=list(keys)):
+        print task.url
+        if task.url == u'/account/AccountStatus.xml.aspx':
+            out['refresh_hints']['account'][task.keyid] = task.next_time
+        elif task.url == u'/char/SkillQueue.xml.aspx':
+            out['refresh_hints']['skill_queue'][task.parameter] = task.next_time
+        elif task.url == u'/char/CharacterSheet.xml.aspx':
+            out['refresh_hints']['details'][task.parameter] = task.next_time
+
+    return out
 
 ALL_OPTIONS = OrderedDict([
     ('characters', __characters),
@@ -261,6 +309,7 @@ ALL_OPTIONS = OrderedDict([
 
     ('corporations', __corporations),
     ('alliances', __alliances),
+    ('systems', __systems),
     
     ('event_log', __event_log),
     ('summary', __summary),
@@ -276,29 +325,43 @@ def home_api(request):
     out['characters'] = {}
     out['corporations'] = {}
     out['alliances'] = {}
-
+    out['systems'] = {}
 
     char_ids = request.REQUEST.getlist('characters')
     if char_ids:
-        for id in char_ids.split(','):
+        for id in char_ids:
             out['characters'][int(id)] = {}
 
     corp_ids = request.REQUEST.getlist('corporations')
     if corp_ids:
-        for id in corp_ids.split(','):
+        for id in corp_ids:
             out['corporations'][int(id)] = {}
 
     alliance_ids = request.REQUEST.getlist('alliances')
     if alliance_ids:
-        for id in alliance_ids.split(','):
+        for id in alliance_ids:
             out['alliances'][int(id)] = {}
 
+    system_names = request.REQUEST.getlist('systems')
+    if system_names:
+        for id in system_names:
+            out['systems'][int(id)] = {}
+
     tt.add_time('prep')
+
+    # Because we want to get the next refresh time for the api calls
+    # We need to ensure we have the apikey's
+    if 'characters' not in request_options:
+        if 'skill_queues' in request_options or 'details' in request_options:
+            request_options.append('characters')
 
     for opt in ALL_OPTIONS.keys():
         if opt in request_options:
             out = ALL_OPTIONS[opt](request, out)
             tt.add_time(opt)
+
+    out = __getRefreshTimes(out)
+    tt.add_time('refresh times')
 
     if settings.DEBUG:
         tt.finished()

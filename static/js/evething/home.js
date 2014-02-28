@@ -5,6 +5,13 @@ Handlebars.registerHelper('lookup', function(dict, key) {
     return key;
 });
 
+Handlebars.registerHelper('systems_details', function(name) {
+    if (EVEthing.home.SYSTEMS.hasOwnProperty(name)) {
+        return name + ' - ' + EVEthing.home.SYSTEMS[name]['constellation'] + ' - ' + EVEthing.home.SYSTEMS[name]['region'];
+    }
+    return '';
+});
+
 Handlebars.registerHelper('roman', function(num) {
     if (!+num)
         return false;
@@ -101,6 +108,7 @@ EVEthing.home = {
     'SHIPS': {},
     'CORPORATIONS': {},
     'ALLIANCES': {},
+    'SYSTEMS': {},
 
     'CHARACTERS': {},
     'EVENTS': [],
@@ -231,7 +239,7 @@ EVEthing.home.initialLoad = function() {
     $.get(
         'home/api',
         {
-            'options': ['characters','details','corporations','alliances','skill_queues','event_log','summary'],
+            'options': ['characters','details','corporations','alliances','skill_queues','event_log','summary','systems'],
         },
         EVEthing.home.handleResponse
     );
@@ -248,7 +256,11 @@ EVEthing.home.handleResponse = function(data, textStatus, jqXHR) {
     }
     if (data.hasOwnProperty('corporations')) {
         EVEthing.home.parseCorporations(data);
-        delete data['corporations']
+        delete data['corporations'];
+    }
+    if (data.hasOwnProperty('systems')) {
+        EVEthing.home.parseSystems(data);
+        delete data['systems'];
     }
 
     if (data.hasOwnProperty('characters')) {
@@ -305,6 +317,13 @@ EVEthing.home.parseCorporations = function(data) {
     for (var i in data.corporations) {
         if (!data.corporations.hasOwnProperty(i)) continue;
         EVEthing.home.CORPORATIONS[i] = data.corporations[i];
+    }
+};
+
+EVEthing.home.parseSystems = function(data) {
+    for (var i in data.systems) {
+        if (!data.systems.hasOwnProperty(i)) continue;
+        EVEthing.home.SYSTEMS[i] = data.systems[i];
     }
 };
 
@@ -677,6 +696,7 @@ EVEthing.home.CharacterDisplay.prototype.parseResponse = function(data) {
     if (data.hasOwnProperty('ships')) EVEthing.home.parseShips(data);
     if (data.hasOwnProperty('alliances')) EVEthing.home.parseAlliances(data);
     if (data.hasOwnProperty('corporations')) EVEthing.home.parseCorporations(data);
+    if (data.hasOwnProperty('systems')) EVEthing.home.parseSystems(data);
 
     this.html = this.render();
 };

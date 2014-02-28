@@ -14,7 +14,7 @@
     {{#if profile.HOME_SHOW_LOCATIONS }}
     {{#if profile.HOME_SHOW_SEPARATORS }}<hr>{{/if}}
     <div class="sensitive character-location{{#unless profile.HOME_SHOW_SEPARATORS}} margin-half-top{{/unless}}">
-      {{ character.details.last_known_location }}
+      <span class="location-hover" rel="tooltip" title="{{ systems_details character.details.last_known_location }}">{{ character.details.last_known_location }}</span>
       {{#if character.details.ship_item_id }}
       -- {{ lookup ships character.details.ship_item_id }}
       {{/if}}
