@@ -74,6 +74,15 @@ EVEthing.home = {
         'user-name': 'Mr. User',
     },
 
+    'SP_PER_LEVEL': {
+        0: 0,
+        1: 250,
+        2: 1415,
+        3: 8000,
+        4: 45255,
+        5: 256000,
+    },
+
     'PROFILE': {
         'CHAR_COL_SPAN': 3,
         'HOME_SHOW_LOCATIONS': true,
@@ -488,7 +497,13 @@ EVEthing.home.CharacterDisplay.prototype.animate = function(now) {
             var training_time_left = this.character.skill_queue[0].end_time - Math.round(new Date().getTime() / 1000);
             var training_sp_left = training_time_left * (this.character.skill_queue[0].sp_per_minute / 60);
 
-            var req_sp = this.character.skill_queue[0].end_sp - this.character.skill_queue[0].start_sp;
+            //var req_sp = this.character.skill_queue[0].end_sp - this.character.skill_queue[0].start_sp;
+
+            var start_sp = EVEthing.home.SP_PER_LEVEL[this.character.skill_queue[0].to_level - 1] * this.character.skill_queue[0].skill.rank;
+            var end_sp =  EVEthing.home.SP_PER_LEVEL[this.character.skill_queue[0].to_level] * this.character.skill_queue[0].skill.rank;
+
+            var req_sp = end_sp - start_sp;
+
 
             total_sp = Math.round(total_sp + (req_sp - training_sp_left));
 
