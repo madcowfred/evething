@@ -644,7 +644,7 @@ EVEthing.home.CharacterDisplay.prototype.animate = function(now) {
         if (notifications) {
             this.well.find('.well').addClass('background-warn border-warn');
         } else {
-            this.well.find('.well').removeClass('background-warn border-warn');
+            this.well.find('.well').addClass('background-success border-success');
         }
     }
 
