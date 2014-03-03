@@ -32,6 +32,7 @@ from django.db import models
 # Profile information for a user
 class UserProfile(models.Model):
     HOME_SORT_ORDERS = (
+        ('skillqueue', 'Skill Queue Duration'),
         ('apiname', 'APIKey name'),
         ('charname', 'Character name'),
         ('corpname', 'Corporation name'),

@@ -110,6 +110,7 @@ EVEthing.home = {
     'ERROR_CSS_CLASS': "",
 
     'SORT_PROFILE_TO_FUNC_MAP': {
+        'skillqueue': 'skill_queue',
         'apiname': 'api_name',
         'charname': 'char_name',
         'corpname': 'corp_name',
