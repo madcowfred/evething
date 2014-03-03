@@ -5,6 +5,22 @@ Handlebars.registerHelper('lookup', function(dict, key) {
     return key;
 });
 
+Handlebars.registerHelper('corp', function(key) {
+    if (EVEthing.home.CORPORATIONS.hasOwnProperty(key)) {
+        var corp = EVEthing.home.CORPORATIONS[key];
+
+        var out = '[' + corp['ticker'] + '] ' + corp['name'];
+
+        if (EVEthing.home.ALLIANCES.hasOwnProperty(corp['alliance'])) {
+            var alliance = EVEthing.home.ALLIANCES[corp['alliance']];
+
+            out = out + '<br/> (' + alliance['short_name'] + ') ' + alliance['name'];
+        }
+        return out
+    }
+    return key;
+});
+
 Handlebars.registerHelper('systems_details', function(name) {
     if (EVEthing.home.SYSTEMS.hasOwnProperty(name)) {
         return name + ' - ' + EVEthing.home.SYSTEMS[name]['constellation'] + ' - ' + EVEthing.home.SYSTEMS[name]['region'];

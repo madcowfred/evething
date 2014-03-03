@@ -214,6 +214,7 @@ def __corporations(request, out):
         out['corporations'][corp.pk] = {}
         out['corporations'][corp.pk]['id'] = corp.pk
         out['corporations'][corp.pk]['name'] = corp.name
+        out['corporations'][corp.pk]['ticker'] = corp.ticker
         out['corporations'][corp.pk]['alliance'] = corp.alliance_id
 
         if corp.alliance_id and (corp.alliance_id not in out['alliances'].keys()):
@@ -226,6 +227,7 @@ def __alliances(request, out):
         out['alliances'][alliance.pk] = {}
         out['alliances'][alliance.pk]['id'] = alliance.pk
         out['alliances'][alliance.pk]['name'] = alliance.name
+        out['alliances'][alliance.pk]['short_name'] = alliance.short_name
 
     return out
 
@@ -292,7 +294,6 @@ def __getRefreshTimes(out):
     }
 
     for task in TaskState.objects.filter(url__in=list(urls), keyid__in=list(keys)):
-        print task.url
         if task.url == u'/account/AccountStatus.xml.aspx':
             out['refresh_hints']['account'][task.keyid] = task.next_time
         elif task.url == u'/char/SkillQueue.xml.aspx':

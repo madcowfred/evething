@@ -108,7 +108,9 @@ function program15(depth0,data) {
 
   buffer += "  <div class=\"well-small well home-character\">\n    <div>\n      <span class=\"large\">\n        <a href=\"character/"
     + escapeExpression(((stack1 = ((stack1 = (depth0 && depth0.character)),stack1 == null || stack1 === false ? stack1 : stack1.name)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
-    + "\" class=\"sensitive character-name\">"
+    + "\" class=\"sensitive character-name\" rel=\"tooltip\" title=\""
+    + escapeExpression((helper = helpers.corp || (depth0 && depth0.corp),options={hash:{},data:data},helper ? helper.call(depth0, ((stack1 = (depth0 && depth0.character)),stack1 == null || stack1 === false ? stack1 : stack1.corporation), options) : helperMissing.call(depth0, "corp", ((stack1 = (depth0 && depth0.character)),stack1 == null || stack1 === false ? stack1 : stack1.corporation), options)))
+    + "\">"
     + escapeExpression(((stack1 = ((stack1 = (depth0 && depth0.character)),stack1 == null || stack1 === false ? stack1 : stack1.name)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
     + "</a>\n      </span>\n      <span class=\"small pull-right sensitive apikey-name\">["
     + escapeExpression(((stack1 = ((stack1 = ((stack1 = (depth0 && depth0.character)),stack1 == null || stack1 === false ? stack1 : stack1.apikey)),stack1 == null || stack1 === false ? stack1 : stack1.name)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
