@@ -733,7 +733,7 @@ EVEthing.home.CharacterDisplay.prototype.animate = function(now) {
             if (!this.character.config.home_suppress_low_game_time) {
                 notifications = true;
                 this.well.find('.home-notifications .low-game-time').show();
-                this.well.find('.home-notifications .low-game-time').text(Handlebars.helpers.shortduration(paid_diff));
+                this.well.find('.home-notifications .low-game-time span').text(Handlebars.helpers.shortduration(paid_diff));
             }
         } else {
             this.well.find('.home-notifications .low-game-time').hide();
