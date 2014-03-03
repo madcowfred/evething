@@ -150,6 +150,9 @@ def account_settings(request):
 def account_home_page(request):
     profile = request.user.get_profile()
 
+    old_sort = profile.home_sort_order
+    old_sort_order = profile.home_sort_descending
+
     home_chars_per_row = int(request.POST.get('home_chars_per_row'), 0)
     if home_chars_per_row in (2, 3, 4, 6):
         profile.home_chars_per_row = home_chars_per_row
@@ -170,7 +173,14 @@ def account_home_page(request):
     request.session['message_type'] = 'success'
     request.session['message'] = 'Settings changed successfully.'
 
-    return redirect('%s#home_page' % (reverse(account)))
+    response = redirect('%s#home_page' % (reverse(account)))
+    if (old_sort != profile.home_sort_order) or \
+        (old_sort_order != profile.home_sort_descending):
+
+        response.delete_cookie('homePageSortBy')
+        response.delete_cookie('homePageSortOrder')
+   
+    return response
 
 @login_required
 def account_characters(request):

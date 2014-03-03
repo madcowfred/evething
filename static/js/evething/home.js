@@ -117,6 +117,8 @@ EVEthing.home = {
         'wallet': 'wallet_balance',
     },
 
+    'FUNC_TO_SORT_PROFILE_MAP': {},
+
     'SHIPS': {},
     'CORPORATIONS': {},
     'ALLIANCES': {},
@@ -136,15 +138,26 @@ EVEthing.home = {
     },
 };
 
+for (var i in EVEthing.home.SORT_PROFILE_TO_FUNC_MAP) {
+    if (!EVEthing.home.SORT_PROFILE_TO_FUNC_MAP.hasOwnProperty(i)) continue;
+
+    EVEthing.home.FUNC_TO_SORT_PROFILE_MAP[EVEthing.home.SORT_PROFILE_TO_FUNC_MAP[i]] = i;
+}
+
 EVEthing.home.onload = function() {
     // Bind screenshot mode button
     $('body').on('click', '.js-screenshot', EVEthing.home.screenshot_mode);
 
     EVEthing.home.initialLoad();
 
+    var cookies = document.cookie.split(/[;\s|=]/);
+    var indexOfSortMethod = cookies.indexOf('homePageSortBy');
+    if (indexOfSortMethod >= 0) {
+        EVEthing.home.PROFILE.HOME_SORT_ORDER = EVEthing.home.FUNC_TO_SORT_PROFILE_MAP[cookies[indexOfSortMethod + 1]];
+        EVEthing.home.PROFILE.HOME_SORT_DESCENDING = cookies[cookies.indexOf('homePageSortOrder') + 1] == 'desc';
+    }
 
     var sort_method = EVEthing.home.character_ordering[EVEthing.home.SORT_PROFILE_TO_FUNC_MAP[EVEthing.home.PROFILE.HOME_SORT_ORDER]];
-
     var sortSelect = $('<li class="pull-right dropdown sort-by"><a href="#" class="dropdown-toggle" data-toggle="dropdown"><b class="caret"></b>Sort By: <output></output></a></li>');
     sortSelect.find('output').val(sort_method.NAME + ' ' + (EVEthing.home.PROFILE.HOME_SORT_DESCENDING ? sort_method.NAME_REVERSE : sort_method.NAME_FORWARD));
 
@@ -209,6 +222,8 @@ EVEthing.home.onSortByClicked = function(event) {
     var href = event.target.href.split('#')[1];
     var sort_by = EVEthing.home.character_ordering[href];
 
+    var sort_order = 'asc';
+
     var name = sort_by.NAME + ' ' + (EVEthing.home.PROFILE.HOME_SORT_DESCENDING ? sort_by.NAME_REVERSE : sort_by.NAME_FORWARD);
     var name_output = $('li.sort-by output');
     if (name_output.val() != name) {
@@ -216,8 +231,12 @@ EVEthing.home.onSortByClicked = function(event) {
     } else {
         name_output.val(sort_by.NAME + ' ' + (EVEthing.home.PROFILE.HOME_SORT_DESCENDING ? sort_by.NAME_FORWARD : sort_by.NAME_REVERSE));
 
+        sort_order = 'desc';
         sort_by = EVEthing.home.reverse_ordering(sort_by);
     }
+
+    document.cookie = 'homePageSortBy=' + href;
+    document.cookie = 'homePageSortOrder=' + sort_order;
 
     EVEthing.home.sort_characters(sort_by);
 
