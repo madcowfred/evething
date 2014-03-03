@@ -160,6 +160,16 @@ EVEthing.home.onload = function() {
 
     $('ul.summary-row li.pull-right').after(sortSelect);
 
+    if (EVEthing.home.PROFILE.HOME_HIGHLIGHT_BACKGROUNDS) {
+        EVEthing.home.SUCCESS_CSS_CLASS += " background-success";
+        EVEthing.home.WARNING_CSS_CLASS += " background-warn";
+        EVEthing.home.ERROR_CSS_CLASS += " background-error";
+    }
+    if (EVEthing.home.PROFILE.HOME_HIGHLIGHT_BORDER) {
+        EVEthing.home.SUCCESS_CSS_CLASS += " border-success";
+        EVEthing.home.WARNING_CSS_CLASS += " border-warn";
+        EVEthing.home.ERROR_CSS_CLASS += " border-error";
+    }
 
     // Start the animation loop as though the last frame was 10s ago, to ensure it does an inital render
     window.requestAnimationFrame(function() { EVEthing.home.animate(Math.round(new Date().getTime() / 1000) - 10); });
@@ -721,12 +731,12 @@ EVEthing.home.CharacterDisplay.prototype.animate = function(now) {
     this.well.find('.well').removeClass('background-success border-success');
 
     if (errors) {
-        this.well.find('.well').addClass('background-error border-error');
+        this.well.find('.well').addClass(EVEthing.home.ERROR_CSS_CLASS);
     } else {
         if (notifications) {
-            this.well.find('.well').addClass('background-warn border-warn');
+            this.well.find('.well').addClass(EVEthing.home.WARNING_CSS_CLASS);
         } else {
-            this.well.find('.well').addClass('background-success border-success');
+            this.well.find('.well').addClass(EVEthing.home.SUCCESS_CSS_CLASS);
         }
     }
 
