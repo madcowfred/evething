@@ -159,6 +159,7 @@ def account_home_page(request):
         profile.home_sort_order = home_sort_order
 
     profile.home_sort_descending = (request.POST.get('home_sort_descending', '') == 'on')
+    profile.home_sort_empty_queue_last = (request.POST.get('home_sort_empty_queue_last', '') == 'on')
     profile.home_show_locations = (request.POST.get('home_show_locations', '') == 'on')
     profile.home_show_separators = (request.POST.get('home_show_separators', '') == 'on')
     profile.home_highlight_backgrounds = (request.POST.get('home_highlight_backgrounds', '') == 'on')

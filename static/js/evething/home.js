@@ -99,6 +99,7 @@ EVEthing.home = {
 
         'HOME_SORT_ORDER': 'apiname',
         'HOME_SORT_DESCENDING': false,
+        'HOME_SORT_EMPTY_QUEUE_LAST': false,
 
         'HOME_HIGHLIGHT_BACKGROUNDS': true,
         'HOME_HIGHLIGHT_BORDER': true,
@@ -516,7 +517,7 @@ EVEthing.home.GroupDisplay.prototype.draw = function() {
         if (this.characters.indexOf(EVEthing.home.CHARACTER_ORDER[i]) >= 0) {
             var defered = true;
             if (EVEthing.home.CHARACTERS[EVEthing.home.CHARACTER_ORDER[i]].character.hasOwnProperty('skill_queue')) {
-                if (EVEthing.home.CHARACTERS[EVEthing.home.CHARACTER_ORDER[i]].character.skill_queue.length > 0) {
+                if (!EVEthing.home.SHOW_EMPTY_QUEUE_LAST || EVEthing.home.CHARACTERS[EVEthing.home.CHARACTER_ORDER[i]].character.skill_queue.length > 0) {
                     defered = false;
                     row.append(EVEthing.home.CHARACTERS[EVEthing.home.CHARACTER_ORDER[i]].well);
                 }

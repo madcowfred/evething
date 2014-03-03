@@ -30,6 +30,17 @@
         </div>
       </div>
       <div class="control-group">
+        <label class="control-label" for="home_sort_empty_queue_last">Sort Empty Queue Last</label>
+        <div class="controls">
+          <label class="checkbox">
+            <input type="checkbox" name="home_sort_empty_queue_last"{% if profile.home_sort_empty_queue_last %} checked{% endif %}>
+          </label>
+          <p class="help-block">
+            Sort characters with empty skill queues after characters with active skill queues.
+          </p>
+        </div>
+      </div>
+      <div class="control-group">
         <label class="control-label" for="home_sort_descending">Show character locations</label>
         <div class="controls">
           <label class="checkbox">
