@@ -498,7 +498,7 @@ EVEthing.home.GroupDisplay.prototype.draw = function() {
 
     var defered_chars = [];
     for (var i=0; i < EVEthing.home.CHARACTER_ORDER.length; i++) {
-        if (row.children().length >= 4) {
+        if (row.children().length >= EVEthing.home.PROFILE.HOME_CHARS_PER_ROW) {
             this.html.append(row);
             row = $('<div class="row-fluid"></div>');
         }
@@ -518,7 +518,7 @@ EVEthing.home.GroupDisplay.prototype.draw = function() {
     }
 
     for (var i=0; i < defered_chars.length; i++) {
-        if (row.children().length >= 4) {
+        if (row.children().length >= EVEthing.home.PROFILE.HOME_CHARS_PER_ROW) {
             this.html.append(row);
             row = $('<div class="row-fluid"></div>');
         }
