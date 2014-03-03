@@ -92,10 +92,21 @@ EVEthing.home = {
 
     'PROFILE': {
         'CHAR_COL_SPAN': 3,
+        'HOME_CHARS_PER_ROW': 4,
+
         'HOME_SHOW_LOCATIONS': true,
         'HOME_SHOW_SEPARATORS': true,
+
         'HOME_SORT_ORDER': 'apiname',
+        'HOME_SORT_DESCENDING': false,
+
+        'HOME_HIGHLIGHT_BACKGROUNDS': true,
+        'HOME_HIGHLIGHT_BORDER': true,
     },
+
+    'SUCCESS_CSS_CLASS': "",
+    'WARNING_CSS_CLASS': "",
+    'ERROR_CSS_CLASS': "",
 
     'SORT_PROFILE_TO_FUNC_MAP': {
         'apiname': 'api_name',
@@ -133,7 +144,9 @@ EVEthing.home.onload = function() {
 
     var sort_method = EVEthing.home.character_ordering[EVEthing.home.SORT_PROFILE_TO_FUNC_MAP[EVEthing.home.PROFILE.HOME_SORT_ORDER]];
 
-    var sortSelect = $('<li class="pull-right dropdown sort-by"><a href="#" class="dropdown-toggle" data-toggle="dropdown"><b class="caret"></b>Sort By: <output>' + sort_method.NAME + '</output></a></li>');
+    var sortSelect = $('<li class="pull-right dropdown sort-by"><a href="#" class="dropdown-toggle" data-toggle="dropdown"><b class="caret"></b>Sort By: <output></output></a></li>');
+    sortSelect.find('output').val(sort_method.NAME + ' ' + (EVEthing.home.PROFILE.HOME_SORT_DESCENDING ? sort_method.NAME_REVERSE : sort_method.NAME_FORWARD));
+
     var sortSelectMenu = $('<ul class="dropdown-menu"></ul>');
     sortSelect.append(sortSelectMenu);
 
@@ -185,12 +198,14 @@ EVEthing.home.onSortByClicked = function(event) {
     var href = event.target.href.split('#')[1];
     var sort_by = EVEthing.home.character_ordering[href];
 
-    if ($('li.sort-by output').val() != sort_by.NAME) {
-        $('li.sort-by output').val(sort_by.NAME);
+    var name = sort_by.NAME + ' ' + (EVEthing.home.PROFILE.HOME_SORT_DESCENDING ? sort_by.NAME_REVERSE : sort_by.NAME_FORWARD);
+    var name_output = $('li.sort-by output');
+    if (name_output.val() != name) {
+        name_output.val(name);
     } else {
-        $('li.sort-by output').val(sort_by.NAME + ' ' + sort_by.NAME_REVERSE);
-        var __sort_by = sort_by;
-        sort_by = function(a, b) { return __sort_by(b, a); };
+        name_output.val(sort_by.NAME + ' ' + (EVEthing.home.PROFILE.HOME_SORT_DESCENDING ? sort_by.NAME_FORWARD : sort_by.NAME_REVERSE));
+
+        sort_by = EVEthing.home.reverse_ordering(sort_by);
     }
 
     EVEthing.home.sort_characters(sort_by);
@@ -215,21 +230,24 @@ EVEthing.home.draw_characters = function() {
 EVEthing.home.character_ordering = {};
 
 EVEthing.home.character_ordering.skill_queue = function(a, b) {
-    return EVEthing.home.CHARACTERS[b].character.skill_queue_duration - EVEthing.home.CHARACTERS[a].character.skill_queue_duration;
+    return EVEthing.home.CHARACTERS[a].character.skill_queue_duration - EVEthing.home.CHARACTERS[b].character.skill_queue_duration;
 };
 EVEthing.home.character_ordering.skill_queue.NAME = 'Skill Queue Duration';
-EVEthing.home.character_ordering.skill_queue.NAME_REVERSE = 'Asc';
+EVEthing.home.character_ordering.skill_queue.NAME_FORWARD = 'Asc';
+EVEthing.home.character_ordering.skill_queue.NAME_REVERSE = 'Desc';
 
 EVEthing.home.character_ordering.api_name = function(a, b) {
     return EVEthing.home.CHARACTERS[a].character.apikey.name.localeCompare(EVEthing.home.CHARACTERS[b].character.apikey.name);
 };
 EVEthing.home.character_ordering.api_name.NAME = 'API Name';
+EVEthing.home.character_ordering.api_name.NAME_FORWARD = 'Asc';
 EVEthing.home.character_ordering.api_name.NAME_REVERSE = 'Desc';
 
 EVEthing.home.character_ordering.char_name = function(a, b) {
     return EVEthing.home.CHARACTERS[a].character.name.localeCompare(EVEthing.home.CHARACTERS[b].character.name);
 };
 EVEthing.home.character_ordering.char_name.NAME = 'Character Name';
+EVEthing.home.character_ordering.char_name.NAME_FORWARD = 'Asc';
 EVEthing.home.character_ordering.char_name.NAME_REVERSE = 'Desc';
 
 EVEthing.home.character_ordering.corp_name = function(a, b) {
@@ -239,19 +257,28 @@ EVEthing.home.character_ordering.corp_name = function(a, b) {
     return EVEthing.home.CORPORATIONS[corp_a].name.localeCompare(EVEthing.home.CORPORATIONS[corp_b].name);
 };
 EVEthing.home.character_ordering.corp_name.NAME = 'Corporation Name';
+EVEthing.home.character_ordering.corp_name.NAME_FORWARD = 'Asc';
 EVEthing.home.character_ordering.corp_name.NAME_REVERSE = 'Desc';
 
 EVEthing.home.character_ordering.total_sp = function(a, b) {
     return EVEthing.home.CHARACTERS[a].character.details.total_sp - EVEthing.home.CHARACTERS[b].character.details.total_sp;
 };
 EVEthing.home.character_ordering.total_sp.NAME = 'Total Skill Points';
+EVEthing.home.character_ordering.total_sp.NAME_FORWARD = 'Asc';
 EVEthing.home.character_ordering.total_sp.NAME_REVERSE = 'Desc';
 
 EVEthing.home.character_ordering.wallet_balance = function(a, b) {
     return EVEthing.home.CHARACTERS[a].character.details.wallet_balance - EVEthing.home.CHARACTERS[b].character.details.wallet_balance;
 };
 EVEthing.home.character_ordering.wallet_balance.NAME = 'Wallet Ballance';
+EVEthing.home.character_ordering.wallet_balance.NAME_FORWARD = 'Asc';
 EVEthing.home.character_ordering.wallet_balance.NAME_REVERSE = 'Desc';
+
+EVEthing.home.reverse_ordering = function(method) {
+    return function(a, b) {
+        return method(b, a);
+    };
+};
 
 EVEthing.home.sort_characters = function() {
     if (EVEthing.home.CHARACTER_ORDER.length != EVEthing.home.CHARACTERS.length) {
@@ -270,7 +297,6 @@ EVEthing.home.sort_characters = function() {
             methods[0] = EVEthing.home.character_ordering[sort_method];
         }
     }
-    console.log(methods);
 
     if (methods.length == 0) {
         for (var i in EVEthing.home.character_ordering) {
@@ -280,7 +306,13 @@ EVEthing.home.sort_characters = function() {
     }
 
     for (var i=0; i<methods.length; i++) {
-        EVEthing.home.CHARACTER_ORDER.sort(methods[i]);
+        var method = methods[i];
+
+        if (EVEthing.home.PROFILE.HOME_SORT_DESCENDING) {
+            method = EVEthing.home.reverse_ordering(method);
+        }
+
+        EVEthing.home.CHARACTER_ORDER.sort(method);
     }
 };
 
