@@ -6,9 +6,16 @@
 {% block extra_js %}
     <script type="text/javascript">
         EVEthing.home.PROFILE.CHAR_COL_SPAN = {{ 12 / profile.home_chars_per_row }};
+        EVEthing.home.PROFILE.HOME_CHARS_PER_ROW = {{  profile.home_chars_per_row }};
+
         EVEthing.home.PROFILE.HOME_SHOW_LOCATIONS = {{ profile.home_show_locations|lower }};
         EVEthing.home.PROFILE.HOME_SHOW_SEPARATORS = {{ profile.home_show_separators|lower }};
+
         EVEthing.home.PROFILE.HOME_SORT_ORDER = "{{ profile.home_sort_order }}";
+        EVEthing.home.PROFILE.HOME_SORT_DESCENDING = {{ profile.home_sort_descending|lower }};
+
+        EVEthing.home.PROFILE.HOME_HIGHLIGHT_BACKGROUNDS = {{ profile.home_highlight_backgrounds|lower }};
+        EVEthing.home.PROFILE.HOME_HIGHLIGHT_BORDER = {{ profile.home_highlight_borders|lower }};
 
         $(document).ready(EVEthing.home.onload);
     </script>
