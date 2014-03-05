@@ -136,6 +136,8 @@ EVEthing.home = {
 
     'FUNC_TO_SORT_PROFILE_MAP': {},
 
+    'IGNORE_GROUPS': false,
+
     'SHIPS': {},
     'CORPORATIONS': {},
     'ALLIANCES': {},
@@ -177,10 +179,18 @@ EVEthing.home.onload = function() {
     if (indexOfSortEmptyQueueLast >= 0) {
         if (cookies[indexOfSortEmptyQueueLast + 1] == 'true') {
             EVEthing.home.PROFILE.HOME_SORT_EMPTY_QUEUE_LAST = true;
-        } else if (Ecookies[indexOfSortEmptyQueueLast + 1] == 'false') {
+        } else if (cookies[indexOfSortEmptyQueueLast + 1] == 'false') {
             EVEthing.home.PROFILE.HOME_SORT_EMPTY_QUEUE_LAST = false;
         }
-    }            
+    }
+    var indexOfIgnoreGroups = cookies.indexOf('homePageIgnoreGroups');
+    if (indexOfIgnoreGroups >= 0) {
+        if (cookies[indexOfIgnoreGroups + 1] == 'true') {
+            EVEthing.home.IGNORE_GROUPS = true;
+        } else if (cookies[indexOfIgnoreGroups + 1] == 'false') {
+            EVEthing.home.IGNORE_GROUPS = false;
+        }
+    }
 
     var sort_method = EVEthing.home.character_ordering[EVEthing.home.SORT_PROFILE_TO_FUNC_MAP[EVEthing.home.PROFILE.HOME_SORT_ORDER]];
     var sortSelect = $('<li class="pull-right dropdown sort-by"><a href="#" class="dropdown-toggle" data-toggle="dropdown"><b class="caret"></b>Sort By: <output></output></a></li>');
@@ -197,7 +207,7 @@ EVEthing.home.onload = function() {
 
     sortSelectMenu.append('<li class="divider"></li>');
     sortSelectMenu.append('<li><a href="#empty_queue_last"><b class="icon-' + (EVEthing.home.PROFILE.HOME_SORT_EMPTY_QUEUE_LAST ? 'ok' : 'remove' ) + '"></b> Empty Queues Last</a></li>');
-    sortSelectMenu.append('<li><a href="#use_groups"><b class="icon-ok"></b> Use Groups</a></li>');
+    sortSelectMenu.append('<li><a href="#use_groups"><b class="icon-' + (EVEthing.home.IGNORE_GROUPS ? 'remove' : 'ok') + '"></b> Use Groups</a></li>');
 
     sortSelectMenu.find('a').click(EVEthing.home.onSortByClicked);
 
@@ -248,14 +258,24 @@ EVEthing.home.onSortByClicked = function(event) {
     event.stopPropagation();
     event.preventDefault();
 
-    var href = event.target.href.split('#')[1];
+    var elem = $(event.target);
+
+    if (elem.is('b')) elem = elem.parent();
+
+    var href = elem[0].href.split('#')[1];
 
     if (href == "use_groups") {
+        EVEthing.home.IGNORE_GROUPS = !EVEthing.home.IGNORE_GROUPS;
 
+        var icon = $(elem).find('b');        
+        icon.removeClass('icon-ok icon-remove');
+        icon.addClass('icon-' + (EVEthing.home.IGNORE_GROUPS ? 'remove' : 'ok'));
+
+        document.cookie = 'homePageIgnoreGroups=' + String(EVEthing.home.IGNORE_GROUPS);
     } else if (href == "empty_queue_last") {
         EVEthing.home.PROFILE.HOME_SORT_EMPTY_QUEUE_LAST = !EVEthing.home.PROFILE.HOME_SORT_EMPTY_QUEUE_LAST;
         
-        var icon = $(event.target).find('b');
+        var icon = $(elem).find('b');
         icon.removeClass('icon-ok icon-remove');
         icon.addClass('icon-' + (EVEthing.home.PROFILE.HOME_SORT_EMPTY_QUEUE_LAST ? 'ok' : 'remove' ));
 
@@ -292,10 +312,18 @@ EVEthing.home.draw_characters = function() {
         EVEthing.home.sort_characters();
     }
 
-    for (var i=0; i<EVEthing.home.GroupDisplay.GROUP_ORDER.length; i++) {
-        EVEthing.home.GroupDisplay.GROUPS[EVEthing.home.GroupDisplay.GROUP_ORDER[i]].draw();
+    if (EVEthing.home.IGNORE_GROUPS) {
+        EVEthing.home.GroupDisplay.removeAll();
 
-        EVEthing.home.GroupDisplay.GROUPS[EVEthing.home.GroupDisplay.GROUP_ORDER[i]].html.insertAfter('.summary-row');
+        EVEthing.home.CharacterListDisplay.draw();
+        EVEthing.home.CharacterListDisplay.html.insertAfter('.summary-row');
+    } else {
+        EVEthing.home.CharacterListDisplay.remove();
+
+        for (var i=0; i<EVEthing.home.GroupDisplay.GROUP_ORDER.length; i++) {
+            EVEthing.home.GroupDisplay.GROUPS[EVEthing.home.GroupDisplay.GROUP_ORDER[i]].draw();
+            EVEthing.home.GroupDisplay.GROUPS[EVEthing.home.GroupDisplay.GROUP_ORDER[i]].html.insertAfter('.summary-row');
+        }
     }
 };
 
@@ -533,6 +561,62 @@ EVEthing.home.screenshot_mode = function() {
 };
 
 /**
+ * Prototype for drawing and laying out characters without groups
+ */
+
+EVEthing.home.CharacterListDisplay = {};
+
+EVEthing.home.CharacterListDisplay.draw = function() {
+    if (typeof(this.html) == "undefined") this.html = null;
+    if (this.html !== null) this.html.remove();
+
+    this.html = $('<div class="margin-half-top"></div>');
+   
+    var row = $('<div class="row-fluid"></div>');
+
+    var defered_chars = [];
+    for (var i=0; i < EVEthing.home.CHARACTER_ORDER.length; i++) {
+        if (row.children().length >= EVEthing.home.PROFILE.HOME_CHARS_PER_ROW) {
+            this.html.append(row);
+            row = $('<div class="row-fluid"></div>');
+        }
+
+        if (EVEthing.home.PROFILE.HOME_SORT_EMPTY_QUEUE_LAST) {
+            var defered = true;
+            if (EVEthing.home.CHARACTERS[EVEthing.home.CHARACTER_ORDER[i]].character.hasOwnProperty('skill_queue')) {
+                if (EVEthing.home.CHARACTERS[EVEthing.home.CHARACTER_ORDER[i]].character.skill_queue.length > 0) {
+                    defered = false;
+                    row.append(EVEthing.home.CHARACTERS[EVEthing.home.CHARACTER_ORDER[i]].well);
+                }
+            }
+            if (defered) {
+                defered_chars[defered_chars.length] = EVEthing.home.CHARACTER_ORDER[i];;
+            }
+        } else {
+            row.append(EVEthing.home.CHARACTERS[EVEthing.home.CHARACTER_ORDER[i]].well);
+        }
+
+    }
+
+    for (var i=0; i < defered_chars.length; i++) {
+        if (row.children().length >= EVEthing.home.PROFILE.HOME_CHARS_PER_ROW) {
+            this.html.append(row);
+            row = $('<div class="row-fluid"></div>');
+        }
+        row.append(EVEthing.home.CHARACTERS[defered_chars[i]].well);
+    }
+
+    this.html.append(row);
+    this.html.append('<hr />');
+};
+
+EVEthing.home.CharacterListDisplay.remove = function() {
+    if (typeof(this.html) == "undefined") this.html = null;
+    if (this.html !== null) this.html.remove();
+}
+
+
+/**
  * Prototype for drawing and laying out characters in groups
  */
 EVEthing.home.GroupDisplay = function(name) {
@@ -554,6 +638,14 @@ EVEthing.home.GroupDisplay.addCharacter = function(character) {
     }
 
     EVEthing.home.GroupDisplay.GROUPS[character.character.config.home_group].add(character);
+};
+
+EVEthing.home.GroupDisplay.removeAll = function() {
+    for (var i in EVEthing.home.GroupDisplay.GROUPS) {
+        if (!EVEthing.home.GroupDisplay.GROUPS.hasOwnProperty(i)) continue;
+
+        EVEthing.home.GroupDisplay.GROUPS[i].remove();
+    }
 };
 
 EVEthing.home.GroupDisplay.prototype.add = function(character) {
@@ -603,6 +695,10 @@ EVEthing.home.GroupDisplay.prototype.draw = function() {
 
     this.html.append(row);
     this.html.append('<hr />');
+};
+
+EVEthing.home.GroupDisplay.prototype.remove = function() {
+    if (this.html !== null) this.html.remove();
 };
 
 /**
