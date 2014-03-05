@@ -173,6 +173,14 @@ EVEthing.home.onload = function() {
         EVEthing.home.PROFILE.HOME_SORT_ORDER = EVEthing.home.FUNC_TO_SORT_PROFILE_MAP[cookies[indexOfSortMethod + 1]];
         EVEthing.home.PROFILE.HOME_SORT_DESCENDING = cookies[cookies.indexOf('homePageSortOrder') + 1] == 'desc';
     }
+    var indexOfSortEmptyQueueLast = cookies.indexOf('homePageSortEmptyQueueLast');
+    if (indexOfSortEmptyQueueLast >= 0) {
+        if (cookies[indexOfSortEmptyQueueLast + 1] == 'true') {
+            EVEthing.home.PROFILE.HOME_SORT_EMPTY_QUEUE_LAST = true;
+        } else if (Ecookies[indexOfSortEmptyQueueLast + 1] == 'false') {
+            EVEthing.home.PROFILE.HOME_SORT_EMPTY_QUEUE_LAST = false;
+        }
+    }            
 
     var sort_method = EVEthing.home.character_ordering[EVEthing.home.SORT_PROFILE_TO_FUNC_MAP[EVEthing.home.PROFILE.HOME_SORT_ORDER]];
     var sortSelect = $('<li class="pull-right dropdown sort-by"><a href="#" class="dropdown-toggle" data-toggle="dropdown"><b class="caret"></b>Sort By: <output></output></a></li>');
@@ -183,9 +191,13 @@ EVEthing.home.onload = function() {
 
     for (var i in EVEthing.home.character_ordering) {
         if (EVEthing.home.character_ordering.hasOwnProperty(i)) {
-            sortSelectMenu.append('<li style="width:98%;"><a href="#' + i + '">' + EVEthing.home.character_ordering[i].NAME + '</a></li>');
+            sortSelectMenu.append('<li><a href="#' + i + '">' + EVEthing.home.character_ordering[i].NAME + '</a></li>');
         }
     }
+
+    sortSelectMenu.append('<li class="divider"></li>');
+    sortSelectMenu.append('<li><a href="#empty_queue_last"><b class="icon-' + (EVEthing.home.PROFILE.HOME_SORT_EMPTY_QUEUE_LAST ? 'ok' : 'remove' ) + '"></b> Empty Queues Last</a></li>');
+    sortSelectMenu.append('<li><a href="#use_groups"><b class="icon-ok"></b> Use Groups</a></li>');
 
     sortSelectMenu.find('a').click(EVEthing.home.onSortByClicked);
 
@@ -237,25 +249,38 @@ EVEthing.home.onSortByClicked = function(event) {
     event.preventDefault();
 
     var href = event.target.href.split('#')[1];
-    var sort_by = EVEthing.home.character_ordering[href];
 
-    var sort_order = 'asc';
+    if (href == "use_groups") {
 
-    var name = sort_by.NAME + ' ' + (EVEthing.home.PROFILE.HOME_SORT_DESCENDING ? sort_by.NAME_REVERSE : sort_by.NAME_FORWARD);
-    var name_output = $('li.sort-by output');
-    if (name_output.val() != name) {
-        name_output.val(name);
+    } else if (href == "empty_queue_last") {
+        EVEthing.home.PROFILE.HOME_SORT_EMPTY_QUEUE_LAST = !EVEthing.home.PROFILE.HOME_SORT_EMPTY_QUEUE_LAST;
+        
+        var icon = $(event.target).find('b');
+        icon.removeClass('icon-ok icon-remove');
+        icon.addClass('icon-' + (EVEthing.home.PROFILE.HOME_SORT_EMPTY_QUEUE_LAST ? 'ok' : 'remove' ));
+
+        document.cookie = 'homePageSortEmptyQueueLast=' + String(EVEthing.home.PROFILE.HOME_SORT_EMPTY_QUEUE_LAST);
     } else {
-        name_output.val(sort_by.NAME + ' ' + (EVEthing.home.PROFILE.HOME_SORT_DESCENDING ? sort_by.NAME_FORWARD : sort_by.NAME_REVERSE));
+        var sort_by = EVEthing.home.character_ordering[href];
 
-        sort_order = 'desc';
-        sort_by = EVEthing.home.reverse_ordering(sort_by);
+        var sort_order = 'asc';
+
+        var name = sort_by.NAME + ' ' + (EVEthing.home.PROFILE.HOME_SORT_DESCENDING ? sort_by.NAME_REVERSE : sort_by.NAME_FORWARD);
+        var name_output = $('li.sort-by output');
+        if (name_output.val() != name) {
+            name_output.val(name);
+        } else {
+            name_output.val(sort_by.NAME + ' ' + (EVEthing.home.PROFILE.HOME_SORT_DESCENDING ? sort_by.NAME_FORWARD : sort_by.NAME_REVERSE));
+
+            sort_order = 'desc';
+            sort_by = EVEthing.home.reverse_ordering(sort_by);
+        }
+
+        document.cookie = 'homePageSortBy=' + href;
+        document.cookie = 'homePageSortOrder=' + sort_order;
+
+        EVEthing.home.sort_characters(sort_by);
     }
-
-    document.cookie = 'homePageSortBy=' + href;
-    document.cookie = 'homePageSortOrder=' + sort_order;
-
-    EVEthing.home.sort_characters(sort_by);
 
     EVEthing.home.draw_characters();
 
@@ -551,15 +576,19 @@ EVEthing.home.GroupDisplay.prototype.draw = function() {
         }
 
         if (this.characters.indexOf(EVEthing.home.CHARACTER_ORDER[i]) >= 0) {
-            var defered = true;
-            if (EVEthing.home.CHARACTERS[EVEthing.home.CHARACTER_ORDER[i]].character.hasOwnProperty('skill_queue')) {
-                if (!EVEthing.home.SHOW_EMPTY_QUEUE_LAST || EVEthing.home.CHARACTERS[EVEthing.home.CHARACTER_ORDER[i]].character.skill_queue.length > 0) {
-                    defered = false;
-                    row.append(EVEthing.home.CHARACTERS[EVEthing.home.CHARACTER_ORDER[i]].well);
+            if (EVEthing.home.PROFILE.HOME_SORT_EMPTY_QUEUE_LAST) {
+                var defered = true;
+                if (EVEthing.home.CHARACTERS[EVEthing.home.CHARACTER_ORDER[i]].character.hasOwnProperty('skill_queue')) {
+                    if (EVEthing.home.CHARACTERS[EVEthing.home.CHARACTER_ORDER[i]].character.skill_queue.length > 0) {
+                        defered = false;
+                        row.append(EVEthing.home.CHARACTERS[EVEthing.home.CHARACTER_ORDER[i]].well);
+                    }
                 }
-            }
-            if (defered) {
-                defered_chars[defered_chars.length] = EVEthing.home.CHARACTER_ORDER[i];;
+                if (defered) {
+                    defered_chars[defered_chars.length] = EVEthing.home.CHARACTER_ORDER[i];;
+                }
+            } else {
+                row.append(EVEthing.home.CHARACTERS[EVEthing.home.CHARACTER_ORDER[i]].well);
             }
         }
     }

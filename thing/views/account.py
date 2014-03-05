@@ -152,6 +152,7 @@ def account_home_page(request):
 
     old_sort = profile.home_sort_order
     old_sort_order = profile.home_sort_descending
+    old_sort_empty_queue_last = profile.home_sort_empty_queue_last
 
     home_chars_per_row = int(request.POST.get('home_chars_per_row'), 0)
     if home_chars_per_row in (2, 3, 4, 6):
@@ -175,10 +176,12 @@ def account_home_page(request):
 
     response = redirect('%s#home_page' % (reverse(account)))
     if (old_sort != profile.home_sort_order) or \
-        (old_sort_order != profile.home_sort_descending):
+        (old_sort_order != profile.home_sort_descending) or \
+        (old_sort_empty_queue_last != profile.home_sort_empty_queue_last):
 
         response.delete_cookie('homePageSortBy')
         response.delete_cookie('homePageSortOrder')
+        response.delete_cookie('homePageSortEmptyQueueLast')
    
     return response
 
