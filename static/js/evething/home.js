@@ -136,6 +136,8 @@ EVEthing.home = {
 
     'FUNC_TO_SORT_PROFILE_MAP': {},
 
+    'UPDATE_CHECK_PERIOD': 60*5,
+
     'IGNORE_GROUPS': false,
 
     'SHIPS': {},
@@ -228,6 +230,8 @@ EVEthing.home.onload = function() {
     window.requestAnimationFrame(function() { EVEthing.home.animate(Math.round(new Date().getTime() / 1000) - 10); });
 };
 
+EVEthing.home.lastUpdateCheck = new Date().getTime() / 1000;
+
 EVEthing.home.animate = function(lastFrame) {
     var now = Math.round(new Date().getTime() / 1000);
 
@@ -250,6 +254,45 @@ EVEthing.home.animate = function(lastFrame) {
 
         for (var i in EVEthing.home.EVENTS) {
             if (EVEthing.home.EVENTS.hasOwnProperty(i)) EVEthing.home.EVENTS[i].animate(now);
+        }
+
+        if ((now - EVEthing.home.lastUpdateCheck) > EVEthing.home.UPDATE_CHECK_PERIOD) {
+            EVEthing.home.lastUpdateCheck = now;
+
+            var characters = {};
+            var options = {};
+
+            for (var i in EVEthing.home.REFRESH_HINTS['skill_queue']) {
+                if (!EVEthing.home.REFRESH_HINTS['skill_queue'].hasOwnProperty(i)) continue;
+
+                // We want to give evething a little bit of time to actualy run the update
+                if (EVEthing.home.REFRESH_HINTS['skill_queue'][i] < (now + EVEthing.home.UPDATE_CHECK_PERIOD)) {
+                    characters[i] = true;
+                    options['skill_queue'] = true;
+                }
+            }
+
+            for (var i in EVEthing.home.REFRESH_HINTS['account']) {
+                if (!EVEthing.home.REFRESH_HINTS['account'].hasOwnProperty(i)) continue;
+
+                // We want to give evething a little bit of time to actualy run the update
+                if (EVEthing.home.REFRESH_HINTS['account'][i] < (now + EVEthing.home.UPDATE_CHECK_PERIOD)) {
+                    characters[i] = true;
+                    options['character'] = true;
+                }
+            }
+
+            for (var i in EVEthing.home.REFRESH_HINTS['details']) {
+                if (!EVEthing.home.REFRESH_HINTS['details'].hasOwnProperty(i)) continue;
+
+                // We want to give evething a little bit of time to actualy run the update
+                if (EVEthing.home.REFRESH_HINTS['details'][i] < (now + EVEthing.home.UPDATE_CHECK_PERIOD)) {
+                    characters[i] = true;
+                    options['details'] = true;
+                }
+            }
+
+            console.log(characters, options)
         }
     }
 };
@@ -444,6 +487,11 @@ EVEthing.home.handleResponse = function(data, textStatus, jqXHR) {
         delete data['systems'];
     }
 
+    if (data.hasOwnProperty('refresh_hints')) {
+        EVEthing.home.parseRefreshHints(data);
+        delete data['refresh_hints'];
+    }
+
     if (data.hasOwnProperty('characters')) {
         var wallet_total = 0;
         for (var i in data.characters) {
@@ -505,6 +553,18 @@ EVEthing.home.parseSystems = function(data) {
     for (var i in data.systems) {
         if (!data.systems.hasOwnProperty(i)) continue;
         EVEthing.home.SYSTEMS[i] = data.systems[i];
+    }
+};
+
+EVEthing.home.parseRefreshHints = function(data) {
+    for (var queue in data.refresh_hints) {
+        if (!data.refresh_hints.hasOwnProperty(queue)) continue;
+
+        for (var i in data.refresh_hints[queue]) {
+            if (!data.refresh_hints[queue].hasOwnProperty(i)) continue;
+
+            EVEthing.home.REFRESH_HINTS[queue][i] = Math.round(new Date(data.refresh_hints[queue][i]).getTime() / 1000);
+        }
     }
 };
 

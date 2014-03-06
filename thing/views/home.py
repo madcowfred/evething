@@ -368,3 +368,4 @@ def home_api(request):
         tt.finished()
 
     return HttpResponse(content=json.dumps(out, cls=DjangoJSONEncoder), content_type='application/json')
+
