@@ -246,7 +246,7 @@ EVEthing.home.animate = function(lastFrame) {
                 total_sp = total_sp + dyn_data['total_sp'];
             }
         }
-        $('output[name="total_sp"]').val(Handlebars.helpers.comma(total_sp) + ' ISK');
+        $('output[name="total_sp"]').val(Handlebars.helpers.comma(total_sp) + ' SP');
 
         for (var i in EVEthing.home.EVENTS) {
             if (EVEthing.home.EVENTS.hasOwnProperty(i)) EVEthing.home.EVENTS[i].animate(now);
