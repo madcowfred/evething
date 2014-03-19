@@ -1,5 +1,20 @@
 "use strict";
 
+/* Django CSRF Handleing */
+function csrfSafeMethod(method) {
+    // these HTTP methods do not require CSRF protection
+    return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+}
+
+$.ajaxSetup({
+    crossDomain: false, // obviates need for sameOrigin test
+    beforeSend: function(xhr, settings) {
+        if (!csrfSafeMethod(settings.type)) {
+            xhr.setRequestHeader("X-CSRFToken", $.cookie('csrftoken'));
+        }
+    }
+});
+
 Handlebars.registerHelper('lookup', function(dict, key) {
     if (dict.hasOwnProperty(key)) return dict[key];
     return key;
@@ -154,9 +169,10 @@ EVEthing.home = {
 
     'REFRESH_HINTS': {
         'skill_queue': {},
-        'account': {},
-        'details': {},
+        'character': {},
     },
+
+    'HOME_PAGE_UPDATE_DELAY': null,
 };
 
 for (var i in EVEthing.home.SORT_PROFILE_TO_FUNC_MAP) {
@@ -252,47 +268,41 @@ EVEthing.home.animate = function(lastFrame) {
         }
         $('output[name="total_sp"]').val(Handlebars.helpers.comma(total_sp) + ' ISK');
 
-        for (var i in EVEthing.home.EVENTS) {
-            if (EVEthing.home.EVENTS.hasOwnProperty(i)) EVEthing.home.EVENTS[i].animate(now);
+        for (var i in EVEthing.home.EventDisplay.EVENTS) {
+            if (!EVEthing.home.EventDisplay.EVENTS.hasOwnProperty(i)) continue;
+
+            EVEthing.home.EventDisplay.EVENTS[i].animate(now);
         }
 
-        if ((now - EVEthing.home.lastUpdateCheck) > EVEthing.home.UPDATE_CHECK_PERIOD) {
-            EVEthing.home.lastUpdateCheck = now;
+        if (EVEthing.home.HOME_PAGE_UPDATE_DELAY !== false) {
+            if ((now - EVEthing.home.lastUpdateCheck) > EVEthing.home.UPDATE_CHECK_PERIOD) {
+                EVEthing.home.lastUpdateCheck = now;
 
-            var characters = {};
-            var options = {};
+                var characters = {};
+                var options = {};
 
-            for (var i in EVEthing.home.REFRESH_HINTS['skill_queue']) {
-                if (!EVEthing.home.REFRESH_HINTS['skill_queue'].hasOwnProperty(i)) continue;
+                for (var i in EVEthing.home.REFRESH_HINTS['skill_queue']) {
+                    if (!EVEthing.home.REFRESH_HINTS['skill_queue'].hasOwnProperty(i)) continue;
 
-                // We want to give evething a little bit of time to actualy run the update
-                if (EVEthing.home.REFRESH_HINTS['skill_queue'][i] < (now + EVEthing.home.UPDATE_CHECK_PERIOD)) {
-                    characters[i] = true;
-                    options['skill_queue'] = true;
+                    // We want to give evething a little bit of time to actualy run the update
+                    if (EVEthing.home.REFRESH_HINTS['skill_queue'][i] < (now + EVEthing.home.HOME_PAGE_UPDATE_DELAY)) {
+                        characters[i] = true;
+                        options['skill_queue'] = true;
+                    }
                 }
-            }
 
-            for (var i in EVEthing.home.REFRESH_HINTS['account']) {
-                if (!EVEthing.home.REFRESH_HINTS['account'].hasOwnProperty(i)) continue;
+                for (var i in EVEthing.home.REFRESH_HINTS['character']) {
+                    if (!EVEthing.home.REFRESH_HINTS['character'].hasOwnProperty(i)) continue;
 
-                // We want to give evething a little bit of time to actualy run the update
-                if (EVEthing.home.REFRESH_HINTS['account'][i] < (now + EVEthing.home.UPDATE_CHECK_PERIOD)) {
-                    characters[i] = true;
-                    options['character'] = true;
+                    // We want to give evething a little bit of time to actualy run the update
+                    if (EVEthing.home.REFRESH_HINTS['character'][i] < (now + EVEthing.home.HOME_PAGE_UPDATE_DELAY)) {
+                        characters[i] = true;
+                        options['characters'] = true;
+                    }
                 }
+
+                EVEthing.home.partialLoad(Object.keys(options), Object.keys(characters));
             }
-
-            for (var i in EVEthing.home.REFRESH_HINTS['details']) {
-                if (!EVEthing.home.REFRESH_HINTS['details'].hasOwnProperty(i)) continue;
-
-                // We want to give evething a little bit of time to actualy run the update
-                if (EVEthing.home.REFRESH_HINTS['details'][i] < (now + EVEthing.home.UPDATE_CHECK_PERIOD)) {
-                    characters[i] = true;
-                    options['details'] = true;
-                }
-            }
-
-            console.log(characters, options)
         }
     }
 };
@@ -469,6 +479,29 @@ EVEthing.home.initialLoad = function() {
     );
 };
 
+EVEthing.home.partialLoad = function(options, characters) {
+    options[options.length] = 'event_log';
+    options[options.length] = 'summary';
+
+    options[options.length] = 'corporations';
+    options[options.length] = 'alliances';
+    options[options.length] = 'systems';
+
+    $.post(
+        'home/api',
+        {
+            'characters': characters,
+            'options': options,
+
+            'known_ships': Object.keys(EVEthing.home.SHIPS),
+            'known_corporations': Object.keys(EVEthing.home.CORPORATIONS),
+            'known_alliances': Object.keys(EVEthing.home.ALLIANCES),
+            'known_systems': Object.keys(EVEthing.home.SYSTEMS),
+        },
+        EVEthing.home.handleResponse
+    );
+};
+
 EVEthing.home.handleResponse = function(data, textStatus, jqXHR) {
     if (data.hasOwnProperty('ships')) {
         EVEthing.home.parseShips(data);
@@ -497,11 +530,12 @@ EVEthing.home.handleResponse = function(data, textStatus, jqXHR) {
         for (var i in data.characters) {
             if (!data.characters.hasOwnProperty(i)) continue;
 
-            if (EVEthing.home.CHARACTERS.hasOwnProperty(i)) EVEthing.home.CHARACTERS[i].update(data);
-
-            EVEthing.home.CHARACTERS[i] = new EVEthing.home.CharacterDisplay(i, data);
-
-            EVEthing.home.GroupDisplay.addCharacter(EVEthing.home.CHARACTERS[i]);
+            if (EVEthing.home.CHARACTERS.hasOwnProperty(i)) {
+                EVEthing.home.CHARACTERS[i].parseResponse(data);
+            } else {
+                EVEthing.home.CHARACTERS[i] = new EVEthing.home.CharacterDisplay(i, data);
+                EVEthing.home.GroupDisplay.addCharacter(EVEthing.home.CHARACTERS[i]);
+            }
 
             wallet_total = wallet_total + parseFloat(EVEthing.home.CHARACTERS[i].character.details.wallet_balance);
         }
@@ -510,12 +544,8 @@ EVEthing.home.handleResponse = function(data, textStatus, jqXHR) {
     }
 
     if (data.hasOwnProperty('events')) {
-        for (var i in data.events) {
-            if (!data.events.hasOwnProperty(i)) continue;
-
-            EVEthing.home.EVENTS[i] = new EVEthing.home.EventDisplay(data.events[i]['text'], data.events[i]['issued']);
-
-            $('.events').append(EVEthing.home.EVENTS[i].html);
+        for (var i=data.events.length-1; i>=0; i--) {
+            new EVEthing.home.EventDisplay(data.events[i]['text'], data.events[i]['issued']);
         }
     }
 
@@ -524,6 +554,8 @@ EVEthing.home.handleResponse = function(data, textStatus, jqXHR) {
             $('output[name="personal_assets"]').val(Handlebars.helpers.comma(data.summary.total_assets) + ' ISK');
         }
     }
+
+    new EVEthing.home.EventDisplay('Data Loaded', Math.round(new Date().getTime() / 1000));
 
     EVEthing.home.draw_characters();
 };
@@ -563,7 +595,7 @@ EVEthing.home.parseRefreshHints = function(data) {
         for (var i in data.refresh_hints[queue]) {
             if (!data.refresh_hints[queue].hasOwnProperty(i)) continue;
 
-            EVEthing.home.REFRESH_HINTS[queue][i] = Math.round(new Date(data.refresh_hints[queue][i]).getTime() / 1000);
+            EVEthing.home.REFRESH_HINTS[queue][i] = Math.round(new Date(data.refresh_hints[queue][i] + '+00:00').getTime() / 1000);
         }
     }
 };
@@ -765,7 +797,13 @@ EVEthing.home.GroupDisplay.prototype.remove = function() {
  * Prototype for displaying events
  */
 EVEthing.home.EventDisplay = function(text, issued) {
-    this.issued = Math.round(new Date(issued + '+00:00').getTime() / 1000);
+    if (String(parseInt(issued)) === String(issued)) {
+        this.issued = issued;
+    } else {
+        this.issued = Math.round(new Date(issued + '+00:00').getTime() / 1000);
+    }
+
+    if (EVEthing.home.EventDisplay.EVENTS.hasOwnProperty('' + this.issued + '|' + text)) return;
     
     this.html = $('<li></li>');
     this.age = $('<span></span>');
@@ -775,7 +813,13 @@ EVEthing.home.EventDisplay = function(text, issued) {
     this.html.append(this.age);
     this.html.append($('<strong> / </strong>'));
     this.html.append(this.text);
+
+    $('.events').prepend(this.html);
+
+    EVEthing.home.EventDisplay.EVENTS['' + this.issued + '|' + text] = this;
 };
+
+EVEthing.home.EventDisplay.EVENTS = {};
 
 EVEthing.home.EventDisplay.prototype.animate = function(now) {
     this.age.text(Handlebars.helpers.shortduration(now - this.issued) + ' ago');
@@ -786,6 +830,8 @@ EVEthing.home.EventDisplay.prototype.animate = function(now) {
   */
 EVEthing.home.CharacterDisplay = function(character_id, data) {
     this.character_id = character_id;
+
+    this.character = {};
 
     this.well = $('<div></div>');
     this.well.addClass('span' + EVEthing.home.PROFILE.CHAR_COL_SPAN);
@@ -800,10 +846,6 @@ EVEthing.home.CharacterDisplay = function(character_id, data) {
 };
 
 EVEthing.home.CharacterDisplay.prototype.load = function() {
-    // Pass
-};
-
-EVEthing.home.CharacterDisplay.prototype.update = function() {
     // Pass
 };
 
@@ -966,9 +1008,15 @@ EVEthing.home.CharacterDisplay.prototype.animate = function(now) {
 };
 
 EVEthing.home.CharacterDisplay.prototype.parseResponse = function(data) {
-    this.character = data.characters[this.character_id];
+    // The optional things are all at the first level of the character dict
+    //  so just itterate over the first level and assign that
+    for (var key in data.characters[this.character_id]) {
+        if (!data.characters[this.character_id].hasOwnProperty(key)) continue;
 
-    if (this.character.hasOwnProperty('skill_queue')) {
+        this.character[key] = data.characters[this.character_id][key];
+    }
+
+    if (data.characters[this.character_id].hasOwnProperty('skill_queue')) {
         for (var i=0; i<this.character.skill_queue.length; i++) {
             var pri = 0;
             pri += this.character.details[this.character.skill_queue[i].skill.primary_attribute[0]];
@@ -1030,5 +1078,4 @@ EVEthing.home.CharacterDisplay.prototype.render = function() {
     this.well.empty();
     this.well.append(this.html);
 };
-
 

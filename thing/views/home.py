@@ -45,7 +45,6 @@ from django.core.serializers.json import DjangoJSONEncoder
 import json
 
 
-
 # ---------------------------------------------------------------------------
 
 ONE_DAY = 24 * 60 * 60
@@ -58,39 +57,57 @@ def home(request):
     # We will be splitting the home page up into multiple
     # JSON Deliverable components, so this method will just
     # return the template
-    return render_page('thing/home.html', {}, request)
-
+    return render_page(
+        'thing/home.html',
+        {
+            'home_page_update_delay': json.dumps(settings.HOME_PAGE_UPDATE_DELAY)
+        },
+        request
+    )
 
 #TODO: Caching
 
 @login_required
-def __characters(request, out):
+def __characters(request, out, known):
     profile = request.user.get_profile()
 
     # Make a set of characters to hide
     hide_characters = set(int(c) for c in profile.home_hide_characters.split(',') if c)
 
-    characters = Character.objects.filter(
-        apikeys__user=request.user,
-        apikeys__valid=True,
-        apikeys__key_type__in=(APIKey.ACCOUNT_TYPE, APIKey.CHARACTER_TYPE)
-    ).exclude(
-        pk__in=hide_characters
-    ).prefetch_related(
+    characters = None
+
+    if out['characters']:
+        characters = Character.objects.filter(
+            pk__in=out['characters'].keys(),
+
+            apikeys__user=request.user,
+            apikeys__valid=True,
+            apikeys__key_type__in=(APIKey.ACCOUNT_TYPE, APIKey.CHARACTER_TYPE)
+        )
+    else:
+        characters = Character.objects.filter(
+            apikeys__user=request.user,
+            apikeys__valid=True,
+            apikeys__key_type__in=(APIKey.ACCOUNT_TYPE, APIKey.CHARACTER_TYPE)
+        ).exclude(
+            pk__in=hide_characters
+        )
+
+    characters.prefetch_related(
         'apikeys',
     ).select_related(
         'config',
+        'details'
     ).distinct()
 
-    limit_to = request.REQUEST.get('characters', None)
-    if limit_to:
-        limit_to = [int(c) for c in limit_to.split(',')]
-
     corporation_ids = set()
+    ship_item_ids = set()
+    system_names = set()
+
+    out['characters'] = {}
 
     for char in characters:
-        if limit_to:
-            if char.pk not in limit_to: continue
+        if char.pk in hide_characters: continue
 
         if char.pk not in out['characters'].keys():
             out['characters'][char.pk] = {}
@@ -105,7 +122,6 @@ def __characters(request, out):
             if key == 'vcode': continue
             out['characters'][char.pk]['apikey'][key] = value
 
-
         if char.corporation_id not in out['corporations'].keys():
             out['corporations'][char.corporation_id] = {}
 
@@ -119,33 +135,17 @@ def __characters(request, out):
 
             out['characters'][char.pk]['config'][key] = value
 
-    return out
-
-
-def __details(request, out):
-    details =  CharacterDetails.objects.filter(pk__in=out['characters'].keys())
-
-    ship_item_ids = set()
-    system_names = set()
-
-    for detail in details:
-        if 'details' not in out['characters'][detail.pk]:
-            out['characters'][detail.pk]['details'] = {}
-
-        if detail.ship_item_id is not None:
-            ship_item_ids.add(detail.ship_item_id)
-
-        for key, value in vars(detail).items():
+        if 'details' not in out['characters'][char.pk]:
+            out['characters'][char.pk]['details'] = {}
+        if char.details.ship_item_id is not None:
+            ship_item_ids.add(char.details.ship_item_id)            
+        if char.details.last_known_location is not None:
+            system_names.add(char.details.last_known_location)
+        for key, value in vars(char.details).items():
             if key.startswith('_'): continue
             if key == 'character_id': continue
 
-            out['characters'][detail.pk]['details'][key] = value
-
-        system_names.add(detail.last_known_location)
-
-    out['ships'] = {pk: ship.name for pk, ship in Item.objects.in_bulk(ship_item_ids).items()}
-
-    out['systems'] = {name: {'constellation': '', 'region': ''} for name in system_names}
+            out['characters'][char.pk]['details'][key] = value
 
     # Fetch skill data now WITHOUT Unpublished SP
     cskill_qs = CharacterSkill.objects.filter(
@@ -159,9 +159,13 @@ def __details(request, out):
     for cskill in cskill_qs:
         out['characters'][cskill['character']]['details']['total_sp'] = cskill['total_sp']
 
+    out['ships'] = {pk: ship.name for pk, ship in Item.objects.in_bulk(set(ship_item_ids) - set([int(s) for s in known['ships']])).items()}
+
+    out['systems'] = {name: {'constellation': '', 'region': ''} for name in system_names}
+
     return out
 
-def __skill_queues(request, out):
+def __skill_queues(request, out, known):
     now = datetime.datetime.utcnow()
 
     # Do skill training check - this can't be in the model because it
@@ -209,8 +213,11 @@ def __skill_queues(request, out):
 
     return out
 
-def __corporations(request, out):
-    for corp in Corporation.objects.filter(pk__in=out['corporations'].keys()):
+def __corporations(request, out, known):
+    corps = set(out['corporations'].keys()) - set([int(c) for c in known['corporations']])
+    out['corporations'] = {}
+
+    for corp in Corporation.objects.filter(pk__in=corps):
         out['corporations'][corp.pk] = {}
         out['corporations'][corp.pk]['id'] = corp.pk
         out['corporations'][corp.pk]['name'] = corp.name
@@ -222,8 +229,11 @@ def __corporations(request, out):
 
     return out
 
-def __alliances(request, out):
-    for alliance in Alliance.objects.filter(pk__in=out['alliances'].keys()):
+def __alliances(request, out, known):
+    alliances = set(out['alliances'].keys()) - set([int(a) for a in known['alliances']])
+    out['alliances'] = {}
+
+    for alliance in Alliance.objects.filter(pk__in=alliances):
         out['alliances'][alliance.pk] = {}
         out['alliances'][alliance.pk]['id'] = alliance.pk
         out['alliances'][alliance.pk]['name'] = alliance.name
@@ -231,7 +241,7 @@ def __alliances(request, out):
 
     return out
 
-def __event_log(request, out):
+def __event_log(request, out, known):
     out['events'] = []
     for event in Event.objects.filter(user=request.user)[:10]:
         item = {}
@@ -242,7 +252,7 @@ def __event_log(request, out):
 
     return out
 
-def __summary(request, out):
+def __summary(request, out, known):
     out['summary'] = {}
 
     # Try retrieving total asset value from cache
@@ -262,9 +272,11 @@ def __summary(request, out):
 
     return out
 
-def __systems(request, out):
+def __systems(request, out, known):
     if 'systems' in out.keys():
-        system_names = out['systems'].keys()
+        system_names = set(out['systems'].keys()) - set(known['systems'])
+        out['systems'] = {}
+
         for system in System.objects.all().select_related('constellation__region').filter(name__in=system_names):
             out['systems'][system.name] = {}
             out['systems'][system.name]['constellation'] = system.constellation.name
@@ -273,39 +285,51 @@ def __systems(request, out):
     return out
 
 def __getRefreshTimes(out):
+    key_to_character = {}
+
     keys = set()
-    urls = set()
+    urls = [
+        u'/account/AccountStatus.xml.aspx',
+        u'/char/SkillQueue.xml.aspx',
+        u'/char/CharacterSheet.xml.aspx'
+    ]
 
     for charid, char in out['characters'].items():
         keys.add(char['apikey']['keyid'])
 
-        urls.add(u'/account/AccountStatus.xml.aspx')
+        if not char['apikey']['keyid'] in key_to_character:
+            key_to_character[char['apikey']['keyid']] = []
 
-        if 'skill_queue' in char.keys():
-            urls.add(u'/char/SkillQueue.xml.aspx')
+        key_to_character[char['apikey']['keyid']].append(charid)
 
-        if 'details' in char.keys():
-            urls.add(u'/char/CharacterSheet.xml.aspx')
 
     out['refresh_hints'] = {
-        'account': {},
+        'character': {},
         'skill_queue': {},
-        'details': {},
     }
 
-    for task in TaskState.objects.filter(url__in=list(urls), keyid__in=list(keys)):
+    for task in TaskState.objects.filter(url__in=urls, keyid__in=list(keys)):
         if task.url == u'/account/AccountStatus.xml.aspx':
-            out['refresh_hints']['account'][task.keyid] = task.next_time
+            for charid in key_to_character[task.keyid]:
+                if charid in out['refresh_hints']['character']:
+                    if out['refresh_hints']['character'][charid] > task.next_time:
+                        out['refresh_hints']['character'][charid] = task.next_time
+                else:
+                    out['refresh_hints']['character'][charid] = task.next_time
+
         elif task.url == u'/char/SkillQueue.xml.aspx':
             out['refresh_hints']['skill_queue'][task.parameter] = task.next_time
         elif task.url == u'/char/CharacterSheet.xml.aspx':
-            out['refresh_hints']['details'][task.parameter] = task.next_time
+            if task.parameter in out['refresh_hints']['character']:
+                if out['refresh_hints']['character'][task.parameter] > task.next_time:
+                    out['refresh_hints']['character'][task.parameter] = task.next_time
+            else:
+                out['refresh_hints']['character'][task.parameter] = task.next_time
 
     return out
 
 ALL_OPTIONS = OrderedDict([
     ('characters', __characters),
-    ('details', __details),
     ('skill_queues', __skill_queues),
 
     ('corporations', __corporations),
@@ -348,17 +372,27 @@ def home_api(request):
         for id in system_names:
             out['systems'][int(id)] = {}
 
+    known = {
+        'ships': [],
+        'corporations': [],
+        'alliances': [],
+        'systems': [],
+    }
+
+    for key in known.keys():
+        known[key] = request.REQUEST.getlist('known_' + key);
+
     tt.add_time('prep')
 
     # Because we want to get the next refresh time for the api calls
     # We need to ensure we have the apikey's
     if 'characters' not in request_options:
-        if 'skill_queues' in request_options or 'details' in request_options:
+        if 'skill_queues' in request_options:
             request_options.append('characters')
 
     for opt in ALL_OPTIONS.keys():
         if opt in request_options:
-            out = ALL_OPTIONS[opt](request, out)
+            out = ALL_OPTIONS[opt](request, out, known)
             tt.add_time(opt)
 
     out = __getRefreshTimes(out)
