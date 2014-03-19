@@ -166,11 +166,14 @@ JINGO_EXCLUDE_APPS = (
 )
 STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.CachedStaticFilesStorage'
 
+# Time in seconds that the home page should delay from the TastQueus next_time before
+#  polling evething for the update information
+HOME_PAGE_UPDATE_DELAY = 300
+
 # load local settings
 from local_settings import *
 MANAGERS = ADMINS
 TEMPLATE_DEBUG = DEBUG
-
 
 # Celery setup
 import djcelery

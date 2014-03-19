@@ -53,6 +53,11 @@ INTERNAL_IPS = (
     '192.168.1.20',
 )
 
+# Time in seconds that the home page should delay from the TastQueus next_time before
+#  polling evething for the update information
+# Set this to false to disable the dyanmic update all together
+HOME_PAGE_UPDATE_DELAY = 300
+
 # Disable the password tab if you are using external auth
 DISABLE_ACCOUNT_PASSWORD = False
 
