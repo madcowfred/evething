@@ -1,6 +1,7 @@
 from django.contrib import admin
 from thing.models import APIKey, BlueprintInstance, Campaign, Character, CharacterConfig, Corporation, \
-    Alliance, APIKeyFailure, Asset, AssetSummary, BlueprintComponent, Blueprint
+    Alliance, APIKeyFailure, Asset, AssetSummary, BlueprintComponent, Blueprint, CorpWallet, \
+    TaskState
 
 class APIKeyAdmin(admin.ModelAdmin):
     list_display = ('id', 'user', 'name', 'key_type', 'valid')
@@ -38,6 +39,12 @@ class BlueprintComponentAdmin(admin.ModelAdmin):
 class BlueprintAdmin(admin.ModelAdmin):
     list_display = ('name', 'item', 'production_time')
 
+class CorpWalletAdmin(admin.ModelAdmin):
+    list_display = ('corporation', 'description', 'balance')
+
+class TaskStateAdmin(admin.ModelAdmin):
+    list_display = ('keyid', 'url', 'state', 'mod_time', 'next_time', 'parameter')
+
 
 admin.site.register(APIKey, APIKeyAdmin)
 admin.site.register(Character, CharacterAdmin)
@@ -51,3 +58,5 @@ admin.site.register(Asset, AssetAdmin)
 admin.site.register(AssetSummary, AssetSummaryAdmin)
 admin.site.register(BlueprintComponent, BlueprintComponentAdmin)
 admin.site.register(Blueprint, BlueprintAdmin)
+admin.site.register(CorpWallet, CorpWalletAdmin)
+admin.site.register(TaskState, TaskStateAdmin)
