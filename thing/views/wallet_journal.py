@@ -88,12 +88,8 @@ def wallet_journal(request):
     ).distinct()
     character_ids = [c.id for c in characters]
 
-    corporations = Corporation.objects.filter(
-        character__apikeys__user=request.user,
-        character__apikeys__valid=True,
-        character__apikeys__key_type=APIKey.CORPORATION_TYPE,
-    ).distinct()
-    corporation_ids = [c.id for c in corporations]
+    corporation_ids = Corporation.get_ids_with_access(request.user, APIKey.CORP_WALLET_JOURNAL_MASK)
+    corporations = Corporation.objects.filter(pk__in=corporation_ids)
 
     # Parse filters and apply magic
     filters, journal_ids, days = _journal_queryset(request, character_ids, corporation_ids)
@@ -268,8 +264,8 @@ def wallet_journal_aggregate(request):
     characters = Character.objects.filter(apikeys__user=request.user.id)
     character_ids = [c.id for c in characters]
 
-    corporations = Corporation.objects.filter(pk__in=APIKey.objects.filter(user=request.user).exclude(corp_character=None).values('corp_character__corporation'))
-    corporation_ids = [c.id for c in corporations]
+    corporation_ids = Corporation.get_ids_with_access(request.user, APIKey.CORP_WALLET_JOURNAL_MASK)
+    corporations = Corporation.objects.filter(pk__in=corporation_ids)
 
     # Parse filters and apply magic
     filters, journal_ids, days = _journal_queryset(request, character_ids, corporation_ids)

@@ -90,10 +90,9 @@ def assets_summary(request):
         character_ids.append(character.id)
         character_map[character.id] = character
 
+    corp_ids = Corporation.get_ids_with_access(request.user, APIKey.CORP_ASSET_LIST_MASK)
     corporations = Corporation.objects.filter(
-        character__apikeys__user=request.user,
-        character__apikeys__valid=True,
-        character__apikeys__key_type=APIKey.CORPORATION_TYPE,
+        pk__in=corp_ids
     ).distinct()
 
     corporation_ids = []
@@ -199,7 +198,8 @@ def assets_filter(request):
         character_ids.append(character.id)
         character_map[character.id] = character
 
-    corporations = Corporation.objects.filter(pk__in=APIKey.objects.filter(user=request.user).exclude(corp_character=None).values('corp_character__corporation'))
+    corp_ids = Corporation.get_ids_with_access(request.user, APIKey.CORP_ASSET_LIST_MASK)
+    corporations = Corporation.objects.filter(pk__in=corp_ids).distinct()
     corporation_ids = []
     corporation_map = {}
     for corporation in corporations:

@@ -332,14 +332,10 @@ def home(request):
     corporations = cache.get(cache_key)
     # Not cached, fetch from database and cache
     if corporations is None:
-        corp_ids = APIKey.objects.filter(
-            user=request.user.id,
-            key_type=APIKey.CORPORATION_TYPE,
-            valid=True,
-        ).values(
-            'corp_character__corporation'
-        )
+        corp_ids = Corporation.get_ids_with_access(request.user, APIKey.CORP_ACCOUNT_BALANCE_MASK)
         corp_map = OrderedDict()
+        # WARNING: Theoritically we are exposing the wallet divison name which may not be exposed
+        # if you only have the BALANCE_MASK or some shit
         for corp_wallet in CorpWallet.objects.select_related().filter(corporation__in=corp_ids):
             if corp_wallet.corporation_id not in corp_map:
                 corp_map[corp_wallet.corporation_id] = corp_wallet.corporation
@@ -357,8 +353,10 @@ def home(request):
     corp_assets = cache.get(cache_key)
     # Not cached, fetch from database and cache
     if corp_assets is None:
+        corp_ids = Corporation.get_ids_with_access(request.user, APIKey.CORP_ASSET_LIST_MASK)
+
         corp_assets = AssetSummary.objects.filter(
-            corporation_id__in=[c.id for c in corporations],
+            corporation_id__in=corp_ids,
         ).aggregate(
             t=Sum('total_value'),
         )['t']
