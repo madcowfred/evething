@@ -24,7 +24,6 @@
 # ------------------------------------------------------------------------------
 
 from django.contrib.auth.decorators import login_required
-from django.db.models import F, Q
 
 from thing.models import *
 from thing.stuff import *

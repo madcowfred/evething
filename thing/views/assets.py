@@ -199,7 +199,7 @@ def assets_filter(request):
         character_map[character.id] = character
 
     corp_ids = Corporation.get_ids_with_access(request.user, APIKey.CORP_ASSET_LIST_MASK)
-    corporations = Corporation.objects.filter(pk__in=corp_ids).distinct()
+    corporations = Corporation.objects.filter(pk__in=corp_ids)
     corporation_ids = []
     corporation_map = {}
     for corporation in corporations:
