@@ -132,7 +132,7 @@ class APITask(Task):
         # Fetch APIKey
         if apikey_id is not None:
             try:
-                self.apikey = APIKey.objects.select_related('corp_character__corporation').get(pk=apikey_id)
+                self.apikey = APIKey.objects.get(pk=apikey_id)
             except APIKey.DoesNotExist:
                 return False
             else:

@@ -93,7 +93,7 @@ def assets_summary(request):
     corp_ids = Corporation.get_ids_with_access(request.user, APIKey.CORP_ASSET_LIST_MASK)
     corporations = Corporation.objects.filter(
         pk__in=corp_ids
-    ).distinct()
+    )
 
     corporation_ids = []
     corporation_map = {}

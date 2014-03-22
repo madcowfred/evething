@@ -63,13 +63,13 @@ class Corporation(models.Model):
             user=user,
             key_type=APIKey.CORPORATION_TYPE,
             valid=True
-        ).select_related('corp_character__corporation__id')
+        )
     
         corporation_ids = {}
         for api in corp_apis:
-            if ((api.corp_character.corporation_id not in corporation_ids) and
+            if ((api.corporation_id not in corporation_ids) and
                     ((api.access_mask & access_mask) != 0)):
-                corporation_ids[api.corp_character.corporation_id] = api.corp_character.corporation_id
+                corporation_ids[api.corporation_id] = api.corporation_id
 
         return corporation_ids
 

@@ -63,24 +63,23 @@ def render_page(template, data, request, character_ids=None, corporation_ids=Non
             if character_ids is None:
                 character_ids = list(Character.objects.filter(apikeys__user=request.user.id).values_list('id', flat=True))
 
-            if corporation_ids is None:
-                corporation_ids = list(APIKey.objects.filter(user=request.user).exclude(corp_character=None).values_list('corp_character__corporation', flat=True))
-
             # Aggregate outstanding contracts
+            corp_contract_ids = Corporation.get_ids_with_access(request.user, APIKey.CORP_CONTRACTS_MASK)
             contracts = Contract.objects.filter(
                 Q(character__in=character_ids, corporation__isnull=True)
                 |
-                Q(corporation__in=corporation_ids)
+                Q(corporation__in=corp_contract_ids)
             )
             contracts = contracts.filter(status='Outstanding')
 
             data['nav_contracts'] = contracts.aggregate(t=Count('contract_id', distinct=True))['t']
 
             # Aggregate ready industry jobs
+            corp_job_ids = Corporation.get_ids_with_access(request.user, APIKey.CORP_INDUSTRY_JOBS_MASK)
             jobs = IndustryJob.objects.filter(
                Q(character__in=character_ids, corporation__isnull=True)
                |
-               Q(corporation__in=corporation_ids)
+               Q(corporation__in=corp_job_ids)
             )
             jobs = jobs.filter(completed=False, end_time__lte=utcnow)
             data['nav_industryjobs'] = jobs.aggregate(t=Count('id'))['t']
