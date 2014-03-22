@@ -91,7 +91,7 @@ class Contracts(APITask):
                     continue
 
             # non-corp keys don't care about corp orders
-            if self.apikeykey_type != APIKey.CORPORATION_TYPE and row.attrib['forCorp'] == '1':
+            if self.apikey.key_type != APIKey.CORPORATION_TYPE and row.attrib['forCorp'] == '1':
                 continue
 
             contract_ids.add(int(row.attrib['contractID']))
