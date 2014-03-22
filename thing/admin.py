@@ -4,7 +4,7 @@ from thing.models import APIKey, BlueprintInstance, Campaign, Character, Charact
     TaskState
 
 class APIKeyAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'name', 'key_type', 'valid')
+    list_display = ('id', 'user', 'name', 'key_type', 'corporation', 'valid')
 
 class BlueprintInstanceAdmin(admin.ModelAdmin):
     list_display = ('blueprint', 'original', 'material_level', 'productivity_level')
