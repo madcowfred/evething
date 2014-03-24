@@ -33,6 +33,7 @@ from celery.execute import send_task
 from core.util import total_seconds
 
 from thing.models.character import Character
+from thing.models.corporation import Corporation
 
 # ------------------------------------------------------------------------------
 # API keys
@@ -119,6 +120,7 @@ class APIKey(models.Model):
 
     # this is only used for corporate keys, ugh
     corp_character = models.ForeignKey(Character, null=True, blank=True, related_name='corporate_apikey')
+    corporation = models.ForeignKey(Corporation, null=True, blank=True)
 
     class Meta:
         app_label = 'thing'

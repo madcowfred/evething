@@ -129,7 +129,7 @@ def trade_timeframe(request, year=None, month=None, period=None, slug=None):
 
     # Get a QuerySet of transactions by this user
     characters = list(Character.objects.filter(apikeys__user=request.user.id).values_list('id', flat=True))
-    corporations = list(APIKey.objects.filter(user=request.user).exclude(corp_character=None).values_list('corp_character__corporation__id', flat=True))
+    corporations = Corporation.get_ids_with_access(request.user, APIKey.CORP_WALLET_TRANSACTIONS_MASK)
     wallets = list(CorpWallet.objects.filter(corporation__in=corporations).values_list('account_id', flat=True))
 
     transactions = Transaction.objects.filter(

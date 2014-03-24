@@ -128,6 +128,7 @@ class APIKeyInfo(APITask):
         # Corporation key
         elif self.apikey.key_type == APIKey.CORPORATION_TYPE:
             self.apikey.corp_character_id = characters.keys()[0]
+            self.apikey.corporation_id = corporations.keys()[0]
 
         # Save any APIKey changes
         self.apikey.save()

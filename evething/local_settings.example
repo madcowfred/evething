@@ -5,6 +5,10 @@ import settings
 # NEVER LEAVE THIS ON FOR A PUBLIC SITE
 DEBUG = False
 
+# If you keep DEBUG set to False you will need to set allowed hosts correctly.
+# https://docs.djangoproject.com/en/1.5/ref/settings/#std%3asetting-ALLOWED_HOSTS
+ALLOWED_HOSTS = []
+
 # this is used for a few random things, it's a pretty good idea to change it
 # http://www.miniwebtool.com/django-secret-key-generator/
 # SECRET_KEY = ""
@@ -58,6 +62,9 @@ DISABLE_ACCOUNT_PASSWORD = False
 
 # Reject new API keys where keyid < MAX(keyid) added at least half an hour ago.
 ONLY_NEW_APIKEYS = True
+
+# Allow new users to register
+ALLOW_REGISTRATION = False
 
 # Celery broker URL - http://docs.celeryproject.org/en/latest/getting-started/first-steps-with-celery.html#choosing-a-broker
 BROKER_URL = 'amqp://guest:guest@localhost:5672/'

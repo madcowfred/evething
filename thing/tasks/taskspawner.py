@@ -95,8 +95,8 @@ def task_spawner():
 
 
     # Build a magical QuerySet for APIKey objects
-    apikeys = APIKey.objects.select_related('corp_character__corporation')
-    apikeys = apikeys.prefetch_related('characters', 'corp_character__corporation__corpwallet_set')
+    apikeys = APIKey.objects.select_related('corporation')
+    apikeys = apikeys.prefetch_related('characters', 'corporation__corpwallet_set')
     apikeys = apikeys.filter(valid=True, user__userprofile__last_seen__gt=one_month_ago)
 
     # Get a set of unique API keys

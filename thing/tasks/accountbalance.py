@@ -42,7 +42,7 @@ class AccountBalance(APITask):
         if self.fetch_api(url, params) is False or self.root is None:
             return
 
-        corporation = self.apikey.corp_character.corporation
+        corporation = self.apikey.corporation
 
         wallet_map = {}
         for cw in corporation.corpwallet_set.all():

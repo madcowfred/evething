@@ -83,12 +83,10 @@ def transactions(request):
     ).distinct()
     character_ids = [c.id for c in characters]
 
+    corporation_ids = Corporation.get_ids_with_access(request.user, APIKey.CORP_ASSET_LIST_MASK)
     corporations = Corporation.objects.filter(
-        character__apikeys__user=request.user,
-        character__apikeys__valid=True,
-        character__apikeys__key_type=APIKey.CORPORATION_TYPE,
-    ).distinct()
-    corporation_ids = [c.id for c in corporations]
+        pk__in=corporation_ids
+    )
 
     tt.add_time('init')
 

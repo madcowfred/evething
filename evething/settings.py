@@ -166,6 +166,10 @@ JINGO_EXCLUDE_APPS = (
 )
 STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.CachedStaticFilesStorage'
 
+# Allow new users to register, provide a default here so if people upgrade
+# without updating local_settings, it won't error
+ALLOW_REGISTRATION = False
+
 # load local settings
 from local_settings import *
 MANAGERS = ADMINS
