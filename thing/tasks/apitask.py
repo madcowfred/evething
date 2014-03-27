@@ -102,7 +102,7 @@ class APITask(Task):
 
         # Sleep for staggered worker startup
         global this_process
-        if this_process is None:
+        if this_process is None and settings.STAGGER_APITASK_STARTUP:
             this_process = int(current_process()._name.split('-')[1])
             sleep_for = (this_process - 1) * 2
             self._logger.warning('Worker #%d staggered startup: sleeping for %d seconds', this_process, sleep_for)

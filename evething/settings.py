@@ -170,6 +170,9 @@ STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.CachedStaticFilesStora
 # without updating local_settings, it won't error
 ALLOW_REGISTRATION = False
 
+# Default stagger APITask calls on startup
+STAGGER_APITASK_STARTUP = True
+
 # load local settings
 from local_settings import *
 MANAGERS = ADMINS
