@@ -1,44 +1,23 @@
 (function() {
   var template = Handlebars.template, templates = Handlebars.templates = Handlebars.templates || {};
-templates['mail_list'] = template(function (Handlebars,depth0,helpers,partials,data) {
-  this.compilerInfo = [4,'>= 1.0.0'];
-helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
-  var buffer = "", stack1, functionType="function", escapeExpression=this.escapeExpression;
-
-
-  buffer += "                  <tr";
-  if (stack1 = helpers.rowClass) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
-  else { stack1 = depth0.rowClass; stack1 = typeof stack1 === functionType ? stack1.apply(depth0) : stack1; }
-  buffer += escapeExpression(stack1)
-    + " data-message-id=\"";
-  if (stack1 = helpers.message_id) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
-  else { stack1 = depth0.message_id; stack1 = typeof stack1 === functionType ? stack1.apply(depth0) : stack1; }
-  buffer += escapeExpression(stack1)
-    + "\">\n                    <td class=\"mail-checkbox\"><input type=\"checkbox\" name=\"message_";
-  if (stack1 = helpers.message_id) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
-  else { stack1 = depth0.message_id; stack1 = typeof stack1 === functionType ? stack1.apply(depth0) : stack1; }
-  buffer += escapeExpression(stack1)
-    + "\"></td>\n                    <td class=\"mail-from\">";
-  if (stack1 = helpers.senderText) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
-  else { stack1 = depth0.senderText; stack1 = typeof stack1 === functionType ? stack1.apply(depth0) : stack1; }
-  buffer += escapeExpression(stack1)
-    + "</td>\n                    <td class=\"mail-to\">";
-  if (stack1 = helpers.toText) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
-  else { stack1 = depth0.toText; stack1 = typeof stack1 === functionType ? stack1.apply(depth0) : stack1; }
-  buffer += escapeExpression(stack1)
-    + "</td>\n                    <td><a class=\"mail-link\" href=\"#";
-  if (stack1 = helpers.message_id) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
-  else { stack1 = depth0.message_id; stack1 = typeof stack1 === functionType ? stack1.apply(depth0) : stack1; }
-  buffer += escapeExpression(stack1)
-    + "\">";
-  if (stack1 = helpers.subjectText) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
-  else { stack1 = depth0.subjectText; stack1 = typeof stack1 === functionType ? stack1.apply(depth0) : stack1; }
-  buffer += escapeExpression(stack1)
-    + "</a></td>\n                    <td class=\"mail-date\">";
-  if (stack1 = helpers.sent_date) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
-  else { stack1 = depth0.sent_date; stack1 = typeof stack1 === functionType ? stack1.apply(depth0) : stack1; }
-  buffer += escapeExpression(stack1)
+templates['mail_list'] = template({"compiler":[5,">= 2.0.0"],"main":function(depth0,helpers,partials,data) {
+  var helper, functionType="function", escapeExpression=this.escapeExpression;
+  return "                  <tr"
+    + escapeExpression(((helper = helpers.rowClass || (depth0 && depth0.rowClass)),(typeof helper === functionType ? helper.call(depth0, {"name":"rowClass","hash":{},"data":data}) : helper)))
+    + " data-message-id=\""
+    + escapeExpression(((helper = helpers.message_id || (depth0 && depth0.message_id)),(typeof helper === functionType ? helper.call(depth0, {"name":"message_id","hash":{},"data":data}) : helper)))
+    + "\">\n                    <td class=\"mail-checkbox\"><input type=\"checkbox\" name=\"message_"
+    + escapeExpression(((helper = helpers.message_id || (depth0 && depth0.message_id)),(typeof helper === functionType ? helper.call(depth0, {"name":"message_id","hash":{},"data":data}) : helper)))
+    + "\"></td>\n                    <td class=\"mail-from\">"
+    + escapeExpression(((helper = helpers.senderText || (depth0 && depth0.senderText)),(typeof helper === functionType ? helper.call(depth0, {"name":"senderText","hash":{},"data":data}) : helper)))
+    + "</td>\n                    <td class=\"mail-to\">"
+    + escapeExpression(((helper = helpers.toText || (depth0 && depth0.toText)),(typeof helper === functionType ? helper.call(depth0, {"name":"toText","hash":{},"data":data}) : helper)))
+    + "</td>\n                    <td><a class=\"mail-link\" href=\"#"
+    + escapeExpression(((helper = helpers.message_id || (depth0 && depth0.message_id)),(typeof helper === functionType ? helper.call(depth0, {"name":"message_id","hash":{},"data":data}) : helper)))
+    + "\">"
+    + escapeExpression(((helper = helpers.subjectText || (depth0 && depth0.subjectText)),(typeof helper === functionType ? helper.call(depth0, {"name":"subjectText","hash":{},"data":data}) : helper)))
+    + "</a></td>\n                    <td class=\"mail-date\">"
+    + escapeExpression(((helper = helpers.sent_date || (depth0 && depth0.sent_date)),(typeof helper === functionType ? helper.call(depth0, {"name":"sent_date","hash":{},"data":data}) : helper)))
     + "</td>\n                  </tr>\n";
-  return buffer;
-  });
+},"useData":true});
 })();

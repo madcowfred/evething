@@ -172,6 +172,15 @@
                     </div>
                   </div>
                   <div class="control-group">
+                    <label class="control-label" for="home_show_security">Show security status</label>
+                    <div class="controls">
+                      <label class="checkbox">
+                        <input type="checkbox" name="home_show_security"{% if profile.home_show_security %} checked{% endif %}>
+                      </label>
+                      <p class="help-block">Show character security status</p>
+                    </div>
+                  </div>
+                  <div class="control-group">
                     <label class="control-label" for="home_hide_characters">Hide characters</label>
                     <div class="controls">
                       {%- for character in characters %}

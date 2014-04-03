@@ -154,6 +154,7 @@ def account_settings(request):
     profile.home_show_separators = (request.POST.get('home_show_separators', '') == 'on')
     profile.home_highlight_backgrounds = (request.POST.get('home_highlight_backgrounds', '') == 'on')
     profile.home_highlight_borders = (request.POST.get('home_highlight_borders', '') == 'on')
+    profile.home_show_security = (request.POST.get('home_show_security', '') == 'on')
 
     # hide characters
     profile.home_hide_characters = ','.join(c for c in request.POST.getlist('home_hide_characters') if c.isdigit())
