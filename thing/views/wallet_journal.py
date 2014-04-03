@@ -137,7 +137,7 @@ def wallet_journal(request):
         # no next, add up to 2 previous links
         else:
             for i in range(paginated.number - 1, 0, -1)[:2]:
-                prev.append(i)
+                prev.insert(0, i)
     else:
         # no prev, add up to 2 next links
         for i in range(paginated.number + 1, paginator.num_pages)[:2]:
