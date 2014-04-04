@@ -16,14 +16,9 @@ module.exports = function(grunt) {
         }
       }
     },
-    uglify: {
-      combined: {
-        options: {
-          sourceMap: true
-        },
-        src: [
-          'static/js/jquery.tablesorter.js',
-          'static/js/jquery.tablesorter.widgets.js',
+    concat: {
+      bootstrap: {
+         src: [
           'static/js/bootstrap-alert.js',
           'static/js/bootstrap-button.js',
           'static/js/bootstrap-collapse.js',
@@ -35,6 +30,19 @@ module.exports = function(grunt) {
           'static/js/bootstrap-scrollspy.js',
           'static/js/bootstrap-affix.js',
           'static/js/bootstrap-datepicker.js',
+        ],
+        dest: 'static/js/bootstrap.js'
+      },
+    },
+    uglify: {
+      combined: {
+        options: {
+          sourceMap: true
+        },
+        src: [
+          'static/js/jquery.tablesorter.js',
+          'static/js/jquery.tablesorter.widgets.js',
+          'static/js/bootstrap.js',
           'static/js/handlebars.runtime.js',
           'static/js/templates.js',
           'static/js/evething.js',
@@ -61,9 +69,10 @@ module.exports = function(grunt) {
   });
 
   grunt.loadNpmTasks('grunt-contrib-handlebars');
+  grunt.loadNpmTasks('grunt-contrib-concat');
   grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.loadNpmTasks('grunt-contrib-less');
 
   // Default task(s).
-  grunt.registerTask('default', ['handlebars', 'uglify', 'less']);
+  grunt.registerTask('default', ['handlebars', 'concat','uglify', 'less']);
 };
