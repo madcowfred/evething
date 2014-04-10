@@ -100,13 +100,16 @@ class APITask(Task):
         Returns False if anything bad happens.
         """
 
-        # Sleep for staggered worker startup
+        # Set our process ID if it hasn't been set yet
         global this_process
-        if this_process is None and settings.STAGGER_APITASK_STARTUP:
+        if this_process is None:
             this_process = int(current_process()._name.split('-')[1])
-            sleep_for = (this_process - 1) * 2
-            self._logger.warning('Worker #%d staggered startup: sleeping for %d seconds', this_process, sleep_for)
-            time.sleep(sleep_for)
+
+            # Sleep for staggered worker startup
+            if settings.STAGGER_APITASK_STARTUP:
+                sleep_for = (this_process - 1) * 2
+                self._logger.warning('Worker #%d staggered startup: sleeping for %d seconds', this_process, sleep_for)
+                time.sleep(sleep_for)
 
         # Clear the current query information so we don't bloat
         if settings.DEBUG:
