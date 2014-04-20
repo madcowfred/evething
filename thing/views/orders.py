@@ -59,8 +59,9 @@ def orders(request):
     # Retrieve trade skills that we're interested in
     order_cs = CharacterSkill.objects.filter(
         character__apikeys__user=request.user,
-        character__apikeys__corp_character__isnull=True,
         skill__in=ORDER_SLOT_SKILLS,
+    ).exclude(
+        character__apikeys__key_type=APIKey.CORPORATION_TYPE
     )
     for cs in order_cs:
         char_id = cs.character_id
@@ -96,14 +97,7 @@ def orders(request):
         flat=True,
     ))
 
-    corporation_ids = list(APIKey.objects.filter(
-        user=request.user,
-        key_type=APIKey.CORPORATION_TYPE,
-        valid=True,
-    ).values_list(
-        'corp_character__corporation__id',
-        flat=True,
-    ))
+    corporation_ids = Corporation.get_ids_with_access(request.user, APIKey.CORP_MARKET_ORDERS_MASK)
 
     orders = MarketOrder.objects.filter(
         Q(character__in=character_ids, corp_wallet__isnull=True)

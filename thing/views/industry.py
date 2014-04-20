@@ -44,12 +44,7 @@ def industry(request):
     ).distinct()
     character_ids = [c.id for c in characters]
 
-    corporations = Corporation.objects.filter(
-        character__apikeys__user=request.user,
-        character__apikeys__valid=True,
-        character__apikeys__key_type=APIKey.CORPORATION_TYPE,
-    ).distinct()
-    corporation_ids = [c.id for c in corporations]
+    corporation_ids = Corporation.get_ids_with_access(request.user, APIKey.CORP_INDUSTRY_JOBS_MASK)
 
     tt.add_time('init')
 

@@ -83,12 +83,10 @@ def transactions(request):
     ).distinct()
     character_ids = [c.id for c in characters]
 
+    corporation_ids = Corporation.get_ids_with_access(request.user, APIKey.CORP_ASSET_LIST_MASK)
     corporations = Corporation.objects.filter(
-        character__apikeys__user=request.user,
-        character__apikeys__valid=True,
-        character__apikeys__key_type=APIKey.CORPORATION_TYPE,
-    ).distinct()
-    corporation_ids = [c.id for c in corporations]
+        pk__in=corporation_ids
+    )
 
     tt.add_time('init')
 
@@ -282,7 +280,7 @@ def transactions(request):
         # no next, add up to 2 previous links
         else:
             for i in range(paginated.number - 1, 0, -1)[:2]:
-                prev.append(i)
+                prev.insert(0, i)
     else:
         # no prev, add up to 2 next links
         for i in range(paginated.number + 1, paginator.num_pages)[:2]:

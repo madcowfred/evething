@@ -41,7 +41,7 @@ class CorporationSheet(APITask):
         if self.fetch_api(url, params) is False or self.root is None:
             return
 
-        corporation = self.apikey.corp_character.corporation
+        corporation = self.apikey.corporation
 
         corporation.ticker = self.root.findtext('result/ticker')
 

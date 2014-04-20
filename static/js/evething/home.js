@@ -7,6 +7,7 @@ EVEthing.home = {
         'character-location': 'Hoth -- X-Wing',
         'wallet-division': 'Hookers & Blow',
         'user-name': 'Mr. User',
+        'security-status': '0.0'
     },
 
     onload: function() {

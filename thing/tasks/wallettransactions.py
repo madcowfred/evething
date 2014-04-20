@@ -27,7 +27,7 @@ from decimal import *
 
 from .apitask import APITask
 
-from thing.models import Character, Corporation, CorpWallet, Item, Station, Transaction
+from thing.models import Character, Corporation, CorpWallet, Item, Station, Transaction, APIKey
 from django.db import IntegrityError
 
 # ---------------------------------------------------------------------------
@@ -49,8 +49,8 @@ class WalletTransactions(APITask):
             return
 
         # Corporation key, visit each related CorpWallet
-        if self.apikey.corp_character:
-            for corpwallet in self.apikey.corp_character.corporation.corpwallet_set.all():
+        if self.apikey.key_type == APIKey.CORPORATION_TYPE:
+            for corpwallet in self.apikey.corporation.corpwallet_set.all():
                 result = self._work(url, character, corpwallet)
                 if result is False:
                     return
@@ -72,7 +72,7 @@ class WalletTransactions(APITask):
         }
 
         # Corporation key
-        if self.apikey.corp_character:
+        if self.apikey.key_type == APIKey.CORPORATION_TYPE:
             params['accountKey'] = corp_wallet.account_key
             t_filter = Transaction.objects.filter(corp_wallet=corp_wallet)
         # Account/Character key
@@ -104,7 +104,7 @@ class WalletTransactions(APITask):
                 item_ids.add(int(row.attrib['typeID']))
                 station_ids.add(int(row.attrib['stationID']))
 
-                if self.apikey.corp_character:
+                if self.apikey.key_type == APIKey.CORPORATION_TYPE:
                     char_ids.add(int(row.attrib['characterID']))
 
             # If we got MAX rows we should retrieve some more
@@ -129,7 +129,7 @@ class WalletTransactions(APITask):
 
             # Skip corporate transactions if this is a personal call, we have no idea
             # what CorpWallet this transaction is related to otherwise :ccp:
-            if row.attrib['transactionFor'].lower() == 'corporation' and not self.apikey.corp_character:
+            if row.attrib['transactionFor'].lower() == 'corporation' and self.apikey.key_type != APIKey.CORPORATION_TYPE:
                 continue
 
             # Handle possible new clients
@@ -161,7 +161,7 @@ class WalletTransactions(APITask):
                     continue
 
                 # For a corporation key, make sure the character exists
-                if self.apikey.corp_character:
+                if self.apikey.key_type == APIKey.CORPORATION_TYPE:
                     char_id = int(row.attrib['characterID'])
                     char = char_map.get(char_id, None)
                     # Doesn't exist, create it
@@ -169,7 +169,7 @@ class WalletTransactions(APITask):
                         char = Character.objects.create(
                             id=char_id,
                             name=row.attrib['characterName'],
-                            corporation=self.apikey.corp_character.corporation,
+                            corporation=self.apikey.corporation,
                         )
                         char_map[char_id] = char
                 # Any other key = just use the supplied character
@@ -193,8 +193,8 @@ class WalletTransactions(APITask):
                     total_price=quantity * price,
                 )
 
-                # Set the corp_character for corporation API requests
-                if self.apikey.corp_character:
+                # Set the corp_wallet for corporation API requests
+                if self.apikey.key_type == APIKey.CORPORATION_TYPE:
                     t.corp_wallet = corp_wallet
 
                 # Set whichever client type is relevant

@@ -4,7 +4,8 @@
 *.sublime-workspace
 local_settings.py
 skill_map.pickle
-static/js/evething-combined.js
 thing/profile_middleware.py
 
 .DS_Store
+.*.swp
+node_modules/

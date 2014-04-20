@@ -26,6 +26,11 @@
 import gzip
 from cStringIO import StringIO
 
+try:
+    import xml.etree.cElementTree as ET
+except ImportError:
+    import xml.etree.ElementTree as ET
+
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse
@@ -107,7 +112,7 @@ def account_change_password(request):
         request.session['message_type'] = 'error'
         request.session['message'] = 'Old password is incorrect!'
 
-    return redirect('%s#tab_password' % (reverse(account)))
+    return redirect('%s#password' % (reverse(account)))
 
 @login_required
 def account_settings(request):
@@ -147,6 +152,7 @@ def account_settings(request):
     profile.home_show_separators = (request.POST.get('home_show_separators', '') == 'on')
     profile.home_highlight_backgrounds = (request.POST.get('home_highlight_backgrounds', '') == 'on')
     profile.home_highlight_borders = (request.POST.get('home_highlight_borders', '') == 'on')
+    profile.home_show_security = (request.POST.get('home_show_security', '') == 'on')
 
     # hide characters
     profile.home_hide_characters = ','.join(c for c in request.POST.getlist('home_hide_characters') if c.isdigit())
@@ -201,7 +207,7 @@ def account_apikey_add(request):
             request.session['message_type'] = 'success'
             request.session['message'] = 'API key added successfully!'
 
-    return redirect('%s#tab_apikeys' % (reverse(account)))
+    return redirect('%s#apikeys' % (reverse(account)))
 
 # ---------------------------------------------------------------------------
 # Delete an API key
@@ -226,7 +232,7 @@ def account_apikey_delete(request):
         request.session['message_type'] = 'error'
         request.session['message'] = 'You seem to be doing silly things, stop that.'
 
-    return redirect('%s#tab_apikeys' % (reverse(account)))
+    return redirect('%s#apikeys' % (reverse(account)))
 
 # ---------------------------------------------------------------------------
 # Edit an API key
@@ -255,7 +261,7 @@ def account_apikey_edit(request):
             apikey.group_name = apikey_group_name
             apikey.save()
 
-    return redirect('%s#tab_apikeys' % (reverse(account)))
+    return redirect('%s#apikeys' % (reverse(account)))
 
 # ---------------------------------------------------------------------------
 # Purge an API key's data
@@ -280,7 +286,7 @@ def account_apikey_purge(request):
         request.session['message_type'] = 'error'
         request.session['message'] = 'You seem to be doing silly things, stop that.'
 
-    return redirect('%s#tab_apikeys' % (reverse(account)))
+    return redirect('%s#apikeys' % (reverse(account)))
 
 
 # ---------------------------------------------------------------------------

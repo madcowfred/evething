@@ -9,3 +9,7 @@
 {{ text }}
 {%- endif %}
 {%- endmacro %}
+
+{% macro security_hover(security, round=2) -%}
+<span class="small pull-right sensitive security-status {% if security <= -2.0 %}text-warning{%- else %}text-success{%- endif %}" rel="popover" title="{%- if security <= -2.0 %}Will be attacked {% if security <= -5.0 %}anywhere in highsec{% else %} in {% if security <= -4.5 %}0.5{% elif security <= -4.0 %}0.6{% elif security <= -3.5 %}0.7{% elif security <= -3.0 %}0.8{% elif security <= -2.5 %}0.9{% elif security <= -2.0 %}1.0{%- endif %} systems and above{% endif %}{%- else %}No travel restrictions{% endif %}" data-content="asdf">{{ security|round(round) }}</span>
+{%- endmacro %}

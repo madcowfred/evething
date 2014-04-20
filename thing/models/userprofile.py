@@ -70,6 +70,7 @@ class UserProfile(models.Model):
     home_highlight_backgrounds = models.BooleanField(default=True)
     home_highlight_borders = models.BooleanField(default=True)
     home_show_separators = models.BooleanField(default=True)
+    home_show_security = models.BooleanField(default=True)
 
     class Meta:
         app_label = 'thing'

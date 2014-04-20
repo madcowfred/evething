@@ -31,7 +31,7 @@ from django.core.urlresolvers import reverse
 
 from .apitask import APITask
 
-from thing.models import Character, CorpWallet, Event, Item, MarketOrder, Station
+from thing.models import Character, CorpWallet, Event, Item, MarketOrder, Station, APIKey
 
 # ---------------------------------------------------------------------------
 
@@ -50,7 +50,7 @@ class MarketOrders(APITask):
             return
 
         # Initialise for corporate key
-        if self.apikey.corp_character:
+        if self.apikey.key_type == APIKey.CORPORATION_TYPE:
             mo_filter = MarketOrder.objects.filter(corp_wallet__corporation=character.corporation)
 
             wallet_map = {}
@@ -155,7 +155,7 @@ class MarketOrders(APITask):
                 expires=issued + datetime.timedelta(int(row.attrib['duration'])),
             )
             # Set the corp_wallet for corporation API requests
-            if self.apikey.corp_character:
+            if self.apikey.key_type == APIKey.CORPORATION_TYPE:
                 order.corp_wallet = wallet_map.get(int(row.attrib['accountKey']))
 
             new.append(order)

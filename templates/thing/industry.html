@@ -148,6 +148,10 @@
                       <td class="journal-date">{{ job.end_time }}</td>
                       <td class="industry-status">{{ job.get_completed_status_display() }}</td>
                     </tr>
+                    {%- else %}
+                    <tr>
+                      <td colspan="13">No complete jobs</td>
+                    </tr>
                     {%- endfor %}
                   </tbody>
                 </table>

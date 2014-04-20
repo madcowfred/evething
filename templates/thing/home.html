@@ -48,6 +48,9 @@
                 {%- endif %}
               </span>
               <span class="small pull-right sensitive apikey-name">[{{ character.z_apikey.name }}]</span>
+              {%- if profile.home_show_security %}
+              {{ common.security_hover(character.details.security_status) }}
+              {%- endif %}
             </div>
 
             <div>
