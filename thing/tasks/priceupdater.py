@@ -25,8 +25,11 @@
 
 from .apitask import APITask
 
+from django.conf import settings
+
 from thing import queries
 from thing.models import Blueprint, BlueprintInstance, Item
+
 
 # ---------------------------------------------------------------------------
 
@@ -38,10 +41,6 @@ CAPITAL_SHIP_GROUPS = (
     'Titan',
 )
 PRICE_PER_REQUEST = 100
-#PRICE_URL = 'http://goonmetrics.com/api/price_data/?station_id=60003760&type_id=%s'
-PRICE_URL = 'http://api.eve-central.com/api/marketstat/?station_id=60003760&typeid=%s'
-
-XML_BASE_PATH = PRICE_URL.split('?')[0].strip('/').rsplit('/', 1)[1]
 
 # ---------------------------------------------------------------------------
 
@@ -55,6 +54,9 @@ class PriceUpdater(APITask):
         # Get a list of all item_ids
         cursor = self.get_cursor()
         cursor.execute(queries.all_item_ids)
+        
+        # init XML_BASE_PATH from PRICE_URL, as it depends on which one we use
+        XML_BASE_PATH = settings.PRICE_URL.split('?')[0].strip('/').rsplit('/', 1)[1]
 
         item_ids = [row[0] for row in cursor]
 
@@ -65,7 +67,7 @@ class PriceUpdater(APITask):
 
         for i in range(0, len(item_ids), PRICE_PER_REQUEST):
             # Retrieve market data and parse the XML
-            url = PRICE_URL % (','.join(str(item_id) for item_id in item_ids[i:i+PRICE_PER_REQUEST]))
+            url = settings.PRICE_URL % (','.join(str(item_id) for item_id in item_ids[i:i+PRICE_PER_REQUEST]))
             data = self.fetch_url(url, {})
             if data is False:
                 return
