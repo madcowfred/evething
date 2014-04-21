@@ -30,7 +30,6 @@ from django.conf import settings
 from thing import queries
 from thing.models import Blueprint, BlueprintInstance, Item
 
-
 # ---------------------------------------------------------------------------
 
 CAPITAL_SHIP_GROUPS = (
@@ -57,7 +56,6 @@ class PriceUpdater(APITask):
         
         # init XML_BASE_PATH from PRICE_URL, as it depends on which one we use
         XML_BASE_PATH = settings.PRICE_URL.split('?')[0].strip('/').rsplit('/', 1)[1]
-
 
         item_ids = [row[0] for row in cursor]
 
