@@ -59,8 +59,7 @@ def trade(request):
     characters = list(Character.objects.filter(
         apikeys__user=request.user,
         apikeys__valid=True,
-    ).exclude(
-        apikeys__key_type=APIKey.CORPORATION_TYPE,
+        apikeys__key_type__in=[APIKey.ACCOUNT_TYPE, APIKey.CHARACTER_TYPE]
     ).values_list(
         'id',
         flat=True,

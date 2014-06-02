@@ -83,8 +83,7 @@ def wallet_journal(request):
     characters = Character.objects.filter(
         apikeys__user=request.user,
         apikeys__valid=True,
-    ).exclude(
-        apikeys__key_type=APIKey.CORPORATION_TYPE,
+        apikeys__key_type__in=[APIKey.ACCOUNT_TYPE, APIKey.CHARACTER_TYPE]
     ).distinct()
     character_ids = [c.id for c in characters]
 
