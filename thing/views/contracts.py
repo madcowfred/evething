@@ -35,8 +35,7 @@ def contracts(request):
     character_ids = list(Character.objects.filter(
         apikeys__user=request.user.id,
         apikeys__valid=True,
-    ).exclude(
-        apikeys__key_type=APIKey.CORPORATION_TYPE,
+        apikeys__key_type__in=[APIKey.ACCOUNT_TYPE, APIKey.CHARACTER_TYPE]
     ).distinct().values_list(
         'id',
         flat=True,
