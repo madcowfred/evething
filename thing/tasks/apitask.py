@@ -384,7 +384,7 @@ class APITask(Task):
         self.apikey.invalidate()
 
         # Log an error
-        self.log_error('[fetch_api] API key with keyID %d marked invalid!', self.apikey.keyid)
+        self.log_error('[fetch_api] API key with keyID %d marked invalid: %s', self.apikey.keyid, reason)
 
         # Log an error event for the user
         text = "Your API key #%d was marked invalid: %s" % (self.apikey.id, reason)
@@ -419,6 +419,7 @@ class APITask(Task):
                 issued=now,
                 text=text,
             )
+            self.log_error('[fetch_api] Disabling adding of APIKeys for user %d due to %d API failures within 7 days.', self.apikey.user.id, count)
 
     # -----------------------------------------------------------------------
 
