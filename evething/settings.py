@@ -173,6 +173,11 @@ ALLOW_REGISTRATION = False
 # Default stagger APITask calls on startup
 STAGGER_APITASK_STARTUP = True
 
+# Default URL to use for pricing information, to be overridden in local_settings.py
+# but we want to provide a default for those upgrading who havent added this
+# to local_settings.
+PRICE_URL = 'http://goonmetrics.com/api/price_data/?station_id=60003760&type_id=%s'
+
 # load local settings
 from local_settings import *
 MANAGERS = ADMINS
