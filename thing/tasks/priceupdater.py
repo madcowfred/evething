@@ -53,7 +53,7 @@ class PriceUpdater(APITask):
         # Get a list of all item_ids
         cursor = self.get_cursor()
         cursor.execute(queries.all_item_ids)
-        
+
         # init XML_BASE_PATH from PRICE_URL, as it depends on which one we use
         XML_BASE_PATH = settings.PRICE_URL.split('?')[0].strip('/').rsplit('/', 1)[1]
 
