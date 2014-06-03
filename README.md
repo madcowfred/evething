@@ -183,33 +183,33 @@ Apache Install
 --------------
 
 You will need to install Apache and [mod_wsgi](http://code.google.com/p/modwsgi/).
-1.  Make a directory somewhere to act as the site root. Do NOT use the
-    same directory you placed the EVEthing files earlier.
-2.  Make a 'static' sub-directory inside this directory.
-3.  Add a vhost to your Apache config with these extra directives:
 
-    ```apache
-    Alias /static/ /www/whatever/static/
+1. Make a directory somewhere to act as the site root. Do NOT use the same directory you placed the EVEthing
+   files earlier.
+2. Make a 'static' sub-directory inside this directory.
+3. Add a vhost to your Apache config with these extra directives:
+   ```apache
+  Alias /static/ /www/whatever/static/
 
-    <Directory /www/whatever>
-        Order allow,deny
-        Allow from all
-    </Directory>
+  <Directory /www/whatever>
+      Order allow,deny
+      Allow from all
+  </Directory>
 
-    WSGIDaemonProcess evething threads=2 user=nobody python-path=/path/to/evething:/path/to/virtualenv/lib/python2.7/site-packages
-    WSGIProcessGroup evething
+  WSGIDaemonProcess evething threads=2 user=nobody python-path=/path/to/evething:/path/to/virtualenv/lib/python2.7/site-packages
+  WSGIProcessGroup evething
 
-    WSGIScriptAlias / /path/to/evething/evething/wsgi.py
+  WSGIScriptAlias / /path/to/evething/evething/wsgi.py
 
-    <Directory /path/to/evething>
-        <Files wsgi.py>
-            Order allow,deny
-            Allow from all
-        </Files>
-    </Directory>
-    ```
-4.  Reload Apache config.
-5.  Run `python manage.py collectstatic`, answer 'yes'.
-6.  Open <http://whatever/> in a web browser.
-7.  To force an EVEthing reload later (updated code or changed config)
-    run `touch evething/wsgi.py` in the EVEthing directory.
+  <Directory /path/to/evething>
+      <Files wsgi.py>
+          Order allow,deny
+          Allow from all
+     </Files>
+  </Directory>
+   ```
+4. Reload Apache config.
+5. Run `python manage.py collectstatic`, answer 'yes'.
+6. Open <http://whatever/> in a web browser.
+7. To force an EVEthing reload later (updated code or changed config)
+   run `touch evething/wsgi.py` in the EVEthing directory.
