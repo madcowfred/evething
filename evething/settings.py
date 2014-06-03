@@ -105,7 +105,6 @@ INSTALLED_APPS = (
     'django.contrib.admin',
     'django.contrib.admindocs',
     'south',
-    'djcelery',
     'mptt',
     #'jingo',
     'thing',
@@ -184,10 +183,6 @@ MANAGERS = ADMINS
 TEMPLATE_DEBUG = DEBUG
 
 
-# Celery setup
-import djcelery
-djcelery.setup_loader()
-
 # Rename the default queue
 from kombu import Exchange, Queue
 
@@ -210,7 +205,6 @@ CELERY_QUEUES = (
 )
 
 # Periodic tasks
-from celery.schedules import crontab
 from datetime import timedelta
 
 CELERYBEAT_SCHEDULE = {

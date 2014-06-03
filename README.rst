@@ -83,9 +83,8 @@ There are some common requirements for any install method, most of these will be
 using pip in 'Common Install Steps' below:
 
 - `Python <http://www.python.org>`_ >=2.6 <3.0
-- `Django <http://www.djangoproject.com>`_ >=1.4
-- `Celery <http://docs.celeryproject.org/en/latest/>`_ >= 3.0
-- `django-celery <http://docs.celeryproject.org/en/latest/django/>`_ >= 3.0
+- `Django <http://www.djangoproject.com>`_ >=1.6
+- `Celery <http://docs.celeryproject.org/en/latest/>`_ >= 3.1
 - `Django MPTT <https://github.com/django-mptt/django-mptt/>`_ >=0.5
 - `South <http://south.aeracode.org/>`_ >=0.7
 - `Coffin <https://github.com/coffin/coffin/>`_ >=0.3
@@ -108,6 +107,7 @@ Common Install Steps
 #. Activate the virtualenv: ``cd thingenv``, ``source bin/activate``.
 #. Clone the EVEthing git repository: ``git clone -b develop git://github.com/madcowfred/evething.git``.
 #. Install the required libraries using pip: ``cd evething``, ``pip install -r requirements.txt``.
+#. Note to install celery properly you will need to install the proper version for the broker you want to use, See http://celery.readthedocs.org/en/latest/getting-started/first-steps-with-celery.html#choosing-a-broker
 #. Copy evething/local_settings.example to evething/local_settings.py then open
    local_settings.py in some sort of text editor and edit settings.
 #. ``python manage.py syncdb``, say NO when it asks if you would like to create an admin user.
@@ -140,15 +140,15 @@ EVEthing will presently place jobs in 3 queues:
 
 There are a few possible ways to run the workers:
   * Single worker group (development, small installations):
-    + ``python manage.py celery worker -B -Q et_high,et_medium,et_low -c 2``
+    + ``celery worker -A evething -B -Q et_high,et_medium,et_low -c 2``
   * Two worker groups (medium installations):
-    + ``python manage.py celery worker -B -Q et_high -c 1``
-    + ``python manage.py celery worker -Q et_medium,et_low -c 4``
+    + ``celery worker -A evething -B -Q et_high -c 1``
+    + ``celery worker -A evething -Q et_medium,et_low -c 4``
     + This has been fine with up to 300 keys so far.
   * Three worker groups (large installations):
-    + ``python manage.py celery worker -B -Q et_high -c 1``
-    + ``python manage.py celery worker -B -Q et_low -c 1``
-    + ``python manage.py celery worker -B -Q et_medium -c 5``
+    + ``celery worker -A evething -B -Q et_high -c 1``
+    + ``celery worker -A evething -B -Q et_low -c 1``
+    + ``celery worker -A evething -B -Q et_medium -c 5``
     + This keeps up with the 1070 key GoonFleet hosted version.
 
 Local Install
