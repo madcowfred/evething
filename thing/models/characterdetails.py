@@ -58,4 +58,6 @@ class CharacterDetails(models.Model):
     class Meta:
         app_label = 'thing'
 
+    def __unicode__(self):
+        return '%s' % self.character
 # ------------------------------------------------------------------------------
