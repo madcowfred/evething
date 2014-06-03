@@ -182,7 +182,6 @@ from local_settings import *
 MANAGERS = ADMINS
 TEMPLATE_DEBUG = DEBUG
 
-
 # Rename the default queue
 from kombu import Exchange, Queue
 
