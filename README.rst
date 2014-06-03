@@ -107,7 +107,7 @@ Common Install Steps
 #. Activate the virtualenv: ``cd thingenv``, ``source bin/activate``.
 #. Clone the EVEthing git repository: ``git clone -b develop git://github.com/madcowfred/evething.git``.
 #. Install the required libraries using pip: ``cd evething``, ``pip install -r requirements.txt``.
-#. Note to install celery properly you will need to install the proper version for the broker you want to use, See http://celery.readthedocs.org/en/latest/getting-started/first-steps-with-celery.html#choosing-a-broker
+#. Note to install celery properly you will need to install the proper version for the broker you want to use, See http://celery.readthedocs.org/en/latest/getting-started/first-steps-with-celery.html#choosing-a-broker For example, if you wanted to use redis you would then run ``pip install celery[redis]\<3.2``
 #. Copy evething/local_settings.example to evething/local_settings.py then open
    local_settings.py in some sort of text editor and edit settings.
 #. ``python manage.py syncdb``, say NO when it asks if you would like to create an admin user.
