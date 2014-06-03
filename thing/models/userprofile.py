@@ -39,7 +39,7 @@ class UserProfile(models.Model):
         ('wallet', 'Wallet balance'),
     )
 
-    user = models.OneToOneField(User)
+    user = models.OneToOneField(User, related_name='profile')
 
     last_seen = models.DateTimeField(default=datetime.datetime.now)
 

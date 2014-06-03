@@ -55,7 +55,7 @@ def account(request):
         message = None
         message_type = None
 
-    profile = request.user.get_profile()
+    profile = request.user.profile
 
     characters = Character.objects.filter(apikeys__user=request.user).distinct()
     home_hide_characters = set(int(c) for c in profile.home_hide_characters.split(',') if c)
@@ -119,7 +119,7 @@ def account_change_password(request):
 
 @login_required
 def account_settings(request):
-    profile = request.user.get_profile()
+    profile = request.user.profile
 
     theme = request.POST.get('theme', 'theme-default')
     if [t for t in settings.THEMES if t[0] == theme]:
@@ -189,7 +189,7 @@ def account_apikey_add(request):
         request.session['message_type'] = 'error'
         request.session['message'] = 'This key was created more than 30 minutes ago, make a new one for each app!'
     else:
-        if request.user.get_profile().can_add_keys is False:
+        if request.user.profile.can_add_keys is False:
             request.session['message_type'] = 'error'
             request.session['message'] = 'You are not allowed to add API keys!'
 

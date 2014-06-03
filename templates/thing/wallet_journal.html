@@ -60,7 +60,7 @@
               </tr>
             </thead>
             <tbody>
-              {% set show_item_icons = user.get_profile().show_item_icons -%}
+              {% set show_item_icons = user.profile.show_item_icons -%}
               {% for entry in entries -%}
               <tr>
                 <td class="journal-date">{{ entry.date }}</td>

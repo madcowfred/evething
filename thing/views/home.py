@@ -48,7 +48,7 @@ def home(request):
     """Home page"""
     tt = TimerThing('home')
 
-    profile = request.user.get_profile()
+    profile = request.user.profile
 
     tt.add_time('profile')
 

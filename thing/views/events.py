@@ -34,7 +34,7 @@ from thing.stuff import *  # NOPEP8
 def events(request):
     """Events"""
     # Get profile
-    profile = request.user.get_profile()
+    profile = request.user.profile
 
     # Get a QuerySet of events for this user
     events = Event.objects.filter(user=request.user)

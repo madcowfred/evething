@@ -69,7 +69,7 @@ JOURNAL_EXPECTED = {
 def wallet_journal(request):
     """Wallet journal"""
     # Get profile
-    profile = request.user.get_profile()
+    profile = request.user.profile
 
     characters = Character.objects.filter(
         apikeys__user=request.user,

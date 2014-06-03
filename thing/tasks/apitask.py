@@ -301,7 +301,7 @@ class APITask(Task):
                     cache_expires = total_seconds(self._cache_delta) + 10
                 else:
                     # Work out if we need a cache multiplier for this key
-                    last_seen = APIKey.objects.filter(keyid=self.apikey.keyid, vcode=self.apikey.vcode).aggregate(m=Max('user__userprofile__last_seen'))['m']
+                    last_seen = APIKey.objects.filter(keyid=self.apikey.keyid, vcode=self.apikey.vcode).aggregate(m=Max('user__profile__last_seen'))['m']
                     secs = max(0, total_seconds(utcnow - last_seen))
                     mult = 1 + (min(20, max(0, secs / PENALTY_TIME)) * PENALTY_MULT)
 
@@ -403,7 +403,7 @@ class APITask(Task):
         limit = getattr(settings, 'API_FAILURE_LIMIT', 3)
         if limit > 0 and count >= limit:
             # Disable their ability to add keys
-            profile = self.apikey.user.get_profile()
+            profile = self.apikey.user.profile
             profile.can_add_keys = False
             profile.save(update_fields=('can_add_keys',))
 

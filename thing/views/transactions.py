@@ -72,7 +72,7 @@ def transactions(request):
     tt = TimerThing('transactions')
 
     # Get profile
-    profile = request.user.get_profile()
+    profile = request.user.profile
 
     characters = Character.objects.filter(
         apikeys__user=request.user,
@@ -307,7 +307,7 @@ def transactions(request):
         {
             'json_data': _json_data(characters, corporations, filters),
             'transactions': transactions,
-            'show_item_icons': request.user.get_profile().show_item_icons,
+            'show_item_icons': request.user.profile.show_item_icons,
             'paginated': paginated,
             'next': next,
             'prev': prev,
