@@ -1,7 +1,7 @@
 from django.contrib import admin
 from thing.models import APIKey, BlueprintInstance, Campaign, Character, CharacterConfig, Corporation, \
     Alliance, APIKeyFailure, Asset, AssetSummary, BlueprintComponent, Blueprint, CorpWallet, \
-    TaskState
+    TaskState, CharacterDetails
 
 class APIKeyAdmin(admin.ModelAdmin):
     list_display = ('id', 'user', 'name', 'key_type', 'corporation', 'valid')
@@ -60,3 +60,4 @@ admin.site.register(BlueprintComponent, BlueprintComponentAdmin)
 admin.site.register(Blueprint, BlueprintAdmin)
 admin.site.register(CorpWallet, CorpWalletAdmin)
 admin.site.register(TaskState, TaskStateAdmin)
+admin.site.register(CharacterDetails)
