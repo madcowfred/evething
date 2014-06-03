@@ -28,7 +28,7 @@ from django.db import models
 from thing.models.character import Character
 from thing.models.corporation import Corporation
 
-# ------------------------------------------------------------------------------
+
 class CorporationStanding(models.Model):
     corporation = models.ForeignKey(Corporation)
     character = models.ForeignKey(Character)
@@ -38,5 +38,3 @@ class CorporationStanding(models.Model):
     class Meta:
         app_label = 'thing'
         ordering = ('-standing',)
-
-# ------------------------------------------------------------------------------

@@ -33,17 +33,16 @@ from django.db import connection
 from django.shortcuts import redirect, get_object_or_404
 
 from thing import queries
-from thing.models import *
-from thing.stuff import *
+from thing.models import *  # NOPEP8
+from thing.stuff import *  # NOPEP8
 
-# ---------------------------------------------------------------------------
 
 ONE_DAY = 24 * 60 * 60
 
-# ---------------------------------------------------------------------------
-# List of blueprints we own
+
 @login_required
 def blueprints(request):
+    """List of blueprints we own"""
     tt = TimerThing('blueprints')
 
     # Get a valid number of runs
@@ -95,9 +94,10 @@ def blueprints(request):
 
     return out
 
-# Add a new blueprint
+
 @login_required
 def blueprints_add(request):
+    """Add a new blueprint"""
     bpi = BlueprintInstance(
         user=request.user,
         blueprint_id=request.GET['blueprint_id'],
@@ -109,12 +109,14 @@ def blueprints_add(request):
 
     return redirect('blueprints')
 
+
 @login_required
 def blueprints_del(request):
     bpi = get_object_or_404(BlueprintInstance, user=request.user, pk=request.GET['bpi_id'])
     bpi.delete()
 
     return redirect('blueprints')
+
 
 @login_required
 def blueprints_edit(request):
@@ -125,10 +127,10 @@ def blueprints_edit(request):
 
     return redirect('blueprints')
 
-# ---------------------------------------------------------------------------
-# Export blueprints as CSV
+
 @login_required
 def blueprints_export(request):
+    """Export blueprints as CSV"""
     return render_page(
         'thing/blueprints_export.html',
         {
@@ -137,9 +139,10 @@ def blueprints_export(request):
         request,
     )
 
-# Import blueprints from CSV
+
 @login_required
 def blueprints_import(request):
+    """Import blueprints from CSV"""
     csvdata = ''
 
     if request.method == 'POST':
@@ -209,10 +212,10 @@ def blueprints_import(request):
         request,
     )
 
-# ---------------------------------------------------------------------------
-# Calculate blueprint production details for X number of days
+
 @login_required
 def bpcalc(request):
+    """Calculate blueprint production details for X number of days"""
     # Get a valid number of days
     try:
         days = max(1, int(request.GET.get('days', '7')))
@@ -351,5 +354,3 @@ def bpcalc(request):
         },
         request,
     )
-
-# ---------------------------------------------------------------------------

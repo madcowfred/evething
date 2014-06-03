@@ -63,7 +63,7 @@ STATICFILES_DIRS = (
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-#    'django.contrib.staticfiles.finders.DefaultStorageFinder',
+    #'django.contrib.staticfiles.finders.DefaultStorageFinder',
 )
 
 # Make this unique, and don't share it with anybody.
@@ -74,7 +74,7 @@ TEMPLATE_LOADERS = (
     'jingo.Loader',
     'django.template.loaders.filesystem.Loader',
     'django.template.loaders.app_directories.Loader',
-    # 'django.template.loaders.eggs.Loader',
+    #'django.template.loaders.eggs.Loader',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -178,7 +178,7 @@ STAGGER_APITASK_STARTUP = True
 PRICE_URL = 'http://goonmetrics.com/api/price_data/?station_id=60003760&type_id=%s'
 
 # load local settings
-from local_settings import *
+from local_settings import *  # NOPEP8
 MANAGERS = ADMINS
 TEMPLATE_DEBUG = DEBUG
 

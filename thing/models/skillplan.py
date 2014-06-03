@@ -26,7 +26,7 @@
 from django.contrib.auth.models import User
 from django.db import models
 
-# ------------------------------------------------------------------------------
+
 class SkillPlan(models.Model):
     PRIVATE_VISIBILITY = 1
     PUBLIC_VISIBILITY = 2
@@ -48,5 +48,3 @@ class SkillPlan(models.Model):
 
     def __unicode__(self):
         return '%s - %s' % (self.user.username, self.name)
-
-# ------------------------------------------------------------------------------

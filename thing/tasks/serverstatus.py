@@ -27,7 +27,6 @@ from django.core.cache import cache
 
 from .apitask import APITask
 
-# ---------------------------------------------------------------------------
 
 class ServerStatus(APITask):
     name = 'thing.server_status'
@@ -49,5 +48,3 @@ class ServerStatus(APITask):
         cache.set('online_players', onlinePlayers, 300)
 
         return True
-
-# ---------------------------------------------------------------------------

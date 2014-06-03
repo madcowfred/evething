@@ -27,7 +27,6 @@ from .apitask import APITask
 
 from thing.models import APIKey, Character, CharacterConfig, CharacterDetails, Corporation
 
-# ---------------------------------------------------------------------------
 
 class APIKeyInfo(APITask):
     name = 'thing.api_key_info'
@@ -120,7 +119,6 @@ class APIKeyInfo(APITask):
         CharacterConfig.objects.bulk_create(new_configs)
         CharacterDetails.objects.bulk_create(new_details)
 
-
         # Account/Character key
         if self.apikey.key_type in (APIKey.ACCOUNT_TYPE, APIKey.CHARACTER_TYPE):
             self.apikey.corp_character = None
@@ -144,5 +142,3 @@ class APIKeyInfo(APITask):
                     ak.characters.remove(char)
 
         return True
-
-# ---------------------------------------------------------------------------

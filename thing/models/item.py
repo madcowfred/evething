@@ -31,7 +31,6 @@ from django.db.models import Sum
 from thing.models.itemgroup import ItemGroup
 from thing.models.marketgroup import MarketGroup
 
-# ------------------------------------------------------------------------------
 
 class Item(models.Model):
     id = models.IntegerField(primary_key=True)
@@ -61,5 +60,3 @@ class Item(models.Model):
             return Decimal('0')
         else:
             return Decimal(str(agg['movement__sum']))
-
-# ------------------------------------------------------------------------------

@@ -41,13 +41,13 @@ from django.contrib.auth.forms import UserCreationForm
 
 from core.util import get_minimum_keyid
 from thing.forms import UploadSkillPlanForm
-from thing.models import *
-from thing.stuff import *
+from thing.models import *  # NOPEP8
+from thing.stuff import *  # NOPEP8
 
-# ---------------------------------------------------------------------------
-# Account management view
+
 @login_required
 def account(request):
+    """Account management view"""
     if 'message' in request.session:
         message = request.session.pop('message')
         message_type = request.session.pop('message_type')
@@ -80,12 +80,12 @@ def account(request):
         [c.id for c in characters],
     )
 
-# ---------------------------------------------------------------------------
-# Change password
+
 @sensitive_post_parameters()
 @sensitive_variables()
 @login_required
 def account_change_password(request):
+    """Change password"""
     old_password = request.POST['old_password']
     new_password = request.POST['new_password']
     confirm_password = request.POST['confirm_password']
@@ -115,6 +115,7 @@ def account_change_password(request):
         request.session['message'] = 'Old password is incorrect!'
 
     return redirect('%s#password' % (reverse(account)))
+
 
 @login_required
 def account_settings(request):
@@ -166,10 +167,10 @@ def account_settings(request):
 
     return redirect(account)
 
-# ---------------------------------------------------------------------------
-# Add an API key
+
 @login_required
 def account_apikey_add(request):
+    """Add an API key"""
     keyid = request.POST.get('keyid', '0')
     vcode = request.POST.get('vcode', '').strip()
     name = request.POST.get('name', '')
@@ -178,7 +179,7 @@ def account_apikey_add(request):
     if not keyid.isdigit():
         request.session['message_type'] = 'error'
         request.session['message'] = 'KeyID is not an integer!'
-    elif int(keyid) < 1 or int(keyid) > 2**31:
+    elif int(keyid) < 1 or int(keyid) > 2 ** 31:
         request.session['message_type'] = 'error'
         request.session['message'] = 'Invalid KeyID!'
     elif len(vcode) != 64:
@@ -211,10 +212,10 @@ def account_apikey_add(request):
 
     return redirect('%s#apikeys' % (reverse(account)))
 
-# ---------------------------------------------------------------------------
-# Delete an API key
+
 @login_required
 def account_apikey_delete(request):
+    """Delete an API key"""
     apikey_id = request.POST.get('apikey_id', '')
     if apikey_id.isdigit():
         try:
@@ -236,10 +237,10 @@ def account_apikey_delete(request):
 
     return redirect('%s#apikeys' % (reverse(account)))
 
-# ---------------------------------------------------------------------------
-# Edit an API key
+
 @login_required
 def account_apikey_edit(request):
+    """Edit an API key"""
     try:
         apikey = APIKey.objects.get(user=request.user.id, id=request.POST.get('apikey_id', '0'))
 
@@ -265,10 +266,10 @@ def account_apikey_edit(request):
 
     return redirect('%s#apikeys' % (reverse(account)))
 
-# ---------------------------------------------------------------------------
-# Purge an API key's data
+
 @login_required
 def account_apikey_purge(request):
+    """Purge an API key's data"""
     apikey_id = request.POST.get('apikey_id', '')
     if apikey_id.isdigit():
         try:
@@ -290,10 +291,10 @@ def account_apikey_purge(request):
 
     return redirect('%s#apikeys' % (reverse(account)))
 
-# ---------------------------------------------------------------------------
-# Add a skillplan
+
 @login_required
 def account_skillplan_add(request):
+    """Add a skillplan"""
     if request.method == 'POST':
         form = UploadSkillPlanForm(request.POST, request.FILES)
         if form.is_valid():
@@ -308,10 +309,10 @@ def account_skillplan_add(request):
 
     return redirect('%s#skillplans' % (reverse(account)))
 
-# ---------------------------------------------------------------------------
-# Delete a skillplan
+
 @login_required
 def account_skillplan_delete(request):
+    """Delete a skillplan"""
     skillplan_id = request.POST.get('skillplan_id', '')
     if skillplan_id.isdigit():
         try:
@@ -338,10 +339,10 @@ def account_skillplan_delete(request):
 
     return redirect('%s#skillplans' % (reverse(account)))
 
-# ---------------------------------------------------------------------------
-# Edit a skillplan
+
 @login_required
 def account_skillplan_edit(request):
+    """Edit a skillplan"""
     skillplan_id = request.POST.get('skillplan_id', '')
     if skillplan_id.isdigit():
         try:
@@ -365,7 +366,6 @@ def account_skillplan_edit(request):
 
     return redirect('%s#skillplans' % (reverse(account)))
 
-# ---------------------------------------------------------------------------
 
 def _handle_skillplan_upload(request):
     name = request.POST['name'].strip()
@@ -471,7 +471,6 @@ def _parse_emp_plan(skillplan, root):
                 position += 1
                 seen[pre_skill_id] = i
 
-
         # Add the actual skill
         for i in range(seen.get(skillID, 0) + 1, level + 1):
             try:
@@ -494,9 +493,9 @@ def _parse_emp_plan(skillplan, root):
 
     SPEntry.objects.bulk_create(entries)
 
-# ---------------------------------------------------------------------------
-# Register Account
+
 def account_register(request):
+    """Register Account"""
     if not settings.ALLOW_REGISTRATION:
         return HttpResponseForbidden()
 
@@ -506,7 +505,7 @@ def account_register(request):
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
         if form.is_valid():
-            new_user = form.save()
+            form.save()
             return redirect(reverse('home'))
     else:
         form = UserCreationForm()

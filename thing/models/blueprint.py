@@ -28,9 +28,9 @@ from django.db import models
 #from thing.models.blueprintcomponent import BlueprintComponent
 from thing.models.item import Item
 
-# ------------------------------------------------------------------------------
-# Blueprints
+
 class Blueprint(models.Model):
+    """Blueprints"""
     id = models.IntegerField(primary_key=True)
     name = models.CharField(max_length=128)
     item = models.ForeignKey(Item)
@@ -46,5 +46,3 @@ class Blueprint(models.Model):
 
     def __unicode__(self):
         return self.name
-
-# ------------------------------------------------------------------------------

@@ -27,7 +27,6 @@ from .apitask import APITask
 
 from thing.models.mailmessage import MailMessage
 
-# ------------------------------------------------------------------------------
 
 class MailBodies(APITask):
     name = 'thing.mail_bodies'
@@ -65,5 +64,3 @@ class MailBodies(APITask):
                 mm.save(update_fields=('body',))
 
         return True
-
-# ------------------------------------------------------------------------------

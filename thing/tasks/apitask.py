@@ -30,10 +30,7 @@ and explosions.
 
 import datetime
 import hashlib
-import logging
-import os
 import requests
-import sys
 import time
 
 try:
@@ -54,28 +51,25 @@ from urlparse import urljoin
 from thing.models import APIKey, APIKeyFailure, Event, TaskState
 from thing.stuff import total_seconds
 
-# ---------------------------------------------------------------------------
-
 PENALTY_TIME = 12 * 60 * 60
 PENALTY_MULT = 0.2
 
 KEY_ERRORS = set([
-    '202', # API key authentication failure.
-    '203', # Authentication failure.
-    '204', # Authentication failure.
-    '205', # Authentication failure (final pass).
-    '207', # Not available for NPC corporations.
-    '210', # Authentication failure.
-    '211', # Login denied by account status.
-    '212', # Authentication failure (final pass).
-    '220', # Invalid Corporation Key. Key owner does not fullfill role requirements anymore.
-    '222', # Key has expired. Contact key owner for access renewal.
-    '223', # Authentication failure. Legacy API keys can no longer be used. Please create a new key on support.eveonline.com and make sure your application supports Customizable API Keys.
+    '202',  # API key authentication failure.
+    '203',  # Authentication failure.
+    '204',  # Authentication failure.
+    '205',  # Authentication failure (final pass).
+    '207',  # Not available for NPC corporations.
+    '210',  # Authentication failure.
+    '211',  # Login denied by account status.
+    '212',  # Authentication failure (final pass).
+    '220',  # Invalid Corporation Key. Key owner does not fullfill role requirements anymore.
+    '222',  # Key has expired. Contact key owner for access renewal.
+    '223',  # Authentication failure. Legacy API keys can no longer be used. Please create a new key on support.eveonline.com and make sure your application supports Customizable API Keys.
 ])
 
-# ---------------------------------------------------------------------------
-
 this_process = None
+
 
 class APITask(Task):
     abstract = True
@@ -175,7 +169,8 @@ class APITask(Task):
                     self.log_warn('%.3fs  %s', runtime, url)
 
                 for db in sorted(settings.DATABASES.keys()):
-                    self.log_warn('[%s] %.3fs  %d queries',
+                    self.log_warn(
+                        '[%s] %.3fs  %d queries',
                         db,
                         sum(float(q['time']) for q in connections[db].queries),
                         len(connections[db].queries),
@@ -354,7 +349,7 @@ class APITask(Task):
             else:
                 r = self._session.get(url)
             data = r.text
-        except Exception, e:
+        except Exception:
             #self._increment_backoff(e)
             return False
 

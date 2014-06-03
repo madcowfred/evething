@@ -25,7 +25,6 @@
 
 from django.db import models
 
-# ------------------------------------------------------------------------------
 
 class ItemCategory(models.Model):
     id = models.IntegerField(primary_key=True)
@@ -36,5 +35,3 @@ class ItemCategory(models.Model):
 
     def __unicode__(self):
         return self.name
-
-# ------------------------------------------------------------------------------

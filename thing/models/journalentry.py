@@ -25,7 +25,6 @@
 
 from xml.sax.saxutils import unescape
 
-from django.contrib.auth.models import User
 from django.db import models
 
 from thing.models.character import Character
@@ -33,9 +32,9 @@ from thing.models.corporation import Corporation
 from thing.models.corpwallet import CorpWallet
 from thing.models.reftype import RefType
 
-# ------------------------------------------------------------------------------
-# Wallet journal entries
+
 class JournalEntry(models.Model):
+    """Wallet journal entries"""
     character = models.ForeignKey(Character)
     corp_wallet = models.ForeignKey(CorpWallet, null=True, blank=True)
 

@@ -27,12 +27,11 @@ import json
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
-from django.core.paginator import Paginator, EmptyPage, InvalidPage, PageNotAnInteger
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
-from thing.models import *
-from thing.stuff import *
+from thing.models import *  # NOPEP8
+from thing.stuff import *  # NOPEP8
 
-# ---------------------------------------------------------------------------
 
 MONTHS = (None, 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec')
 
@@ -66,10 +65,10 @@ FILTER_EXPECTED = {
     },
 }
 
-# ---------------------------------------------------------------------------
-# Transaction list
+
 @login_required
 def transactions(request):
+    """Transaction list"""
     tt = TimerThing('transactions')
 
     # Get profile
@@ -247,12 +246,6 @@ def transactions(request):
     # Create a new paginator
     paginator = Paginator(transaction_ids, profile.entries_per_page)
 
-    # Make sure page request is an int, default to 1st page
-    try:
-        page = int(request.GET.get('page', '1'))
-    except ValueError:
-        page = 1
-
     # If page request is out of range, deliver last page of results
     try:
         paginated = paginator.page(request.GET.get('page'))
@@ -301,7 +294,6 @@ def transactions(request):
     tt.add_time('build links')
 
     # Ready template things
-    json_expected = json.dumps(FILTER_EXPECTED)
     values = {
         'chars': characters,
         'corps': corporations,
@@ -332,7 +324,6 @@ def transactions(request):
 
     return out
 
-# ---------------------------------------------------------------------------
 
 def _json_data(characters, corporations, filters):
     data = dict(

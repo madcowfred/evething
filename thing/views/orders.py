@@ -32,22 +32,21 @@ from django.contrib.auth.decorators import login_required
 from django.db import connection
 
 from thing import queries
-from thing.models import *
-from thing.stuff import *
+from thing.models import *  # NOPEP8
+from thing.stuff import *   # NOPEP8
 
-# ---------------------------------------------------------------------------
 
 ORDER_SLOT_SKILLS = {
-    3443: 4,  # Trade
-    3444: 8,  # Retail
-    16596: 16,# Wholesale
-    18580: 32,# Tycoon
+    3443: 4,    # Trade
+    3444: 8,    # Retail
+    16596: 16,  # Wholesale
+    18580: 32,  # Tycoon
 }
 
-# ---------------------------------------------------------------------------
-# Market orders
+
 @login_required
 def orders(request):
+    """Market orders"""
     # Retrieve order aggregate data
     cursor = connection.cursor()
     cursor.execute(queries.order_aggregation, (request.user.id,))

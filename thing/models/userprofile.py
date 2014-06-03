@@ -28,9 +28,9 @@ import datetime
 from django.contrib.auth.models import User
 from django.db import models
 
-# ------------------------------------------------------------------------------
-# Profile information for a user
+
 class UserProfile(models.Model):
+    """Profile information for a user"""
     HOME_SORT_ORDERS = (
         ('apiname', 'APIKey name'),
         ('charname', 'Character name'),
@@ -75,12 +75,10 @@ class UserProfile(models.Model):
     class Meta:
         app_label = 'thing'
 
-# -----------------------------------------------------------------------------
-# Magical hook to create a UserProfile when a User object is created
+
 def create_user_profile(sender, instance, created, **kwargs):
+    """Magical hook to create a UserProfile when a User object is created"""
     if created:
         UserProfile.objects.create(user=instance)
 
 models.signals.post_save.connect(create_user_profile, sender=User)
-
-# -----------------------------------------------------------------------------

@@ -27,7 +27,6 @@ from .apitask import APITask
 
 from thing.models import Character, CharacterSkill, Skill
 
-# ---------------------------------------------------------------------------
 
 class CharacterSheet(APITask):
     name = 'thing.character_sheet'
@@ -43,10 +42,9 @@ class CharacterSheet(APITask):
             return
 
         # Fetch the API data
-        params = { 'characterID': character_id }
+        params = {'characterID': character_id}
         if self.fetch_api(url, params) is False or self.root is None:
             return
-
 
         # Update wallet balance
         character.details.wallet_balance = self.root.findtext('result/balance', '0')
@@ -122,5 +120,3 @@ class CharacterSheet(APITask):
             CharacterSkill.objects.bulk_create(new)
 
         return True
-
-# ---------------------------------------------------------------------------

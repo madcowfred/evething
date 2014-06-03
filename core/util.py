@@ -32,12 +32,9 @@ from django.core.cache import cache
 from django.db.models import Max
 from django.http import HttpResponse
 
-# ---------------------------------------------------------------------------
 
 def get_minimum_keyid():
-    """
-    Return the minimum allowed keyid - MAX(keyid) added at least 30 minutes ago.
-    """
+    """Return the minimum allowed keyid - MAX(keyid) added at least 30 minutes ago."""
 
     from thing.models import APIKey
 
@@ -58,29 +55,21 @@ def get_minimum_keyid():
 
     return minimum_keyid
 
-# ---------------------------------------------------------------------------
-# Convert a datetime.timedelta object into a number of seconds
+
 def total_seconds(delta):
+    """Convert a datetime.timedelta object into a number of seconds"""
     return (delta.days * 24 * 60 * 60) + delta.seconds
 
-# ------------------------------------------------------------------------------
 
 def json_response(data):
-    """
-    Returns a JSON response containing data.
-    """
+    """Returns a JSON response containing data."""
     return HttpResponse(json.dumps(data), content_type='application/json')
 
-# ------------------------------------------------------------------------------
 
 def json_serialized(queryset, fields=None):
-    """
-    Returns a JSON response containing data using the Django serializer.
-    """
+    """Returns a JSON response containing data using the Django serializer."""
     if fields:
         serialized = serializers.serialize('json', queryset, fields=fields)
     else:
         serialized = serializers.serialize('json', queryset)
     return HttpResponse(serialized, content_type='application/json')
-
-# ------------------------------------------------------------------------------

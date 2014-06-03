@@ -25,7 +25,6 @@
 
 from django.db import models
 
-# ------------------------------------------------------------------------------
 
 class SPRemap(models.Model):
     int_stat = models.IntegerField()
@@ -38,7 +37,6 @@ class SPRemap(models.Model):
         app_label = 'thing'
 
     def __unicode__(self):
-        return 'Int: %d, Mem: %d, Per: %d, Wil: %d, Cha: %d' % (self.int_stat, self.mem_stat,
-            self.per_stat, self.wil_stat, self.cha_stat)
-
-# ------------------------------------------------------------------------------
+        return 'Int: %d, Mem: %d, Per: %d, Wil: %d, Cha: %d' % (
+            self.int_stat, self.mem_stat, self.per_stat, self.wil_stat, self.cha_stat
+        )

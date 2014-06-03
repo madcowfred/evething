@@ -30,14 +30,12 @@ from django.db import models
 
 from thing.models.item import Item
 
-# ------------------------------------------------------------------------------
 
 try:
     SKILL_MAP = cPickle.load(open('skill_map.pickle', 'r'))
 except:
     SKILL_MAP = {}
 
-# ------------------------------------------------------------------------------
 
 class Skill(models.Model):
     CHARISMA_ATTRIBUTE = 164
@@ -72,7 +70,7 @@ class Skill(models.Model):
 
     def __unicode__(self):
         return '%s (Rank %d; %s/%s)' % (self.item.name, self.rank, self.get_primary_attribute_display(),
-            self.get_secondary_attribute_display())
+                                        self.get_secondary_attribute_display())
 
     def __html__(self):
         return "<strong>Primary:</strong> %s / <strong>Secondary</strong>: %s<br><br>%s" % (
@@ -109,8 +107,6 @@ class Skill(models.Model):
 
         return pri + (sec / 2.0)
 
-    # ------------------------------------------------------------------------------
-
     @staticmethod
     def get_prereqs(skill_id):
         'Get all pre-requisite skills for a given skill ID'
@@ -125,5 +121,3 @@ class Skill(models.Model):
 
         # Return a reversed list so it's in training order
         return list(reversed(prereqs))
-
-# ------------------------------------------------------------------------------

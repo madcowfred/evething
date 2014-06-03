@@ -25,7 +25,6 @@
 
 from django.db import models
 
-# ------------------------------------------------------------------------------
 
 class Region(models.Model):
     id = models.IntegerField(primary_key=True)
@@ -37,5 +36,3 @@ class Region(models.Model):
     class Meta:
         app_label = 'thing'
         ordering = ('name'),
-
-# ------------------------------------------------------------------------------

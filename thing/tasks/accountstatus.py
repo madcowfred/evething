@@ -25,7 +25,6 @@
 
 from .apitask import APITask
 
-# ---------------------------------------------------------------------------
 
 class AccountStatus(APITask):
     name = 'thing.account_status'
@@ -45,5 +44,3 @@ class AccountStatus(APITask):
             self.apikey.save()
 
         return True
-
-# ---------------------------------------------------------------------------

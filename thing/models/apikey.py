@@ -35,9 +35,9 @@ from core.util import total_seconds
 from thing.models.character import Character
 from thing.models.corporation import Corporation
 
-# ------------------------------------------------------------------------------
-# API keys
+
 class APIKey(models.Model):
+    """API Keys"""
     ACCOUNT_TYPE = 'Account'
     CHARACTER_TYPE = 'Character'
     CORPORATION_TYPE = 'Corporation'
@@ -164,5 +164,3 @@ class APIKey(models.Model):
         self.invalidate()
 
         send_task('thing.purge_api_key', args=[self.id], kwargs={}, queue='et_high')
-
-# ------------------------------------------------------------------------------

@@ -30,7 +30,6 @@ from django.db import models
 
 from core.util import total_seconds
 
-# ------------------------------------------------------------------------------
 
 class Event(models.Model):
     user = models.ForeignKey(User)
@@ -43,5 +42,3 @@ class Event(models.Model):
 
     def get_age(self):
         return total_seconds(datetime.datetime.now() - self.issued)
-
-# ------------------------------------------------------------------------------

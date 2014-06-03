@@ -31,9 +31,9 @@ from thing.models.corpwallet import CorpWallet
 from thing.models.item import Item
 from thing.models.station import Station
 
-# ------------------------------------------------------------------------------
-# Wallet transactions
+
 class Transaction(models.Model):
+    """Wallet Transactions"""
     station = models.ForeignKey(Station)
     item = models.ForeignKey(Item)
 
@@ -51,5 +51,3 @@ class Transaction(models.Model):
 
     class Meta:
         app_label = 'thing'
-
-# ------------------------------------------------------------------------------

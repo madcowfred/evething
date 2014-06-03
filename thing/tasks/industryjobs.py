@@ -29,7 +29,6 @@ from .apitask import APITask
 
 from thing.models import Character, IndustryJob, Event, InventoryFlag, Item, System, APIKey
 
-# ---------------------------------------------------------------------------
 
 class IndustryJobs(APITask):
     name = 'thing.industry_jobs'
@@ -55,7 +54,7 @@ class IndustryJobs(APITask):
         ij_filter = ij_filter.select_related('character', 'corporation')
 
         # Fetch the API data
-        params = { 'characterID': character_id }
+        params = {'characterID': character_id}
         if self.fetch_api(url, params) is False or self.root is None:
             return
 
@@ -215,5 +214,3 @@ class IndustryJobs(APITask):
         )
 
         return True
-
-# ---------------------------------------------------------------------------

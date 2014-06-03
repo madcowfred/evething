@@ -23,17 +23,12 @@
 # OF SUCH DAMAGE.
 # ------------------------------------------------------------------------------
 
-import datetime
-
-from decimal import *
-
 from celery.execute import send_task
 
 from .apitask import APITask
 from thing import queries
 from thing.models import APIKey, Asset, AssetSummary, Character, InventoryFlag, Item, Station, System
 
-# ---------------------------------------------------------------------------
 
 class AssetList(APITask):
     name = 'thing.asset_list'
@@ -57,7 +52,7 @@ class AssetList(APITask):
             a_filter = Asset.objects.filter(character=character, corporation_id=0)
 
         # Fetch the API data
-        params = { 'characterID': character.id }
+        params = {'characterID': character.id}
         if self.fetch_api(url, params) is False or self.root is None:
             return
 
