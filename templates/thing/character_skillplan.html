@@ -69,12 +69,17 @@
                 <td class="sp-trained">
                   {% if entry.z_training -%}
                   <i class="icon-flag"></i>
+                  {% elif entry.z_partial_trained -%}
+                  <i class="icon-star-half-empty training-highlight"></i>
                   {%- else -%}
                   {{ icons.success_fail(entry.z_trained) }}
                   {%- endif %}
                 </td>
-                <td class="l{% if entry.z_training %} training-highlight{% endif %}">
+                <td class="l{% if entry.z_training %} training-highlight{% elif entry.z_partial_trained %} highlight_partial{% endif %}">
                   {{ common.skill_hover(entry.sp_skill.skill, entry.sp_skill.level)}}
+                  {% if entry.z_partial_trained %}
+                  (Trained: {{ entry.z_percent_trained }}%)
+                  {% endif %}
                   {% if entry.z_injected -%}
                   <i class="icon-book pull-right" rel="tooltip" title="Skillbook is injected"</i>
                   {%- elif entry.z_buy %}

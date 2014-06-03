@@ -431,6 +431,14 @@ def character_skillplan_common(request, character, skillplan, public=True, anony
                         continue
 
                     entry.z_trained = True
+                # check if current skill SP > level SP AND planned skill lvl - 1 = learned skill level
+                elif cs.points > cs.skill.get_sp_at_level(cs.level) and entry.sp_skill.level-1 == cs.level:
+                    required_sp = cs.skill.get_sp_at_level(cs.level + 1) - cs.skill.get_sp_at_level(cs.level)
+                    sp_done = cs.points-cs.skill.get_sp_at_level(cs.level)
+                    entry.z_sp_done = sp_done
+                    entry.z_percent_trained = round(sp_done / float(required_sp) * 100, 1)
+                    entry.z_partial_trained = True
+
             # Not learned, need to buy it
             else:
                 entry.z_buy = True
@@ -452,6 +460,10 @@ def character_skillplan_common(request, character, skillplan, public=True, anony
             if training_skill is not None and training_skill.skill_id == entry.sp_skill.skill_id and training_skill.to_level == entry.sp_skill.level:
                 entry.z_remaining = total_seconds(training_skill.end_time - utcnow)
                 entry.z_training = True
+            elif hasattr(entry, 'z_partial_trained'):
+                remaining_sp = skill.get_sp_at_level(entry.sp_skill.level) - skill.get_sp_at_level(entry.sp_skill.level - 1)
+                entry.z_remaining = (remaining_sp - entry.z_sp_done) / entry.z_sppm * 60
+                entry.z_total_time = remaining_sp / entry.z_sppm * 60
             else:
                 entry.z_remaining = (skill.get_sp_at_level(entry.sp_skill.level) - skill.get_sp_at_level(entry.sp_skill.level - 1)) / entry.z_sppm * 60
 
