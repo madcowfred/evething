@@ -157,16 +157,16 @@ EVEthing will presently place jobs in 3 queues:
 - et_medium: everything else.
 
 There are a few possible ways to run the workers:
-- Single worker group (development, small installations):
-      celery worker -A evething -B -Q et_high,et_medium,et_low -c 2
-- Two worker groups (medium installations):
-      celery worker -A evething -B -Q et_high -c 1
-      celery worker -A evething -Q et_medium,et_low -c 4
+- Single worker group (development, small installations):  
+    `celery worker -A evething -B -Q et_high,et_medium,et_low -c 2`
+- Two worker groups (medium installations):  
+    `celery worker -A evething -B -Q et_high -c 1`  
+     `celery worker -A evething -Q et_medium,et_low -c 4`
   - This has been fine with up to 300 keys so far.
-- Three worker groups (large installations):
-      celery worker -A evething -B -Q et_high -c 1
-      celery worker -A evething -B -Q et_low -c 1
-      celery worker -A evething -B -Q et_medium -c 5
+- Three worker groups (large installations):  
+    `celery worker -A evething -B -Q et_high -c 1`  
+     `celery worker -A evething -B -Q et_low -c 1`  
+     `celery worker -A evething -B -Q et_medium -c 5`
   - This keeps up with the 1070 key GoonFleet hosted version.
 
 Local Install
