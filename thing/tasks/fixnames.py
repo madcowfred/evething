@@ -27,10 +27,10 @@ from .apitask import APITask
 
 from thing.models import Character, Corporation
 
-# ---------------------------------------------------------------------------
 # Periodic task to try to fix *UNKNOWN* Character objects
 CHAR_NAME_URL = '/eve/CharacterName.xml.aspx'
 CORP_SHEET_URL = '/corp/CorporationSheet.xml.aspx'
+
 
 class FixNames(APITask):
     name = 'thing.fix_names'
@@ -55,7 +55,7 @@ class FixNames(APITask):
         # Go fetch names for them
         name_map = {}
         for i in range(0, len(ids), 100):
-            params = { 'ids': ','.join(map(str, ids[i:i+100])) }
+            params = {'ids': ','.join(map(str, ids[i:i + 100]))}
 
             if self.fetch_api(CHAR_NAME_URL, params, use_auth=False) is False or self.root is None:
                 return False

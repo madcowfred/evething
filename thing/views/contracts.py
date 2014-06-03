@@ -25,13 +25,13 @@
 
 from django.contrib.auth.decorators import login_required
 
-from thing.models import *
-from thing.stuff import *
+from thing.models import *  # NOPEP8
+from thing.stuff import *  # NOPEP8
 
-# ---------------------------------------------------------------------------
-# Contracts
+
 @login_required
 def contracts(request):
+    """Contracts"""
     character_ids = list(Character.objects.filter(
         apikeys__user=request.user.id,
         apikeys__valid=True,
@@ -123,5 +123,3 @@ def contracts(request):
         character_ids,
         corporation_ids,
     )
-
-# ---------------------------------------------------------------------------

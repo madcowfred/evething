@@ -23,7 +23,7 @@
 # OF SUCH DAMAGE.
 # ------------------------------------------------------------------------------
 
-from decimal import *
+from decimal import Decimal
 
 try:
     from collections import OrderedDict
@@ -37,6 +37,7 @@ from thing.models import Character, Corporation, JournalEntry, RefType, APIKey
 # ---------------------------------------------------------------------------
 # number of rows to request per WalletTransactions call, max is 2560
 TRANSACTION_ROWS = 2560
+
 
 class WalletJournal(APITask):
     name = 'thing.wallet_journal'
@@ -195,5 +196,3 @@ class WalletJournal(APITask):
                 Character.objects.bulk_create(insert_me)
 
         return True
-
-# ---------------------------------------------------------------------------

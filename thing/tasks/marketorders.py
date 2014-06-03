@@ -25,7 +25,7 @@
 
 import datetime
 
-from decimal import *
+from decimal import Decimal
 
 from django.core.urlresolvers import reverse
 
@@ -33,7 +33,6 @@ from .apitask import APITask
 
 from thing.models import Character, CorpWallet, Event, Item, MarketOrder, Station, APIKey
 
-# ---------------------------------------------------------------------------
 
 class MarketOrders(APITask):
     name = 'thing.market_orders'
@@ -64,7 +63,7 @@ class MarketOrders(APITask):
         mo_filter = mo_filter.select_related('item')
 
         # Fetch the API data
-        params = { 'characterID': character_id }
+        params = {'characterID': character_id}
         if self.fetch_api(url, params) is False or self.root is None:
             return
 
@@ -115,7 +114,7 @@ class MarketOrders(APITask):
                 seen.append(order_id)
 
         # Bulk query data
-        char_map = Character.objects.in_bulk(char_ids)
+        #char_map = Character.objects.in_bulk(char_ids)
         item_map = Item.objects.in_bulk(item_ids)
         station_map = Station.objects.in_bulk(station_ids)
 
@@ -205,5 +204,3 @@ class MarketOrders(APITask):
         to_delete.delete()
 
         return True
-
-# ---------------------------------------------------------------------------

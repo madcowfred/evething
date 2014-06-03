@@ -29,7 +29,6 @@ from thing.models.character import Character
 from thing.models.station import Station
 from thing.models.system import System
 
-# ------------------------------------------------------------------------------
 
 class AssetSummary(models.Model):
     character = models.ForeignKey(Character)
@@ -45,5 +44,3 @@ class AssetSummary(models.Model):
 
     class Meta:
         app_label = 'thing'
-
-# ------------------------------------------------------------------------------

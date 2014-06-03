@@ -25,22 +25,13 @@
 
 import json
 
-try:
-    from collections import OrderedDict
-except ImportError:
-    from ordereddict import OrderedDict
-
-#from django.conf import settings
 from django.contrib.auth.decorators import login_required
-from django.core.paginator import Paginator, EmptyPage, InvalidPage, PageNotAnInteger
-from django.db import connection
-from django.db.models import Q, Avg, Count, Max, Min, Sum
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.db.models import Q, Count, Sum
 
-from thing.models import *
-from thing.stuff import *
-from thing.views.trade import _month_range
+from thing.models import *  # NOPEP8
+from thing.stuff import *  # NOPEP8
 
-# ---------------------------------------------------------------------------
 
 JOURNAL_EXPECTED = {
     'char': {
@@ -73,12 +64,12 @@ JOURNAL_EXPECTED = {
     },
 }
 
-# ---------------------------------------------------------------------------
-# Wallet journal
+
 @login_required
 def wallet_journal(request):
+    """Wallet journal"""
     # Get profile
-    profile = request.user.get_profile()
+    profile = request.user.profile
 
     characters = Character.objects.filter(
         apikeys__user=request.user,
@@ -101,12 +92,6 @@ def wallet_journal(request):
 
     # Create a new paginator
     paginator = Paginator(journal_ids, profile.entries_per_page)
-
-    # Make sure page request is an int, default to 1st page
-    try:
-        page = int(request.GET.get('page', '1'))
-    except ValueError:
-        page = 1
 
     # If page request is out of range, deliver last page of results
     try:
@@ -256,7 +241,6 @@ def wallet_journal(request):
         corporation_ids,
     )
 
-# ---------------------------------------------------------------------------
 
 @login_required
 def wallet_journal_aggregate(request):
@@ -295,7 +279,7 @@ def wallet_journal_aggregate(request):
         values = ['year', 'month']
 
     else:
-        group_by_date = 'year'
+        # group_by['date'] = 'year'
         extras = {
             'year': 'EXTRACT(year FROM date)',
         }
@@ -323,9 +307,9 @@ def wallet_journal_aggregate(request):
     ).annotate(
         entries=Count('id'),
         total_amount=Sum('amount'),
-    ).order_by(
+    )  # .order_by(
     #    *orders
-    )
+    #)
 
     # Aggregate!
     wja = WJAggregator(group_by)
@@ -348,7 +332,6 @@ def wallet_journal_aggregate(request):
         request,
     )
 
-# ---------------------------------------------------------------------------
 
 class WJAggregator(object):
     def __init__(self, group_by):
@@ -447,7 +430,6 @@ class WJAggregator(object):
 
         self.data.sort(cmp=self.__cmp_func)
 
-# ---------------------------------------------------------------------------
 
 def _journal_queryset(request, character_ids, corporation_ids):
     journal_ids = JournalEntry.objects.filter(
@@ -591,7 +573,6 @@ def _journal_queryset(request, character_ids, corporation_ids):
 
     return filters, journal_ids, days
 
-# ---------------------------------------------------------------------------
 
 def _json_data(characters, corporations, filters):
     data = dict(
@@ -612,5 +593,3 @@ def _json_data(characters, corporations, filters):
         data['values']['reftype'][reftype.id] = reftype.name
 
     return json.dumps(data)
-
-# ---------------------------------------------------------------------------

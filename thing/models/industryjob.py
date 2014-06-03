@@ -31,9 +31,9 @@ from thing.models.inventoryflag import InventoryFlag
 from thing.models.item import Item
 from thing.models.system import System
 
-# ------------------------------------------------------------------------------
-# Industry jobs
+
 class IndustryJob(models.Model):
+    """Industry job"""
     FAILED_STATUS = 0
     DELIVERED_STATUS = 1
     ABORTED_STATUS = 2
@@ -114,5 +114,3 @@ class IndustryJob(models.Model):
     class Meta:
         app_label = 'thing'
         ordering = ('-end_time',)
-
-# ------------------------------------------------------------------------------

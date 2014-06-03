@@ -25,7 +25,6 @@
 
 from django.db import models
 
-# ------------------------------------------------------------------------------
 # Inventory flags
 FLAG_NICE = {
     'HiSlot': ('High Slot', 0),
@@ -36,6 +35,7 @@ FLAG_NICE = {
     'ShipHangar': ('Ship Hangar', 5),
     'SpecializedFuelBay': ('Fuel Bay', 6),
 }
+
 
 class InventoryFlag(models.Model):
     id = models.IntegerField(primary_key=True)
@@ -58,5 +58,3 @@ class InventoryFlag(models.Model):
                 return data[1]
 
         return 999
-
-# ------------------------------------------------------------------------------

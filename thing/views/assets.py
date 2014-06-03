@@ -30,13 +30,10 @@ from decimal import Decimal
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
-from django.db.models import Q, Avg, Count, Max, Min, Sum
-from django.http import HttpResponse
+from django.db.models import Q
 
-from thing.models import *
-from thing.stuff import *
-
-# ---------------------------------------------------------------------------
+from thing.models import *  # NOPEP8
+from thing.stuff import *  # NOPEP8
 
 ASSETS_EXPECTED = {
     'char': {
@@ -71,10 +68,10 @@ ASSETS_EXPECTED = {
     },
 }
 
-# ---------------------------------------------------------------------------
-# Assets summary
+
 @login_required
 def assets_summary(request):
+    """Assets summary"""
     tt = TimerThing('assets_summary')
 
     characters = Character.objects.filter(
@@ -184,10 +181,10 @@ def assets_summary(request):
 
     return out
 
-# ---------------------------------------------------------------------------
-# Assets filter
+
 @login_required
 def assets_filter(request):
+    """Assets filter"""
     tt = TimerThing('assets')
 
     characters = Character.objects.filter(apikeys__user=request.user.id).distinct()
@@ -499,8 +496,9 @@ def assets_filter(request):
 
     return out
 
-# Recursively sort the contents of an asset
+
 def _content_sort(asset):
+    """Recursively sort the contents of an asset"""
     if asset.z_contents:
         # decorate/sort/undecorate argh
         temp = [(c.inv_flag.sort_order(), c.item.name, c) for c in asset.z_contents]
@@ -509,7 +507,6 @@ def _content_sort(asset):
         for asset in asset.z_contents:
             _content_sort(asset)
 
-# ---------------------------------------------------------------------------
 
 def _json_data(characters, corporations, filters):
     data = dict(

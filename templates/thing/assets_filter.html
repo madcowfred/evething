@@ -30,7 +30,7 @@
       <div class="row-fluid">
         <div class="span12">
           <p><strong>Total asset value:</strong> {{ total_value|commas }} ISK</p>
-          {% set show_item_icons = user.get_profile().show_item_icons -%}
+          {% set show_item_icons = user.profile.show_item_icons -%}
           {% for system_name, asset_roots in systems -%}
           <table class="table table-striped table-bordered table-condensed">
             <thead>

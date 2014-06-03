@@ -25,7 +25,6 @@
 
 from django.db import models
 
-# ------------------------------------------------------------------------------
 
 class Faction(models.Model):
     id = models.IntegerField(primary_key=True)
@@ -33,5 +32,3 @@ class Faction(models.Model):
 
     class Meta:
         app_label = 'thing'
-
-# ------------------------------------------------------------------------------

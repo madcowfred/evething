@@ -33,10 +33,10 @@ from django.db.models import Q
 
 from thing.models import APIKey, TaskState
 
-# ---------------------------------------------------------------------------
-# Periodic task to perform database table cleanup
+
 @task(name='thing.table_cleaner')
 def table_cleaner():
+    """Periodic task to perform database table cleanup"""
     utcnow = datetime.datetime.utcnow()
 
     queued_timeout = utcnow - datetime.timedelta(hours=12)
@@ -57,5 +57,3 @@ def table_cleaner():
         Q(keyid__in=APIKey.objects.filter(valid=True).values('keyid'))
     )
     taskstates.delete()
-
-# ---------------------------------------------------------------------------

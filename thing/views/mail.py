@@ -23,16 +23,13 @@
 # OF SUCH DAMAGE.
 # ------------------------------------------------------------------------------
 
-import time
-
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 
 from core.util import json_response
-from thing.models import *
+from thing.models import *  # NOPEP8
 from thing.stuff import render_page, flush_cache
 
-# ------------------------------------------------------------------------------
 
 @login_required
 def mail(request):
@@ -56,7 +53,6 @@ def mail(request):
         [c[0] for c in characters],
     )
 
-# ------------------------------------------------------------------------------
 
 @login_required
 def mail_json_body(request, message_id):
@@ -73,7 +69,6 @@ def mail_json_body(request, message_id):
 
     return json_response(data)
 
-# ------------------------------------------------------------------------------
 
 @login_required
 def mail_json_headers(request):
@@ -135,7 +130,7 @@ def mail_json_headers(request):
         m = seen_messages.get(message.message_id)
         if m is not None:
             # Set the message as unread if one version of it is unread
-            if message.read == False:
+            if message.read is False:
                 m['read'] = False
 
             # Add this character to the to_characters list if it's not already there
@@ -172,7 +167,6 @@ def mail_json_headers(request):
 
     return json_response(data)
 
-# ------------------------------------------------------------------------------
 
 @login_required
 def mail_mark_read(request):
@@ -195,5 +189,3 @@ def mail_mark_read(request):
             flush_cache(request.user)
 
     return HttpResponse()
-
-# ------------------------------------------------------------------------------

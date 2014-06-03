@@ -27,7 +27,6 @@ from .apitask import APITask
 
 from thing.models import Alliance, Corporation
 
-# ---------------------------------------------------------------------------
 
 class AllianceList(APITask):
     name = 'thing.alliance_list'
@@ -106,5 +105,3 @@ class AllianceList(APITask):
             Corporation.objects.bulk_create(new)
 
         return True
-
-# ---------------------------------------------------------------------------

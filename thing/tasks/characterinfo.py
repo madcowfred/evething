@@ -27,7 +27,6 @@ from .apitask import APITask
 
 from thing.models import Character
 
-# ---------------------------------------------------------------------------
 
 class CharacterInfo(APITask):
     name = 'thing.character_info'
@@ -43,7 +42,7 @@ class CharacterInfo(APITask):
             return
 
         # Fetch the API data
-        params = { 'characterID': character_id }
+        params = {'characterID': character_id}
         if self.fetch_api(url, params) is False or self.root is None:
             return
 
@@ -64,5 +63,3 @@ class CharacterInfo(APITask):
         character.details.save()
 
         return True
-
-# ---------------------------------------------------------------------------

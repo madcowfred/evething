@@ -23,14 +23,13 @@
 # OF SUCH DAMAGE.
 # ------------------------------------------------------------------------------
 
-from django.contrib.auth.models import User
 from django.db import models
 
 from thing.models.corporation import Corporation
 
-# ------------------------------------------------------------------------------
-# Corporation wallets
+
 class CorpWallet(models.Model):
+    """Corporation wallets"""
     account_id = models.IntegerField(primary_key=True)
     corporation = models.ForeignKey(Corporation)
     account_key = models.IntegerField()
@@ -56,5 +55,3 @@ class CorpWallet(models.Model):
             return '[%s] %s' % (self.corporation.ticker, self.description)
         else:
             return '%s [%s] %s' % (self.corporation.name, self.account_key, self.description)
-
-# ------------------------------------------------------------------------------

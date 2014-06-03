@@ -26,9 +26,9 @@
 from django.contrib.auth.models import User
 from django.db import models
 
-# ------------------------------------------------------------------------------
-# APIKey permanent failure log
+
 class APIKeyFailure(models.Model):
+    """APIKey permanent failure log"""
     user = models.ForeignKey(User)
     keyid = models.IntegerField()
 
@@ -37,5 +37,3 @@ class APIKeyFailure(models.Model):
 
     class Meta:
         app_label = 'thing'
-
-# ------------------------------------------------------------------------------

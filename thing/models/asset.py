@@ -23,7 +23,6 @@
 # OF SUCH DAMAGE.
 # ------------------------------------------------------------------------------
 
-from django.contrib.auth.models import User
 from django.db import models
 
 from thing.models.character import Character
@@ -32,9 +31,9 @@ from thing.models.item import Item
 from thing.models.station import Station
 from thing.models.system import System
 
-# ------------------------------------------------------------------------------
-# Assets
+
 class Asset(models.Model):
+    """Assets"""
     asset_id = models.BigIntegerField(db_index=True)
     parent = models.BigIntegerField(default=0)
 
@@ -79,5 +78,3 @@ class Asset(models.Model):
         # BPCs count as 0 value for now
         else:
             return 0
-
-# ------------------------------------------------------------------------------

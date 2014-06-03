@@ -27,9 +27,9 @@ from django.db import models
 
 from thing.models.item import Item
 
-# ------------------------------------------------------------------------------
-# Contract items
+
 class ContractItem(models.Model):
+    """Contract items"""
     contract_id = models.IntegerField(db_index=True)
     item = models.ForeignKey(Item, related_name='contract_items')
 
@@ -40,5 +40,3 @@ class ContractItem(models.Model):
 
     class Meta:
         app_label = 'thing'
-
-# ------------------------------------------------------------------------------

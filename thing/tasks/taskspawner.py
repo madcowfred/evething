@@ -24,8 +24,6 @@
 # ------------------------------------------------------------------------------
 
 import datetime
-import os
-import sys
 
 from celery import task
 from celery.execute import send_task
@@ -73,16 +71,15 @@ GLOBAL_TASKS = (
     ('thing.server_status', '/server/ServerStatus.xml.aspx', 'et_high'),
 )
 
-# ---------------------------------------------------------------------------
-# Periodic task to spawn API tasks
+
 @task(name='thing.task_spawner')
 def task_spawner():
+    """Periodic task to spawn API tasks"""
     now = datetime.datetime.utcnow()
     one_month_ago = now - datetime.timedelta(30)
 
     # Task data
-    taskdata = { 'new': [], 'ready': [] }
-
+    taskdata = {'new': [], 'ready': []}
 
     # Global API tasks
     g_tasks = {}
@@ -93,11 +90,10 @@ def task_spawner():
         taskstate = g_tasks.get(url)
         _init_taskstate(taskdata, now, taskstate, -1, None, taskname, url, queue, 0)
 
-
     # Build a magical QuerySet for APIKey objects
     apikeys = APIKey.objects.select_related('corporation')
     apikeys = apikeys.prefetch_related('characters', 'corporation__corpwallet_set')
-    apikeys = apikeys.filter(valid=True, user__userprofile__last_seen__gt=one_month_ago)
+    apikeys = apikeys.filter(valid=True, user__profile__last_seen__gt=one_month_ago)
 
     # Get a set of unique API keys
     keys = {}
@@ -195,10 +191,12 @@ def task_spawner():
 
     TaskState.objects.bulk_create(new)
 
-# ---------------------------------------------------------------------------
-# apikey_id: the 'id' column of the APIKey object
-# keyid    : the 'keyid' column of the APIKey object
+
 def _init_taskstate(taskdata, now, taskstate, keyid, apikey_id, func, url, queue, parameter):
+    """
+        apikey_id: the 'id' column of the APIKey object
+        keyid    : the 'keyid' column of the APIKey object
+    """
     if taskstate is None:
         taskdata['new'].append((keyid, func, url, parameter))
     elif taskstate.queue_now(now):

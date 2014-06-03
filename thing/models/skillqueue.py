@@ -31,9 +31,9 @@ from core.util import total_seconds
 from thing.models.character import Character
 from thing.models.skill import Skill
 
-# ------------------------------------------------------------------------------
-# Skill queue
+
 class SkillQueue(models.Model):
+    """Skill Queue"""
     character = models.ForeignKey(Character)
     skill = models.ForeignKey(Skill)
 
@@ -48,9 +48,10 @@ class SkillQueue(models.Model):
         ordering = ('start_time',)
 
     def __unicode__(self):
-        return '%s: %s %d, %d -> %d - Start: %s, End: %s' % (self.character.name,
-            self.skill.item.name, self.to_level, self.start_sp, self.end_sp,
-            self.start_time, self.end_time)
+        return '%s: %s %d, %d -> %d - Start: %s, End: %s' % (
+            self.character.name, self.skill.item.name, self.to_level, self.start_sp,
+            self.end_sp, self.start_time, self.end_time
+        )
 
     def get_complete_percentage(self, now=None, character=None):
         if now is None:

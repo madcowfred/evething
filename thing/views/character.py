@@ -34,15 +34,15 @@ except ImportError:
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.http import Http404
-from django.shortcuts import redirect, get_object_or_404
+from django.shortcuts import get_object_or_404
 
 from core.util import json_response
-from thing.models import *
-from thing.stuff import *
+from thing.models import *  # NOPEP8
+from thing.stuff import *  # NOPEP8
 
-# ---------------------------------------------------------------------------
-# Display a character page
+
 def character_sheet(request, character_name):
+    """Display a character page"""
     characters = Character.objects.select_related('config', 'details', 'corporation__alliance')
     characters = characters.filter(apikeys__valid=True)
     characters = characters.distinct()
@@ -62,16 +62,16 @@ def character_sheet(request, character_name):
 
     return character_common(request, char, public=public)
 
-# ------------------------------------------------------------------------------
-# Display an anonymized character page
+
 def character_anonymous(request, anon_key):
+    """Display an anonymized character page"""
     char = get_object_or_404(Character.objects.select_related('config', 'details'), config__anon_key=anon_key)
 
     return character_common(request, char, anonymous=True)
 
-# ------------------------------------------------------------------------------
-# Common code for character views
+
 def character_common(request, char, public=True, anonymous=False):
+    """Common code for character views"""
     tt = TimerThing('character_common')
 
     utcnow = datetime.datetime.utcnow()
@@ -94,14 +94,14 @@ def character_common(request, char, public=True, anonymous=False):
     # Retrieve skill queue
     queue = []
     training_id = None
-    training_level = None
+    # training_level = None
     queue_duration = None
 
     if show['queue']:
         queue = list(SkillQueue.objects.select_related('skill__item', 'character__corporation', 'character__details').filter(character=char, end_time__gte=utcnow).order_by('end_time'))
         if queue:
             training_id = queue[0].skill.item.id
-            training_level = queue[0].to_level
+            # training_level = queue[0].to_level
             queue_duration = total_seconds(queue[-1].end_time - utcnow)
             queue[0].z_complete = queue[0].get_complete_percentage()
 
@@ -259,10 +259,9 @@ def character_common(request, char, public=True, anonymous=False):
 
     return out
 
-# ------------------------------------------------------------------------------
-
 ANON_KEY_RE = re.compile(r'^[a-z0-9]{16}$')
 ANON_KEY_CHOICES = 'abcdefghijklmnopqrstuvwxyz0123456789'
+
 
 @login_required
 def character_settings(request, character_name):
@@ -294,9 +293,9 @@ def character_settings(request, character_name):
 
     return json_response(dict(anon_key=char.config.anon_key))
 
-# ---------------------------------------------------------------------------
-# Display a SkillPlan for a character
+
 def character_skillplan(request, character_name, skillplan_id):
+    """Display a SkillPlan for a character"""
     public = True
 
     # If the user is logged in, check if the character belongs to them
@@ -321,15 +320,14 @@ def character_skillplan(request, character_name, skillplan_id):
 
     return character_skillplan_common(request, character, skillplan, public=public)
 
-# ------------------------------------------------------------------------------
-# Display a SkillPlan for an anonymous character
+
 def character_anonymous_skillplan(request, anon_key, skillplan_id):
+    """Display a SkillPlan for an anonymous character"""
     character = get_object_or_404(Character.objects.select_related('config', 'details'), config__anon_key=anon_key)
     skillplan = get_object_or_404(SkillPlan.objects.prefetch_related('entries'), pk=skillplan_id, visibility=SkillPlan.GLOBAL_VISIBILITY)
 
     return character_skillplan_common(request, character, skillplan, anonymous=True)
 
-# ------------------------------------------------------------------------------
 
 def character_skillplan_common(request, character, skillplan, public=True, anonymous=False):
     tt = TimerThing('skillplan_common')
@@ -432,9 +430,9 @@ def character_skillplan_common(request, character, skillplan, public=True, anony
 
                     entry.z_trained = True
                 # check if current skill SP > level SP AND planned skill lvl - 1 = learned skill level
-                elif cs.points > cs.skill.get_sp_at_level(cs.level) and entry.sp_skill.level-1 == cs.level:
+                elif cs.points > cs.skill.get_sp_at_level(cs.level) and entry.sp_skill.level - 1 == cs.level:
                     required_sp = cs.skill.get_sp_at_level(cs.level + 1) - cs.skill.get_sp_at_level(cs.level)
-                    sp_done = cs.points-cs.skill.get_sp_at_level(cs.level)
+                    sp_done = cs.points - cs.skill.get_sp_at_level(cs.level)
                     entry.z_sp_done = sp_done
                     entry.z_percent_trained = round(sp_done / float(required_sp) * 100, 1)
                     entry.z_partial_trained = True
@@ -496,5 +494,3 @@ def character_skillplan_common(request, character, skillplan, public=True, anony
         tt.finished()
 
     return out
-
-# ---------------------------------------------------------------------------

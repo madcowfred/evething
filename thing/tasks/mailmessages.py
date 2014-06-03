@@ -33,7 +33,6 @@ from thing.models.apikey import APIKey
 from thing.models.character import Character
 from thing.models.mailmessage import MailMessage
 
-# ---------------------------------------------------------------------------
 
 class MailMessages(APITask):
     name = 'thing.mail_messages'
@@ -48,7 +47,7 @@ class MailMessages(APITask):
         )
 
         # Fetch the API data
-        params = { 'characterID': character_id }
+        params = {'characterID': character_id}
         if self.fetch_api(url, params) is False or self.root is None:
             return
 
@@ -124,7 +123,6 @@ class MailMessages(APITask):
 
             mm.to_characters.add(*map(int, characters))
 
-
         # If this key is able to, fetch MailBodies now
         if mail.keys() and (self.apikey.access_mask & APIKey.CHAR_MAIL_BODIES_MASK == APIKey.CHAR_MAIL_BODIES_MASK):
             ids = ','.join(map(str, mail.keys()))
@@ -136,5 +134,3 @@ class MailMessages(APITask):
             )
 
         return True
-
-# ---------------------------------------------------------------------------

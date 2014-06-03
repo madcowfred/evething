@@ -28,22 +28,22 @@ import calendar
 from decimal import Decimal
 
 from django.contrib.auth.decorators import login_required
-from django.db.models import Q, Avg, Count, Max, Min, Sum
+from django.db.models import Q, Max, Min, Sum
 
-from thing.models import *
-from thing.stuff import *
+from thing.models import *  # NOPEP8
+from thing.stuff import *  # NOPEP8
 
-# ---------------------------------------------------------------------------
 
 TWO_PLACES = Decimal('0.00')
 
-# ---------------------------------------------------------------------------
-# Trade volume overview
 MONTHS = (None, 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec')
+
+
 @login_required
 def trade(request):
+    """Trade volume overview"""
     data = {}
-    now = datetime.datetime.now()
+    # now = datetime.datetime.now()
 
     # Order information
     #orders = Order.objects.filter(corporation=corporation)
@@ -113,10 +113,10 @@ def trade(request):
         characters,
     )
 
-# ---------------------------------------------------------------------------
-# Trade overview for a variety of timeframe types
+
 @login_required
 def trade_timeframe(request, year=None, month=None, period=None, slug=None):
+    """Trade overview for a variety of timeframe types"""
     # Initialise data
     data = {
         'total_buys': 0,
@@ -186,8 +186,8 @@ def trade_timeframe(request, year=None, month=None, period=None, slug=None):
     # fetch the items
     item_map = Item.objects.select_related().in_bulk(t_map.keys())
 
-    import time
-    start = time.time()
+    # import time
+    # start = time.time()
 
     data['items'] = []
     for item in item_map.values():
@@ -196,7 +196,7 @@ def trade_timeframe(request, year=None, month=None, period=None, slug=None):
 
         # Add missing data
         for k in ('buy_average', 'sell_average', 'buy_quantity', 'sell_quantity', 'buy_minimum', 'sell_minimum',
-            'buy_maximum', 'sell_maximum', 'buy_total', 'sell_total'):
+                  'buy_maximum', 'sell_maximum', 'buy_total', 'sell_total'):
             if k not in t:
                 t[k] = 0
 
@@ -234,9 +234,9 @@ def trade_timeframe(request, year=None, month=None, period=None, slug=None):
         request,
     )
 
-# ---------------------------------------------------------------------------
-# Get a range of months between min_date and max_date, inclusive
+
 def _months_in_range(min_date, max_date):
+    """Get a range of months between min_date and max_date, inclusive"""
     months = []
     for year in range(min_date.year, max_date.year + 1):
         for month in range(1, 13):
@@ -249,11 +249,9 @@ def _months_in_range(min_date, max_date):
 
     return months
 
-# ---------------------------------------------------------------------------
-# Get a range of days for a year/month eg (01, 31)
+
 def _month_range(year, month):
+    """Get a range of days for a year/month eg (01, 31)"""
     start = datetime.datetime(year, month, 1)
     end = datetime.datetime(year, month, calendar.monthrange(year, month)[1], 23, 59, 59)
     return (start, end)
-
-# ---------------------------------------------------------------------------

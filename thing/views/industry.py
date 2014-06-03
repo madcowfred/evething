@@ -26,13 +26,13 @@
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 
-from thing.models import *
-from thing.stuff import *
+from thing.models import *  # NOPEP8
+from thing.stuff import *  # NOPEP8
 
-# ---------------------------------------------------------------------------
-# Industry jobs list
+
 @login_required
 def industry(request):
+    """Industry jobs list"""
     tt = TimerThing('industry')
 
     # Fetch valid characters/corporations for this user
@@ -111,5 +111,3 @@ def industry(request):
         tt.finished()
 
     return out
-
-# ---------------------------------------------------------------------------

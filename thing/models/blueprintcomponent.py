@@ -28,9 +28,9 @@ from django.db import models
 from thing.models.blueprint import Blueprint
 from thing.models.item import Item
 
-# ------------------------------------------------------------------------------
-# Blueprint components
+
 class BlueprintComponent(models.Model):
+    """Blueprint components"""
     blueprint = models.ForeignKey(Blueprint)
 
     item = models.ForeignKey(Item)
@@ -42,5 +42,3 @@ class BlueprintComponent(models.Model):
 
     def __unicode__(self):
         return '%dx %s' % (self.count, self.item.name)
-
-# ------------------------------------------------------------------------------
