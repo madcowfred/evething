@@ -88,7 +88,7 @@ module.exports = function (grunt) {
                     'static/css/theme-cerulean.min.css': 'static/less/theme-cerulean/bootstrap.less',
                     'static/css/theme-cosmo.min.css': 'static/less/theme-cosmo/bootstrap.less',
                     'static/css/theme-cyborg.min.css': 'static/less/theme-cyborg/bootstrap.less',
-                    'static/css/theme-darkthing.min.css': 'static/less/theme-darkthing/bootstrap.less',
+                    //'static/css/theme-darkthing.min.css': 'static/less/theme-darkthing/bootstrap.less',
                     'static/css/theme-default.min.css': 'static/less/theme-default/bootstrap.less',
                     'static/css/theme-slate.min.css': 'static/less/theme-slate/bootstrap.less'
                 }
