@@ -9,7 +9,7 @@
 
 {% block content %}
       <div class="row-fluid">
-        <div class="span12">
+        <div class="col-sm-12">
           <strong>Totals</strong> --&nbsp;
           <strong>Skill Points:</strong> {{ total_sp|commas }}
           <span class="divider">/</span>
@@ -33,10 +33,10 @@
       <p class="home-group">{{ char_list.0.z_apikey.group_name }}</p>
       {%- endif %}
       {%- for chars in char_list|batch(profile.home_chars_per_row) %}
-      <div class="row-fluid">
+      <div class="row">
         {%- for character in chars %}
-        <div class="span{{ 12 // profile.home_chars_per_row }}">
-          <div class="well-small well home-character{{ character.z_well_class }}">
+        <div class="col-sm-{{ 12 // profile.home_chars_per_row }}">
+          <div class="well-sm well home-character{{ character.z_well_class }}">
             <div>
               <span class="large">
                 {%- if character.name == '*UNKNOWN' %}
@@ -111,7 +111,7 @@
       <hr class="nomargin">
       <div class="row-fluid">
         {%- for corporation in corporations %}
-        <div class="span3">
+        <div class="col-sm-3">
           <h5 class="sensitive corporation-name">
             {{ corporation.name }} [{{ corporation.ticker }}]
           </h5>
