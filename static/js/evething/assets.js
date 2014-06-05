@@ -25,7 +25,8 @@ EVEthing.assets = {
         // Bind the ship EFT fitting buttons
         $(".asset-eft").on('click', function() {
             var $this = $(this);
-            var data_target = $('i:nth-child(1)', $this.parent()).attr('data-target');
+            console.log(this);
+            var data_target = $('span:nth-child(1)', $this.parent()).attr('data-target');
 
             var ship_type = $.trim($('.asset-ship-type', $this.parent()).text());
             var ship_name = $.trim($('.asset-ship-name', $this.parent()).text());
@@ -38,6 +39,7 @@ EVEthing.assets = {
 
             $(data_target).each(function() {
                 var slot = $.trim($('td:nth-child(4)', $(this)).text());
+                console.log(slot);
                 if (slot.substr(-4) == "Slot") {
                     if (last_slot && last_slot != slot) {
                         text += '\n';
