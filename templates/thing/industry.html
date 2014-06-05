@@ -8,19 +8,19 @@
 {% block title %}Industry Jobs{% endblock %}
 
 {% block content %}
-      <div class="row-fluid">
-        <div class="span12">
+      <div class="row">
+        <div class="col-sm-12">
           <h2>Industry Jobs</h2>
           
           <ul class="nav nav-tabs">
             <li class="active"><a href="#tab_incomplete" data-toggle="tab">Incomplete</a></li>
             <li><a href="#tab_complete" data-toggle="tab">Complete</a></li>
           </ul>
-
+          <br/>
           <div class="tab-content">
             {#- incomplete -#}
             <div class="tab-pane active" id="tab_incomplete">
-              <div class="span12">
+              <div class="col-sm-12">
                 <table class="table table-striped table-bordered table-condensed" id="incomplete-table">
                   <thead>
                     <tr class="c">
@@ -91,7 +91,7 @@
 
             {#- complete -#}
             <div class="tab-pane" id="tab_complete">
-              <div class="span12">
+              <div class="col-sm-12">
                 <table class="table table-striped table-bordered table-condensed" id="complete-table">
                   <thead>
                     <tr class="c">
