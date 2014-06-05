@@ -8,13 +8,11 @@
             <form method="post" action="" class="form-horizontal">
               <fieldset>
                 <legend>Login</legend>
-                <div class="control-group">
-                  {{ csrf() }}
-                  <input type="hidden" name="next" value="{{ next }}" />
-                </div>
+                {{ csrf() }}
+                <input type="hidden" name="next" value="{{ next }}" />
                 {% for field in form %}
-                <div class="control-group{% if form.errors %} error{% endif %}">
-                  <label class="control-label" for="{{ field.auto_id }}">{{ field.label }}</label>
+                <div class="{% if form.errors %} error{% endif %}">
+                  <label for="{{ field.auto_id }}">{{ field.label }}</label>
                   <div class="controls">
                     {{ field|safe }}
                     {% if loop.index == 1 and form.errors %}
@@ -23,9 +21,7 @@
                   </div>
                 </div>
                 {% endfor %}
-                <div class="form-actions">
-                  <input type="submit" value="Login" class="btn btn-primary">
-                </div>
+                <input type="submit" value="Login" class="btn btn-primary">
               </fieldset>
             </form>
           </div>

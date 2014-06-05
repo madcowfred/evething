@@ -82,7 +82,10 @@ module.exports = function (grunt) {
         },
         less: {
             options: {
-                cleancss: true
+                cleancss: true,
+                modifyVars: {
+                    'icon-font-path': '"../fonts/"'
+                }
             },
             themes: {
                 files: {

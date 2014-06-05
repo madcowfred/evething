@@ -247,10 +247,9 @@ def account_apikey_edit(request):
     except APIKey.DoesNotExist:
         request.session['message_type'] = 'error'
         request.session['message'] = 'You do not have an API key with that KeyID!'
-
     else:
         request.session['message_type'] = 'success'
-        request.session['message'] = 'API key %s edited successfully!' % (apikey.id)
+        request.session['message'] = 'API key %s edited successfully!' % apikey.id
 
         apikey_name = request.POST.get('name', '')
         apikey_group_name = request.POST.get('group_name', '')
@@ -259,7 +258,6 @@ def account_apikey_edit(request):
         if apikey.name != apikey_name and dont_edit != 'name':
             apikey.name = apikey_name
             apikey.save()
-
         elif apikey.group_name != apikey_group_name and dont_edit != 'group_name':
             apikey.group_name = apikey_group_name
             apikey.save()

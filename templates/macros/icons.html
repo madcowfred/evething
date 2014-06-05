@@ -1,33 +1,33 @@
 {% macro player(mine=False) -%}
-<i class="icon-user{% if mine %} my-character{% endif %}"></i>
+<span class="glyphicon glyphicon-user{% if mine %} my-character{% endif %}"></span>
 {%- endmacro %}
 
 {% macro corporation() -%}
-<i class="icon-group" rel="tooltip" title="Corporation"></i>
+<span class="glyphicon glyphicon-group" rel="tooltip" title="Corporation"></span>
 {%- endmacro %}
 
 {% macro alliance() -%}
-<i class="icon-hospital" rel="tooltip" title="Alliance"></i>
+<span class="glyphicon glyphicon-hospital" rel="tooltip" title="Alliance"></span>
 {%- endmacro %}
 
 {% macro success_fail(success=True) -%}
-<i class="icon-{% if success %}ok pos{% else %}remove neg{% endif %}"></i>
+<span class="glyphicon glyphicon-{% if success %}ok pos{% else %}remove neg{% endif %}"></span>
 {%- endmacro %}
 
 {% macro contract_status(status) -%}
 {%- if status.startswith('Completed') -%}
-<i class="icon-ok pos"></i>
+<span class="glyphicon glyphicon-ok pos"></span>
 {%- elif status == 'InProgress' -%}
-<i class="icon-truck"></i>
+<span class="glyphicon glyphicontruck"></span>
 {%- elif status in ('Cancelled', 'Deleted', 'Failed', 'Rejected') -%}
-<i class="icon-remove neg"></i>
+<span class="glyphicon glyphicon-remove neg"></span>
 {%- elif status == 'Outstanding' -%}
-<i class="icon-time"></i>
+<span class="glyphicon glyphicon-time"></span>
 {%- else -%}
-<i class="icon-question-sign"></i>
+<span class="glyphicon glyphicon-question-sign"></span>
 {%- endif -%}
 {%- endmacro %}
 
 {% macro close_modal() -%}
-<i class="icon-remove neg"></i>
+<span class="glyphicon glyphicon-remove neg"></span>
 {%- endmacro %}

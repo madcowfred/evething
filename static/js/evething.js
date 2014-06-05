@@ -48,7 +48,7 @@ var EVEthing = {
             }
 
             // Change window hash for page reload
-            $('a[data-toggle="tab"]').on('shown', function (e) {
+            $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
                 window.location.hash = e.target.hash.replace('#' + prefix, '#');
             });
         },
@@ -107,9 +107,9 @@ $.tablesorter.addParser({
 // Update the tablesorter theme with some bits
 $.extend($.tablesorter.themes.bootstrap, {
     icons      : '', // add "icon-white" to make them white; this icon class is added to the <i> in the header
-    sortNone   : 'icon-sort',
-    sortAsc    : 'icon-caret-up',
-    sortDesc   : 'icon-caret-down',
+    sortNone   : 'glyphicon glyphicon-sort',
+    sortAsc    : 'glyphicon glyphicon-caret-up',
+    sortDesc   : 'glyphicon glyphicon-caret-down',
 });
 
 

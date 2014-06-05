@@ -4,20 +4,16 @@
 
 {% block content %}
         <div class="row">
-          <div class="col-sm-12">
+          <div class="col-sm-6 col-lg-3">
             <form method="post" action="" class="form-horizontal">
               <fieldset>
                 <legend>Register</legend>
-                <div class="control-group">
-                  {{ csrf() }}
-                  <input type="hidden" name="next" value="{{ next }}" />
-                </div>
+                {{ csrf() }}
+                <input type="hidden" name="next" value="{{ next }}" />
                 {% for field in form %}
-                <div class="control-group{% if form.errors %} error{% endif %}">
-                  <label class="control-label" for="{{ field.auto_id }}">{{ field.label }}</label>
-                  <div class="controls">
-                    {{ field|safe }}
-                  </div>
+                <div class="form-group{% if form.errors %} error{% endif %}">
+                  <label for="{{ field.auto_id }}">{{ field.label }}</label>
+                  {{ field|safe }}
                 </div>
                 {% endfor %}
                 <div class="form-actions">
