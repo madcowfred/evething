@@ -6,7 +6,19 @@
   margin-left: 5px;
   opacity: 0.6;
 }
-
+.assets-sidenav:not(.affix) {
+}
+.assets-sidenav.affix {
+  top: 55px;
+  width: 24%;
+}
+@media (max-width: 767px) {
+  .assets-sidenav.affix {
+    position: static;
+    width: auto;
+    top: 0;
+  }
+}
 div.asset-filter {
   margin-bottom: 10px;
 }

@@ -5,11 +5,6 @@ EVEthing.assets = {
 
         // Load filters
         EVEthing.filters.load_filters(EVEthing.assets.filters);
-
-        // Affix the sidenav
-        $('#sidenav').affix({
-            offset: EVEthing.assets.sidenav_offset,
-        });
     },
 
     filter_onload: function() {
@@ -63,19 +58,5 @@ EVEthing.assets = {
         $('#eft-modal').on('shown', function() {
             $('#eft-textarea').select();
         });
-    },
-
-    // Magic object with a function to calculate the sidenav offset
-    sidenav_offset: {
-        top: function() {
-            var window_h = $(window).height();
-            var sidenav_h = $('#sidenav').height();
-            if (window_h >= (sidenav_h + 75)) {
-                return $('#total').offset().top;
-            }
-            else {
-                return 999999;
-            }
-        },
-    },
+    }
 }
