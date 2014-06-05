@@ -139,13 +139,15 @@
       {%- if events %}
       <hr class="nomargin">
       <div class="row">
-        <h4>Event log</h4>
-        <ul>
-          {%- for event in events %}
-          <li>{{ event.get_age()|duration }} ago <strong>/</strong> {{ event.text|safe }}</li>
-          {%- endfor %}
-        </ul>
-        <a href="{{ url('thing.views.events') }}">See all</a>
+        <div class="col-sm-12">
+          <h4>Event log</h4>
+          <ul>
+            {%- for event in events %}
+            <li>{{ event.get_age()|duration }} ago <strong>/</strong> {{ event.text|safe }}</li>
+            {%- endfor %}
+          </ul>
+          <a href="{{ url('thing.views.events') }}">See all</a>
+        </div>
       </div>
       {%- endif %}
 {% endblock %}
