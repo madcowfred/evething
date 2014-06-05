@@ -7,72 +7,56 @@
   padding: 0;
 }
 
-.character-main {
-  float: right;
-  margin-left: -276px;
-}
-.character-content {
-  margin-left: 276px;
-}
 .character-side {
-  float: right;
-  width: 256px;
-  margin-right: 20px;
-
   .character-image {
     position: relative;
-    width: 256px;
-    height: 256px;
-    border-radius: 6px;
+    max-width: 256px;
 
-    i {
+    span {
       position: absolute;
+      height: 100%;
       color: #fff;
       text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black;
       opacity: 0.5;
     }
-    i:hover {
+    span:hover {
       opacity: 1.0;
     }
-    .icon-list {
-      bottom: 0px;
+    .glyphicon-list {
       left: 5px;
+      padding-top: 100% - 10px;
     }
-    .icon-cog {
-      bottom: 1px;
+    .glyphicon-cog {
       right: 5px;
+      padding-top: 100% - 10px;
     }
   }
 
-  .character-sidenav {
-    //margin: 30px 0 0;
-    //padding: 0;
-    padding-top: 3px;
-    padding-bottom: 3px;
-    border: 1px solid @table-border-color;
-    border-radius: 6px;
-    width: 224px;
-
-    .divider {
-      background-color: @table-border-color;;
-      border-bottom: 1px solid @table-border-color;;
-    }
-    li a {
-      display: block;
-      margin: 0 0 -1px;
-      padding: 1px 0;
-      //border: 1px solid #e5e5e5;
-    }
-    .icon-chevron-right {
-      float: right;
-      margin-right: -6px;
-      /*margin-top: 3px;
-      margin-left: 5px;*/
-      opacity: 0.6;
-    }
-  }
-  .character-sidenav.affix {
+  .character-skills.affix {
     top: 55px;
+    width: percentage((2 / @grid-columns));
+  }
+
+  .panel-skills {
+    .panel-body {
+      padding-top: 0;
+      padding-bottom: 0;
+      ul {
+        margin-bottom: 0;
+      }
+      .character-sidenav {
+        li a {
+          display: block;
+          margin: 0 0 -1px;
+          padding: 1px 0;
+        }
+        .glyphicon-chevron-right {
+          float: right;
+          margin-right: -6px;
+          opacity: 0.6;
+        }
+      }
+    }
   }
 }
 
@@ -89,6 +73,15 @@
     margin-right: 0;
     display: block;
     width: 100%;
+  }
+}
+
+#settings-box, #skillplans-personal, #skillplans-global {
+  margin-top: 10px;
+  margin-bottom: 0;
+  .panel-body {
+    padding-top: 0;
+    padding-bottom: 0;
   }
 }
 
@@ -112,10 +105,12 @@
 td.skill-rank {
   width: 4em;
   font-size: 0.9em;
+  white-space: nowrap;
 }
 td.skill-sp {
   width: 6.2em;
   text-align: right;
+  white-space: nowrap;
 }
 td.skill-icons {
   width: 6.5em;

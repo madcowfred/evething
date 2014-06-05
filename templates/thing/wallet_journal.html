@@ -17,8 +17,8 @@
 {% endblock %}
 
 {% block content %}
-      <div class="row-fluid">
-        <div class="span12">
+      <div class="row">
+        <div class="col-sm-12">
           <h2>Wallet Journal</h2>
 
           {% include 'includes/wallet_journal_filters.html' %}
@@ -27,10 +27,10 @@
         </div>
       </div>
 
-      <div class="row-fluid">
-        <div class="span12">
-          <div class="pagination pagination-centered">
-            <ul>
+      <div class="row">
+        <div class="col-sm-12">
+          <div class="pagination-centered">
+            <ul class="pagination">
               {% if prev %}
               <li><a href="?page={{ prev.0 }}">&laquo;</a></li>
               {% for p in prev %}<li><a href="?page={{ p }}">{{ p }}</a></li>{% endfor %}
@@ -66,12 +66,12 @@
                 <td class="journal-date">{{ entry.date }}</td>
                 <td>
                   {% if entry.corp_wallet -%}
-                  {#<i class="icon-group"></i>#}
+                  {#<span class="glyphicon glyphicon-group"></span>#}
                   {{ icons.corporation() }}
                   [<span class="tip" rel="tooltip" title="{{ entry.corp_wallet.corporation.name }}">{{ entry.corp_wallet.corporation.ticker }}</span>]
                   {{ entry.corp_wallet.description }}
                   {%- else -%}
-                  {#<i class="icon-user"></i>#}
+                  {#<span class="glyphicon glyphicon-user"></span>#}
                   {{ icons.player() }}
                   {{ entry.character.name }}
                   {% endif %}
@@ -140,8 +140,8 @@
               {%- endfor %}
             </tbody>
           </table>
-          <div class="pagination pagination-centered">
-            <ul>
+          <div class="pagination-centered">
+            <ul class="pagination">
               {% if prev %}
               <li><a href="?page={{ prev.0 }}">&laquo;</a></li>
               {% for p in prev %}<li><a href="?page={{ p }}">{{ p }}</a></li>{% endfor %}

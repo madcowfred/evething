@@ -26,29 +26,17 @@ EVEthing.character = {
 
         // AJAX for settings form
         $('#settings-form').on('submit', EVEthing.character.settings_submit);
-
-        // Affix the sidenav
-        $('#sidenav').affix({
-            offset: EVEthing.character.sidenav_offset,
-        });
     },
 
-    // Magic object with a function to calculate the sidenav offset
-    sidenav_offset: {
-        top: function() {
-            var window_h = window.innerHeight;
-            var sidenav_h = $('#sidenav').height();
-            if (window_h >= (sidenav_h + 75)) {
-                return $('#sidenav-offset').offset().top - 50;
-            }
-            else {
-                return 999999;
-            }
-        },
-    },
+    public_checkbox_change: function (initial) {
+        var checked = this.checked;
 
-    public_checkbox_change: function() {
-        if (this.checked) {
+        if (initial === undefined || initial === null) {
+            checked = $("#public-checkbox").is(':checked');
+        }
+        console.log(checked);
+
+        if (checked) {
             $('.disable-toggle').removeAttr("disabled");
         }
         else {
@@ -64,7 +52,7 @@ EVEthing.character = {
                 $('#anon-key-label').html(html);
             }
             else {
-                $('#anon-key-label').html('<i class="icon-anchor"></i> Save to get new link');
+                $('#anon-key-label').html('<span class="glyphicon glyphicon-anchor"></span> Save to get new link');
             }
         }
         else {
@@ -77,7 +65,7 @@ EVEthing.character = {
             e.preventDefault();
         }
 
-        $('#settings-status').html('<i class="icon-spinner icon-spin"></i> Saving...');
+        $('#settings-status').html('<span class="glyphicon glyphicon-spinner icon-spin"></span> Saving...');
 
         // Submit the form
         $.post(
@@ -86,12 +74,12 @@ EVEthing.character = {
             function(data) {
                 if (typeof data === 'object') {
                     $('#anon-key').val(data.anon_key);
-                    $('#settings-status').html('<i class="icon-ok"></i> Saved!');
+                    $('#settings-status').html('<span class="glyphicon glyphicon-ok"></span> Saved!');
                     EVEthing.character.anon_toggle();
                 }
                 // Anything not an object = error
                 else {
-                    $('#settings-status').html('<i class="icon-remove"></i> Error!');
+                    $('#settings-status').html('<span class="glyphicon glyphicon-remove"></span> Error!');
                 }
             }
         );

@@ -103,6 +103,8 @@ tr.c th.r,
 tr.c td.r,
 td.r { text-align: right; }
 
+.nowrap { white-space: nowrap; }
+
 .divider-row td {
   border-top: 4px solid @table-border-color;
 }
@@ -159,3 +161,11 @@ h2.nomargin, h3.nomargin, h4.nomargin {
 ul.unstyled {
   margin-bottom: 0px;
 }
+
+.pagination-centered {
+  float: left;
+  position: relative;
+}
+.pagination-centered { left: 50%; }
+.pagination-centered ul { left: -50%; }
+

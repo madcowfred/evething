@@ -94,7 +94,7 @@
             {%- endif %}
             <div class="home-notifications">
               {%- for notif in character.z_notifications %}
-              {% if loop.index > 1 %}&nbsp;{% endif %}<i class="icon-{{ notif.icon }}" rel="tooltip" title="{{ notif.tooltip }}"></i>
+              {% if loop.index > 1 %}&nbsp;{% endif %}<span class="glyphicon glyphicon-{{ notif.icon }}" rel="tooltip" title="{{ notif.tooltip }}"></span>
               {{ common.span(notif.text, notif.span_class) }}
               {%- endfor %}
             </div>

@@ -10,7 +10,8 @@
 }
 .assets-sidenav.affix {
   top: 55px;
-  width: 24%;
+  width: percentage((3 / @grid-columns));
+  padding-right: @grid-gutter-width;
 }
 @media (max-width: 767px) {
   .assets-sidenav.affix {

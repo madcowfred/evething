@@ -18,11 +18,11 @@
 {% endblock %}
 
 {% block content %}
-      <div class="row-fluid">
-        <div class="span12">
+      <div class="row">
+        <div class="col-sm-12">
           <h2>Transactions</h2>
           
-          <form id="filter-form" class="well well-small" action="{{ url('thing.views.transactions') }}" method="GET">
+          <form id="filter-form" class="well well-sm" action="{{ url('thing.views.transactions') }}" method="GET">
             <div class="margin-half-bot">
               <strong class="large">Filters</strong>
             </div>
@@ -37,8 +37,8 @@
             <a id="clear-button" href="{{ url('thing.views.transactions') }}" class="btn btn-danger">Clear filters</a>
           </form>
 
-          <div class="pagination pagination-centered">
-            <ul>
+          <div class="pagination-centered">
+            <ul class="pagination">
               {% if prev %}
               <li><a href="?page={{ prev.0 }}">&laquo;</a></li>
               {% for p in prev %}<li><a href="?page={{ p }}">{{ p }}</a></li>{% endfor %}
@@ -116,8 +116,8 @@
               {%- endfor %}
             </tbody>
           </table>
-          <div class="pagination pagination-centered">
-            <ul>
+          <div class="pagination-centered">
+            <ul class="pagination">
               {% if prev %}
               <li><a href="?page={{ prev.0 }}">&laquo;</a></li>
               {% for p in prev %}<li><a href="?page={{ p }}">{{ p }}</a></li>{% endfor %}

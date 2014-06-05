@@ -57,9 +57,9 @@
 {% if authed %}
                 <li class="navbar-text visible-desktop server-status">
 {% if server_open %}
-                  <i class="icon-thumbs-up" rel="tooltip" data-placement="bottom" title="Server is online - {{ online_players|commas }} players"></i>
+                  <span class="glyphicon glyphicon-thumbs-up" rel="tooltip" data-placement="bottom" title="Server is online - {{ online_players|commas }} players"></span>
 {% else %}
-                  <i class="icon-thumbs-down" rel="tooltip" data-placement="bottom" title="Server is offline"></i>
+                  <span class="glyphicon glyphicon-thumbs-down" rel="tooltip" data-placement="bottom" title="Server is offline"></span>
 {% endif %}
                 </li>
                 <li class="navbar-text visible-desktop"{% if not user.profile.show_clock %} style="display: none"{% endif %}>
