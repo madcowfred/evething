@@ -229,17 +229,17 @@
                         </div>
                       </div>
                     </div>
-                  </div>
-                  {% if queue|count > 1 %}
-                  <div class="margin-half-top">
-                    {% for sq in queue[1:] %}
-                    <div>
-                      {{ sq.skill.item.name }} {{ sq.get_roman_level() }} (Rank {{ sq.skill.rank }})
-                      <div class="pull-right">{{ sq.end_time }} UTC</div>
+                    {% if queue|count > 1 %}
+                    <div class="margin-half-top">
+                      {% for sq in queue[1:] %}
+                      <div>
+                        {{ sq.skill.item.name }} {{ sq.get_roman_level() }} (Rank {{ sq.skill.rank }})
+                        <div class="pull-right">{{ sq.end_time }} UTC</div>
+                      </div>
+                      {% endfor %}
                     </div>
-                    {% endfor %}
-                  </div>
-                  {% endif %}
+                    {% endif %}
+                </div>
               </div>
             </div>
             {%- endif %}
