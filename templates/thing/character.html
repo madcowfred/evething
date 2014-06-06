@@ -176,6 +176,8 @@
                   {%- endif %}
                   {%- endif %}
                   {% if show.wallet %}<li><strong>Wallet:</strong> {{ char.details.wallet_balance|commas }} ISK</li>{% endif %}
+                </ul>
+                <ul class="list-unstyled">
                   <li><strong>Total SP:</strong> {{ total_sp|commas }}</li>
                   {% if show.clone -%}
                   <li><strong>Clone limit:</strong> {{ char.details.clone_skill_points|commas }} ({{ char.get_short_clone_name() }})</li>
@@ -183,7 +185,7 @@
                 </ul>
               </div>
               <div class="col-sm-7 col-md-8 pull-right">
-                <table>
+                <table class="attributes">
                   <tr class="r">
                     <td><strong>Int:</strong></td>
                     <td>{{ char.details.int_attribute }}</td>

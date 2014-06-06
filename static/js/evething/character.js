@@ -34,7 +34,6 @@ EVEthing.character = {
         if (initial === undefined || initial === null) {
             checked = $("#public-checkbox").is(':checked');
         }
-        console.log(checked);
 
         if (checked) {
             $('.disable-toggle').removeAttr("disabled");
