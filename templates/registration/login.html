@@ -4,25 +4,32 @@
 
 {% block content %}
         <div class="row">
-          <div class="col-sm-12">
-            <form method="post" action="" class="form-horizontal">
-              <fieldset>
+          <div class="col-sm-6">
+            <form method="post" action="" class="form-horizontal" role="form">
                 <legend>Login</legend>
+                <br/>
                 {{ csrf() }}
                 <input type="hidden" name="next" value="{{ next }}" />
-                {% for field in form %}
-                <div class="{% if form.errors %} error{% endif %}">
-                  <label for="{{ field.auto_id }}">{{ field.label }}</label>
-                  <div class="controls">
-                    {{ field|safe }}
-                    {% if loop.index == 1 and form.errors %}
-                    <span class="help-inline">Your username and/or password are incorrect, please check them and try again.</span>
+                <div class="form-group{% if form.errors %} has-error{% endif %}">
+                  <label for="{{ form.username.auto_id }}" class="col-sm-4 control-label">{{ form.username.label }}</label>
+                  <div class="col-sm-7">
+                    <input id="{{ form.username.auto_id }}" maxlength="254" name="username" type="text" class="form-control" />
+                    {% if form.errors %}
+                      <span class="help-block">Your username and/or password are incorrect, please check them and try again.</span>
                     {% endif %}
                   </div>
                 </div>
-                {% endfor %}
-                <input type="submit" value="Login" class="btn btn-primary">
-              </fieldset>
+                <div class="form-group{% if form.errors %} has-error{% endif %}">
+                  <label for="{{ form.password.auto_id }}" class="col-sm-4 control-label">{{ form.password.label }}</label>
+                  <div class="col-sm-7">
+                    <input id="{{ form.password.auto_id }}" name="password" type="password" class="form-control" />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <div class="col-sm-offset-4">
+                    <input type="submit" value="Login" class="btn btn-primary">
+                  </div>
+                </div>
             </form>
           </div>
         </div>
