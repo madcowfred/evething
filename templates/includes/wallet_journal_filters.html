@@ -1,5 +1,5 @@
           <div class="well well-sm">
-            <form id="filter-form" action="{{ url('thing.views.wallet_journal') }}" method="GET" class="form-horizontal">
+            <form id="filter-form" action="{{ url('thing.views.wallet_journal') }}" method="GET" class="form-inline">
               <div class="margin-half-bot">
                 <strong class="large">Filters</strong>
               </div>
@@ -11,13 +11,12 @@
               <fieldset id="filters">
               </fieldset>
               <fieldset>
-                <div class="form-group nomargin col-sm-4">
-                  <label for="days" class="col-sm-3 control-label"># of days</label>
-                  <div class="col-sm-8">
+                <div class="form-group">
+                  <label for="days" class="control-label"># of days</label>
                     <input type="text" name="days" class="form-control" value="{{ days }}">
-                  </div>
                 </div>
-                <div class="form-group col-sm-12">
+                <br/>
+                <div class="form-group">
                   <div class="checkbox">
                     <label>
                       <input type="checkbox" name="ignoreself" class="input-small"{% if ignoreself %} checked{% endif %}>
@@ -26,6 +25,7 @@
                   </div>
                 </div>
               </fieldset>
+              <br/>
               <button type="submit" class="btn btn-success">Apply filters</button>
               <a id="clear-button" href="{{ url('thing.views.wallet_journal') }}" class="btn btn-danger">Clear filters</a>
             </form>
