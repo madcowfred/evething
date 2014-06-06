@@ -20,7 +20,7 @@ EVEthing.filters = {
 
         // click event for delete icon
         $('#filters').on('click', '.js-delete', function() {
-            $(this).parent().remove();
+            $(this).parent().parent().remove();
             if ($('.filter-type').length == 0) {
                 $('#filters').append(EVEthing.filters.build());
             }
@@ -86,8 +86,8 @@ EVEthing.filters = {
     },
 
     build: function(ft, fc, fv) {
-        var html = '<div class="row asset-filter form-inline"><div class="form-group col-sm-5" style="margin: 0;">';
-        html += '<select name="ft" class="filter-type form-control" style="width:35%">';
+        var html = '<div class="row asset-filter"><div class="col-sm-12"><div class="form-group">';
+        html += '<select name="ft" class="filter-type form-control" style=">';
         html += '<option value=""></option>';
 
         $.each(EVEthing.util.sorted_keys(EVEthing.filters.expected), function(i, k) {
@@ -107,7 +107,7 @@ EVEthing.filters = {
 
         html += '</div>&nbsp;<span class="js-add fa fa-plus clickable filter-icon"></span>';
         html += '<span class="js-delete fa fa-trash-o clickable filter-icon"></span>';
-        html += '</div>';
+        html += '</div></div>';
 
         return html;
     },
