@@ -6,10 +6,20 @@ EVEthing.assets = {
         // Load filters
         EVEthing.filters.load_filters(EVEthing.assets.filters);
 
-        // Affix the sidenav
-        $('#sidenav').affix({
-            offset: EVEthing.assets.sidenav_offset,
-        });
+        $('.assets-sidenav').affix({offset: EVEthing.assets.side_offset});
+    },
+
+    // Magic object with a function to calculate the sidenav offset
+    side_offset: {
+        top: function() {
+            var window_h = window.innerHeight,
+                sidenav_h = $('#sidenav').height();
+
+            if (window_h >= (sidenav_h + 75)) {
+                return $('#sidenav-container').offset().top - 50;
+            }
+            return 999999;
+        }
     },
 
     filter_onload: function() {
@@ -30,7 +40,8 @@ EVEthing.assets = {
         // Bind the ship EFT fitting buttons
         $(".asset-eft").on('click', function() {
             var $this = $(this);
-            var data_target = $('i:nth-child(1)', $this.parent()).attr('data-target');
+            
+            var data_target = $('span:nth-child(1)', $this.parent()).attr('data-target');
 
             var ship_type = $.trim($('.asset-ship-type', $this.parent()).text());
             var ship_name = $.trim($('.asset-ship-name', $this.parent()).text());
@@ -63,19 +74,5 @@ EVEthing.assets = {
         $('#eft-modal').on('shown', function() {
             $('#eft-textarea').select();
         });
-    },
-
-    // Magic object with a function to calculate the sidenav offset
-    sidenav_offset: {
-        top: function() {
-            var window_h = $(window).height();
-            var sidenav_h = $('#sidenav').height();
-            if (window_h >= (sidenav_h + 75)) {
-                return $('#total').offset().top;
-            }
-            else {
-                return 999999;
-            }
-        },
-    },
+    }
 }

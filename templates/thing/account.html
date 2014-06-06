@@ -9,7 +9,7 @@
 
 {% block content %}
       <div class="row-fluid">
-        <div class="span12">
+        <div class="col-sm-12">
           <h2>Account Management</h2>
 
           {%- if message %}
@@ -30,71 +30,70 @@
           <div class="tab-content">
             {# settings: content -#}
             <div class="tab-pane active" id="tab_settings">
-              <form action="{{ url('thing.views.account_settings') }}" method="POST" class="form-horizontal">
+              <form action="{{ url('thing.views.account_settings') }}" method="POST" class="form-horizontal" role="form">
                 <fieldset>
                   {{ csrf() }}
                   <legend>Global</legend>
-                  <div class="control-group">
-                    <label class="control-label" for="theme">Theme</label>
-                    <div class="controls">
-                      <select name="theme">
+                  <br/>
+                  <div class="form-group">
+                    <label for="theme" class="control-label col-sm-2">Theme</label>
+                    <div class="col-sm-6 col-lg-3">
+                      <select name="theme" class="form-control">
                         {%- for value, display in themes %}
                         <option value="{{ value }}"{% if profile.theme == value %} selected{% endif %}>{{ display }}</option>
                         {%- endfor %}
                       </select>
                     </div>
                   </div>
-                  <div class="control-group">
-                    <label class="control-label" for="show_clock">Show EVE clock</label>
-                    <div class="controls">
-                      <label class="checkbox">
-                        <input type="checkbox" name="show_clock"{% if profile.show_clock %} checked{% endif %}>
-                      </label>
+                  <div class="form-group">
+                    <label class="control-label col-sm-2" for="show_clock">Show EVE clock</label>
+                    <div class="col-sm-10">
+                      <input type="checkbox" name="show_clock"{% if profile.show_clock %} checked{% endif %}>
                     </div>
                   </div>
-                  <div class="control-group">
-                    <label class="control-label" for="show_checkboxes">Show sections</label>
-                    <div class="controls">
-                      <label class="checkbox inline">
+                  <div class="form-group">
+                    <label class="control-label col-sm-2" for="show_checkboxes">Show sections</label>
+                    <div class="col-sm-10">
+                      <label class="checkbox-inline">
                         <input type="checkbox" name="show_assets"{% if profile.show_assets %} checked{% endif %}>Assets</input>
                       </label>
-                      <label class="checkbox inline">
+                      <label class="checkbox-inline">
                         <input type="checkbox" name="show_blueprints"{% if profile.show_blueprints %} checked{% endif %}>Blueprints</input>
                       </label>
-                      <label class="checkbox inline">
+                      <label class="checkbox-inline">
                         <input type="checkbox" name="show_contracts"{% if profile.show_contracts %} checked{% endif %}>Contracts</input>
                       </label>
-                      <label class="checkbox inline">
+                      <label class="checkbox-inline">
                         <input type="checkbox" name="show_industry"{% if profile.show_industry %} checked{% endif %}>Industry</input>
                       </label>
-                      <label class="checkbox inline">
+                      <label class="checkbox-inline">
                         <input type="checkbox" name="show_orders"{% if profile.show_orders %} checked{% endif %}>Orders</input>
                       </label>
-                      <label class="checkbox inline">
+                      <label class="checkbox-inline">
                         <input type="checkbox" name="show_trade"{% if profile.show_trade %} checked{% endif %}>Trade</input>
                       </label>
-                      <label class="checkbox inline">
+                      <label class="checkbox-inline">
                         <input type="checkbox" name="show_transactions"{% if profile.show_transactions %} checked{% endif %}>Transactions</input>
                       </label>
-                      <label class="checkbox inline">
+                      <label class="checkbox-inline">
                         <input type="checkbox" name="show_wallet_journal"{% if profile.show_wallet_journal %} checked{% endif %}>Wallet Journal</input>
                       </label>
                     </div>
                   </div>
                   <hr>
-                  <div class="control-group">
-                    <label class="control-label" for="show_item_icons">Show item icons</label>
-                    <div class="controls">
+                  <div class="form-group">
+                    <label class="control-label col-sm-2" for="show_item_icons">Show item icons</label>
+                    <div class="col-sm-10">
                       <label class="checkbox">
                         <input type="checkbox" name="show_item_icons"{% if profile.show_item_icons %} checked{% endif %}>
                       </label>
                       <p class="help-block">Displays 20x20 item icons in various relevant places</p>
                     </div>
                   </div>
-                  <div class="control-group">
-                    <label class="control-label" for="entries_per_page">Entries per page</label>
-                    <div class="controls">
-                      <select name="entries_per_page">
+                  <div class="form-group">
+                    <label class="control-label col-sm-2" for="entries_per_page">Entries per page</label>
+                    <div class="col-sm-3">
+                      <select name="entries_per_page" class="form-control">
                         {%- for n in (100, 200, 300, 400, 500) %}
                         <option value="{{ n }}"{% if n == profile.entries_per_page %} selected{% endif %}>{{ n }}</option>
                         {%- endfor %}
@@ -105,45 +104,46 @@
                 </fieldset>
                 <fieldset>
                   <legend>Home page</legend>
-                  <div class="control-group">
-                    <label class="control-label" for="home_chars_per_row">Characters per row</label>
-                    <div class="controls">
-                      <select name="home_chars_per_row">
+                  <br/>
+                  <div class="form-group">
+                    <label class="control-label col-sm-2" for="home_chars_per_row">Characters per row</label>
+                    <div class="col-sm-3">
+                      <select name="home_chars_per_row" class="form-control">
                         {%- for n in home_chars_per_row %}
                         <option value="{{ n }}"{% if profile.home_chars_per_row == n %} selected{% endif %}>{{ n }}</option>
                         {%- endfor %}
                       </select>
                     </div>
                   </div>
-                  <div class="control-group">
-                    <label class="control-label" for="home_sort_order">Sort order</label>
-                    <div class="controls">
-                      <select name="home_sort_order">
+                  <div class="form-group">
+                    <label class="control-label col-sm-2" for="home_sort_order">Sort order</label>
+                    <div class="col-sm-3">
+                      <select name="home_sort_order" class="form-control">
                         {%- for value, name in home_sort_orders %}
                         <option value="{{ value }}"{% if profile.home_sort_order == value %} selected{% endif %}>{{ name }}</option>
                         {%- endfor %}
                       </select>
                     </div>
                   </div>
-                  <div class="control-group">
-                    <label class="control-label" for="home_sort_descending">Sort descending</label>
-                    <div class="controls">
+                  <div class="form-group">
+                    <label class="control-label col-sm-2" for="home_sort_descending">Sort descending</label>
+                    <div class="col-sm-10">
                       <label class="checkbox">
                         <input type="checkbox" name="home_sort_descending"{% if profile.home_sort_descending %} checked{% endif %}>
                       </label>
                     </div>
                   </div>
-                  <div class="control-group">
-                    <label class="control-label" for="home_sort_descending">Show character locations</label>
-                    <div class="controls">
+                  <div class="form-group">
+                    <label class="control-label col-sm-2" for="home_sort_descending">Show character locations</label>
+                    <div class="col-sm-10">
                       <label class="checkbox">
                         <input type="checkbox" name="home_show_locations"{% if profile.home_show_locations %} checked{% endif %}>
                       </label>
                     </div>
                   </div>
-                  <div class="control-group">
-                    <label class="control-label" for="home_highlight_backgrounds">Highlight backgrounds</label>
-                    <div class="controls">
+                  <div class="form-group">
+                    <label class="control-label col-sm-2" for="home_highlight_backgrounds">Highlight backgrounds</label>
+                    <div class="col-sm-10">
                       <label class="checkbox">
                         <input type="checkbox" name="home_highlight_backgrounds"{% if profile.home_highlight_backgrounds %} checked{% endif %}>
                       </label>
@@ -153,38 +153,38 @@
                       </p>
                     </div>
                   </div>
-                  <div class="control-group">
-                    <label class="control-label" for="home_highlight_borders">Highlight borders</label>
-                    <div class="controls">
+                  <div class="form-group">
+                    <label class="control-label col-sm-2" for="home_highlight_borders">Highlight borders</label>
+                    <div class="col-sm-10">
                       <label class="checkbox">
                         <input type="checkbox" name="home_highlight_borders"{% if profile.home_highlight_borders %} checked{% endif %}>
                       </label>
                       <p class="help-block">Highlight character boxes with a border color to signify their status (see above)</p>
                     </div>
                   </div>
-                  <div class="control-group">
-                    <label class="control-label" for="home_show_separators">Show separators</label>
-                    <div class="controls">
+                  <div class="form-group">
+                    <label class="control-label col-sm-2" for="home_show_separators">Show separators</label>
+                    <div class="col-sm-10">
                       <label class="checkbox">
                         <input type="checkbox" name="home_show_separators"{% if profile.home_show_separators %} checked{% endif %}>
                       </label>
                       <p class="help-block">Show separator lines between sections of the character boxes</p>
                     </div>
                   </div>
-                  <div class="control-group">
-                    <label class="control-label" for="home_show_security">Show security status</label>
-                    <div class="controls">
+                  <div class="form-group">
+                    <label class="control-label col-sm-2" for="home_show_security">Show security status</label>
+                    <div class="col-sm-10">
                       <label class="checkbox">
                         <input type="checkbox" name="home_show_security"{% if profile.home_show_security %} checked{% endif %}>
                       </label>
                       <p class="help-block">Show character security status</p>
                     </div>
                   </div>
-                  <div class="control-group">
-                    <label class="control-label" for="home_hide_characters">Hide characters</label>
-                    <div class="controls">
+                  <div class="form-group">
+                    <label class="control-label col-sm-2" for="home_hide_characters">Hide characters</label>
+                    <div class="col-sm-10">
                       {%- for character in characters %}
-                      <label class="checkbox inline">
+                      <label class="checkbox-inline">
                         <input type="checkbox" name="home_hide_characters" value="{{ character.id }}"{% if character.id in home_hide_characters %} checked{% endif %}>{{ character.name }}</input>
                       </label>
                       {%- endfor %}
@@ -192,8 +192,10 @@
                   </div>
                 </fieldset>
                 <fieldset>
-                  <div class="form-actions">
-                    <button type="submit" class="btn btn-primary">Save changes</button>
+                  <div class="form-group">
+                    <div class="col-sm-offset-2 col-sm-10">
+                      <button type="submit" class="btn btn-primary">Save changes</button>
+                    </div>
                   </div>
                 </fieldset>
               </form>
@@ -201,7 +203,8 @@
 
             {# apikeys: content -#}
             <div class="tab-pane" id="tab_apikeys">
-              <div class="span12">
+              <div class="col-sm-12">
+                <br/>
                 <table class="table table-striped table-bordered table-condensed" id="key-table">
                   <thead>
                     <tr class="c">
@@ -254,16 +257,16 @@
                       </td>
                       <td class="api-name">
                         {{ apikey.name }}
-                        <i class="js-edit-name icon-edit pull-right clickable"></i>
+                        <span class="js-edit-name fa fa-edit pull-right clickable"></span>
                       </td>
                       <td class="api-name">
                         {{ apikey.group_name }}
-                        <i class="js-edit-group-name icon-edit pull-right clickable"></i>
+                        <span class="js-edit-group-name fa fa-edit pull-right clickable"></span>
                       </td>
                       <td class="c api-icons">
-                        <i class="js-delete icon-trash clickable" data-toggle="modal" href="#delete-apikey-modal" rel="tooltip" title="Delete API key"></i>
+                        <span class="js-delete fa fa-trash-o clickable" data-toggle="modal" href="#delete-apikey-modal" rel="tooltip" title="Delete API key"></span>
                         &nbsp;
-                        <i class="js-purge icon-warning-sign neg clickable" data-toggle="modal" href="#purge-apikey-modal" rel="tooltip" title="Purge API key data"></i>
+                        <span class="js-purge fa fa-warning neg clickable" data-toggle="modal" href="#purge-apikey-modal" rel="tooltip" title="Purge API key data"></span>
                       </td>
                     </tr>
                     {%- endfor %}
@@ -273,10 +276,18 @@
                 {%- if profile.can_add_keys %}
                 <form action="{{ url('thing.views.account_apikey_add') }}" method="POST" class="form-inline">
                   {{ csrf() }}
-                  <input type="text" name="keyid" class="input-small" placeholder="KeyID">
-                  <input type="text" name="vcode" class="input-xlarge" placeholder="vCode">
-                  <input type="text" name="name" class="input-medium" placeholder="Name" rel="tooltip" title="This is to help you remember what this key is for. It will be displayed on the Home screen.">
-                  <input type="text" name="group_name" class="input-medium" placeholder="Group Name" rel="tooltip" title="This is to help you to group keys. Keys with a Group Name will be in a separate section per group on the Home screen.">
+                  <div class="form-group">
+                    <input type="text" name="keyid" class="form-control col-sm-1" placeholder="KeyID">
+                  </div>
+                  <div class="form-group">
+                    <input type="text" name="vcode" class="form-control col-sm-3" placeholder="vCode">
+                  </div>
+                  <div class="form-group">
+                    <input type="text" name="name" class="form-control col-sm-2" placeholder="Name" rel="tooltip" title="This is to help you remember what this key is for. It will be displayed on the Home screen.">
+                  </div>
+                  <div class="form-group">
+                    <input type="text" name="group_name" class="form-control col-sm-2" placeholder="Group Name" rel="tooltip" title="This is to help you to group keys. Keys with a Group Name will be in a separate section per group on the Home screen.">
+                  </div>
                   <button type="submit" class="btn btn-success">Add Key</button>
                 </form>
                 {%- else %}
@@ -285,6 +296,7 @@
                   have your access reinstated.
                 </div>
                 {%- endif %}
+                <br/>
 
                 <div id="build-table" class="well well-info">
                   <p>
@@ -292,51 +304,69 @@
                     link at the bottom will magically update. When adding a key the 'Name' field is for your reference only.
                   </p>
 
-                  <div class="row-fluid margin-full-top">
-                    <div class="span4">
+                  <div class="row margin-full-top">
+                    <div class="col-sm-4">
                       <h4>EVEthing features:</h4>
                       <form class="margin-half-bot">
-                        <label class="checkbox">
-                          <input type="checkbox" class="apikey-build" data-masks="8;262144" checked>
-                          Skill queue monitoring
-                        </label>
-                        <label class="checkbox">
-                          <input type="checkbox" class="apikey-build" data-masks="33554432" checked>
-                          Account expiry warning
-                        </label>
-                        <label class="checkbox">
-                          <input type="checkbox" class="apikey-build" data-masks="524288">
-                          Character standings
-                        </label>
-                        <label class="checkbox">
-                          <input type="checkbox" class="apikey-build" data-masks="2097152">
-                          Wallet journal
-                        </label>
-                        <label class="checkbox">
-                          <input type="checkbox" class="apikey-build" data-masks="4194304">
-                          Wallet transactions
-                        </label>
-                        <label class="checkbox">
-                          <input type="checkbox" class="apikey-build" data-masks="4096">
-                          Market orders
-                        </label>
-                        <label class="checkbox">
-                          <input type="checkbox" class="apikey-build" data-masks="2;134217728">
-                          Assets
-                        </label>
-                        <label class="checkbox">
-                          <input type="checkbox" class="apikey-build" data-masks="67108864">
-                          Contracts
-                        </label>
-                        <label class="checkbox">
-                          <input type="checkbox" class="apikey-build" data-masks="128">
-                          Industry jobs
-                        </label>
+                        <div class="checkbox">
+                          <label class="checkbox">
+                            <input type="checkbox" class="apikey-build" data-masks="8;262144" checked>
+                            Skill queue monitoring
+                          </label>
+                        </div>
+                        <div class="checkbox">
+                          <label class="checkbox">
+                            <input type="checkbox" class="apikey-build" data-masks="33554432" checked>
+                            Account expiry warning
+                          </label>
+                        </div>
+                        <div class="checkbox">
+                          <label class="checkbox">
+                            <input type="checkbox" class="apikey-build" data-masks="524288">
+                            Character standings
+                          </label>
+                        </div>
+                        <div class="checkbox">
+                          <label class="checkbox">
+                            <input type="checkbox" class="apikey-build" data-masks="2097152">
+                            Wallet journal
+                          </label>
+                        </div>
+                        <div class="checkbox">
+                          <label class="checkbox">
+                            <input type="checkbox" class="apikey-build" data-masks="4194304">
+                            Wallet transactions
+                          </label>
+                        </div>
+                        <div class="checkbox">
+                          <label class="checkbox">
+                            <input type="checkbox" class="apikey-build" data-masks="4096">
+                            Market orders
+                          </label>
+                        </div>
+                        <div class="checkbox">
+                          <label class="checkbox">
+                            <input type="checkbox" class="apikey-build" data-masks="2;134217728">
+                            Assets
+                          </label>
+                        </div>
+                        <div class="checkbox">
+                          <label class="checkbox">
+                            <input type="checkbox" class="apikey-build" data-masks="67108864">
+                            Contracts
+                          </label>
+                        </div>
+                        <div class="checkbox">
+                          <label class="checkbox">
+                            <input type="checkbox" class="apikey-build" data-masks="128">
+                            Industry jobs
+                          </label>
+                        </div>
                         <a class="btn btn-primary" id="apikey-link" href="https://community.eveonline.com/support/api-key/CreatePredefined?accessMask=33816584" target="_blank">Create new key</a>
                       </form>
                     </div>
 
-                    <div class="span4">
+                    <div class="col-sm-4">
                       <h4>Required flags:</h4>
                       <ul id="apikey-required">
                         <li>None</li>
@@ -349,7 +379,8 @@
 
             {# skillplan: content -#}
             <div class="tab-pane" id="tab_skillplans">
-              <div class="span6">
+              <div class="col-sm-6">
+                <br/>
                 <table class="table table-striped table-bordered table-condensed">
                   <thead>
                     <tr class="c">
@@ -365,9 +396,9 @@
                       <td class="r sp-trained">{{ skillplan.id }}</td>
                       <td>{{ skillplan.name }}</td>
                       <td class="c sp-time">{{ skillplan.get_visibility_display() }}</td>
-                      <td class="c sp-trained">
-                        <a class="edit-skillplan" data-toggle="modal" href="#edit-skillplan-modal"><i class="icon-edit"></i></a>
-                        <a class="delete-skillplan" data-toggle="modal" href="#delete-skillplan-modal"><i class="icon-remove"></i></a>
+                      <td class="c sp-trained nowrap">
+                        <a class="edit-skillplan" data-toggle="modal" href="#edit-skillplan-modal"><span class="fa fa-edit"></span></a>
+                        <a class="delete-skillplan" data-toggle="modal" href="#delete-skillplan-modal"><span class="fa fa-trash-o"></span></a>
                       </td>
                     </tr>
                     {%- else %}
@@ -382,22 +413,22 @@
                 <form class="well form-horizontal" action="{{ url('thing.views.account_skillplan_add') }}" method="POST" enctype="multipart/form-data">
                   {{ csrf() }}
                   <fieldset>
-                    <div class="control-group">
-                      <label class="control-label" for="name">Plan name</label>
-                      <div class="controls">
-                        <input type="text" class="input-large" name="name">
+                    <div class="form-group">
+                      <label class="control-label col-sm-4"" for="name">Plan name</label>
+                      <div class="col-sm-8">
+                        <input type="text" class="form-control" name="name"/>
                       </div>
                     </div>
-                    <div class="control-group">
-                      <label class="control-label" for="file">.EMP file</label>
-                      <div class="controls">
-                        <input class="input-file" name="file" type="file">
+                    <div class="form-group">
+                      <label class="control-label col-sm-4" for="file">.EMP file</label>
+                      <div class="col-sm-8">
+                        <input class="input-file" name="file" type="file"/>
                       </div>
                     </div>
-                    <div class="control-group">
-                      <label class="control-label" for="visibility">Visibility</label>
-                      <div class="controls">
-                        <select name="visibility">
+                    <div class="form-group">
+                      <label class="control-label col-sm-4" for="visibility">Visibility</label>
+                      <div class="col-sm-8">
+                        <select name="visibility" class="form-control">
                           {%- for value, text in visibilities %}
                           <option value="{{ value }}">{{ text }}</option>
                           {%- endfor %}
@@ -409,7 +440,7 @@
                     </div>
                   </fieldset>
                   <fieldset>
-                    <div class="form-actions margin-half-top" style="margin-bottom: 0; padding-bottom: 0;">
+                    <div class="col-sm-offset-4 margin-half-top" style="margin-bottom: 0; padding-bottom: 0;">
                       <button type="submit" class="btn btn-primary">Upload</button>
                     </div>
                   </fieldset>
@@ -419,30 +450,30 @@
 
             {% if not disable_password %}{# password: content -#}
             <div class="tab-pane" id="tab_password">
+              <br/>
               <form action="{{ url('thing.views.account_change_password') }}" method="POST" class="form-horizontal">
                 <fieldset>
                   {{ csrf() }}
-                  <div class="control-group">
-                    <label class="control-label" for="old_password">Old password</label>
-                    <div class="controls">
-                      <input type="password" name="old_password">
+                  <div class="form-group">
+                    <label class="control-label col-sm-3 col-md-2" for="old_password">Old password</label>
+                    <div class="col-sm-4">
+                      <input class="form-control" type="password" name="old_password">
                     </div>
                   </div>
-                  <div class="control-group">
-                    <label class="control-label" for="new_password">New password</label>
-                    <div class="controls">
-                      <input type="password" name="new_password">
+                  <div class="form-group">
+                    <label class="control-label col-sm-3 col-md-2" for="new_password">New password</label>
+                    <div class="col-sm-4">
+                      <input class="form-control" type="password" name="new_password">
                     </div>
                   </div>
-                  <div class="control-group">
-                    <label class="control-label" for="confirm_password">Confirm password</label>
-                    <div class="controls">
-                      <input type="password" name="confirm_password">
+                  <div class="form-group">
+                    <label class="control-label col-sm-3 col-md-2" for="confirm_password">Confirm password</label>
+                    <div class="col-sm-4">
+                      <input class="form-control" type="password" name="confirm_password">
                     </div>
                   </div>
-                </fieldset>
-                <fieldset>
-                  <div class="form-actions">
+                  <hr/>
+                  <div class="col-sm-offset-3 col-md-offset-2">
                     <button type="submit" class="btn btn-primary">Change password</button>
                   </div>
                 </fieldset>
@@ -451,113 +482,128 @@
             {%- endif %}
 
             {# apikeys: purge modal -#}
-            <div class="modal hide" id="purge-apikey-modal">
-              <form action="{{ url('thing.views.account_apikey_purge') }}" method="POST" class="form-inline">
-                {{ csrf() }}
-                <input type="hidden" name="apikey_id" value="a" id="purge-keyid-input">
-                <div class="modal-header">
-                  <a class="close" data-dismiss="modal">{{ icons.close_modal() }}</a>
-                  <h3>Purge Confirmation</h3>
+            <div class="modal fade" id="purge-apikey-modal" tabindex="-1" role="dialog" aria-labelledby="purge-apikey-modal" aria-hidden="true">
+              <div class="modal-dialog">
+                <div class="modal-content">
+                  <form action="{{ url('thing.views.account_apikey_purge') }}" method="POST" class="form-inline">
+                    {{ csrf() }}
+                    <input type="hidden" name="apikey_id" value="a" id="purge-keyid-input">
+                    <div class="modal-header">
+                      <a class="close" data-dismiss="modal">{{ icons.close_modal() }}</a>
+                      <h3 class="modal-title">Purge Confirmation</h3>
+                    </div>
+                    <div class="modal-body">
+                      <p>
+                        Are you sure you wish to purge API key #<strong><span id="purge-keyid"></span></strong> ("<span id="purge-keyname"></span>")?
+                        This will delete <strong>ALL</strong> data related to the characters referenced by this API key!
+                      </p>
+                      <div class="alert alert-error">
+                        <strong>WARNING</strong>: this is permanent, the only way to recover historical data is from a database backup!
+                      </div>
+                    </div>
+                    <div class="modal-footer">
+                      <button class="btn btn-danger" data-dismiss="modal">No</button>
+                      <button type="submit" class="btn btn-success">Yes</button>
+                    </div>
+                  </form>
                 </div>
-                <div class="modal-body">
-                  <p>
-                    Are you sure you wish to purge API key #<strong><span id="purge-keyid"></span></strong> ("<span id="purge-keyname"></span>")?
-                    This will delete <strong>ALL</strong> data related to the characters referenced by this API key!
-                  </p>
-                  <div class="alert alert-error">
-                    <strong>WARNING</strong>: this is permanent, the only way to recover historical data is from a database backup!
-                  </div>
-                </div>
-                <div class="modal-footer">
-                  <button class="btn btn-danger" data-dismiss="modal">No</button>
-                  <button type="submit" class="btn btn-success">Yes</button>
-                </div>
-              </form>
+              </div>
             </div>
 
             {# apikeys: delete modal -#}
-            <div class="modal hide" id="delete-apikey-modal">
-              <form action="{{ url('thing.views.account_apikey_delete') }}" method="POST" class="form-inline">
-                {{ csrf() }}
-                <input type="hidden" name="apikey_id" value="a" id="delete-keyid-input">
-                <div class="modal-header">
-                  <a class="close" data-dismiss="modal">{{ icons.close_modal() }}</a>
-                  <h3>Delete Confirmation</h3>
+            <div class="modal fade" id="delete-apikey-modal" tabindex="-1" role="dialog" aria-labelledby="delete-apikey-modal" aria-hidden="true">
+              <div class="modal-dialog">
+                <div class="modal-content">
+                  <form action="{{ url('thing.views.account_apikey_delete') }}" method="POST" class="form-inline">
+                    {{ csrf() }}
+                    <input type="hidden" name="apikey_id" value="a" id="delete-keyid-input">
+                    <div class="modal-header">
+                      <a class="close" data-dismiss="modal">{{ icons.close_modal() }}</a>
+                      <h3 class="modal-title">Delete Confirmation</h3>
+                    </div>
+                    <div class="modal-body">
+                      <p>
+                        Are you sure you wish to delete API key #<strong><span id="delete-keyid"></span></strong> ("<span id="delete-keyname"></span>")?
+                        This will unlink the associated characters from your account and any related data will no longer be visible to you!
+                      </p>
+                      <p>
+                        Note: you can regain access to the data later by re-adding this API key.
+                      </p>
+                    </div>
+                    <div class="modal-footer">
+                      <button class="btn btn-danger" data-dismiss="modal">No</button>
+                      <button type="submit" class="btn btn-success">Yes</button>
+                    </div>
+                  </form>
                 </div>
-                <div class="modal-body">
-                  <p>
-                    Are you sure you wish to delete API key #<strong><span id="delete-keyid"></span></strong> ("<span id="delete-keyname"></span>")?
-                    This will unlink the associated characters from your account and any related data will no longer be visible to you!
-                  </p>
-                  <p>
-                    Note: you can regain access to the data later by re-adding this API key.
-                  </p>
-                </div>
-                <div class="modal-footer">
-                  <button class="btn btn-danger" data-dismiss="modal">No</button>
-                  <button type="submit" class="btn btn-success">Yes</button>
-                </div>
-              </form>
+              </div>
             </div>
 
             {# skillplan: edit modal -#}
-            <div class="modal hide" id="edit-skillplan-modal">
-              <form action="{{ url('thing.views.account_skillplan_edit') }}" method="POST" class="form-horizontal">
-                {{ csrf() }}
-                <input type="hidden" name="skillplan_id" value="" id="edit-skillplan-id">
-                <div class="modal-header">
-                  <a class="close" data-dismiss="modal">{{ icons.close_modal() }}</a>
-                  <h3>Edit Skill Plan</h3>
-                </div>
-                <div class="modal-body">
-                  <fieldset>
-                    <div class="control-group">
-                      <label class="control-label" for="blueprint">Name</label>
-                      <div class="controls">
-                        <input type="text" id="edit-skillplan-name" name="name" value="">
-                      </div>
+            <div class="modal fade" id="edit-skillplan-modal" tabindex="-1" role="dialog" aria-labelledby="edit-skillplan-modal" aria-hidden="true">>
+              <div class="modal-dialog">
+                <div class="modal-content">
+                  <form action="{{ url('thing.views.account_skillplan_edit') }}" method="POST" class="form-horizontal">
+                    {{ csrf() }}
+                    <input type="hidden" name="skillplan_id" value="" id="edit-skillplan-id">
+                    <div class="modal-header">
+                      <a class="close" data-dismiss="modal">{{ icons.close_modal() }}</a>
+                      <h3 class="modal-title">Edit Skill Plan</h3>
                     </div>
-                    <div class="control-group">
-                      <label class="control-label" for="ml">Visibility</label>
-                      <div class="controls">
-                        <select id="edit-skillplan-visibility" name="visibility">
-                          {%- for value, text in visibilities %}
-                          <option value="{{ value }}">{{ text }}</option>
-                          {%- endfor %}
-                        </select>
-                        <p class="help-block">Private: visibile only to your user account.</p>
-                        <p class="help-block">Public: visibile to anyone on <u>your</u> character pages.</p>
-                        <p class="help-block">Global: visibile to anyone on any character page.</p>
-                      </div>
+                    <div class="modal-body">
+                      <fieldset>
+                        <div class="form-group">
+                          <label class="control-label col-sm-3" for="blueprint">Name</label>
+                          <div class="col-sm-9">
+                            <input type="text" id="edit-skillplan-name" class="form-control" name="name" value="">
+                          </div>
+                        </div>
+                        <div class="form-group">
+                          <label class="control-label col-sm-3" for="ml">Visibility</label>
+                          <div class="col-sm-9">
+                            <select id="edit-skillplan-visibility" class="form-control" name="visibility">
+                              {%- for value, text in visibilities %}
+                              <option value="{{ value }}">{{ text }}</option>
+                              {%- endfor %}
+                            </select>
+                            <p class="help-block">Private: visibile only to your user account.</p>
+                            <p class="help-block">Public: visibile to anyone on <u>your</u> character pages.</p>
+                            <p class="help-block">Global: visibile to anyone on any character page.</p>
+                          </div>
+                        </div>
+                      </fieldset>
                     </div>
-                  </fieldset>
+                    <div class="modal-footer">
+                      <button class="btn btn-danger" data-dismiss="modal">Cancel</button>
+                      <button type="submit" class="btn btn-success">Save</button>
+                    </div>
+                  </form>
                 </div>
-                <div class="modal-footer">
-                  <button class="btn btn-danger" data-dismiss="modal">Cancel</button>
-                  <button type="submit" class="btn btn-success">Save</button>
-                </div>
-              </form>
+              </div>
             </div>
 
             {# skillplan: delete modal -#}
-            <div class="modal hide" id="delete-skillplan-modal">
-              <form action="{{ url('thing.views.account_skillplan_delete') }}" method="POST" class="form-inline">
-                {{ csrf() }}
-                <input type="hidden" name="skillplan_id" value="" id="delete-skillplan-id">
-                <div class="modal-header">
-                  <a class="close" data-dismiss="modal">{{ icons.close_modal() }}</a>
-                  <h3>Delete Confirmation</h3>
-                </div>
-                <div class="modal-body">
-                  <p>
-                    Are you sure you wish to delete the skill plan named "<span id="delete-skillplan-name"></span>"?
-                  </p>
-                </div>
-                <div class="modal-footer">
-                  <button class="btn btn-danger" data-dismiss="modal">No</button>
-                  <button type="submit" class="btn btn-success">Yes</button>
-                </div>
-              </form>
+            <div class="modal fade" id="delete-skillplan-modal">
+              <div class="modal-dialog">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title">Delete Confirmation</h4>
+                  </div>
+                  <form action="{{ url('thing.views.account_skillplan_delete') }}" method="POST" class="form-inline">
+                    {{ csrf() }}
+                    <input type="hidden" name="skillplan_id" value="" id="delete-skillplan-id">
+                    <div class="modal-body">
+                      <p>
+                        Are you sure you wish to delete the skill plan named "<span id="delete-skillplan-name"></span>"?
+                      </p>
+                    </div>
+                    <div class="modal-footer">
+                      <button class="btn btn-danger" data-dismiss="modal">No</button>
+                      <button type="submit" class="btn btn-success">Yes</button>
+                    </div>
+                 </form>
+              </div>
             </div>
           </div>
         </div>

@@ -48,8 +48,6 @@ def character_sheet(request, character_name):
     characters = characters.distinct()
 
     char = get_object_or_404(characters, name=character_name)
-    print char.config
-    print char.details
 
     # Check access
     public = True
@@ -154,10 +152,10 @@ def character_common(request, char, public=True, anonymous=False):
 
             # partially trained skills get a partial icon
             elif cs.points > cs.skill.get_sp_at_level(cs.level):
-                cs.z_icons.append('star-empty training-highlight')
+                cs.z_icons.append('star-o training-highlight')
 
             # then fill out the rest with empty icons
-            cs.z_icons.extend(['star-empty'] * (5 - len(cs.z_icons)))
+            cs.z_icons.extend(['star-o'] * (5 - len(cs.z_icons)))
 
             skills[cur].append(cs)
             cur.z_total_sp += cs.points
@@ -203,11 +201,11 @@ def character_common(request, char, public=True, anonymous=False):
     public_plans = []
     for sp in plans:
         if sp.visibility == SkillPlan.PRIVATE_VISIBILITY:
-            sp.z_icon = 'lock'
+            sp.z_icon = 'lock fa-fw'
         elif sp.visibility == SkillPlan.PUBLIC_VISIBILITY:
-            sp.z_icon = 'eye-open'
+            sp.z_icon = 'eye fa-fw'
         elif sp.visibility == SkillPlan.GLOBAL_VISIBILITY:
-            sp.z_icon = 'globe'
+            sp.z_icon = 'globe fa-fw'
 
         if sp.user_id == request.user.id:
             user_plans.append(sp)

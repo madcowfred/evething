@@ -48,17 +48,17 @@ module.exports = function (grunt) {
         concat: {
             bootstrap: {
                 src: [
-                    'static/js/bootstrap-alert.js',
-                    'static/js/bootstrap-button.js',
-                    'static/js/bootstrap-collapse.js',
-                    'static/js/bootstrap-dropdown.js',
-                    'static/js/bootstrap-modal.js',
-                    'static/js/bootstrap-tooltip.js',
-                    'static/js/bootstrap-popover.js',
-                    'static/js/bootstrap-tab.js',
-                    'static/js/bootstrap-scrollspy.js',
-                    'static/js/bootstrap-affix.js',
-                    'static/js/bootstrap-datepicker.js',
+                    'static/js/bootstrap/alert.js',
+                    'static/js/bootstrap/button.js',
+                    'static/js/bootstrap/collapse.js',
+                    'static/js/bootstrap/dropdown.js',
+                    'static/js/bootstrap/modal.js',
+                    'static/js/bootstrap/tooltip.js',
+                    'static/js/bootstrap/popover.js',
+                    'static/js/bootstrap/tab.js',
+                    'static/js/bootstrap/scrollspy.js',
+                    'static/js/bootstrap/affix.js',
+                    'static/js/bootstrap-datepicker.js'
                 ],
                 dest: 'static/js/bootstrap.js'
             }
@@ -82,7 +82,11 @@ module.exports = function (grunt) {
         },
         less: {
             options: {
-                cleancss: true
+                cleancss: true,
+                modifyVars: {
+                    'icon-font-path': '"../fonts/"',
+                    'fa-font-path': '"../fonts"'
+                }
             },
             themes: {
                 files: {

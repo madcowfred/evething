@@ -5,8 +5,8 @@
 {% block title %}Skill Plan: {% if anonymous %}{{ char.config.anon_key }}{% else %}{{ char.name }}{% endif %}, {{ skillplan.name }}{% endblock %}
 
 {% block content %}
-      <div class="row-fluid">
-        <div class="span9">
+      <div class="row">
+        <div class="col-sm-9">
           <h2>Skill Plan</h2>
 
           <ul class="unstyled">
@@ -23,7 +23,7 @@
 
           <form class="form-inline" action="">
             <label class="select">
-              <select name="implants">
+              <select name="implants" class="form-control">
                 <option value="0"{% if implants == 0 %} selected{% endif %}>{% if implants_visible %}Current implants{% else %}No implants{% endif %}</option>
                 <option value="2"{% if implants == 2 %} selected{% endif %}>+2 implants</option>
                 <option value="3"{% if implants == 3 %} selected{% endif %}>+3 implants</option>
@@ -31,14 +31,14 @@
                 <option value="5"{% if implants == 5 %} selected{% endif %}>+5 implants</option>
               </select>
             </label>
-            &nbsp;
-            <label class="checkbox">
-              <input type="checkbox" name="show_trained"{% if show_trained %} checked{% endif %}> Show already trained skills
-            </label>
-            &nbsp;
-            <button type="submit" class="btn">Apply</button>
+            <div class="checkbox">
+              <label>
+                <input type="checkbox" name="show_trained"{% if show_trained %} checked{% endif %}> Show already trained skills
+              </label>
+            </div>
+            <button type="submit" class="btn btn-default">Apply</button>
           </form>
-
+          <br/>
           <table class="table table-striped table-bordered table-condensed">
             <thead>
               <tr class="c">
@@ -57,7 +57,7 @@
                 {% if entry.sp_remap -%}
                 <td></td>
                 <td class="l" colspan="6">
-                  <i class="icon-user"></i> Remap to
+                  <span class="fa fa-user"></span> Remap to
                   <strong>{{ entry.sp_remap.int_stat }}</strong> Int /
                   <strong>{{ entry.sp_remap.mem_stat }}</strong> Mem /
                   <strong>{{ entry.sp_remap.per_stat }}</strong> Per /
@@ -68,9 +68,9 @@
                 {%- else %}
                 <td class="sp-trained">
                   {% if entry.z_training -%}
-                  <i class="icon-flag"></i>
+                  <span class="fa fa-flag"></span>
                   {% elif entry.z_partial_trained -%}
-                  <i class="icon-star-half-empty"></i>
+                  <span class="fa fa-star-half-empty"></span>
                   {%- else -%}
                   {{ icons.success_fail(entry.z_trained) }}
                   {%- endif %}
@@ -81,9 +81,9 @@
                   ({{ entry.z_percent_trained }}% done)
                   {% endif %}
                   {% if entry.z_injected -%}
-                  <i class="icon-book pull-right" rel="tooltip" title="Skillbook is injected"</i>
+                  <span class="fa fa-book pull-right" rel="tooltip" title="Skillbook is injected"></span>
                   {%- elif entry.z_buy %}
-                  <i class="icon-shopping-cart pull-right" rel="tooltip" title="Skillbook is not injected"</i>
+                  <span class="fa fa-shopping-cart pull-right" rel="tooltip" title="Skillbook is not injected"></span>
                   {%- endif %}
                 </td>
                 <td class="sp-group">{{ entry.sp_skill.skill.item.item_group }}</td>

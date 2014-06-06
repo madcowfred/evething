@@ -3,27 +3,42 @@
 {% block title %}Register{% endblock %}
 
 {% block content %}
-        <div class="row-fluid">
-          <div class="span12">
+        <div class="row">
+          <div class="col-sm-6">
             <form method="post" action="" class="form-horizontal">
-              <fieldset>
-                <legend>Register</legend>
-                <div class="control-group">
-                  {{ csrf() }}
-                  <input type="hidden" name="next" value="{{ next }}" />
+              <legend>Register</legend>
+              {{ csrf() }}
+              <input type="hidden" name="next" value="{{ next }}" />
+              <br/>
+              <div class="form-group{% if form.errors %} has-error{% endif %}">
+                <label for="{{ form.username.auto_id }}" class="col-sm-4 control-label">{{ form.username.label }}</label>
+                <div class="col-sm-7">
+                  <input id="{{ form.username.auto_id }}" maxlength="30" name="username" type="text" class="form-control" />
                 </div>
-                {% for field in form %}
-                <div class="control-group{% if form.errors %} error{% endif %}">
-                  <label class="control-label" for="{{ field.auto_id }}">{{ field.label }}</label>
-                  <div class="controls">
-                    {{ field|safe }}
-                  </div>
+              </div>
+              <div class="form-group{% if form.errors %} has-error{% endif %}">
+                <label for="{{ form.password1.auto_id }}" class="col-sm-4 control-label">{{ form.password1.label }}</label>
+                <div class="col-sm-7">
+                  <input id="{{ form.password1.auto_id }}" name="password1" type="password" class="form-control" />
+                  {% for error in form.password1.error_messages %}
+                      <span class="help-block">{{ error }}</span>
+                  {% endfor %}
                 </div>
-                {% endfor %}
-                <div class="form-actions">
+              </div>
+              <div class="form-group{% if form.errors %} has-error{% endif %}">
+                <label for="{{ form.password2.auto_id }}" class="col-sm-4 control-label">{{ form.password2.label }}</label>
+                <div class="col-sm-7">
+                  <input id="{{ form.password2.auto_id }}" name="password2" type="password" class="form-control" />
+                  {% for error in form.password2.error_messages %}
+                      <span class="help-block">{{ error }}</span>
+                  {% endfor %}
+                </div>
+              </div>
+              <div class="form-group">
+                <div class="col-sm-offset-4">
                   <input type="submit" value="Register" class="btn btn-primary">
                 </div>
-              </fieldset>
+              </div>
             </form>
           </div>
         </div>

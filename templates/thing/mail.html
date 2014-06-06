@@ -15,10 +15,40 @@
 {% endblock %}
 
 {% block content %}
-      <div class="row-fluid mail-main">
+      <br/>
+      <div id="mail-side" class="mail-side col-sm-3 col-lg-2">
+        <div class="well well-sm">
+          <button type="button" id="mail-mark-read-button" class="btn btn-success">Mark as read <span class="fa fa-chevron-right"></span></button>
+          <h4 class="nomargin">Filters</h4>
+          <div class="btn-group mail-read" data-toggle="buttons-checkbox">
+            <button type="button" id="filter-unread" class="btn btn-default js-filter active">Unread</button>
+            <button type="button" id="filter-read" class="btn btn-default js-filter">Read</button>
+          </div>
+          <form class="nomargin">
+            <fieldset>
+              <label>Character</label>
+              <select id="filter-character" class="form-control"></select>
+              <label class="checkbox">
+                <input type="checkbox" id="filter-to-character" class="js-filter" checked="checked"> To: Character
+              </label>
+              <label class="checkbox">
+                <input type="checkbox" id="filter-to-corporation" class="js-filter" checked="checked"> To: Corporation
+              </label>
+              <label class="checkbox">
+                <input type="checkbox" id="filter-to-alliance" class="js-filter" checked="checked"> To: Alliance
+              </label>
+              <label class="checkbox">
+                <input type="checkbox" id="filter-to-mailing-list" class="js-filter" checked="checked"> To: Mailing List
+              </label>
+            </fieldset>
+          </form>
+        </div>
+      </div>
+
+      <div class="row mail-main col-sm-9 col-lg-10">
         <div class="mail-content">
-          <div class="row-fluid">
-            <div class="span12 mail-list">
+          <div class="row">
+            <div class="col-sm-12 mail-list">
               <form id="mail-mark-read-form" class="nomargin" method="POST" action="{{ url('thing.views.mail_mark_read') }}">
                 {{ csrf() }}
                 <table id="mail-list-table" class="table table-bordered table-condensed table-striped table-sortable nomargin">
@@ -38,7 +68,7 @@
                       <td colspan="5">There are no mail messages to show with these filter settings.</td>
                     </tr>
                     <tr id="mail-list-loading">
-                      <td colspan="5">Loading messages... <i class="icon-spinner icon-spin"></i></td>
+                      <td colspan="5">Loading messages... <span class="fa fa-spinner fa-spin"></span></td>
                     </tr>
                   </tfoot>
                 </table>
@@ -46,8 +76,8 @@
             </div>{# mail-list #}
           </div>{# row-fluid #}
 
-          <div class="row-fluid">
-            <div class="span12 mail-message">
+          <div class="row">
+            <div class="col-sm-12 mail-message">
               <table id="mail-message-table" class="table table-condensed nomargin">
                 <tr>
                   <td class="mail-message-heading">From:</td>
@@ -73,33 +103,4 @@
           </div>{# row-fluid #}
         </div>{# mail-content #}
       </div>{# mail-main #}
-
-      <div id="mail-side" class="mail-side">
-        <div class="well well-small">
-          <button type="button" id="mail-mark-read-button" class="btn btn-success">Mark as read <i class="icon-chevron-right"></i></button>
-          <h4 class="nomargin">Filters</h4>
-          <div class="btn-group mail-read" data-toggle="buttons-checkbox">
-            <button type="button" id="filter-unread" class="btn js-filter active">Unread</button>
-            <button type="button" id="filter-read" class="btn js-filter">Read</button>
-          </div>
-          <form class="nomargin">
-            <fieldset>
-              <label>Character</label>
-              <select id="filter-character"></select>
-              <label class="checkbox">
-                <input type="checkbox" id="filter-to-character" class="js-filter" checked="checked"> To: Character
-              </label>
-              <label class="checkbox">
-                <input type="checkbox" id="filter-to-corporation" class="js-filter" checked="checked"> To: Corporation
-              </label>
-              <label class="checkbox">
-                <input type="checkbox" id="filter-to-alliance" class="js-filter" checked="checked"> To: Alliance
-              </label>
-              <label class="checkbox">
-                <input type="checkbox" id="filter-to-mailing-list" class="js-filter" checked="checked"> To: Mailing List
-              </label>
-            </fieldset>
-          </form>
-        </div>
-      </div>
 {% endblock %}
