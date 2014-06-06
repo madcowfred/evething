@@ -48,8 +48,6 @@ def character_sheet(request, character_name):
     characters = characters.distinct()
 
     char = get_object_or_404(characters, name=character_name)
-    print char.config
-    print char.details
 
     # Check access
     public = True
