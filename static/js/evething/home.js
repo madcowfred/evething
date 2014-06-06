@@ -45,7 +45,7 @@ EVEthing.home = {
         });
 
         var seen_tooltips = Array();
-        $('.row-fluid').each(function() {
+        $('.row').each(function() {
             var $row = $(this);
 
             $('.well', $row).each(function() {
