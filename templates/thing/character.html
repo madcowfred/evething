@@ -23,10 +23,12 @@
             {% set img = 'http://image.eveonline.com/Character/%s_256.jpg' % (char.id) %}
             {% endif %}
             <img class="img-responsive img-rounded" src="{{ img }}" />
-            <span id="skillplans-toggle" class="fa fa-list fa-3x clickable" rel="tooltip" title="Toggle skillplans"></span>
+            <div class="character-icons">
+            <span id="skillplans-toggle" class="fa fa-list fa-2x clickable" rel="tooltip" title="Toggle skillplans"></span>
             {% if not public %}
-            <span id="settings-toggle" class="fa fa-cog fa-3x clickable" rel="tooltip" title="Toggle settings"></span>
+            <span id="settings-toggle" class="fa fa-cog fa-2x clickable" rel="tooltip" title="Toggle settings"></span>
             {% endif %}
+            </div>
           </div>
         </div>
         {%- if not public %}
