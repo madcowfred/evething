@@ -169,3 +169,16 @@ ul.unstyled {
 .pagination-centered { left: 50%; }
 .pagination-centered ul { left: -50%; }
 
+// Fix until bootstrap 3.2.0
+// http://stackoverflow.com/questions/21029129/create-an-inline-form-with-input-groups-bootstrap
+// https://github.com/twbs/bootstrap/issues/12759
+.input-group {
+    display: inline-table;
+    vertical-align: middle;
+
+    .input-group-addon,
+    .input-group-btn,
+    .form-control {
+        width: auto !important;
+    }
+}

@@ -113,7 +113,7 @@ EVEthing.filters = {
     },
 
     build_comparison: function(ft, fc) {
-        html = ' <select name="fc" class="filter-comp input-small form-control" style="width:20%">';
+        html = ' <select name="fc" class="filter-comp input-small form-control">';
 
         for (var k in EVEthing.filters.expected[ft].comps) {
             var v = EVEthing.filters.expected[ft].comps[k];
@@ -133,7 +133,7 @@ EVEthing.filters = {
         html = ' ';
 
         if (fc == 'in') {
-            html += '<input name="fv" class="filter-value" style="width:40%" type="text" value="' + fv + '">';
+            html += '<input name="fv" class="filter-value" type="text" value="' + fv + '">';
         }
         else if (ft == 'date') {
             dates = fv.split(',');
@@ -141,18 +141,16 @@ EVEthing.filters = {
                 dates.push('');
             }
 
-            html += '<span>';
-            html += '<div class="input-append date" data-date="' + dates[0] + '" data-date-format="yyyy-mm-dd">';
-            html += '<input type="text" class="form-control input-small" value="' + dates[0] + '" readonly>';
-            html += '<span class="add-on"><span class="fa fa-calendar"></span></span></div>';
+            html += '<div class="date input-group" data-date="' + dates[0] + '" data-date-format="yyyy-mm-dd">';
+            html += '<input type="text" class="form-control" value="' + dates[0] + '" readonly>';
+            html += '<span class="input-group-addon"><span class="fa fa-calendar"></span></span></div>';
             if (fc == 'bt') {
                 html += ' and ';
-                html += '<div class="input-append date" data-date="' + dates[1] + '" data-date-format="yyyy-mm-dd">';
-                html += '<input type="text" class="form-control input-small" value="' + dates[1] + '" readonly>';
-                html += '<span class="add-on"><span class="fa fa-calendar"></span></span></div>';
+                html += '<div class="input-group date" data-date="' + dates[1] + '" data-date-format="yyyy-mm-dd">';
+                html += '<input type="text" class="form-control" value="' + dates[1] + '" readonly>';
+                html += '<span class="input-group-addon"><span class="fa fa-calendar"></span></span></div>';
             }
             html += '<input type="hidden" name="fv" value="">';
-            html += '</span>';
         }
         else if (EVEthing.filters.data[ft]) {
             html += '<select name="fv" class="form-control filter-value" style="width:40%" >';
