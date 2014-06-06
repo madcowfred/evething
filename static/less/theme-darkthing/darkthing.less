@@ -25,10 +25,10 @@
 // DATEPICKER
 // ----------
 .datepicker table {
-  background: @grayDarker;
+  background: @gray-darker;
 }
 .datepicker td.day {
-  color: @grayLighter;
+  color: @gray-lighter;
 }
 .datepicker td.old,
 .datepicker td.new {
@@ -39,12 +39,12 @@
 // -----------------------------------------------------
 .nav > li > a:hover {
   text-decoration: none;
-  background-color: darken(@grayDarker, 5%);
+  background-color: darken(@gray-darker, 5%);
 }
 
 .nav-tabs > .active > a,
 .nav-tabs > .active > a:hover {
-  color: lighten(@linkColor, 35%);
+  color: lighten(@link-color, 35%);
   background: rgba(40, 40, 40, 0.5);
 }
 
@@ -78,7 +78,7 @@
 // WELLS
 // -----
 .well {
-  border: 1px solid lighten(@wellBackground, 10%);
+  border: 1px solid lighten(@well-bg, 10%);
 }
 .well-small {
   padding: 6px;
@@ -92,13 +92,13 @@
   }
 }
 .tooltip-inner {
-  border: 1px solid lighten(@tooltipBackground, 25%);
+  border: 1px solid lighten(@tooltip-bg, 25%);
 }
 
 // FORMS
 // -----
 legend {
-  color: lighten(@textColor, 5%);
+  color: lighten(@text-color, 5%);
   border-bottom: 1px solid #aaa;
 }
 .uneditable-input,
@@ -139,18 +139,18 @@ input[type="color"],
 // --------
 .popover {
   width: 350px;
-  border: 1px solid lighten(@popoverBackground, 25%);
+  border: 1px solid lighten(@popover-bg, 25%);
 }
 
 // MODALS
 // ------
 .modal {
-  background: @tooltipBackground;
-  border: 1px solid lighten(@tooltipBackground, 25%);
+  background: @tooltip-bg;
+  border: 1px solid lighten(@tooltip-bg, 25%);
 }
 .modal-header {
-  background: lighten(@tooltipBackground, 10%);
+  background: lighten(@tooltip-bg, 10%);
 }
 .modal-footer {
-  background: @tooltipBackground;
+  background: @tooltip-bg;
 }

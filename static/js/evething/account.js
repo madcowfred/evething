@@ -35,15 +35,16 @@ EVEthing.account = {
             EVEthing.account.savedHTML = EVEthing.account.savedTD.html();
 
             if ($(this).hasClass('js-edit-group-name')) {
-                var fieldname = 'group_name';
-                var dont_edit = 'name';
+                var fieldname = 'group_name',
+                    dont_edit = 'name';
             }
             else {
-                var fieldname = 'name';
-                var dont_edit = 'group_name';
+                var fieldname = 'name',
+                    dont_edit = 'group_name';
             }
 
             var html = [];
+            //  TODO: Make this actually work
             /*html.push('<form action="{{ url('thing.views.account_apikey_edit') }}" method="POST" class="form-inline nomargin">');
             html.push("{{ csrf() }}");
             html.push('<input type="hidden" class="nomargin" name="apikey_id" value="' + keyid + '">');

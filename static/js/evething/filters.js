@@ -20,7 +20,7 @@ EVEthing.filters = {
 
         // click event for delete icon
         $('#filters').on('click', '.js-delete', function() {
-            $(this).parent().remove();
+            $(this).parent().parent().remove();
             if ($('.filter-type').length == 0) {
                 $('#filters').append(EVEthing.filters.build());
             }
@@ -86,8 +86,8 @@ EVEthing.filters = {
     },
 
     build: function(ft, fc, fv) {
-        var html = '<div class="control-group" style="margin: 0;">';
-        html += '<select name="ft" class="filter-type input-medium">';
+        var html = '<div class="row asset-filter"><div class="col-sm-12"><div class="form-group">';
+        html += '<select name="ft" class="filter-type form-control" style=">';
         html += '<option value=""></option>';
 
         $.each(EVEthing.util.sorted_keys(EVEthing.filters.expected), function(i, k) {
@@ -105,15 +105,15 @@ EVEthing.filters = {
             html += EVEthing.filters.build_value(ft, fc, fv);
         }
 
-        html += '&nbsp;<i class="js-add icon-plus clickable filter-icon"></i>';
-        html += '<i class="js-delete icon-trash clickable filter-icon"></i>';
-        html += '</div>';
+        html += '</div>&nbsp;<span class="js-add fa fa-plus clickable filter-icon"></span>';
+        html += '<span class="js-delete fa fa-trash-o clickable filter-icon"></span>';
+        html += '</div></div>';
 
         return html;
     },
 
     build_comparison: function(ft, fc) {
-        html = ' <select name="fc" class="filter-comp input-small">';
+        html = ' <select name="fc" class="filter-comp input-small form-control">';
 
         for (var k in EVEthing.filters.expected[ft].comps) {
             var v = EVEthing.filters.expected[ft].comps[k];
@@ -133,7 +133,7 @@ EVEthing.filters = {
         html = ' ';
 
         if (fc == 'in') {
-            html += '<input name="fv" class="filter-value span2" type="text" value="' + fv + '">';
+            html += '<input name="fv" class="filter-value" type="text" value="' + fv + '">';
         }
         else if (ft == 'date') {
             dates = fv.split(',');
@@ -141,21 +141,19 @@ EVEthing.filters = {
                 dates.push('');
             }
 
-            html += '<span>';
-            html += '<div class="input-append date" data-date="' + dates[0] + '" data-date-format="yyyy-mm-dd">';
-            html += '<input type="text" class="input-small" value="' + dates[0] + '" readonly>';
-            html += '<span class="add-on"><i class="icon-calendar"></i></span></div>';
+            html += '<div class="date input-group" data-date="' + dates[0] + '" data-date-format="yyyy-mm-dd">';
+            html += '<input type="text" class="form-control" value="' + dates[0] + '" readonly>';
+            html += '<span class="input-group-addon"><span class="fa fa-calendar"></span></span></div>';
             if (fc == 'bt') {
                 html += ' and ';
-                html += '<div class="input-append date" data-date="' + dates[1] + '" data-date-format="yyyy-mm-dd">';
-                html += '<input type="text" class="input-small" value="' + dates[1] + '" readonly>';
-                html += '<span class="add-on"><i class="icon-calendar"></i></span></div>';
+                html += '<div class="input-group date" data-date="' + dates[1] + '" data-date-format="yyyy-mm-dd">';
+                html += '<input type="text" class="form-control" value="' + dates[1] + '" readonly>';
+                html += '<span class="input-group-addon"><span class="fa fa-calendar"></span></span></div>';
             }
             html += '<input type="hidden" name="fv" value="">';
-            html += '</span>';
         }
         else if (EVEthing.filters.data[ft]) {
-            html += '<select name="fv" class="filter-value span2">';
+            html += '<select name="fv" class="form-control filter-value" style="width:40%" >';
 
             $.each(EVEthing.util.sorted_keys_by_value(EVEthing.filters.data[ft]), function(i, d_id) {
                 var d_name = EVEthing.filters.data[ft][d_id];
@@ -170,7 +168,7 @@ EVEthing.filters = {
             html += '</select>';
         }
         else {
-            html += '<input name="fv" class="filter-value span2" type="text" value="' + fv + '">';
+            html += '<input name="fv" class="form-control filter-value" style="width:40%" type="text" value="' + fv + '">';
         }
         return html;
     },

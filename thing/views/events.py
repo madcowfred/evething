@@ -42,6 +42,12 @@ def events(request):
     # Create a new paginator
     paginator = Paginator(events, profile.entries_per_page)
 
+    # Make sure page request is an int, default to 1st page
+    try:
+        page = int(request.GET.get('page', '1'))
+    except ValueError:
+        page = 1
+
     # If page request is out of range, deliver last page of results
     try:
         events = paginator.page(page)

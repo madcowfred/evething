@@ -3,15 +3,13 @@
 {% block title %}Blueprints: Export{% endblock %}
 
 {% block content %}
-      <div class="row-fluid">
-        <div class="span6">
+      <div class="row">
+        <div class="col-sm-6">
           <h2>Blueprints Export</h2>
-          <span class="uneditable-textarea fixed input-block-level">
-Blueprint,Original,ME,PE<br>
+            <pre>Blueprint,Original,ME,PE
 {% for bpi in bpis -%}
-{{ bpi.blueprint.name }},{% if bpi.original %}1{% else %}0{% endif %},{{ bpi.material_level }},{{ bpi.productivity_level }}<br>
-{%- endfor %}
-          </span>
+{{ bpi.blueprint.name }},{% if bpi.original %}1{% else %}0{% endif %},{{ bpi.material_level }},{{ bpi.productivity_level }}
+{%- endfor %}</pre>
         </div>
       </div>
 {% endblock %}

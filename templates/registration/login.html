@@ -3,30 +3,33 @@
 {% block title %}Login{% endblock %}
 
 {% block content %}
-        <div class="row-fluid">
-          <div class="span12">
-            <form method="post" action="" class="form-horizontal">
-              <fieldset>
+        <div class="row">
+          <div class="col-sm-6">
+            <form method="post" action="" class="form-horizontal" role="form">
                 <legend>Login</legend>
-                <div class="control-group">
-                  {{ csrf() }}
-                  <input type="hidden" name="next" value="{{ next }}" />
-                </div>
-                {% for field in form %}
-                <div class="control-group{% if form.errors %} error{% endif %}">
-                  <label class="control-label" for="{{ field.auto_id }}">{{ field.label }}</label>
-                  <div class="controls">
-                    {{ field|safe }}
-                    {% if loop.index == 1 and form.errors %}
-                    <span class="help-inline">Your username and/or password are incorrect, please check them and try again.</span>
+                <br/>
+                {{ csrf() }}
+                <input type="hidden" name="next" value="{{ next }}" />
+                <div class="form-group{% if form.errors %} has-error{% endif %}">
+                  <label for="{{ form.username.auto_id }}" class="col-sm-4 control-label">{{ form.username.label }}</label>
+                  <div class="col-sm-7">
+                    <input id="{{ form.username.auto_id }}" maxlength="254" name="username" type="text" class="form-control" />
+                    {% if form.errors %}
+                      <span class="help-block">Your username and/or password are incorrect, please check them and try again.</span>
                     {% endif %}
                   </div>
                 </div>
-                {% endfor %}
-                <div class="form-actions">
-                  <input type="submit" value="Login" class="btn btn-primary">
+                <div class="form-group{% if form.errors %} has-error{% endif %}">
+                  <label for="{{ form.password.auto_id }}" class="col-sm-4 control-label">{{ form.password.label }}</label>
+                  <div class="col-sm-7">
+                    <input id="{{ form.password.auto_id }}" name="password" type="password" class="form-control" />
+                  </div>
                 </div>
-              </fieldset>
+                <div class="form-group">
+                  <div class="col-sm-offset-4">
+                    <input type="submit" value="Login" class="btn btn-primary">
+                  </div>
+                </div>
             </form>
           </div>
         </div>

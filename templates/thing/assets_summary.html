@@ -18,35 +18,35 @@
 {% endblock %}
 
 {% block content %}
-      <div class="row-fluid">
-        <div class="span12">
+      <div class="row">
+        <div class="col-sm-12">
           <h2>Assets Summary</h2>
-
           {% include 'includes/assets_filters.html' %}
         </div>
       </div>
-
-      <div class="row-fluid">
-        <div class="span3">
-          <ul class="nav nav-list assets-sidenav span3" id="sidenav">
-            <li><a href="#total"><i class="icon-chevron-right"></i> Total</a></li>
+      <div id="sidenav-container" class="row">
+        <div class="col-sm-3">
+        <div class="assets-sidenav">
+          <div class="panel panel-default">
+            <div class="panel-heading"><a href="#total"><span class="fa fa-chevron-right"></span> Total</a></div>
+            <ul class="list-group" id="sidenav">
             {%- if characters %}
-            <li class="divider"></li>
             {%- for character in characters.values() %}
-            <li><a href="#{{ character.id }}"><i class="icon-chevron-right"></i> {{ character.name }}</a></li>
+            <li class="list-group-item"><a href="#{{ character.id }}"><span class="fa fa-chevron-right"></span> {{ character.name }}</a></li>
             {%- endfor %}
             {%- endif %}
             {%- if corporations %}
             <li class="divider"></li>
             {%- for corporation in corporations.values() %}
-            <li><a href="#{{ corporation.id }}"><i class="icon-chevron-right"></i> {{ corporation.name }}</a></li>
+            <li class="list-group-item"><a href="#{{ corporation.id }}"><span class="fa fa-chevron-right"></span> {{ corporation.name }}</a></li>
             {%- endfor %}
             {%- endif %}
-          </ul>
+            </ul>
+          </div>
         </div>
-
-        <div class="anchor" id="total"></div>
-        <div class="span9 anchor" id="total">
+        </div>
+        <div class="col-sm-9">
+        <div id="total" class="anchor">
           <table class="table table-striped table-bordered table-condensed">
             <caption>All characters and corporations</caption>
             <thead>
@@ -89,17 +89,15 @@
             </tbody>
           </table>
         </div>
-      </div>
+        </div>
 
-      {%- for (corp_name, char_name, corp_id, char_id), summary_data in summary_list %}
-      {%- if corp_id %}
-      {%- set fragment = 'ft=corp&fc=eq&fv=%s' % (corp_id) %}
-      {%- else %}
-      {%- set fragment = 'ft=char&fc=eq&fv=%s' % (char_id) %}
-      {%- endif %}
-      <div class="anchor" id="{% if corp_id is none %}{{ char_id }}{% else %}{{ corp_id }}{% endif %}"></div>
-      <div class="row-fluid">
-        <div class="span9 offset3">
+        {%- for (corp_name, char_name, corp_id, char_id), summary_data in summary_list %}
+        {%- if corp_id %}
+        {%- set fragment = 'ft=corp&fc=eq&fv=%s' % (corp_id) %}
+        {%- else %}
+        {%- set fragment = 'ft=char&fc=eq&fv=%s' % (char_id) %}
+        {%- endif %}
+        <div id="{% if corp_id is none %}{{ char_id }}{% else %}{{ corp_id }}{% endif %}" class="col-sm-9 col-sm-offset-3 anchor">
           <table class="table table-striped table-bordered table-condensed">
             <caption>{% if corp_name is none %}{{ char_name }}{% else %}{{ corp_name }}{% endif %}</caption>
             <thead>
@@ -142,6 +140,6 @@
             </tbody>
           </table>
         </div>
+        {%- endfor %}
       </div>
-      {%- endfor %}
 {% endblock %}
