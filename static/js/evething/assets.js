@@ -5,6 +5,21 @@ EVEthing.assets = {
 
         // Load filters
         EVEthing.filters.load_filters(EVEthing.assets.filters);
+
+        $('.assets-sidenav').affix({offset: EVEthing.assets.side_offset});
+    },
+
+    // Magic object with a function to calculate the sidenav offset
+    side_offset: {
+        top: function() {
+            var window_h = window.innerHeight,
+                sidenav_h = $('#sidenav').height();
+
+            if (window_h >= (sidenav_h + 75)) {
+                return $('#sidenav-container').offset().top - 50;
+            }
+            return 999999;
+        }
     },
 
     filter_onload: function() {

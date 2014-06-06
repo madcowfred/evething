@@ -26,6 +26,21 @@ EVEthing.character = {
 
         // AJAX for settings form
         $('#settings-form').on('submit', EVEthing.character.settings_submit);
+
+        $('.character-skills').affix({offset: EVEthing.character.skills_offset});
+    },
+
+    // Magic object with a function to calculate the sidenav offset
+    skills_offset: {
+        top: function() {
+            var window_h = window.innerHeight,
+                sidenav_h = $('#sidenav').height();
+
+            if (window_h >= (sidenav_h + 75)) {
+                return $('#character-skills-container').offset().top - 50;
+            }
+            return 999999;
+        }
     },
 
     public_checkbox_change: function (initial) {
