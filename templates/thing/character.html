@@ -223,22 +223,22 @@
                     <div class="pull-left">{{ queue.0.skill.item.name }} {{ queue.0.get_roman_level() }} (Rank {{ queue.0.skill.rank }}) -- {{ queue.0.get_remaining()|duration }} remaining</div>
                     <div class="pull-right">{{ queue.0.end_time }} UTC</div>
                     <br/>
-                      <div class="progress progress-striped nomargin">
-                        <div class="progress-bar{% if queue_duration < 86400 %} progress-bar-danger{% endif%}" style="width:{{ queue.0.z_complete }}%;" aria-valuenow="{{ queue.0.z_complete }}">
-                          {{ queue.0.z_complete }}%
-                        </div>
+                    <div class="progress progress-striped nomargin">
+                      <div class="progress-bar{% if queue_duration < 86400 %} progress-bar-danger{% endif%}" style="width:{{ queue.0.z_complete }}%;" aria-valuenow="{{ queue.0.z_complete }}">
+                        {{ queue.0.z_complete }}%
                       </div>
                     </div>
                     {% if queue|count > 1 %}
-                    <div class="margin-half-top">
+                    <div class="row margin-half-top">
                       {% for sq in queue[1:] %}
-                      <div>
-                        {{ sq.skill.item.name }} {{ sq.get_roman_level() }} (Rank {{ sq.skill.rank }})
+                      <div class="col-sm-12">
+                        <div class="pull-left">{{ sq.skill.item.name }} {{ sq.get_roman_level() }} (Rank {{ sq.skill.rank }})</div>
                         <div class="pull-right">{{ sq.end_time }} UTC</div>
                       </div>
                       {% endfor %}
                     </div>
                     {% endif %}
+                  </div>
                 </div>
               </div>
             </div>
