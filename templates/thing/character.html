@@ -23,9 +23,9 @@
             {% set img = 'http://image.eveonline.com/Character/%s_256.jpg' % (char.id) %}
             {% endif %}
             <img class="img-responsive img-rounded" src="{{ img }}" />
-            <span id="skillplans-toggle" class="glyphicon glyphicon-list clickable" rel="tooltip" title="Toggle skillplans"></span>
+            <span id="skillplans-toggle" class="fa fa-list fa-3x clickable" rel="tooltip" title="Toggle skillplans"></span>
             {% if not public %}
-            <span id="settings-toggle" class="glyphicon glyphicon-cog clickable" rel="tooltip" title="Toggle settings"></span>
+            <span id="settings-toggle" class="fa fa-cog fa-3x clickable" rel="tooltip" title="Toggle settings"></span>
             {% endif %}
           </div>
         </div>
@@ -43,49 +43,49 @@
                   <input type="checkbox" id="public-checkbox" name="public"{% if char.config.is_public %} checked{% endif %}>
                   Publicly visible
                   <div class="pull-right">
-                    <span class="glyphicon glyphicon-info-sign" rel="tooltip" title="Whether or not this character sheet is publicly accessible"></span>
+                    <span class="fa fa-info-sign" rel="tooltip" title="Whether or not this character sheet is publicly accessible"></span>
                   </div>
                 </label>
                 <label class="checkbox indent">
                   <input type="checkbox" class="disable-toggle" name="clone"{% if char.config.show_clone %} checked{% endif %}>
                   Clone information
                   <div class="pull-right">
-                    <span class="glyphicon glyphicon-info-sign" rel="tooltip" title="Show clone information on public sheet"></span>
+                    <span class="fa fa-info-sign" rel="tooltip" title="Show clone information on public sheet"></span>
                   </div>
                 </label>
                 <label class="checkbox indent">
                   <input type="checkbox" class="disable-toggle" name="implants"{% if char.config.show_implants %} checked{% endif %}>
                   Implants
                   <div class="pull-right">
-                    <span class="glyphicon glyphicon-info-sign" rel="tooltip" title="Show implant information on public sheet"></span>
+                    <span class="fa fa-info-sign" rel="tooltip" title="Show implant information on public sheet"></span>
                   </div>
                 </label>
                 <label class="checkbox indent">
                   <input type="checkbox" class="disable-toggle" name="queue"{% if char.config.show_skill_queue %} checked{% endif %}>
                   Skill queue
                   <div class="pull-right">
-                    <span class="glyphicon glyphicon-info-sign" rel="tooltip" title="Show skill queue on public sheet"></span>
+                    <span class="fa fa-info-sign" rel="tooltip" title="Show skill queue on public sheet"></span>
                   </div>
                 </label>
                 <label class="checkbox indent">
                   <input type="checkbox" class="disable-toggle" name="standings"{% if char.config.show_standings %} checked{% endif %}>
                   Standings
                   <div class="pull-right">
-                    <span class="glyphicon glyphicon-info-sign" rel="tooltip" title="Show faction/corporation standings on public sheet"></span>
+                    <span class="fa fa-info-sign" rel="tooltip" title="Show faction/corporation standings on public sheet"></span>
                   </div>
                 </label>
                 <label class="checkbox indent">
                   <input type="checkbox" class="disable-toggle" name="wallet"{% if char.config.show_wallet %} checked{% endif %}>
                   Wallet balance
                   <div class="pull-right">
-                    <span class="glyphicon glyphicon-info-sign" rel="tooltip" title="Show wallet balance on public sheet"></span>
+                    <span class="fa fa-info-sign" rel="tooltip" title="Show wallet balance on public sheet"></span>
                   </div>
                 </label>
                 <label class="checkbox">
                   <input type="checkbox" id="anon-toggle" name="anon-key-toggle"{% if char.config.anon_key %} checked{% endif %}>
                   Anonymous key
                   <div class="pull-right">
-                    <span class="glyphicon glyphicon-info-sign" rel="tooltip" title="Key to use for anonymous character sheet"></span>
+                    <span class="fa fa-info-sign" rel="tooltip" title="Key to use for anonymous character sheet"></span>
                   </div>
                 </label>
                 <input type="hidden" id="anon-key" value="{{ char.config.anon_key }}"/>
@@ -110,7 +110,7 @@
               <ul class="list-unstyled">
                 {% for sp in user_plans -%}
                 <li>
-                  <span class="glyphicon glyphicon-{{ sp.z_icon }}"></span>
+                  <span class="fa fa-{{ sp.z_icon }}"></span>
                   <a href="{{ url('thing.views.character_skillplan', char.name, sp.id) }}">{{ sp.name }}</a>
                 </li>
                 {%- endfor %}
@@ -130,7 +130,7 @@
               <ul class="list-unstyled">
                 {% for sp in public_plans -%}
                 <li>
-                  <span class="glyphicon glyphicon-{{ sp.z_icon }}"></span>
+                  <span class="fa fa-{{ sp.z_icon }}"></span>
                   {% if anonymous -%}
                   <a href="{{ url('thing.views.character_anonymous_skillplan', char.config.anon_key, sp.id) }}">
                   {%- else -%}
@@ -152,7 +152,7 @@
             <div class="panel-body">
               <ul id="sidenav" class="list-unstyled character-sidenav">
 {% for mg, css in skills.items() -%}
-                <li><a href="#{{ mg.slug() }}"><span class="glyphicon glyphicon-chevron-right"></span> {{ mg.name }}</a></li>
+                <li><a href="#{{ mg.slug() }}"><span class="fa fa-chevron-right"></span> {{ mg.name }}</a></li>
 {% endfor %}
               </ul>
             </div>
@@ -263,7 +263,7 @@
                   {% for cs in css -%}
                   <tr>
                     <td>
-                      {%- if cs.z_training %}<span class="glyphicon glyphicon-flag {{ cs.z_class }}"></span>{% endif %}
+                      {%- if cs.z_training %}<span class="fa fa-flag {{ cs.z_class }}"></span>{% endif %}
                       {{ common.skill_hover(cs.skill, cs.level, cs.z_class) }}
                     </td>
                     <td class="skill-rank">Rank {{ cs.skill.rank }}</td>
@@ -271,7 +271,7 @@
                     <td class="skill-sp">{{ cs.skill.get_sp_at_level()|commas }} SP</td>
                     <td class="skill-icons">
                       {% for icon in cs.z_icons -%}
-                      <span class="glyphicon glyphicon-{{ icon }}"></span>
+                      <span class="fa fa-{{ icon }}"></span>
                       {%- endfor %}
                     </td>
                   </tr>

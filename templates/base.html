@@ -65,13 +65,13 @@
             <ul class="nav navbar-nav navbar-right">
 {% if authed %}
               <li class="navbar-mail">
-                <a href="{{ url('thing.views.mail') }}"><span class="glyphicon glyphicon-envelope"></span> {{ nav_mail }}</a>
+                <a href="{{ url('thing.views.mail') }}"><span class="fa fa-envelope"></span> {{ nav_mail }}</a>
               </li>
               <p class="navbar-text visible-desktop navbar-server-status">
 {% if server_open %}
-                <span class="glyphicon glyphicon-thumbs-up" rel="tooltip" data-placement="bottom" title="Server is online - {{ online_players|commas }} players"></span>
+                <span class="fa fa-thumbs-up" rel="tooltip" data-placement="bottom" title="Server is online - {{ online_players|commas }} players"></span>
 {% else %}
-                <span class="glyphicon glyphicon-thumbs-down" rel="tooltip" data-placement="bottom" title="Server is offline"></span>
+                <span class="fa fa-thumbs-down" rel="tooltip" data-placement="bottom" title="Server is offline"></span>
 {% endif %}{# server_open #}
               </p>
               <p class="navbar-text visible-desktop"{% if not user.profile.show_clock %} style="display: none"{% endif %}>

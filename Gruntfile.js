@@ -84,7 +84,8 @@ module.exports = function (grunt) {
             options: {
                 cleancss: true,
                 modifyVars: {
-                    'icon-font-path': '"../fonts/"'
+                    'icon-font-path': '"../fonts/"',
+                    'fa-font-path': '"../fonts"'
                 }
             },
             themes: {

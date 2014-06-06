@@ -51,7 +51,7 @@ EVEthing.character = {
                 $('#anon-key-label').html(html);
             }
             else {
-                $('#anon-key-label').html('<span class="glyphicon glyphicon-anchor"></span> Save to get new link');
+                $('#anon-key-label').html('<span class="fa fa-anchor"></span> Save to get new link');
             }
         }
         else {
@@ -64,7 +64,7 @@ EVEthing.character = {
             e.preventDefault();
         }
 
-        $('#settings-status').html('<span class="glyphicon glyphicon-spinner icon-spin"></span> Saving...');
+        $('#settings-status').html('<span class="fa fa-spinner fa-spin"></span> Saving...');
 
         // Submit the form
         $.post(
@@ -73,12 +73,12 @@ EVEthing.character = {
             function(data) {
                 if (typeof data === 'object') {
                     $('#anon-key').val(data.anon_key);
-                    $('#settings-status').html('<span class="glyphicon glyphicon-ok"></span> Saved!');
+                    $('#settings-status').html('<span class="fa fa-check"></span> Saved!');
                     EVEthing.character.anon_toggle();
                 }
                 // Anything not an object = error
                 else {
-                    $('#settings-status').html('<span class="glyphicon glyphicon-remove"></span> Error!');
+                    $('#settings-status').html('<span class="fa fa-times"></span> Error!');
                 }
             }
         );

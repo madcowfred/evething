@@ -107,9 +107,9 @@ $.tablesorter.addParser({
 // Update the tablesorter theme with some bits
 $.extend($.tablesorter.themes.bootstrap, {
     icons      : '', // add "icon-white" to make them white; this icon class is added to the <i> in the header
-    sortNone   : 'glyphicon glyphicon-sort',
-    sortAsc    : 'glyphicon glyphicon-caret-up',
-    sortDesc   : 'glyphicon glyphicon-caret-down',
+    sortNone   : 'fa fa-sort',
+    sortAsc    : 'fa fa-caret-up',
+    sortDesc   : 'fa fa-caret-down',
 });
 
 

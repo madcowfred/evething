@@ -28,17 +28,17 @@
         <div class="col-sm-3">
         <div class="assets-sidenav" data-spy="affix" data-offset-top="250">
           <div class="panel panel-default">
-            <div class="panel-heading"><a href="#total"><span class="glyphicon glyphicon-chevron-right"></span> Total</a></div>
+            <div class="panel-heading"><a href="#total"><span class="fa fa-chevron-right"></span> Total</a></div>
             <ul class="list-group" id="sidenav">
             {%- if characters %}
             {%- for character in characters.values() %}
-            <li class="list-group-item"><a href="#{{ character.id }}"><span class="glyphicon glyphicon-chevron-right"></span> {{ character.name }}</a></li>
+            <li class="list-group-item"><a href="#{{ character.id }}"><span class="fa fa-chevron-right"></span> {{ character.name }}</a></li>
             {%- endfor %}
             {%- endif %}
             {%- if corporations %}
             <li class="divider"></li>
             {%- for corporation in corporations.values() %}
-            <li class="list-group-item"><a href="#{{ corporation.id }}"><span class="glyphicon glyphicon-chevron-right"></span> {{ corporation.name }}</a></li>
+            <li class="list-group-item"><a href="#{{ corporation.id }}"><span class="fa fa-chevron-right"></span> {{ corporation.name }}</a></li>
             {%- endfor %}
             {%- endif %}
             </ul>

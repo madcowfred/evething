@@ -22,7 +22,7 @@
           <strong>Corp Assets:</strong> {{ corp_assets|default('0.00')|commas }} ISK
 {% endif %}
           <span class="pull-right">
-            <p class="js-screenshot clickable glyphicon glyphicon-picture" title="Screenshot sanitised mode"></p>
+            <p class="js-screenshot clickable fa fa-picture-o" title="Screenshot sanitised mode"></p>
           </span>
         </div>
       </div>
@@ -95,7 +95,7 @@
             {%- endif %}
             <div class="home-notifications">
               {%- for notif in character.z_notifications %}
-              {% if loop.index > 1 %}&nbsp;{% endif %}<span class="glyphicon glyphicon-{{ notif.icon }}" rel="tooltip" title="{{ notif.tooltip }}"></span>
+              {% if loop.index > 1 %}&nbsp;{% endif %}<span class="fa fa-{{ notif.icon }}" rel="tooltip" title="{{ notif.tooltip }}"></span>
               {{ common.span(notif.text, notif.span_class) }}
               {%- endfor %}
             </div>

@@ -105,8 +105,8 @@ EVEthing.filters = {
             html += EVEthing.filters.build_value(ft, fc, fv);
         }
 
-        html += '</div>&nbsp;<span class="js-add glyphicon glyphicon-plus clickable filter-icon"></span>';
-        html += '<span class="js-delete glyphicon glyphicon-trash clickable filter-icon"></span>';
+        html += '</div>&nbsp;<span class="js-add fa fa-plus clickable filter-icon"></span>';
+        html += '<span class="js-delete fa fa-trash-o clickable filter-icon"></span>';
         html += '</div>';
 
         return html;
@@ -144,12 +144,12 @@ EVEthing.filters = {
             html += '<span>';
             html += '<div class="input-append date" data-date="' + dates[0] + '" data-date-format="yyyy-mm-dd">';
             html += '<input type="text" class="form-control input-small" value="' + dates[0] + '" readonly>';
-            html += '<span class="add-on"><span class="glyphicon glyphicon-calendar"></span></span></div>';
+            html += '<span class="add-on"><span class="fa fa-calendar"></span></span></div>';
             if (fc == 'bt') {
                 html += ' and ';
                 html += '<div class="input-append date" data-date="' + dates[1] + '" data-date-format="yyyy-mm-dd">';
                 html += '<input type="text" class="form-control input-small" value="' + dates[1] + '" readonly>';
-                html += '<span class="add-on"><span class="glyphicon glyphicon-calendar"></span></span></div>';
+                html += '<span class="add-on"><span class="fa fa-calendar"></span></span></div>';
             }
             html += '<input type="hidden" name="fv" value="">';
             html += '</span>';

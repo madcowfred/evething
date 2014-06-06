@@ -54,23 +54,23 @@ EVEthing.mail = {
                     // Mailing list
                     if (message.to_list_id > 0) {
                         var list = EVEthing.mail.data.mailing_lists[message.to_list_id] || 'Unknown list';
-                        message.to_list = '<span class="glyphicon glyphicon-list"></span> ' + list;
+                        message.to_list = '<span class="fa fa-list"></span> ' + list;
                     }
                     // Corp or alliance
                     else if (message.to_corp_or_alliance_id > 0) {
                         var corp = EVEthing.mail.data.corporations[message.to_corp_or_alliance_id];
                         // Corp
                         if (corp !== undefined) {
-                            message.to_corporation = '<span class="glyphicon glyphicon-group"></span> ' + corp.name;
+                            message.to_corporation = '<span class="fa fa-group"></span> ' + corp.name;
                         }
                         // Alliance
                         else {
                             var alliance = EVEthing.mail.data.alliances[message.to_corp_or_alliance_id];
                             if (alliance !== undefined) {
-                                message.to_alliance = '<span class="glyphicon glyphicon-hospital"></span> ' + alliance.name;
+                                message.to_alliance = '<span class="fa fa-hospital-o"></span> ' + alliance.name;
                             }
                             else {
-                                message.to_alliance = '<span class="glyphicon glyphicon-hospital"></span> Unknown alliance';
+                                message.to_alliance = '<span class="fa fa-hospital-o"></span> Unknown alliance';
                             }
                         }
                     }
@@ -78,7 +78,7 @@ EVEthing.mail = {
                     else {
                         if (message.to_characters.length > 0) {
                             if (message.to_characters.length > 1) {
-                                message.to_character = '<span class="glyphicon glyphicon-asterisk"></span> Multiple characters';
+                                message.to_character = '<span class="fa fa-asterisk"></span> Multiple characters';
                             }
                             else {
                                 message.to_character = EVEthing.mail.data.characters[message.to_characters[0]] || '*UNKNOWN*';

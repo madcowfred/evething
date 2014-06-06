@@ -66,12 +66,12 @@
                 <td class="journal-date">{{ entry.date }}</td>
                 <td>
                   {% if entry.corp_wallet -%}
-                  {#<span class="glyphicon glyphicon-group"></span>#}
+                  {#<span class="fa fa-group"></span>#}
                   {{ icons.corporation() }}
                   [<span class="tip" rel="tooltip" title="{{ entry.corp_wallet.corporation.name }}">{{ entry.corp_wallet.corporation.ticker }}</span>]
                   {{ entry.corp_wallet.description }}
                   {%- else -%}
-                  {#<span class="glyphicon glyphicon-user"></span>#}
+                  {#<span class="fa fa-user"></span>#}
                   {{ icons.player() }}
                   {{ entry.character.name }}
                   {% endif %}

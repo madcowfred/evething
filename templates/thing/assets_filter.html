@@ -56,7 +56,7 @@
                 </td>
                 <td class="assets-item">
                   {% if asset.z_contents -%}
-                  <span class="glyphicon glyphicon-chevron-down asset-expand pos clickable" data-target=".asset-{{ asset.id }}"></span>
+                  <span class="fa fa-chevron-down asset-expand pos clickable" data-target=".asset-{{ asset.id }}"></span>
                   {%- endif %}
                   {% if show_item_icons -%}
                   <img src="http://image.eveonline.com/Type/{{ asset.item.id }}_32.png" height="20" width="20">
@@ -66,12 +66,12 @@
                   </span>
                   {%- if asset.name %} - <i class="asset-ship-name">{{ asset.name }}</i>{% endif %}
                   {% if asset.z_contents and asset.item.item_group.category.name == 'Ship' -%}
-                  <span class="glyphicon glyphicon-plane pull-right asset-eft clickable" rel="tooltip" title="Show EFT fitting block"></span>
+                  <span class="fa fa-plane pull-right asset-eft clickable" rel="tooltip" title="Show EFT fitting block"></span>
                   {%- endif %}
                   {% if asset.z_blueprint == -1 -%}
-                  <span class="glyphicon glyphicon-file pull-right" rel="tooltip" title="Blueprint original, valued at NPC base price"></span>
+                  <span class="fa fa-file-o pull-right" rel="tooltip" title="Blueprint original, valued at NPC base price"></span>
                   {%- elif asset.z_blueprint == -2 %}
-                  <span class="glyphicon glyphicon-copy pull-right" rel="tooltip" title="Blueprint copy, valued at 0 for now"></span>
+                  <span class="fa fa-copy pull-right" rel="tooltip" title="Blueprint copy, valued at 0 for now"></span>
                   {%- endif -%}
                 </td>
                 <td class="assets-group">{{ asset.item.item_group.category.name }}</td>
@@ -79,7 +79,7 @@
                 <td class="assets-quantity">{{ asset.quantity|commas }}</td>
                 <td class="assets-volume">{{ asset.z_volume|commas }} m<sup>3</sup></td>
                 <td class="assets-value">
-                  {%- if asset.z_capital %}<span class="glyphicon glyphicon-info-sign pull-left" rel="tooltip" title="ME2 hull, ME50 component, minerals from buys"></span>{% endif %}
+                  {%- if asset.z_capital %}<span class="fa fa-info-circle pull-left" rel="tooltip" title="ME2 hull, ME50 component, minerals from buys"></span>{% endif %}
                   {{ asset.z_price|commas }}
                 </td>
                 <td class="assets-value">{{ asset.z_total|commas }}</td>
@@ -92,15 +92,15 @@
                   {%- for i in range(content.z_indent) %}
                   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                   {%- endfor %}
-                  {%- if content.z_locked %}<span class="glyphicon glyphicon-lock"></span>{% endif %}
+                  {%- if content.z_locked %}<span class="fa fa-lock"></span>{% endif %}
                   {% if show_item_icons -%}
                   <img src="http://image.eveonline.com/Type/{{ content.item.id }}_32.png" height="16" width="16">
                   {%- endif %}
                   {{ content.item.name }}
                   {%- if content.z_blueprint == -1 %}
-                  <span class="glyphicon glyphicon-file pull-right" rel="tooltip" title="Blueprint original, valued at NPC base price"></span>
+                  <span class="fa fa-file pull-right" rel="tooltip" title="Blueprint original, valued at NPC base price"></span>
                   {%- elif content.z_blueprint == -2 %}
-                  <span class="glyphicon glyphicon-copy pull-right" rel="tooltip" title="Blueprint copy, valued at 0 for now"></span>
+                  <span class="fa fa-copy pull-right" rel="tooltip" title="Blueprint copy, valued at 0 for now"></span>
                   {%- endif %}
                 </td>
                 <td class="assets-group">{{ content.item.item_group.category.name }}</td>
@@ -108,7 +108,7 @@
                 <td class="assets-quantity">{{ content.quantity|commas }}</td>
                 <td class="assets-volume">{{ content.z_volume|commas }} m<sup>3</sup></td>
                 <td class="assets-value">
-                  {%- if content.z_capital %}<span class="glyphicon glyphicon-info-sign pull-left" rel="tooltip" title="ME2 hull, ME50 component, minerals from buys"></span>{% endif %}
+                  {%- if content.z_capital %}<span class="fa fa-info-circle pull-left" rel="tooltip" title="ME2 hull, ME50 component, minerals from buys"></span>{% endif %}
                   {{ content.z_price|commas }}
                 </td>
                 <td class="assets-value">{{ content.z_total|commas }}</td>
@@ -135,7 +135,7 @@
           <div class="modal-content">
             <div class="modal-header">
               <a class="close" data-dismiss="modal">{{ icons.close_modal() }}</a>
-              <h3>EFT Fitting</h3>
+              <h3 class="modal-title">EFT Fitting</h3>
             </div>
             <div class="modal-body">
               <textarea id="eft-textarea" rows="18" style="width: 98%"></textarea>
