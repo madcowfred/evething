@@ -2,17 +2,17 @@ EVEthing.character = {
     anon_checked: null,
     sidenav_top: 0,
 
-    onload: function() {
+    onload: function () {
         EVEthing.misc.setup_tab_hash();
 
         // Bind skillplans toggle
-        $('#skillplans-toggle').on('click', function() {
+        $('#skillplans-toggle').on('click', function () {
             $('#skillplans-personal').toggle();
             $('#skillplans-global').toggle();
         });
 
         // Bind settings toggle
-        $('#settings-toggle').on('click', function() {
+        $('#settings-toggle').on('click', function () {
             $('#settings-box').toggle();
         });
 
@@ -32,7 +32,7 @@ EVEthing.character = {
 
     // Magic object with a function to calculate the sidenav offset
     skills_offset: {
-        top: function() {
+        top: function () {
             var window_h = window.innerHeight,
                 sidenav_h = $('#sidenav').height();
 
@@ -58,23 +58,21 @@ EVEthing.character = {
         }
     },
 
-    anon_toggle: function() {
+    anon_toggle: function () {
         if ($('#anon-toggle').is(':checked')) {
             var anon_key = $('#anon-key').val();
             if (anon_key !== '') {
                 var html = '<a href="' + EVEthing.character.anon_url.replace('zzzz', anon_key) + '">Anonymized link</a>';
                 $('#anon-key-label').html(html);
-            }
-            else {
+            } else {
                 $('#anon-key-label').html('<span class="fa fa-anchor"></span> Save to get new link');
             }
-        }
-        else {
+        } else {
             $('#anon-key-label').empty();
         }
     },
 
-    settings_submit: function(e) {
+    settings_submit: function (e) {
         if (e.preventDefault) {
             e.preventDefault();
         }
@@ -85,19 +83,17 @@ EVEthing.character = {
         $.post(
             $(this).attr('action'),
             $(this).serialize(),
-            function(data) {
+            function (data) {
                 if (typeof data === 'object') {
                     $('#anon-key').val(data.anon_key);
                     $('#settings-status').html('<span class="fa fa-check"></span> Saved!');
                     EVEthing.character.anon_toggle();
-                }
-                // Anything not an object = error
-                else {
+                } else {
                     $('#settings-status').html('<span class="fa fa-times"></span> Error!');
                 }
             }
         );
 
         return false;
-    },
-}
+    }
+};

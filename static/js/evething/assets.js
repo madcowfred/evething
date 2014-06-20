@@ -1,5 +1,5 @@
 EVEthing.assets = {
-    onload: function() {
+    onload: function () {
         // Bind filter events
         EVEthing.filters.bind_events();
 
@@ -11,7 +11,7 @@ EVEthing.assets = {
 
     // Magic object with a function to calculate the sidenav offset
     side_offset: {
-        top: function() {
+        top: function () {
             var window_h = window.innerHeight,
                 sidenav_h = $('#sidenav').height();
 
@@ -22,37 +22,36 @@ EVEthing.assets = {
         }
     },
 
-    filter_onload: function() {
+    filter_onload: function () {
         // Bind the asset expander buttons
-        $(".asset-expand").on('click', function() {
+        $(".asset-expand").on('click', function () {
             var $this = $(this);
 
             if ($this.hasClass('icon-chevron-right')) {
                 $this.addClass('icon-chevron-down').removeClass('icon-chevron-right');
                 $($this.attr('data-target')).show();
-            }
-            else {
+            } else {
                 $this.addClass('icon-chevron-right').removeClass('icon-chevron-down');
                 $($this.attr('data-target')).hide();
             }
         });
 
         // Bind the ship EFT fitting buttons
-        $(".asset-eft").on('click', function() {
-            var $this = $(this);
-            
-            var data_target = $('span:nth-child(1)', $this.parent()).attr('data-target');
+        $(".asset-eft").on('click', function () {
+            var $this = $(this),
+                data_target = $('span:nth-child(1)', $this.parent()).attr('data-target'),
+                ship_type = $.trim($('.asset-ship-type', $this.parent()).text()),
+                ship_name = $.trim($('.asset-ship-name', $this.parent()).text()),
+                last_slot = null,
+                text;
 
-            var ship_type = $.trim($('.asset-ship-type', $this.parent()).text());
-            var ship_name = $.trim($('.asset-ship-name', $this.parent()).text());
             if (! ship_name) {
                 ship_name = 'From Assets';
             }
 
-            var last_slot = null;
-            var text = '[' + ship_type + ', ' + ship_name + ']\n';
+            text = '[' + ship_type + ', ' + ship_name + ']\n';
 
-            $(data_target).each(function() {
+            $(data_target).each(function () {
                 var slot = $.trim($('td:nth-child(4)', $(this)).text());
                 if (slot.substr(-4) == "Slot") {
                     if (last_slot && last_slot != slot) {
@@ -71,8 +70,8 @@ EVEthing.assets = {
         });
 
         // Select the EFT textarea when the modal is shown
-        $('#eft-modal').on('shown', function() {
+        $('#eft-modal').on('shown', function () {
             $('#eft-textarea').select();
         });
     }
-}
+};
