@@ -10,7 +10,7 @@ EVEthing.home = {
         'security-status': '0.0'
     },
 
-    onload: function() {
+    onload: function () {
         // make tooltips appear to the right of icons
         $("[rel=tooltip]").each(function () {
             $(this).data('bs.tooltip').options.placement = 'right';
@@ -20,15 +20,15 @@ EVEthing.home = {
         $('body').on('click', '.js-screenshot', EVEthing.home.screenshot_mode);
     },
 
-    screenshot_mode: function() {
+    screenshot_mode: function () {
         // replace sensitive data with placeholders
         $('.sensitive').each(function () {
-            var $this = $(this);
-            var oldname = $this.attr('oldname');
-            
+            var $this = $(this),
+                oldname = $this.attr('oldname');
+
             if (oldname === undefined) {
                 $this.attr('oldname', $this.text());
-                
+
                 var classes = $this.attr('class').split(/\s+/);
                 for (var i = 0; i < classes.length; i++) {
                     var rep = EVEthing.home.replacements[classes[i]];
@@ -45,10 +45,10 @@ EVEthing.home = {
         });
 
         var seen_tooltips = Array();
-        $('.row-fluid').each(function() {
+        $('.row').each(function () {
             var $row = $(this);
 
-            $('.well', $row).each(function() {
+            $('.well', $row).each(function () {
                 var $well = $(this);
                 var seen = false;
 
@@ -61,8 +61,7 @@ EVEthing.home = {
                         if ($i.attr('shown') === undefined) {
                             $i.tooltip('show');
                             $i.attr('shown', 'yup');
-                        }
-                        else {
+                        } else {
                             $i.tooltip('hide');
                             $i.removeAttr('shown');
                         }
@@ -70,5 +69,5 @@ EVEthing.home = {
                 });
             });
         });
-    },
-}
+    }
+};

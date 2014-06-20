@@ -1,8 +1,7 @@
 EVEthing.wallet_journal = {
-    onload: function() {
+    onload: function () {
         // Add query string to pagination links
-        var search = document.location.search;
-        $('a').each(function() {
+        $('a').each(function () {
             var href = $(this).attr('href');
             if (href !== undefined && href.substr(0, 5) === '?page') {
                 var params = parseQueryString();
@@ -18,11 +17,11 @@ EVEthing.wallet_journal = {
         EVEthing.filters.load_filters(EVEthing.wallet_journal.filters);
 
         // Bind aggregate button
-        $('#aggregate-form').submit(function() {
+        $('#aggregate-form').submit(function () {
             var action = $(this).attr('action');
             var data = $('#filter-form, #aggregate-form').serialize();
             window.location.href = action + '?' + data;
             return false;
         });
-    },
-}
+    }
+};

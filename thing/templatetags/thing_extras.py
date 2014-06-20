@@ -76,13 +76,13 @@ def duration(s):
 
     parts = []
     if d:
-        parts.append('%dd' % (d))
+        parts.append('%dd' % d)
     if h:
-        parts.append('%dh' % (h))
+        parts.append('%dh' % h)
     if m:
-        parts.append('%dm' % (m))
+        parts.append('%dm' % m)
     if s:
-        parts.append('%ds' % (s))
+        parts.append('%ds' % s)
 
     return ' '.join(parts)
 
@@ -95,12 +95,12 @@ def duration_right(s):
 
     parts = []
     if d:
-        parts.append('%dd' % (d))
+        parts.append('%dd' % d)
     if h or d:
-        parts.append('%02dh' % (h))
+        parts.append('%02dh' % h)
     if m or h or d:
-        parts.append('%02dm' % (m))
-    parts.append('%02ds' % (s))
+        parts.append('%02dm' % m)
+    parts.append('%02ds' % s)
 
     return ' '.join(parts)
 
@@ -118,9 +118,9 @@ def balance(s):
     if s == '0':
         return s
     elif s.startswith('-'):
-        return mark_safe('<span class="neg">%s</span>' % (s))
+        return mark_safe('<span class="neg">%s</span>' % s)
     else:
-        return mark_safe('<span class="pos">%s</span>' % (s))
+        return mark_safe('<span class="pos">%s</span>' % s)
 
 
 @register.filter
@@ -152,7 +152,7 @@ def tablecols(data, cols):
     index = 0
     for user in data:
         row.append(user)
-        index = index + 1
+        index += 1
         if index % cols == 0:
             rows.append(row)
             row = []

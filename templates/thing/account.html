@@ -8,7 +8,7 @@
 {% block title %}My Account{% endblock %}
 
 {% block content %}
-      <div class="row-fluid">
+      <div class="row">
         <div class="col-sm-12">
           <h2>Account Management</h2>
 
@@ -291,7 +291,7 @@
                   <button type="submit" class="btn btn-success">Add Key</button>
                 </form>
                 {%- else %}
-                <div class="alert alert-error">
+                <div class="alert alert-danger">
                   Due to multiple permanent API key failures your ability to add keys has been revoked, please contact an admin if you wish to
                   have your access reinstated.
                 </div>
@@ -497,7 +497,7 @@
                         Are you sure you wish to purge API key #<strong><span id="purge-keyid"></span></strong> ("<span id="purge-keyname"></span>")?
                         This will delete <strong>ALL</strong> data related to the characters referenced by this API key!
                       </p>
-                      <div class="alert alert-error">
+                      <div class="alert alert-danger">
                         <strong>WARNING</strong>: this is permanent, the only way to recover historical data is from a database backup!
                       </div>
                     </div>

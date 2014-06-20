@@ -1,8 +1,7 @@
 EVEthing.transactions = {
-    onload: function() {
+    onload: function () {
         // Add query string to pagination links
-        var search = document.location.search;
-        $('a').each(function() {
+        $('a').each(function () {
             var href = $(this).attr('href');
             if (href !== undefined && href.substr(0, 5) === '?page') {
                 var params = parseQueryString();
@@ -16,5 +15,5 @@ EVEthing.transactions = {
         
         // Load filters
         EVEthing.filters.load_filters(EVEthing.transactions.filters);
-    },
-}
+    }
+};

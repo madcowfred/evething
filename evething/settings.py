@@ -150,7 +150,8 @@ AUTH_PROFILE_MODULE = 'thing.UserProfile'
 # Themes
 THEMES = [
     ('default', '<Default>'),
-    ('darkthing', 'DarkThing *beta*'),
+    ('yeti', 'Yeti'),
+    ('darkthing', 'DarkThing'),
     ('cerulean', 'Cerulean'),
     ('cosmo', 'Cosmo'),
     ('cyborg', 'Cyborg'),

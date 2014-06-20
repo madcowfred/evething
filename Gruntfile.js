@@ -91,6 +91,7 @@ module.exports = function (grunt) {
             themes: {
                 files: {
                     'static/css/theme-cerulean.min.css': 'static/less/theme-cerulean/bootstrap.less',
+                    'static/css/theme-yeti.min.css': 'static/less/theme-yeti/bootstrap.less',
                     'static/css/theme-cosmo.min.css': 'static/less/theme-cosmo/bootstrap.less',
                     'static/css/theme-cyborg.min.css': 'static/less/theme-cyborg/bootstrap.less',
                     'static/css/theme-darkthing.min.css': 'static/less/theme-darkthing/bootstrap.less',
