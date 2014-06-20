@@ -81,9 +81,6 @@ class FixContracts(APITask):
                 params['contractID'] = contract.contract_id
                 params['characterID'] = contract.character_id
 
-                print(params)
-
-                """
                 if self.fetch_api(CONTRACT_URL, params, use_auth=False) is False or self.root is None:
                     self.log_error(
                         'Error fetching information about contract %d using characterID %d apikey %s and vcode %s' %
@@ -129,7 +126,6 @@ class FixContracts(APITask):
                     else:
                         self.log_error('Contract %d is somehow different from requested :ccp:' % contractID)
                         return False
-                """
 
         Event.objects.bulk_create(new_events)
 
