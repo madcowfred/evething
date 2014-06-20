@@ -1,15 +1,15 @@
 // Cerulean 3.1.1
 // Variables
 // --------------------------------------------------
-@etWarningBackground:   lighten(@alert-warning-bg, 40%);
-@etErrorBackground:     lighten(@alert-danger-bg, 45%);
+@etWarningBackground:   lighten(@alert-warning-border, 5%);
+@etErrorBackground:     lighten(@alert-danger-border, 7%);
 @etSuccessBackground:   lighten(@alert-success-border, 10%);
-@etInfoBackground:      lighten(@alert-info-bg, 40%);
+@etInfoBackground:      @alert-info-border;
 
-@etWarningBorder:       @alert-warning-border;
-@etErrorBorder:         @alert-danger-border;
-@etSuccessBorder:       @alert-success-border;
-@etInfoBorder:          @alert-info-border;
+@etWarningBorder:       lighten(@alert-warning-text, 10%);
+@etErrorBorder:         @alert-danger-text;
+@etSuccessBorder:       @alert-success-text;
+@etInfoBorder:          @alert-info-text;
 
 @white: #fff;
 
