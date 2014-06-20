@@ -34,6 +34,7 @@ from thing.models import Contract, Event
 # Peroidic task to fix contracts that fell off the main contracts list
 CONTRACT_URL = '/char/Contracts.xml.aspx'
 
+
 class FixContracts(APITask):
     name = 'thing.fix_contracts'
 
@@ -80,7 +81,7 @@ class FixContracts(APITask):
 
                 if self.fetch_api(CONTRACT_URL, params, use_auth=False) is False or self.root is None:
                     self.log_error(
-                        'Error fetching information about contract %d using characterID %d apikey %s and vcode %s' % \
+                        'Error fetching information about contract %d using characterID %d apikey %s and vcode %s' %
                         (contract.contract_id, params['characterID'], params['keyID'], params['vCode'])
                     )
                     return False
@@ -125,20 +126,5 @@ class FixContracts(APITask):
                         return False
 
         Event.objects.bulk_create(new_events)
-
-
-        return True
-
-        # Go fetch names for them
-        name_map = {}
-        for i in range(0, len(ids), 100):
-            params = {'ids': ','.join(map(str, ids[i:i + 100]))}
-
-            if self.fetch_api(CHAR_NAME_URL, params, use_auth=False) is False or self.root is None:
-                return False
-
-            # <row name="Tazuki Falorn" characterID="1759080617"/>
-            for row in self.root.findall('result/rowset/row'):
-                name_map[int(row.attrib['characterID'])] = row.attrib['name']
 
         return True

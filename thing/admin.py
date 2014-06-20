@@ -57,6 +57,7 @@ class CorpWalletAdmin(admin.ModelAdmin):
 class TaskStateAdmin(admin.ModelAdmin):
     list_display = ('keyid', 'url', 'state', 'mod_time', 'next_time', 'parameter')
 
+
 class ContractAdmin(admin.ModelAdmin):
     list_display = ('contract_id', 'date_issued', 'date_expired', 'date_completed')
 
