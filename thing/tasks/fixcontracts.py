@@ -57,6 +57,7 @@ class FixContracts(APITask):
             for key in contract.character.apikeys.all():
                 if (key.access_mask & key.CHAR_CONTRACTS_MASK) != 0:
                     apikey = key
+                    break
 
             if apikey is None:
                 self.log_error('Could not find APIKey with proper access for contract %d' % contract.id)
