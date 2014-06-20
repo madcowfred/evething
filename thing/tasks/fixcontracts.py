@@ -51,7 +51,7 @@ class FixContracts(APITask):
         expired_contracts = Contract.objects.filter(date_expired__lte=hours_ago).filter(
             Q(status='Outstanding') | Q(status='Accepted')).prefetch_related('character__apikeys')
 
-        # Group contracts to lookup by APIKey and Character
+        # Group contracts to lookup by APIKey
         for contract in expired_contracts:
             apikey = None
             for key in contract.character.apikeys.all():
@@ -77,7 +77,7 @@ class FixContracts(APITask):
                 'vCode': info['key'].vcode,
             }
 
-            for contract in lookup[apikey]['contracts']:
+            for contract in info['contracts']:
                 params['contractID'] = contract.contract_id
                 params['characterID'] = contract.character_id
 
