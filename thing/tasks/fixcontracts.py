@@ -65,11 +65,10 @@ class FixContracts(APITask):
             if apikey.keyid not in lookup:
                 lookup[apikey.keyid] = {
                     'key': apikey,
-                    'characters': {}
+                    'contracts': []
                 }
-            if contract.character_id not in lookup[apikey.keyid]['characters']:
-                lookup[apikey.keyid]['characters'][contract.character_id] = []
-            lookup[apikey.keyid]['characters'][contract.character_id].append(contract)
+
+            lookup[apikey.keyid]['contracts'].append(contract)
 
         # Actually do the lookups
         for apikey, info in lookup.items():
@@ -78,57 +77,59 @@ class FixContracts(APITask):
                 'vCode': info['key'].vcode,
             }
 
-            for character_id, contracts in lookup[apikey]['characters'].items():
-                params['characterID'] = character_id
+            for contract in lookup[apikey]['contracts']:
+                params['contractID'] = contract.contract_id
+                params['characterID'] = contract.character_id
 
-                for contract in contracts:
-                    params['contractID'] = contract.contract_id
+                print(params)
 
-                    if self.fetch_api(CONTRACT_URL, params, use_auth=False) is False or self.root is None:
-                        self.log_error(
-                            'Error fetching information about contract %d using characterID %d apikey %s and vcode %s' %
-                            (contract.contract_id, params['characterID'], params['keyID'], params['vCode'])
-                        )
+                """
+                if self.fetch_api(CONTRACT_URL, params, use_auth=False) is False or self.root is None:
+                    self.log_error(
+                        'Error fetching information about contract %d using characterID %d apikey %s and vcode %s' %
+                        (contract.contract_id, params['characterID'], params['keyID'], params['vCode'])
+                    )
+                    return False
+
+                for row in self.root.findall('result/rowset/row'):
+                    # Only care about the stuff we need to update
+                    contractID = int(row.attrib['contractID'])
+
+                    acceptorID = int(row.attrib['acceptorID'])
+
+                    dateAccepted = row.attrib['dateAccepted']
+                    if dateAccepted:
+                        dateAccepted = self.parse_api_date(dateAccepted)
+                    else:
+                        dateAccepted = None
+
+                    dateCompleted = row.attrib['dateCompleted']
+                    if dateCompleted:
+                        dateCompleted = self.parse_api_date(dateCompleted)
+                    else:
+                        dateCompleted = None
+
+                    if contractID == contract.contract_id:
+                        if contract.status != row.attrib['status']:
+                            text = "Contract %s changed status from '%s' to '%s'" % (
+                                contract.contract_id, contract.status, row.attrib['status']
+                            )
+                            print(text)
+                            new_events.append(Event(
+                                user_id=info['key'].user.id,
+                                issued=now,
+                                text=text,
+                            ))
+
+                            contract.status = row.attrib['status']
+                            contract.date_accepted = dateAccepted
+                            contract.date_completed = dateCompleted
+                            contract.acceptor_id = acceptorID
+                            contract.save()
+                    else:
+                        self.log_error('Contract %d is somehow different from requested :ccp:' % contractID)
                         return False
-
-                    for row in self.root.findall('result/rowset/row'):
-                        # Only care about the stuff we need to update
-                        contractID = int(row.attrib['contractID'])
-
-                        acceptorID = int(row.attrib['acceptorID'])
-
-                        dateAccepted = row.attrib['dateAccepted']
-                        if dateAccepted:
-                            dateAccepted = self.parse_api_date(dateAccepted)
-                        else:
-                            dateAccepted = None
-
-                        dateCompleted = row.attrib['dateCompleted']
-                        if dateCompleted:
-                            dateCompleted = self.parse_api_date(dateCompleted)
-                        else:
-                            dateCompleted = None
-
-                        if contractID == contract.contract_id:
-                            if contract.status != row.attrib['status']:
-                                text = "Contract %s changed status from '%s' to '%s'" % (
-                                    contract.contract_id, contract.status, row.attrib['status']
-                                )
-                                print(text)
-                                new_events.append(Event(
-                                    user_id=info['key'].user.id,
-                                    issued=now,
-                                    text=text,
-                                ))
-
-                                contract.status = row.attrib['status']
-                                contract.date_accepted = dateAccepted
-                                contract.date_completed = dateCompleted
-                                contract.acceptor_id = acceptorID
-                                contract.save()
-                        else:
-                            self.log_error('Contract %d is somehow different from requested :ccp:' % contractID)
-                            return False
+                """
 
         Event.objects.bulk_create(new_events)
 
