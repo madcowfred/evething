@@ -261,7 +261,7 @@ CELERYBEAT_SCHEDULE = {
     # fix contracts that changed state after they went off Contract.xml
     'fix_contracts': {
         'task': 'thing.fix_contracts',
-        'schedule': timedelta(hours=6),
+        'schedule': timedelta(minutes=45),
         'options': {
             'queue': 'et_medium',
         },
