@@ -112,7 +112,6 @@ class FixContracts(APITask):
                             text = "Contract %s changed status from '%s' to '%s'" % (
                                 contract.contract_id, contract.status, row.attrib['status']
                             )
-                            print(text)
                             new_events.append(Event(
                                 user_id=info['key'].user.id,
                                 issued=now,
