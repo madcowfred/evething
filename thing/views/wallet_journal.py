@@ -189,7 +189,7 @@ def wallet_journal(request):
             if entry.amount >= 0:
                 item = item_map.get(int(entry.arg_name))
                 if item:
-                    entry.z_description = 'Insurance payment for loss of a %s' % (item.name)
+                    entry.z_description = 'Insurance payment for loss of a %s' % item.name
             else:
                 entry.z_description = 'Insurance purchased (RefID: %s)' % (entry.arg_name[1:])
         # Clone Transfer, arg_name is the name of the station you're going to
@@ -411,7 +411,7 @@ class WJAggregator(object):
                 if owner1 is not None:
                     group_data.extend([owner1.name, owner1])
                 else:
-                    group_data.extend([None, 'Unknown ID: %s' % (owner1_id)])
+                    group_data.extend([None, 'Unknown ID: %s' % owner1_id])
 
             if self.__group_by['owner2']:
                 owner2_id = entry['owner2_id']
@@ -419,7 +419,7 @@ class WJAggregator(object):
                 if owner2 is not None:
                     group_data.extend([owner2.name, owner2])
                 else:
-                    group_data.extend([None, 'Unknown ID: %s' % (owner2_id)])
+                    group_data.extend([None, 'Unknown ID: %s' % owner2_id])
 
             self.data.append((
                 date,
@@ -492,7 +492,7 @@ def _journal_queryset(request, character_ids, corporation_ids):
             if fc == 'eq':
                 try:
                     start = datetime.datetime.strptime(fv, '%Y-%m-%d')
-                    end = datetime.datetime.strptime('%s 23:59:59' % (fv), '%Y-%m-%d %H:%M:%S')
+                    end = datetime.datetime.strptime('%s 23:59:59' % fv, '%Y-%m-%d %H:%M:%S')
                     qs.append(Q(date__range=(start, end)))
                 except ValueError:
                     pass
