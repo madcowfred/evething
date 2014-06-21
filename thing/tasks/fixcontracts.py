@@ -61,6 +61,7 @@ class FixContracts(APITask):
 
             if apikey is None:
                 self.log_error('Could not find APIKey with proper access for contract %d' % contract.id)
+                Event.objects.bulk_create(new_events)
                 return False
 
             if apikey.keyid not in lookup:
@@ -87,6 +88,7 @@ class FixContracts(APITask):
                         'Error fetching information about contract %d using characterID %d apikey %s and vcode %s' %
                         (contract.contract_id, params['characterID'], params['keyID'], params['vCode'])
                     )
+                    Event.objects.bulk_create(new_events)
                     return False
 
                 for row in self.root.findall('result/rowset/row'):
@@ -125,6 +127,7 @@ class FixContracts(APITask):
                             contract.save()
                     else:
                         self.log_error('Contract %d is somehow different from requested :ccp:' % contractID)
+                        Event.objects.bulk_create(new_events)
                         return False
 
         Event.objects.bulk_create(new_events)
