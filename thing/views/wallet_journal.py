@@ -307,9 +307,9 @@ def wallet_journal_aggregate(request):
     ).annotate(
         entries=Count('id'),
         total_amount=Sum('amount'),
-    )  # .order_by(
+    ).order_by(
     #    *orders
-    #)
+    )
 
     # Aggregate!
     wja = WJAggregator(group_by)
