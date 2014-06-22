@@ -10,6 +10,15 @@
   td { padding: 1px; }
 }
 .character-side {
+  .panel-body {
+    padding: 0;
+  }
+  .panel-heading {
+    padding: 5px 10px;
+    .panel-title {
+      font-weight: bold;
+    }
+  }
   .character-image {
     position: relative;
     max-width: 256px;
@@ -55,14 +64,19 @@
         li a {
           display: block;
           margin: 0 0 -1px;
-          padding: 1px 0;
+          padding: 1px 5px;
         }
         .fa-chevron-right {
           float: right;
-          margin-right: -6px;
+          margin-right: -2px;
           opacity: 0.6;
         }
       }
+    }
+  }
+  #settings-box {
+    .panel-body {
+      padding-left: 5px;
     }
   }
 }
