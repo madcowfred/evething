@@ -308,7 +308,7 @@ def wallet_journal_aggregate(request):
         entries=Count('id'),
         total_amount=Sum('amount'),
     ).order_by(
-    #    *orders
+        #    *orders
     )
 
     # Aggregate!
