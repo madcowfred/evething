@@ -49,12 +49,13 @@ class FixContracts(APITask):
         # We use hours_ago just so we try not to duplicate the chance that this call overlaps with the
         # normal Contracts APITask
         expired_contracts = Contract.objects.filter(date_expired__lte=hours_ago).filter(
-            Q(status='Outstanding') | Q(status='InProgress')).prefetch_related('character__apikeys')
+            Q(status='Outstanding') | Q(status='InProgress')).filter(corporation=None).prefetch_related(
+            'character__apikeys')
 
         # Group contracts to lookup by APIKey
         for contract in expired_contracts:
             apikey = None
-            for key in contract.character.apikeys.all():
+            for key in contract.character.apikeys.filter(valid=True).all():
                 if (key.access_mask & key.CHAR_CONTRACTS_MASK) != 0:
                     apikey = key
                     break
@@ -62,7 +63,7 @@ class FixContracts(APITask):
             if apikey is None:
                 self.log_error('Could not find APIKey with proper access for contract %d' % contract.id)
                 Event.objects.bulk_create(new_events)
-                break
+                continue
 
             if apikey.keyid not in lookup:
                 lookup[apikey.keyid] = {
@@ -78,6 +79,7 @@ class FixContracts(APITask):
                 'keyID': info['key'].keyid,
                 'vCode': info['key'].vcode,
             }
+            self.apikey = info['key']
 
             for contract in info['contracts']:
                 params['contractID'] = contract.contract_id
@@ -89,6 +91,7 @@ class FixContracts(APITask):
                         (contract.contract_id, params['characterID'], params['keyID'], params['vCode'])
                     )
                     Event.objects.bulk_create(new_events)
+                    # This APIKey is invalid, so let's exit out of its contract loop
                     break
 
                 for row in self.root.findall('result/rowset/row'):
@@ -128,7 +131,7 @@ class FixContracts(APITask):
                     else:
                         self.log_error('Contract %d is somehow different from requested :ccp:' % contractID)
                         Event.objects.bulk_create(new_events)
-                        break
+                        continue
 
         Event.objects.bulk_create(new_events)
 
