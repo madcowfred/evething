@@ -62,7 +62,7 @@ class FixContracts(APITask):
             if apikey is None:
                 self.log_error('Could not find APIKey with proper access for contract %d' % contract.id)
                 Event.objects.bulk_create(new_events)
-                return False
+                break
 
             if apikey.keyid not in lookup:
                 lookup[apikey.keyid] = {
@@ -89,7 +89,7 @@ class FixContracts(APITask):
                         (contract.contract_id, params['characterID'], params['keyID'], params['vCode'])
                     )
                     Event.objects.bulk_create(new_events)
-                    return False
+                    break
 
                 for row in self.root.findall('result/rowset/row'):
                     # Only care about the stuff we need to update
@@ -128,7 +128,7 @@ class FixContracts(APITask):
                     else:
                         self.log_error('Contract %d is somehow different from requested :ccp:' % contractID)
                         Event.objects.bulk_create(new_events)
-                        return False
+                        break
 
         Event.objects.bulk_create(new_events)
 
