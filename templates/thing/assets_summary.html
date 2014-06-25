@@ -26,27 +26,27 @@
       </div>
       <div id="sidenav-container" class="row">
         <div class="col-sm-3">
-        <div class="assets-sidenav">
-          <div class="panel panel-default">
-            <div class="panel-heading"><a href="#total"><span class="fa fa-chevron-right"></span> Total</a></div>
-            <ul class="list-group" id="sidenav">
-            {%- if characters %}
-            {%- for character in characters.values() %}
-            <li class="list-group-item"><a href="#{{ character.id }}"><span class="fa fa-chevron-right"></span> {{ character.name }}</a></li>
-            {%- endfor %}
-            {%- endif %}
-            {%- if corporations %}
-            <li class="divider"></li>
-            {%- for corporation in corporations.values() %}
-            <li class="list-group-item"><a href="#{{ corporation.id }}"><span class="fa fa-chevron-right"></span> {{ corporation.name }}</a></li>
-            {%- endfor %}
-            {%- endif %}
-            </ul>
+          <div class="assets-sidenav">
+            <div class="panel panel-default">
+              <div class="panel-heading"><a href="#total"><span class="fa fa-chevron-right"></span> Total</a></div>
+              <ul class="list-group" id="sidenav">
+              {%- if characters %}
+              {%- for character in characters.values() %}
+              <li class="list-group-item"><a href="#{{ character.id }}"><span class="fa fa-chevron-right"></span> {{ character.name }}</a></li>
+              {%- endfor %}
+              {%- endif %}
+              {%- if corporations %}
+              <li class="divider"></li>
+              {%- for corporation in corporations.values() %}
+              <li class="list-group-item"><a href="#{{ corporation.id }}"><span class="fa fa-chevron-right"></span> {{ corporation.name }}</a></li>
+              {%- endfor %}
+              {%- endif %}
+              </ul>
+            </div>
           </div>
         </div>
-        </div>
         <div class="col-sm-9">
-        <div id="total" class="anchor">
+          <div id="total" class="anchor"></div>
           <table class="table table-striped table-bordered table-condensed">
             <caption>All characters and corporations</caption>
             <thead>
@@ -89,7 +89,6 @@
             </tbody>
           </table>
         </div>
-        </div>
 
         {%- for (corp_name, char_name, corp_id, char_id), summary_data in summary_list %}
         {%- if corp_id %}
@@ -97,7 +96,8 @@
         {%- else %}
         {%- set fragment = 'ft=char&fc=eq&fv=%s' % (char_id) %}
         {%- endif %}
-        <div id="{% if corp_id is none %}{{ char_id }}{% else %}{{ corp_id }}{% endif %}" class="col-sm-9 col-sm-offset-3 anchor">
+        <div class="col-sm-9 col-sm-offset-3">
+          <div id="{% if corp_id is none %}{{ char_id }}{% else %}{{ corp_id }}{% endif %}" class="col-sm-9 col-sm-offset-3 anchor"></div>
           <table class="table table-striped table-bordered table-condensed">
             <caption>{% if corp_name is none %}{{ char_name }}{% else %}{{ corp_name }}{% endif %}</caption>
             <thead>
