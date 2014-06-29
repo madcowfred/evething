@@ -21,6 +21,8 @@ EVEthing.account = {
 
         // Bind apikey edit name icon
         $('#key-table').on('click', '.js-edit-name, .js-edit-group-name', function () {
+            var html = [];
+
             $('#key-table form').remove();
 
             var keyid = $(this).parents('tr').attr('data-id');
@@ -42,14 +44,12 @@ EVEthing.account = {
                     dont_edit = 'group_name';
             }
 
-            var html = [];
-            //  TODO: Make this actually work
-            /*html.push('<form action="{{ url('thing.views.account_apikey_edit') }}" method="POST" class="form-inline nomargin">');
-             html.push("{{ csrf() }}");
-             html.push('<input type="hidden" class="nomargin" name="apikey_id" value="' + keyid + '">');
-             html.push('<input type="hidden" class="nomargin" name="dont_edit" value="' + dont_edit + '">');
-             html.push('<input type="text" class="nomargin input-medium" name="' + fieldname + '" id="magic_keyname" value="' + $.trim(keyname) + '">');
-             html.push('</form>');*/
+            html.push('<form action="' + account_edit_url + '" method="POST" class="form-inline nomargin">');
+            html.push(csrf);
+            html.push('<input type="hidden" class="nomargin" name="apikey_id" value="' + keyid + '">');
+            html.push('<input type="hidden" class="nomargin" name="dont_edit" value="' + dont_edit + '">');
+            html.push('<input type="text" class="nomargin input-medium" name="' + fieldname + '" id="magic_keyname" value="' + $.trim(keyname) + '">');
+            html.push('</form>');
 
             $(this).parent().html(html.join(''));
             $('#magic_keyname').focus();
