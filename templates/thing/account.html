@@ -2,7 +2,11 @@
 {% import 'macros/icons.html' as icons %}
 
 {% block extra_js %}
-    <script type="text/javascript">$(document).ready(EVEthing.account.onload);</script>
+    <script type="text/javascript">
+      $(document).ready(EVEthing.account.onload);
+      var account_edit_url = '{{ url('thing.views.account_apikey_edit') }}',
+          csrf = "{{ csrf() }}";
+    </script>
 {% endblock %}
 
 {% block title %}My Account{% endblock %}
@@ -256,11 +260,11 @@
                         {%- endif %}
                       </td>
                       <td class="api-name">
-                        {{ apikey.name }}
+                        <span class="pull-left">{{ apikey.name }}</span>
                         <span class="js-edit-name fa fa-edit pull-right clickable"></span>
                       </td>
                       <td class="api-name">
-                        {{ apikey.group_name }}
+                        <span class="pull-left">{{ apikey.group_name }}</span>
                         <span class="js-edit-group-name fa fa-edit pull-right clickable"></span>
                       </td>
                       <td class="c api-icons">
