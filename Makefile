@@ -34,7 +34,7 @@ static/js/templates.js : static/handlebars/*.handlebars
 	@echo \ done!
 
 # Combine and minify all JS
-static/js/evething-combined.min.js : $(ALL_JS)
+static/js/evething-combined.min.js static/js/evething-combined.min.js.map : $(ALL_JS)
 	@echo -n Combining and minifying $(notdir $@)...
 	@uglifyjs $(ALL_JS) --source-map static/js/evething-combined.min.js.map --output static/js/evething-combined.min.js --source-map-root=../../ --source-map-url=/static/js/evething-combined.min.js.map --compile --mangle 
 	@echo \ done!
