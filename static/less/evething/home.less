@@ -1,12 +1,14 @@
 /* Home stuff */
 .summary-row {
-    .navbar-inner();
+    // .navbar-inner();
     .nav();
-    
+
+    margin-top: 10px;
+
     min-height: 24px;
 
     /*background-color: #f5f5f5;*/
-    background-color: @wellBackground;
+    background-color: @well-bg; // @wellBackground;
     background-image: none;
     border: 1px solid #ddd;
 
@@ -14,17 +16,20 @@
         float: left;
         // Vertically center the text given @navbarHeight
         padding: 4px 3px 3px 3px;
-        color: @textColor;
+        color: @text-color;
         text-decoration: none;
-        text-shadow: 0 1px 0 invert(@navbarBackgroundHighlight);
+        // text-shadow: 0 1px 0 invert(@navbar-background-highlight);
 
         font-weight: bold;
         line-height: 22px;
         vertical-align: middle;
 
         output {
+            display: inline;
             font-weight: normal;
         }
+
+        > a { padding: 0; }
     }
     li.title {
         font-weight: normal;
@@ -58,11 +63,4 @@
 .home-group {
   .margin-half-bot;
   font-size: 110%;
-}
-span.security-status {
-  padding-right: 5px;
-}
-
-.progress-bar {
-  text-shadow: -1px -1px 1px #000,-1px 1px 1px #000,1px -1px 1px #000,1px 1px 1px #000;
 }

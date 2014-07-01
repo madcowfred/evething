@@ -32,20 +32,20 @@
     <form class="well form-horizontal" action="{{ url('thing.views.account_skillplan_add') }}" method="POST" enctype="multipart/form-data">
       {{ csrf() }}
       <fieldset>
-        <div class="control-group">
-          <label class="control-label" for="name">Plan name</label>
+        <div class="form-group">
+          <label class="form-label" for="name">Plan name</label>
           <div class="controls">
             <input type="text" class="input-large" name="name">
           </div>
         </div>
-        <div class="control-group">
-          <label class="control-label" for="file">.EMP file</label>
+        <div class="form-group">
+          <label class="form-label" for="file">.EMP file</label>
           <div class="controls">
             <input class="input-file" name="file" type="file">
           </div>
         </div>
-        <div class="control-group">
-          <label class="control-label" for="visibility">Visibility</label>
+        <div class="form-group">
+          <label class="form-label" for="visibility">Visibility</label>
           <div class="controls">
             <select name="visibility">
               {%- for value, text in visibilities %}

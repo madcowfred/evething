@@ -22,7 +22,7 @@
                 <tr>
                     <td style="text-align:center;"><input type="checkbox" name="home_hide_characters" value="{{ character.id }}" {% if character.id in home_hide_characters %}checked="checked" {% endif %}/></td>
                     <td>{{ character.name }}</td>
-                    <td><input type="text" name="group_{{ character.id }}" value="{{ character.config.home_group }}" list="home_groups" style="width: 90%" /></td>
+                    <td><input type="text" name="group_{{ character.id }}" value="{{ character.config.home_group }}" list="home_groups" style="width: 90%" class="form-control" /></td>
                     <td style="text-align:center;"><input type="checkbox" name="implants" value="{{ character.id }}" {% if character.config.home_suppress_implants %}checked="checked" {% endif %}/></td>
                     <td style="text-align:center;"><input type="checkbox" name="low_skill_queue" value="{{ character.id }}" {% if character.config.home_suppress_low_skill_queue %}checked="checked" {% endif %}/></td>
                     <td style="text-align:center;"><input type="checkbox" name="empty_skill_queue" value="{{ character.id }}" {% if character.config.home_suppress_empty_skill_queue %}checked="checked" {% endif %}/></td>

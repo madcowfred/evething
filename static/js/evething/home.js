@@ -224,8 +224,8 @@ EVEthing.home.onload = function() {
     }
 
     sortSelectMenu.append('<li class="divider"></li>');
-    sortSelectMenu.append('<li><a href="#empty_queue_last"><b class="icon-' + (EVEthing.home.PROFILE.HOME_SORT_EMPTY_QUEUE_LAST ? 'ok' : 'remove' ) + '"></b> Empty Queues Last</a></li>');
-    sortSelectMenu.append('<li><a href="#use_groups"><b class="icon-' + (EVEthing.home.IGNORE_GROUPS ? 'remove' : 'ok') + '"></b> Use Groups</a></li>');
+    sortSelectMenu.append('<li><a href="#empty_queue_last"><b class="fa fa-' + (EVEthing.home.PROFILE.HOME_SORT_EMPTY_QUEUE_LAST ? 'check-circle' : 'circle-o' ) + '"></b> Empty Queues Last</a></li>');
+    sortSelectMenu.append('<li><a href="#use_groups"><b class="fa fa-' + (EVEthing.home.IGNORE_GROUPS ? 'circle-o' : 'check-circle') + '"></b> Use Groups</a></li>');
 
     sortSelectMenu.find('a').click(EVEthing.home.onSortByClicked);
 
@@ -320,17 +320,17 @@ EVEthing.home.onSortByClicked = function(event) {
     if (href == "use_groups") {
         EVEthing.home.IGNORE_GROUPS = !EVEthing.home.IGNORE_GROUPS;
 
-        var icon = $(elem).find('b');        
-        icon.removeClass('icon-ok icon-remove');
-        icon.addClass('icon-' + (EVEthing.home.IGNORE_GROUPS ? 'remove' : 'ok'));
+        var icon = $(elem).find('b');
+        icon.removeClass('fa fa-circle-o fa-check-circle');
+        icon.addClass('fa fa-' + (EVEthing.home.IGNORE_GROUPS ? 'circle-o' : 'check-circle'));
 
         document.cookie = 'homePageIgnoreGroups=' + String(EVEthing.home.IGNORE_GROUPS);
     } else if (href == "empty_queue_last") {
         EVEthing.home.PROFILE.HOME_SORT_EMPTY_QUEUE_LAST = !EVEthing.home.PROFILE.HOME_SORT_EMPTY_QUEUE_LAST;
         
         var icon = $(elem).find('b');
-        icon.removeClass('icon-ok icon-remove');
-        icon.addClass('icon-' + (EVEthing.home.PROFILE.HOME_SORT_EMPTY_QUEUE_LAST ? 'ok' : 'remove' ));
+        icon.removeClass('fa fa-circle-o fa-check-circle');
+        icon.addClass('fa fa-' + (EVEthing.home.PROFILE.HOME_SORT_EMPTY_QUEUE_LAST ? 'check-circle' : 'circle-o' ));
 
         document.cookie = 'homePageSortEmptyQueueLast=' + String(EVEthing.home.PROFILE.HOME_SORT_EMPTY_QUEUE_LAST);
     } else {
@@ -663,15 +663,16 @@ EVEthing.home.CharacterListDisplay.draw = function() {
     if (this.html !== null) this.html.remove();
 
     this.html = $('<div class="margin-half-top"></div>');
-   
-    var row = $('<div class="row-fluid"></div>');
+
+    var row = this.html;
+    //var row = $('<div class="row-fluid"></div>');
 
     var defered_chars = [];
     for (var i=0; i < EVEthing.home.CHARACTER_ORDER.length; i++) {
-        if (row.children().length >= EVEthing.home.PROFILE.HOME_CHARS_PER_ROW) {
-            this.html.append(row);
-            row = $('<div class="row-fluid"></div>');
-        }
+        //if (row.children().length >= EVEthing.home.PROFILE.HOME_CHARS_PER_ROW) {
+        //    this.html.append(row);
+        //    row = $('<div class="row-fluid"></div>');
+        //}
 
         if (EVEthing.home.PROFILE.HOME_SORT_EMPTY_QUEUE_LAST) {
             var defered = true;
@@ -691,14 +692,14 @@ EVEthing.home.CharacterListDisplay.draw = function() {
     }
 
     for (var i=0; i < defered_chars.length; i++) {
-        if (row.children().length >= EVEthing.home.PROFILE.HOME_CHARS_PER_ROW) {
-            this.html.append(row);
-            row = $('<div class="row-fluid"></div>');
-        }
+        //if (row.children().length >= EVEthing.home.PROFILE.HOME_CHARS_PER_ROW) {
+        //    this.html.append(row);
+        //    row = $('<div class="row-fluid"></div>');
+        //}
         row.append(EVEthing.home.CHARACTERS[defered_chars[i]].well);
     }
 
-    this.html.append(row);
+    //this.html.append(row);
     this.html.append('<hr />');
 };
 
@@ -747,17 +748,18 @@ EVEthing.home.GroupDisplay.prototype.add = function(character) {
 EVEthing.home.GroupDisplay.prototype.draw = function() {
     if (this.html !== null) this.html.remove();
 
-    this.html = $('<div class="margin-half-top"></div>');
+    this.html = $('<div class="margin-half-top clearfix"></div>');
     this.html.append($('<p>' + this.name + '</p>'));
    
-    var row = $('<div class="row-fluid"></div>');
+    //var row = $('<div class="row-fluid"></div>');
+    var row = this.html;
 
     var defered_chars = [];
     for (var i=0; i < EVEthing.home.CHARACTER_ORDER.length; i++) {
-        if (row.children().length >= EVEthing.home.PROFILE.HOME_CHARS_PER_ROW) {
-            this.html.append(row);
-            row = $('<div class="row-fluid"></div>');
-        }
+        //if (row.children().length >= EVEthing.home.PROFILE.HOME_CHARS_PER_ROW) {
+        //    this.html.append(row);
+        //    row = $('<div class="row-fluid"></div>');
+        //}
 
         if (this.characters.indexOf(EVEthing.home.CHARACTER_ORDER[i]) >= 0) {
             if (EVEthing.home.PROFILE.HOME_SORT_EMPTY_QUEUE_LAST) {
@@ -778,14 +780,14 @@ EVEthing.home.GroupDisplay.prototype.draw = function() {
     }
 
     for (var i=0; i < defered_chars.length; i++) {
-        if (row.children().length >= EVEthing.home.PROFILE.HOME_CHARS_PER_ROW) {
-            this.html.append(row);
-            row = $('<div class="row-fluid"></div>');
-        }
+        //if (row.children().length >= EVEthing.home.PROFILE.HOME_CHARS_PER_ROW) {
+        //    this.html.append(row);
+        //    row = $('<div class="row-fluid"></div>');
+        //}
         row.append(EVEthing.home.CHARACTERS[defered_chars[i]].well);
     }
 
-    this.html.append(row);
+    //this.html.append(row);
     this.html.append('<hr />');
 };
 
@@ -834,7 +836,10 @@ EVEthing.home.CharacterDisplay = function(character_id, data) {
     this.character = {};
 
     this.well = $('<div></div>');
-    this.well.addClass('span' + EVEthing.home.PROFILE.CHAR_COL_SPAN);
+    this.well.addClass('col-xs-12');
+    this.well.addClass('col-sm-6');
+    this.well.addClass('col-md-' + EVEthing.home.PROFILE.CHAR_COL_SPAN);
+    this.well.addClass('col-lg-' + EVEthing.home.PROFILE.CHAR_COL_SPAN);
 
     this.html = null;
 

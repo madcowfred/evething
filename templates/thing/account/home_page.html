@@ -1,87 +1,76 @@
   <form action="{{ url('thing.views.account_home_page') }}" method="POST" class="form-horizontal">
-    <fieldset>
       {{ csrf() }}
-      <div class="control-group">
-        <label class="control-label" for="home_chars_per_row">Characters per row</label>
-        <div class="controls">
-          <select name="home_chars_per_row">
+      <div class="form-group">
+        <label class="col-sm-2" for="home_chars_per_row">Characters per row</label>
+        <div class="col-sm-10">
+          <select name="home_chars_per_row" class="form-control">
             {%- for n in home_chars_per_row %}
             <option value="{{ n }}"{% if profile.home_chars_per_row == n %} selected{% endif %}>{{ n }}</option>
             {%- endfor %}
           </select>
+          <span class="help-block">The number of characters to display per row on large displays</span>
         </div>
       </div>
-      <div class="control-group">
-        <label class="control-label" for="home_sort_order">Sort order</label>
-        <div class="controls">
-          <select name="home_sort_order">
+      <div class="form-group">
+        <label class="col-sm-2" for="home_sort_order">Sort order</label>
+        <div class="col-sm-10">
+          <select name="home_sort_order" class="form-control">
             {%- for value, name in home_sort_orders %}
             <option value="{{ value }}"{% if profile.home_sort_order == value %} selected{% endif %}>{{ name }}</option>
             {%- endfor %}
           </select>
         </div>
       </div>
-      <div class="control-group">
-        <label class="control-label" for="home_sort_descending">Sort descending</label>
-        <div class="controls">
-          <label class="checkbox">
-            <input type="checkbox" name="home_sort_descending"{% if profile.home_sort_descending %} checked{% endif %}>
-          </label>
-        </div>
+      <div class="form-group">
+        <label class="col-sm-2" for="home_sort_descending">Sort descending</label>
+        <label class="col-sm-10">
+          <input type="checkbox" name="home_sort_descending"{% if profile.home_sort_descending %} checked{% endif %}>
+        </label>
       </div>
-      <div class="control-group">
-        <label class="control-label" for="home_sort_empty_queue_last">Sort Empty Queue Last</label>
-        <div class="controls">
-          <label class="checkbox">
-            <input type="checkbox" name="home_sort_empty_queue_last"{% if profile.home_sort_empty_queue_last %} checked{% endif %}>
-          </label>
-          <p class="help-block">
-            Sort characters with empty skill queues after characters with active skill queues.
-          </p>
-        </div>
+      <div class="form-group">
+        <label class="col-sm-2" for="home_sort_empty_queue_last">Sort Empty Queue Last</label>
+        <label class="col-sm-10">
+          <input type="checkbox" name="home_sort_empty_queue_last"{% if profile.home_sort_empty_queue_last %} checked{% endif %}>
+        </label>
+        <p class="help-block col-sm-offset-2 col-sm-10">
+          Sort characters with empty skill queues after characters with active skill queues.
+        </p>
       </div>
-      <div class="control-group">
-        <label class="control-label" for="home_sort_descending">Show character locations</label>
-        <div class="controls">
-          <label class="checkbox">
-            <input type="checkbox" name="home_show_locations"{% if profile.home_show_locations %} checked{% endif %}>
-          </label>
-        </div>
+      <div class="form-group">
+        <label class="col-sm-2" for="home_sort_descending">Show character locations</label>
+        <label class="col-sm-10">
+          <input type="checkbox" name="home_show_locations"{% if profile.home_show_locations %} checked{% endif %}>
+        </label>
       </div>
-      <div class="control-group">
-        <label class="control-label" for="home_highlight_backgrounds">Highlight backgrounds</label>
-        <div class="controls">
-          <label class="checkbox">
-            <input type="checkbox" name="home_highlight_backgrounds"{% if profile.home_highlight_backgrounds %} checked{% endif %}>
-          </label>
-          <p class="help-block">
-            Highlight character boxes with a background color to signify their status (green = fine, orange = notifications,
-            red = nothing training on this account)
-          </p>
-        </div>
+      <div class="form-group">
+        <label class="col-sm-2" for="home_highlight_backgrounds">Highlight backgrounds</label>
+        <label class="col-sm-10">
+          <input type="checkbox" name="home_highlight_backgrounds"{% if profile.home_highlight_backgrounds %} checked{% endif %}>
+        </label>
+        <p class="help-block col-sm-offset-2 col-sm-10">
+          Highlight character boxes with a background color to signify their status (green = fine, orange = notifications,
+          red = nothing training on this account)
+        </p>
       </div>
-      <div class="control-group">
-        <label class="control-label" for="home_highlight_borders">Highlight borders</label>
-        <div class="controls">
-          <label class="checkbox">
-            <input type="checkbox" name="home_highlight_borders"{% if profile.home_highlight_borders %} checked{% endif %}>
-          </label>
-          <p class="help-block">Highlight character boxes with a border color to signify their status (see above)</p>
-        </div>
+      <div class="form-group">
+        <label class="col-sm-2" for="home_highlight_borders">Highlight borders</label>
+        <label class="col-sm-10">
+          <input type="checkbox" name="home_highlight_borders"{% if profile.home_highlight_borders %} checked{% endif %}>
+        </label>
+        <p class="help-block col-sm-offset-2 col-sm-10">
+          Highlight character boxes with a border color to signify their status (see above)
+        </p>
       </div>
-      <div class="control-group">
-        <label class="control-label" for="home_show_separators">Show separators</label>
-        <div class="controls">
-          <label class="checkbox">
-            <input type="checkbox" name="home_show_separators"{% if profile.home_show_separators %} checked{% endif %}>
-          </label>
-          <p class="help-block">Show separator lines between sections of the character boxes</p>
-        </div>
+      <div class="form-group">
+        <label class="col-sm-2" for="home_show_separators">Show separators</label>
+        <label class="col-sm-10">
+          <input type="checkbox" name="home_show_separators"{% if profile.home_show_separators %} checked{% endif %}>
+        </label>
+        <p class="help-block col-sm-offset-2 col-sm-10">
+          Show separator lines between sections of the character boxes
+        </p>
       </div>
-    </fieldset>
-    <fieldset>
       <div class="form-actions">
         <button type="submit" class="btn btn-primary">Save changes</button>
       </div>
-    </fieldset>
   </form>

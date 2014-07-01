@@ -13,9 +13,8 @@
 
 {% block content %}
       <div class="row">
-        <div class="col-sm-12">
+        <div class="col-xs-12 col-sm-12 col-md-10 col-lg-8 col-md-offset-1 col-lg-offset-2">
           <h2>Account Management</h2>
-
           {%- if message %}
           <div class="alert alert-{{ message_type }}">
             <strong>{{ message_type|capitalize }}:</strong> {{ message }}
@@ -33,34 +32,34 @@
             {%- endif %}
           </ul>
 
-          <div class="tab-content">
+          <div class="tab-content row panel panel-default">
             {# settings: content -#}
-            <div class="tab-pane active" id="tab_settings">
+            <div class="tab-pane active panel-body" id="tab_settings">
               {% include "thing/account/settings.html" %}
             </div>
 
             {# settings: content -#}
-            <div class="tab-pane" id="tab_home_page">
+            <div class="tab-pane panel-body" id="tab_home_page">
               {% include "thing/account/home_page.html" %}
             </div>
 
             {# settings: content -#}
-            <div class="tab-pane" id="tab_characters">
+            <div class="tab-pane panel-body" id="tab_characters">
               {% include "thing/account/characters.html" %}
             </div>
 
             {# apikeys: content -#}
-            <div class="tab-pane" id="tab_apikeys">
+            <div class="tab-pane panel-body" id="tab_apikeys">
               {% include "thing/account/api_keys.html" %}
             </div>
 
             {# skillplan: content -#}
-            <div class="tab-pane" id="tab_skillplans">
+            <div class="tab-pane panel-body" id="tab_skillplans">
               {% include "thing/account/skill_plans.html" %}
             </div>
 
             {% if not disable_password %}{# password: content -#}
-            <div class="tab-pane" id="tab_password">
+            <div class="tab-pane panel-body" id="tab_password">
               {% include "thing/account/change_passwords.html" %}
             </div>
             {%- endif %}

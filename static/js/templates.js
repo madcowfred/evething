@@ -1,6 +1,7 @@
-(function() {
-  var template = Handlebars.template, templates = Handlebars.templates = Handlebars.templates || {};
-templates['home_character'] = template(function (Handlebars,depth0,helpers,partials,data) {
+this["Handlebars"] = this["Handlebars"] || {};
+this["Handlebars"]["templates"] = this["Handlebars"]["templates"] || {};
+
+this["Handlebars"]["templates"]["home_character"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
   this.compilerInfo = [4,'>= 1.0.0'];
 helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
   var buffer = "", stack1, helper, options, helperMissing=helpers.helperMissing, escapeExpression=this.escapeExpression, self=this, functionType="function";
@@ -130,7 +131,8 @@ function program15(depth0,data) {
   buffer += "\n    <ul class=\"home-notifications\">\n        <li class=\"no-game-time hide\"><i class=\"icon-time\" rel=\"tooltip\" title=\"Game time has expired!\"></i><span>Expired</span></li>\n        <li class=\"low-game-time hide\"><i class=\"icon-time\" rel=\"tooltip\" title=\"Remaining game time is low!\"></i><span></span></li>\n        <li class=\"key-expiring hide\"><i class=\"icon-key\" rel=\"tooltip\" title=\"API key is close to expiring!\"></i></li>\n        <li class=\"empty-skill-queue hide\"><i class=\"icon-list-ol\" rel=\"tooltip\" title=\"Skill queue is empty!\"></i><span>Empty!</span></li>\n        <li class=\"low-skill-queue hide\"><i class=\"icon-list-ol\" rel=\"tooltip\" title=\"Skill queue is not full!\"></i><span></span></li>\n        <li class=\"implants hide\"><i class=\"icon-lightbulb\" rel=\"tooltip\" title=\"Missing stat implants for currently training skill!\"></i><span></span></li>\n        <li class=\"clone hide\"><i class=\"icon-user-md\" rel=\"tooltip\" title=\"Insufficient clone!\"></i><span></span></li>\n    </ul>\n  </div>\n";
   return buffer;
   });
-templates['mail_list'] = template(function (Handlebars,depth0,helpers,partials,data) {
+
+this["Handlebars"]["templates"]["mail_list"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
   this.compilerInfo = [4,'>= 1.0.0'];
 helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
   var buffer = "", stack1, helper, functionType="function", escapeExpression=this.escapeExpression;
@@ -171,4 +173,3 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
     + "</td>\n                  </tr>\n";
   return buffer;
   });
-})();
