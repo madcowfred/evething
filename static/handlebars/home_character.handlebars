@@ -30,7 +30,7 @@
       <em class="small skillduration">{{ shortduration character.skill_queue.0.duration }} @ {{ comma character.skill_queue.0.sp_per_hour }} SP/hr</em>
       <em class="small pull-right queueduration">Queue: {{ shortduration character.skill_queue_duration }}</em>
       <div class="progress{{#if character.skill_queue_low }} progress-danger{{/if}}">
-        <div class="bar" style="width: {{ character.skill_queue.0.complete_percent }}%">{{ character.skill_queue.0.complete_percent }}%</div>
+        <div class="progress-bar" style="width: {{ character.skill_queue.0.complete_percent }}%">{{ character.skill_queue.0.complete_percent }}%</div>
       </div>
     </div>
     {{/if}}
