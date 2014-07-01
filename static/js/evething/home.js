@@ -891,7 +891,7 @@ EVEthing.home.CharacterDisplay.prototype.animate = function(now) {
 
             var complete_percent = (((req_sp - training_sp_left)/req_sp)*100);
 
-            this.well.find('.progress .bar').text(complete_percent.toFixed(1) + '%').css('width', complete_percent + '%');
+            this.well.find('.progress .progress-bar').text(complete_percent.toFixed(1) + '%').css('width', complete_percent + '%');
             this.well.find('.skillduration').text(Handlebars.helpers.duration(training_time_left) + ' @ ' + Handlebars.helpers.comma(this.character.skill_queue[0].sp_per_hour) + ' SP/h');
 
             var total = training_time_left;
