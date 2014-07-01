@@ -71,6 +71,8 @@ module.exports = function (grunt) {
                 src: [
                     'static/js/jquery.tablesorter.js',
                     'static/js/jquery.tablesorter.widgets.js',
+                    'jquery.cookie.js',
+                    'requestAnimationFrame.polyfill.js',
                     'static/js/bootstrap.js',
                     'static/js/handlebars.runtime.js',
                     'static/js/templates.js',
