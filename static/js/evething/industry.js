@@ -1,5 +1,5 @@
 EVEthing.industry = {
-    onload: function() {
+    onload: function () {
         EVEthing.misc.setup_tab_hash();
     }
-}
+};

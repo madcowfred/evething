@@ -27,7 +27,6 @@ from django.db import models
 
 from thing.models.itemcategory import ItemCategory
 
-# ------------------------------------------------------------------------------
 
 class ItemGroup(models.Model):
     id = models.IntegerField(primary_key=True)
@@ -40,5 +39,3 @@ class ItemGroup(models.Model):
 
     def __unicode__(self):
         return self.name
-
-# ------------------------------------------------------------------------------

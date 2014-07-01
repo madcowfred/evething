@@ -29,7 +29,6 @@ from thing import queries
 from thing.models import Character, Skill
 from thing.models import SkillQueue as SkillQueueModel
 
-# ---------------------------------------------------------------------------
 
 class SkillQueue(APITask):
     name = 'thing.skill_queue'
@@ -45,7 +44,7 @@ class SkillQueue(APITask):
             return
 
         # Fetch the API data
-        params = { 'characterID': character_id }
+        params = {'characterID': character_id}
         if self.fetch_api(url, params) is False or self.root is None:
             return
 
@@ -88,5 +87,3 @@ class SkillQueue(APITask):
             SkillQueueModel.objects.bulk_create(new)
 
         return True
-
-# ---------------------------------------------------------------------------

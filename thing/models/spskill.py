@@ -27,7 +27,6 @@ from django.db import models
 
 from thing.models.skill import Skill
 
-# ------------------------------------------------------------------------------
 
 class SPSkill(models.Model):
     skill = models.ForeignKey(Skill)
@@ -40,5 +39,3 @@ class SPSkill(models.Model):
 
     def __unicode__(self):
         return '%s, level %d, priority %d' % (self.skill.item.name, self.level, self.priority)
-
-# ------------------------------------------------------------------------------

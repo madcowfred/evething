@@ -1,3 +1,5 @@
+# flake8: noqa
+
 from thing.views.home import *
 
 from thing.views.account import *

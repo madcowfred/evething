@@ -23,17 +23,12 @@
 # OF SUCH DAMAGE.
 # ------------------------------------------------------------------------------
 
-import datetime
-
-from decimal import *
-
 from celery.execute import send_task
 
 from .apitask import APITask
 from thing import queries
 from thing.models import APIKey, Asset, AssetSummary, Character, InventoryFlag, Item, Station, System
 
-# ---------------------------------------------------------------------------
 
 class AssetList(APITask):
     name = 'thing.asset_list'
@@ -50,14 +45,14 @@ class AssetList(APITask):
             return
 
         # Initialise for corporate query
-        if self.apikey.corp_character:
-            a_filter = Asset.objects.filter(character=character, corporation_id=self.apikey.corp_character.corporation.id)
+        if self.apikey.key_type == APIKey.CORPORATION_TYPE:
+            a_filter = Asset.objects.filter(character=character, corporation_id=self.apikey.corporation.id)
         # Initialise for character query
         else:
             a_filter = Asset.objects.filter(character=character, corporation_id=0)
 
         # Fetch the API data
-        params = { 'characterID': character.id }
+        params = {'characterID': character.id}
         if self.fetch_api(url, params) is False or self.root is None:
             return
 
@@ -77,8 +72,8 @@ class AssetList(APITask):
         flag_map = InventoryFlag.objects.in_bulk(data['flags'])
 
         # Corporation ID
-        if self.apikey.corp_character:
-            corporation_id = self.apikey.corp_character.corporation.id
+        if self.apikey.key_type == APIKey.CORPORATION_TYPE:
+            corporation_id = self.apikey.corporation.id
         else:
             corporation_id = 0
 
@@ -135,16 +130,16 @@ class AssetList(APITask):
                 total_value=data['value'],
                 total_volume=data['volume'],
             )
-            if self.apikey.corp_character:
-                summary.corporation_id = self.apikey.corp_character.corporation.id
+            if self.apikey.key_type == APIKey.CORPORATION_TYPE:
+                summary.corporation_id = self.apikey.corporation.id
 
             summaries.append(summary)
 
         # Delete existing assets, it's way too painful trying to deal with changes
         cursor = self.get_cursor()
-        if self.apikey.corp_character:
-            cursor.execute(queries.asset_delete_corp, [self.apikey.corp_character.corporation.id])
-            cursor.execute(queries.assetsummary_delete_corp, [self.apikey.corp_character.corporation.id])
+        if self.apikey.key_type == APIKey.CORPORATION_TYPE:
+            cursor.execute(queries.asset_delete_corp, [self.apikey.corporation.id])
+            cursor.execute(queries.assetsummary_delete_corp, [self.apikey.corporation.id])
         else:
             cursor.execute(queries.asset_delete_char, [character_id])
             cursor.execute(queries.assetsummary_delete_char, [character_id])
@@ -157,7 +152,7 @@ class AssetList(APITask):
         cursor.close()
 
         # Fetch names (via Locations API) for assets
-        if self.apikey.corp_character is None and APIKey.CHAR_LOCATIONS_MASK in self.apikey.get_masks():
+        if self.apikey.key_type != APIKey.CORPORATION_TYPE and APIKey.CHAR_LOCATIONS_MASK in self.apikey.get_masks():
             a_filter = a_filter.filter(
                 singleton=True,
                 item__item_group__category__name='Ship'

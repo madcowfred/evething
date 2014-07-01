@@ -10,7 +10,7 @@ _PATH = os.path.realpath(os.path.join(os.path.dirname(__file__), '..'))
 # timezone as the operating system.
 # If running in a Windows environment this must be set to the same as your
 # system time zone.
-TIME_ZONE = 'UTC'
+TIME_ZONE = None
 
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
@@ -63,7 +63,7 @@ STATICFILES_DIRS = (
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-#    'django.contrib.staticfiles.finders.DefaultStorageFinder',
+    #'django.contrib.staticfiles.finders.DefaultStorageFinder',
 )
 
 # Make this unique, and don't share it with anybody.
@@ -74,7 +74,7 @@ TEMPLATE_LOADERS = (
     'jingo.Loader',
     'django.template.loaders.filesystem.Loader',
     'django.template.loaders.app_directories.Loader',
-    # 'django.template.loaders.eggs.Loader',
+    #'django.template.loaders.eggs.Loader',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -105,7 +105,6 @@ INSTALLED_APPS = (
     'django.contrib.admin',
     'django.contrib.admindocs',
     'south',
-    'djcelery',
     'mptt',
     #'jingo',
     'thing',
@@ -151,7 +150,8 @@ AUTH_PROFILE_MODULE = 'thing.UserProfile'
 # Themes
 THEMES = [
     ('default', '<Default>'),
-    ('darkthing', 'DarkThing *beta*'),
+    ('yeti', 'Yeti'),
+    ('darkthing', 'DarkThing'),
     ('cerulean', 'Cerulean'),
     ('cosmo', 'Cosmo'),
     ('cyborg', 'Cyborg'),
@@ -166,18 +166,26 @@ JINGO_EXCLUDE_APPS = (
 )
 STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.CachedStaticFilesStorage'
 
+# Allow new users to register, provide a default here so if people upgrade
+# without updating local_settings, it won't error
+ALLOW_REGISTRATION = False
+
+# Default stagger APITask calls on startup
+STAGGER_APITASK_STARTUP = True
+
+# Default URL to use for pricing information, to be overridden in local_settings.py
+# but we want to provide a default for those upgrading who havent added this
+# to local_settings.
+PRICE_URL = 'http://goonmetrics.com/api/price_data/?station_id=60003760&type_id=%s'
+
 # Time in seconds that the home page should delay from the TastQueus next_time before
 #  polling evething for the update information
 HOME_PAGE_UPDATE_DELAY = 300
 
 # load local settings
-from local_settings import *
+from local_settings import *  # NOPEP8
 MANAGERS = ADMINS
 TEMPLATE_DEBUG = DEBUG
-
-# Celery setup
-import djcelery
-djcelery.setup_loader()
 
 # Rename the default queue
 from kombu import Exchange, Queue
@@ -201,7 +209,6 @@ CELERY_QUEUES = (
 )
 
 # Periodic tasks
-from celery.schedules import crontab
 from datetime import timedelta
 
 CELERYBEAT_SCHEDULE = {
@@ -255,4 +262,13 @@ CELERYBEAT_SCHEDULE = {
         },
         'args': (),
     },
+    # fix contracts that changed state after they went off Contract.xml
+    'fix_contracts': {
+        'task': 'thing.fix_contracts',
+        'schedule': timedelta(minutes=45),
+        'options': {
+            'queue': 'et_medium',
+        },
+        'args': (),
+    }
 }

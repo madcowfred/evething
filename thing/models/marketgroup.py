@@ -28,7 +28,6 @@ from django.utils.text import slugify
 
 from mptt.models import MPTTModel, TreeForeignKey
 
-# ------------------------------------------------------------------------------
 
 class MarketGroup(MPTTModel):
     id = models.IntegerField(primary_key=True)
@@ -47,5 +46,3 @@ class MarketGroup(MPTTModel):
 
     def slug(self):
         return slugify(unicode(self.name))
-
-# ------------------------------------------------------------------------------

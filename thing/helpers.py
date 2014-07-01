@@ -24,10 +24,11 @@
 # ------------------------------------------------------------------------------
 
 import re
-from decimal import *
+from decimal import Decimal, ROUND_UP
 
 from django.contrib.staticfiles.storage import staticfiles_storage
 from django.template.defaultfilters import stringfilter
+from django.conf import settings
 
 from jingo import register
 
@@ -43,7 +44,7 @@ def tablecols(data, cols):
         if index % cols == 0:
             rows.append(row)
             row = []
-    # Still stuff missing?
+        # Still stuff missing?
     if len(row) > 0:
         for i in range(cols - len(row)):
             row.append([])
@@ -53,6 +54,7 @@ def tablecols(data, cols):
 # Put commas in things
 # http://code.activestate.com/recipes/498181-add-thousands-separator-commas-to-formatted-number/
 re_digits_nondigits = re.compile(r'\d+|\D+')
+
 
 @register.filter
 @stringfilter
@@ -65,6 +67,7 @@ def commas(value):
             break
     return ''.join(parts)
 
+
 def _commafy(s):
     r = []
     for i, c in enumerate(reversed(s)):
@@ -74,13 +77,13 @@ def _commafy(s):
     return ''.join(r)
 
 
-# Turn a duration in seconds into a human readable string
 @register.filter
 def duration(s):
+    """Turn a duration in seconds into a human readable string"""
     m, s = divmod(s, 60)
     h, m = divmod(m, 60)
     d, h = divmod(h, 24)
-    
+
     parts = []
     if d:
         parts.append('%dd' % (d))
@@ -90,15 +93,16 @@ def duration(s):
         parts.append('%dm' % (m))
     if s:
         parts.append('%ds' % (s))
-    
+
     return ' '.join(parts)
+
 
 @register.filter
 def duration_right(s):
     m, s = divmod(s, 60)
     h, m = divmod(m, 60)
     d, h = divmod(h, 24)
-    
+
     parts = []
     if d:
         parts.append('%dd' % (d))
@@ -107,25 +111,27 @@ def duration_right(s):
     if m or h or d:
         parts.append('%02dm' % (m))
     parts.append('%02ds' % (s))
-    
+
     return ' '.join(parts)
 
 
-# Turn a duration in seconds into a shorter human readable string
 @register.filter
 def shortduration(s):
+    """Turn a duration in seconds into a shorter human readable string"""
     return ' '.join(duration(s).split()[:2])
 
-# Do balance colouring (red for negative, green for positive)
+
 @register.filter
 @stringfilter
 def balance(s):
+    """Do balance colouring (red for negative, green for positive)"""
     if s == '0':
         return s
     elif s.startswith('-'):
         return '<span class="neg">%s</span>' % (s)
     else:
         return '<span class="pos">%s</span>' % (s)
+
 
 @register.filter
 def balance_class(n):
@@ -137,6 +143,7 @@ def balance_class(n):
 
 roman_list = ['', 'I', 'II', 'III', 'IV', 'V']
 
+
 @register.filter
 def roman(num):
     if isinstance(num, str) or isinstance(num, unicode):
@@ -146,25 +153,32 @@ def roman(num):
     else:
         return ''
 
-MONTHS = [None, 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+
+MONTHS = [None, 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October',
+          'November', 'December']
+
+
 @register.filter
 def month_name(num):
     return MONTHS[num]
+
 
 @register.filter
 def date(d, f):
     return d.strftime(f)
 
 # Shorten numbers to a human readable version
-THOUSAND = 10**3
-TEN_THOUSAND = 10**4
-MILLION = 10**6
-BILLION = 10**9
+THOUSAND = 10 ** 3
+TEN_THOUSAND = 10 ** 4
+MILLION = 10 ** 6
+BILLION = 10 ** 9
+
+
 @register.filter
 def humanize(value):
     if value is None or value == '':
         return '0'
-    
+
     if value >= BILLION or value <= -BILLION:
         v = Decimal(value) / BILLION
         return '%sB' % (v.quantize(Decimal('.01'), rounding=ROUND_UP))
@@ -185,20 +199,30 @@ def humanize(value):
         else:
             return value
 
-# Conditionally wrap some text in a span if it matches a condition. Ugh.
+
 @register.filter
 def spanif(value, arg):
+    """Conditionally wrap some text in a span if it matches a condition. Ugh."""
     parts = arg.split()
     if len(parts) != 3:
         return value
-    
+
     n = int(parts[2])
     if (parts[1] == '<' and value < n) or (parts[1] == '=' and value == n) or (parts[1] == '>' and value > n):
         return '<span class="%s">%s</span>' % (parts[0], value)
     else:
         return value
 
-# Jinja2 filter version of staticfiles. Hopefully.
+
 @register.function
 def static(path):
+    """Jinja2 filter version of staticfiles. Hopefully."""
     return staticfiles_storage.url(path)
+
+
+@register.filter
+def can_register(user):
+    if (not settings.ALLOW_REGISTRATION) or user.is_authenticated():
+        return False
+
+    return True

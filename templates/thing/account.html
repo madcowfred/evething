@@ -2,14 +2,18 @@
 {% import 'macros/icons.html' as icons %}
 
 {% block extra_js %}
-    <script type="text/javascript">$(document).ready(EVEthing.account.onload);</script>
+    <script type="text/javascript">
+      $(document).ready(EVEthing.account.onload);
+      var account_edit_url = '{{ url('thing.views.account_apikey_edit') }}',
+          csrf = "{{ csrf() }}";
+    </script>
 {% endblock %}
 
 {% block title %}My Account{% endblock %}
 
 {% block content %}
-      <div class="row-fluid">
-        <div class="span12">
+      <div class="row">
+        <div class="col-sm-12">
           <h2>Account Management</h2>
 
           {%- if message %}
@@ -62,113 +66,128 @@
             {%- endif %}
 
             {# apikeys: purge modal -#}
-            <div class="modal hide" id="purge-apikey-modal">
-              <form action="{{ url('thing.views.account_apikey_purge') }}" method="POST" class="form-inline">
-                {{ csrf() }}
-                <input type="hidden" name="apikey_id" value="a" id="purge-keyid-input">
-                <div class="modal-header">
-                  <a class="close" data-dismiss="modal">{{ icons.close_modal() }}</a>
-                  <h3>Purge Confirmation</h3>
+            <div class="modal fade" id="purge-apikey-modal" tabindex="-1" role="dialog" aria-labelledby="purge-apikey-modal" aria-hidden="true">
+              <div class="modal-dialog">
+                <div class="modal-content">
+                  <form action="{{ url('thing.views.account_apikey_purge') }}" method="POST" class="form-inline">
+                    {{ csrf() }}
+                    <input type="hidden" name="apikey_id" value="a" id="purge-keyid-input">
+                    <div class="modal-header">
+                      <a class="close" data-dismiss="modal">{{ icons.close_modal() }}</a>
+                      <h3 class="modal-title">Purge Confirmation</h3>
+                    </div>
+                    <div class="modal-body">
+                      <p>
+                        Are you sure you wish to purge API key #<strong><span id="purge-keyid"></span></strong> ("<span id="purge-keyname"></span>")?
+                        This will delete <strong>ALL</strong> data related to the characters referenced by this API key!
+                      </p>
+                      <div class="alert alert-danger">
+                        <strong>WARNING</strong>: this is permanent, the only way to recover historical data is from a database backup!
+                      </div>
+                    </div>
+                    <div class="modal-footer">
+                      <button class="btn btn-danger" data-dismiss="modal">No</button>
+                      <button type="submit" class="btn btn-success">Yes</button>
+                    </div>
+                  </form>
                 </div>
-                <div class="modal-body">
-                  <p>
-                    Are you sure you wish to purge API key #<strong><span id="purge-keyid"></span></strong> ("<span id="purge-keyname"></span>")?
-                    This will delete <strong>ALL</strong> data related to the characters referenced by this API key!
-                  </p>
-                  <div class="alert alert-error">
-                    <strong>WARNING</strong>: this is permanent, the only way to recover historical data is from a database backup!
-                  </div>
-                </div>
-                <div class="modal-footer">
-                  <button class="btn btn-danger" data-dismiss="modal">No</button>
-                  <button type="submit" class="btn btn-success">Yes</button>
-                </div>
-              </form>
+              </div>
             </div>
 
             {# apikeys: delete modal -#}
-            <div class="modal hide" id="delete-apikey-modal">
-              <form action="{{ url('thing.views.account_apikey_delete') }}" method="POST" class="form-inline">
-                {{ csrf() }}
-                <input type="hidden" name="apikey_id" value="a" id="delete-keyid-input">
-                <div class="modal-header">
-                  <a class="close" data-dismiss="modal">{{ icons.close_modal() }}</a>
-                  <h3>Delete Confirmation</h3>
+            <div class="modal fade" id="delete-apikey-modal" tabindex="-1" role="dialog" aria-labelledby="delete-apikey-modal" aria-hidden="true">
+              <div class="modal-dialog">
+                <div class="modal-content">
+                  <form action="{{ url('thing.views.account_apikey_delete') }}" method="POST" class="form-inline">
+                    {{ csrf() }}
+                    <input type="hidden" name="apikey_id" value="a" id="delete-keyid-input">
+                    <div class="modal-header">
+                      <a class="close" data-dismiss="modal">{{ icons.close_modal() }}</a>
+                      <h3 class="modal-title">Delete Confirmation</h3>
+                    </div>
+                    <div class="modal-body">
+                      <p>
+                        Are you sure you wish to delete API key #<strong><span id="delete-keyid"></span></strong> ("<span id="delete-keyname"></span>")?
+                        This will unlink the associated characters from your account and any related data will no longer be visible to you!
+                      </p>
+                      <p>
+                        Note: you can regain access to the data later by re-adding this API key.
+                      </p>
+                    </div>
+                    <div class="modal-footer">
+                      <button class="btn btn-danger" data-dismiss="modal">No</button>
+                      <button type="submit" class="btn btn-success">Yes</button>
+                    </div>
+                  </form>
                 </div>
-                <div class="modal-body">
-                  <p>
-                    Are you sure you wish to delete API key #<strong><span id="delete-keyid"></span></strong> ("<span id="delete-keyname"></span>")?
-                    This will unlink the associated characters from your account and any related data will no longer be visible to you!
-                  </p>
-                  <p>
-                    Note: you can regain access to the data later by re-adding this API key.
-                  </p>
-                </div>
-                <div class="modal-footer">
-                  <button class="btn btn-danger" data-dismiss="modal">No</button>
-                  <button type="submit" class="btn btn-success">Yes</button>
-                </div>
-              </form>
+              </div>
             </div>
 
             {# skillplan: edit modal -#}
-            <div class="modal hide" id="edit-skillplan-modal">
-              <form action="{{ url('thing.views.account_skillplan_edit') }}" method="POST" class="form-horizontal">
-                {{ csrf() }}
-                <input type="hidden" name="skillplan_id" value="" id="edit-skillplan-id">
-                <div class="modal-header">
-                  <a class="close" data-dismiss="modal">{{ icons.close_modal() }}</a>
-                  <h3>Edit Skill Plan</h3>
-                </div>
-                <div class="modal-body">
-                  <fieldset>
-                    <div class="control-group">
-                      <label class="control-label" for="blueprint">Name</label>
-                      <div class="controls">
-                        <input type="text" id="edit-skillplan-name" name="name" value="">
-                      </div>
+            <div class="modal fade" id="edit-skillplan-modal" tabindex="-1" role="dialog" aria-labelledby="edit-skillplan-modal" aria-hidden="true">>
+              <div class="modal-dialog">
+                <div class="modal-content">
+                  <form action="{{ url('thing.views.account_skillplan_edit') }}" method="POST" class="form-horizontal">
+                    {{ csrf() }}
+                    <input type="hidden" name="skillplan_id" value="" id="edit-skillplan-id">
+                    <div class="modal-header">
+                      <a class="close" data-dismiss="modal">{{ icons.close_modal() }}</a>
+                      <h3 class="modal-title">Edit Skill Plan</h3>
                     </div>
-                    <div class="control-group">
-                      <label class="control-label" for="ml">Visibility</label>
-                      <div class="controls">
-                        <select id="edit-skillplan-visibility" name="visibility">
-                          {%- for value, text in visibilities %}
-                          <option value="{{ value }}">{{ text }}</option>
-                          {%- endfor %}
-                        </select>
-                        <p class="help-block">Private: visibile only to your user account.</p>
-                        <p class="help-block">Public: visibile to anyone on <u>your</u> character pages.</p>
-                        <p class="help-block">Global: visibile to anyone on any character page.</p>
-                      </div>
+                    <div class="modal-body">
+                      <fieldset>
+                        <div class="form-group">
+                          <label class="control-label col-sm-3" for="blueprint">Name</label>
+                          <div class="col-sm-9">
+                            <input type="text" id="edit-skillplan-name" class="form-control" name="name" value="">
+                          </div>
+                        </div>
+                        <div class="form-group">
+                          <label class="control-label col-sm-3" for="ml">Visibility</label>
+                          <div class="col-sm-9">
+                            <select id="edit-skillplan-visibility" class="form-control" name="visibility">
+                              {%- for value, text in visibilities %}
+                              <option value="{{ value }}">{{ text }}</option>
+                              {%- endfor %}
+                            </select>
+                            <p class="help-block">Private: visibile only to your user account.</p>
+                            <p class="help-block">Public: visibile to anyone on <u>your</u> character pages.</p>
+                            <p class="help-block">Global: visibile to anyone on any character page.</p>
+                          </div>
+                        </div>
+                      </fieldset>
                     </div>
-                  </fieldset>
+                    <div class="modal-footer">
+                      <button class="btn btn-danger" data-dismiss="modal">Cancel</button>
+                      <button type="submit" class="btn btn-success">Save</button>
+                    </div>
+                  </form>
                 </div>
-                <div class="modal-footer">
-                  <button class="btn btn-danger" data-dismiss="modal">Cancel</button>
-                  <button type="submit" class="btn btn-success">Save</button>
-                </div>
-              </form>
+              </div>
             </div>
 
             {# skillplan: delete modal -#}
-            <div class="modal hide" id="delete-skillplan-modal">
-              <form action="{{ url('thing.views.account_skillplan_delete') }}" method="POST" class="form-inline">
-                {{ csrf() }}
-                <input type="hidden" name="skillplan_id" value="" id="delete-skillplan-id">
-                <div class="modal-header">
-                  <a class="close" data-dismiss="modal">{{ icons.close_modal() }}</a>
-                  <h3>Delete Confirmation</h3>
-                </div>
-                <div class="modal-body">
-                  <p>
-                    Are you sure you wish to delete the skill plan named "<span id="delete-skillplan-name"></span>"?
-                  </p>
-                </div>
-                <div class="modal-footer">
-                  <button class="btn btn-danger" data-dismiss="modal">No</button>
-                  <button type="submit" class="btn btn-success">Yes</button>
-                </div>
-              </form>
+            <div class="modal fade" id="delete-skillplan-modal">
+              <div class="modal-dialog">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title">Delete Confirmation</h4>
+                  </div>
+                  <form action="{{ url('thing.views.account_skillplan_delete') }}" method="POST" class="form-inline">
+                    {{ csrf() }}
+                    <input type="hidden" name="skillplan_id" value="" id="delete-skillplan-id">
+                    <div class="modal-body">
+                      <p>
+                        Are you sure you wish to delete the skill plan named "<span id="delete-skillplan-name"></span>"?
+                      </p>
+                    </div>
+                    <div class="modal-footer">
+                      <button class="btn btn-danger" data-dismiss="modal">No</button>
+                      <button type="submit" class="btn btn-success">Yes</button>
+                    </div>
+                 </form>
+              </div>
             </div>
           </div>
         </div>

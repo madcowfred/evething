@@ -34,10 +34,10 @@ from django.db.models import Count
 
 from thing.models import APIKey, Event
 
-# ---------------------------------------------------------------------------
-# Periodic task to perform database table cleanup
+
 @task(name='thing.purge_api_key')
 def purge_api_key(apikey_id):
+    """Periodic task to perform database table cleanup"""
     try:
         apikey = APIKey.objects.get(pk=apikey_id)
     except APIKey.DoesNotExist:

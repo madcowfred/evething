@@ -29,7 +29,6 @@ from thing.models.skillplan import SkillPlan
 from thing.models.spremap import SPRemap
 from thing.models.spskill import SPSkill
 
-# ------------------------------------------------------------------------------
 
 class SPEntry(models.Model):
     skill_plan = models.ForeignKey(SkillPlan, related_name='entries')
@@ -48,5 +47,3 @@ class SPEntry(models.Model):
             return str(self.sp_skill)
         else:
             return str(self.sp_remap)
-
-# ------------------------------------------------------------------------------

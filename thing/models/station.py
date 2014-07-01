@@ -27,12 +27,12 @@ from django.db import models
 
 from thing.models.system import System
 
-# ------------------------------------------------------------------------------
-# Stations
 numeral_map = zip(
     (1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1),
     ('M', 'CM', 'D', 'CD', 'C', 'XC', 'L', 'XL', 'X', 'IX', 'V', 'IV', 'I')
 )
+
+
 def roman_to_int(n):
     n = unicode(n).upper()
 
@@ -42,6 +42,7 @@ def roman_to_int(n):
             result += integer
             i += len(numeral)
     return result
+
 
 class Station(models.Model):
     id = models.IntegerField(primary_key=True)
@@ -80,5 +81,3 @@ class Station(models.Model):
                 out.append(''.join(s[0] for s in parts[1].split()))
 
             self.short_name = ' - '.join(out)
-
-# ------------------------------------------------------------------------------

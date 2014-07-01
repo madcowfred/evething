@@ -27,12 +27,11 @@ import json
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
-from django.core.paginator import Paginator, EmptyPage, InvalidPage, PageNotAnInteger
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
-from thing.models import *
-from thing.stuff import *
+from thing.models import *  # NOPEP8
+from thing.stuff import *  # NOPEP8
 
-# ---------------------------------------------------------------------------
 
 MONTHS = (None, 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec')
 
@@ -66,29 +65,26 @@ FILTER_EXPECTED = {
     },
 }
 
-# ---------------------------------------------------------------------------
-# Transaction list
+
 @login_required
 def transactions(request):
+    """Transaction list"""
     tt = TimerThing('transactions')
 
     # Get profile
-    profile = request.user.get_profile()
+    profile = request.user.profile
 
     characters = Character.objects.filter(
         apikeys__user=request.user,
         apikeys__valid=True,
-    ).exclude(
-        apikeys__key_type=APIKey.CORPORATION_TYPE,
+        apikeys__key_type__in=[APIKey.ACCOUNT_TYPE, APIKey.CHARACTER_TYPE]
     ).distinct()
     character_ids = [c.id for c in characters]
 
+    corporation_ids = Corporation.get_ids_with_access(request.user, APIKey.CORP_ASSET_LIST_MASK)
     corporations = Corporation.objects.filter(
-        character__apikeys__user=request.user,
-        character__apikeys__valid=True,
-        character__apikeys__key_type=APIKey.CORPORATION_TYPE,
-    ).distinct()
-    corporation_ids = [c.id for c in corporations]
+        pk__in=corporation_ids
+    )
 
     tt.add_time('init')
 
@@ -250,12 +246,6 @@ def transactions(request):
     # Create a new paginator
     paginator = Paginator(transaction_ids, profile.entries_per_page)
 
-    # Make sure page request is an int, default to 1st page
-    try:
-        page = int(request.GET.get('page', '1'))
-    except ValueError:
-        page = 1
-
     # If page request is out of range, deliver last page of results
     try:
         paginated = paginator.page(request.GET.get('page'))
@@ -282,7 +272,7 @@ def transactions(request):
         # no next, add up to 2 previous links
         else:
             for i in range(paginated.number - 1, 0, -1)[:2]:
-                prev.append(i)
+                prev.insert(0, i)
     else:
         # no prev, add up to 2 next links
         for i in range(paginated.number + 1, paginator.num_pages)[:2]:
@@ -304,7 +294,6 @@ def transactions(request):
     tt.add_time('build links')
 
     # Ready template things
-    json_expected = json.dumps(FILTER_EXPECTED)
     values = {
         'chars': characters,
         'corps': corporations,
@@ -318,7 +307,7 @@ def transactions(request):
         {
             'json_data': _json_data(characters, corporations, filters),
             'transactions': transactions,
-            'show_item_icons': request.user.get_profile().show_item_icons,
+            'show_item_icons': request.user.profile.show_item_icons,
             'paginated': paginated,
             'next': next,
             'prev': prev,
@@ -335,7 +324,6 @@ def transactions(request):
 
     return out
 
-# ---------------------------------------------------------------------------
 
 def _json_data(characters, corporations, filters):
     data = dict(

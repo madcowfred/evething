@@ -25,7 +25,6 @@
 
 from django.db import models
 
-# ------------------------------------------------------------------------------
 
 class Alliance(models.Model):
     id = models.IntegerField(primary_key=True)
@@ -34,5 +33,3 @@ class Alliance(models.Model):
 
     class Meta:
         app_label = 'thing'
-
-# ------------------------------------------------------------------------------

@@ -25,31 +25,23 @@
 
 from django.contrib.auth.decorators import login_required
 
-from thing.models import *
-from thing.stuff import *
+from thing.models import *  # NOPEP8
+from thing.stuff import *  # NOPEP8
 
-# ---------------------------------------------------------------------------
-# Contracts
+
 @login_required
 def contracts(request):
+    """Contracts"""
     character_ids = list(Character.objects.filter(
         apikeys__user=request.user.id,
         apikeys__valid=True,
-    ).exclude(
-        apikeys__key_type=APIKey.CORPORATION_TYPE,
+        apikeys__key_type__in=[APIKey.ACCOUNT_TYPE, APIKey.CHARACTER_TYPE]
     ).distinct().values_list(
         'id',
         flat=True,
     ))
 
-    corporation_ids = list(APIKey.objects.filter(
-        user=request.user,
-        key_type=APIKey.CORPORATION_TYPE,
-        valid=True,
-    ).values_list(
-        'corp_character__corporation__id',
-        flat=True,
-    ))
+    corporation_ids = Corporation.get_ids_with_access(request.user, APIKey.CORP_CONTRACTS_MASK)
 
     # Whee~
     contracts = Contract.objects.select_related('issuer_char', 'issuer_corp', 'start_station', 'end_station')
@@ -131,5 +123,3 @@ def contracts(request):
         character_ids,
         corporation_ids,
     )
-
-# ---------------------------------------------------------------------------

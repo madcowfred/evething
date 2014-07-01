@@ -1,5 +1,5 @@
-          <div class="well well-small">
-            <form id="filter-form" action="{{ url('thing.views.wallet_journal') }}" method="GET">
+          <div class="well well-sm">
+            <form id="filter-form" action="{{ url('thing.views.wallet_journal') }}" method="GET" class="form-inline">
               <div class="margin-half-bot">
                 <strong class="large">Filters</strong>
               </div>
@@ -11,51 +11,57 @@
               <fieldset id="filters">
               </fieldset>
               <fieldset>
-                <div class="control-group nomargin">
-                  # of days
-                  <input type="text" name="days" class="input-small" value="{{ days }}">
+                <div class="form-group">
+                  <label for="days" class="control-label"># of days</label>
+                  <input type="text" name="days" id="days" class="form-control" value="{{ days }}">
                 </div>
-                <div class="control-group">
-                  <input type="checkbox" name="ignoreself" class="input-small"{% if ignoreself %} checked{% endif %}>
-                  Ignore transactions between my own characters
+                <br/>
+                <div class="form-group">
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="ignoreself" class="input-small"{% if ignoreself %} checked{% endif %}>
+                      Ignore transactions between my own characters
+                    </label>
+                  </div>
                 </div>
               </fieldset>
+              <br/>
               <button type="submit" class="btn btn-success">Apply filters</button>
               <a id="clear-button" href="{{ url('thing.views.wallet_journal') }}" class="btn btn-danger">Clear filters</a>
             </form>
-
+            <br/>
             <form id="aggregate-form" class="nomargin" action="{{ url('thing.views.wallet_journal_aggregate') }}" method="GET">
               <p>
                 <strong>NOTE</strong>: grouping by owner 1/owner 2 can and will be incredibly slow on large data sets.
               </p>
               <fieldset>
-                <label class="radio inline">
+                <label class="radio-inline">
                   <input type="radio" name="group_by_date" value="year" class="input-small"{% if group_by.date == 'year' %} checked{% endif %}>
                   Group by year
                 </label>
-                <label class="radio inline">
+                <label class="radio-inline">
                   <input type="radio" name="group_by_date" value="month" class="input-small"{% if group_by.date == 'month' or not group_by %} checked{% endif %}>
                   Group by month
                 </label>
-                <label class="radio inline">
+                <label class="radio-inline">
                   <input type="radio" name="group_by_date" value="day" class="input-small"{% if group_by.date == 'day' %} checked{% endif %}>
                   Group by day
                 </label>
               </fieldset>
               <fieldset class="margin-half-bot">
-                <label class="checkbox inline">
+                <label class="checkbox-inline">
                   <input type="checkbox" name="group_by_source" class="input-small"{% if group_by.source %} checked{% endif %}>
                   Group by Source
                 </label>
-                <label class="checkbox inline">
+                <label class="checkbox-inline">
                   <input type="checkbox" name="group_by_reftype" class="input-small"{% if group_by.reftype %} checked{% endif %}>
                   Group by RefType
                 </label>
-                <label class="checkbox inline">
+                <label class="checkbox-inline">
                   <input type="checkbox" name="group_by_owner1" class="input-small"{% if group_by.owner1 %} checked{% endif %}>
                   Group by Owner 1
                 </label>
-                <label class="checkbox inline">
+                <label class="checkbox-inline">
                   <input type="checkbox" name="group_by_owner2" class="input-small"{% if group_by.owner2 %} checked{% endif %}>
                   Group by Owner 2
                 </label>

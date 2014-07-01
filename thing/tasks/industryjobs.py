@@ -27,9 +27,8 @@ import datetime
 
 from .apitask import APITask
 
-from thing.models import Character, IndustryJob, Event, InventoryFlag, Item, System
+from thing.models import Character, IndustryJob, Event, InventoryFlag, Item, System, APIKey
 
-# ---------------------------------------------------------------------------
 
 class IndustryJobs(APITask):
     name = 'thing.industry_jobs'
@@ -46,7 +45,7 @@ class IndustryJobs(APITask):
             return
 
         # Initialise for corporate key
-        if self.apikey.corp_character:
+        if self.apikey.key_type == APIKey.CORPORATION_TYPE:
             ij_filter = IndustryJob.objects.filter(corporation=character.corporation)
         # Initialise for other keys
         else:
@@ -55,7 +54,7 @@ class IndustryJobs(APITask):
         ij_filter = ij_filter.select_related('character', 'corporation')
 
         # Fetch the API data
-        params = { 'characterID': character_id }
+        params = {'characterID': character_id}
         if self.fetch_api(url, params) is False or self.root is None:
             return
 
@@ -100,7 +99,7 @@ class IndustryJobs(APITask):
                     ij.save()
 
                     text = '%s: industry job #%s (%s) has been delivered' % (ij.system.name, ij.job_id, ij.get_activity_display())
-                    if self.apikey.corp_character:
+                    if self.apikey.key_type == APIKey.CORPORATION_TYPE:
                         text = '%s ([%s] %s)' % (text, ij.corporation.ticker, ij.corporation.name)
                     else:
                         text = '%s (%s)' % (text, ij.character.name)
@@ -194,8 +193,8 @@ class IndustryJobs(APITask):
                 pause_time=self.parse_api_date(row.attrib['pauseProductionTime']),
             )
 
-            if self.apikey.corp_character:
-                ij.corporation = self.apikey.corp_character.corporation
+            if self.apikey.key_type == APIKey.CORPORATION_TYPE:
+                ij.corporation = self.apikey.corporation
 
             new.append(ij)
 
@@ -215,5 +214,3 @@ class IndustryJobs(APITask):
         )
 
         return True
-
-# ---------------------------------------------------------------------------

@@ -28,7 +28,6 @@ from django.db.models import Sum
 
 from thing.models.alliance import Alliance
 
-# ------------------------------------------------------------------------------
 
 class Corporation(models.Model):
     id = models.IntegerField(primary_key=True)
@@ -55,4 +54,20 @@ class Corporation(models.Model):
     def get_total_balance(self):
         return self.corpwallet_set.aggregate(Sum('balance'))['balance_sum']
 
-# ------------------------------------------------------------------------------
+    @staticmethod
+    def get_ids_with_access(user, access_mask):
+        from thing.models.apikey import APIKey
+
+        corp_apis = APIKey.objects.filter(
+            user=user,
+            key_type=APIKey.CORPORATION_TYPE,
+            valid=True
+        )
+
+        corporation_ids = {}
+        for api in corp_apis:
+            if ((api.corporation_id not in corporation_ids) and
+                    ((api.access_mask & access_mask) != 0)):
+                corporation_ids[api.corporation_id] = api.corporation_id
+
+        return corporation_ids

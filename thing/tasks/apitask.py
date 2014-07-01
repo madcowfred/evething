@@ -30,10 +30,7 @@ and explosions.
 
 import datetime
 import hashlib
-import logging
-import os
 import requests
-import sys
 import time
 
 try:
@@ -54,28 +51,25 @@ from urlparse import urljoin
 from thing.models import APIKey, APIKeyFailure, Event, TaskState
 from thing.stuff import total_seconds
 
-# ---------------------------------------------------------------------------
-
 PENALTY_TIME = 12 * 60 * 60
 PENALTY_MULT = 0.2
 
 KEY_ERRORS = set([
-    '202', # API key authentication failure.
-    '203', # Authentication failure.
-    '204', # Authentication failure.
-    '205', # Authentication failure (final pass).
-    '207', # Not available for NPC corporations.
-    '210', # Authentication failure.
-    '211', # Login denied by account status.
-    '212', # Authentication failure (final pass).
-    '220', # Invalid Corporation Key. Key owner does not fullfill role requirements anymore.
-    '222', # Key has expired. Contact key owner for access renewal.
-    '223', # Authentication failure. Legacy API keys can no longer be used. Please create a new key on support.eveonline.com and make sure your application supports Customizable API Keys.
+    '202',  # API key authentication failure.
+    '203',  # Authentication failure.
+    '204',  # Authentication failure.
+    '205',  # Authentication failure (final pass).
+    '207',  # Not available for NPC corporations.
+    '210',  # Authentication failure.
+    '211',  # Login denied by account status.
+    '212',  # Authentication failure (final pass).
+    '220',  # Invalid Corporation Key. Key owner does not fullfill role requirements anymore.
+    '222',  # Key has expired. Contact key owner for access renewal.
+    '223',  # Authentication failure. Legacy API keys can no longer be used. Please create a new key on support.eveonline.com and make sure your application supports Customizable API Keys.
 ])
 
-# ---------------------------------------------------------------------------
-
 this_process = None
+
 
 class APITask(Task):
     abstract = True
@@ -100,13 +94,16 @@ class APITask(Task):
         Returns False if anything bad happens.
         """
 
-        # Sleep for staggered worker startup
+        # Set our process ID if it hasn't been set yet
         global this_process
         if this_process is None:
             this_process = int(current_process()._name.split('-')[1])
-            sleep_for = (this_process - 1) * 2
-            self._logger.warning('Worker #%d staggered startup: sleeping for %d seconds', this_process, sleep_for)
-            time.sleep(sleep_for)
+
+            # Sleep for staggered worker startup
+            if settings.STAGGER_APITASK_STARTUP:
+                sleep_for = (this_process - 1) * 2
+                self._logger.warning('Worker #%d staggered startup: sleeping for %d seconds', this_process, sleep_for)
+                time.sleep(sleep_for)
 
         # Clear the current query information so we don't bloat
         if settings.DEBUG:
@@ -132,7 +129,7 @@ class APITask(Task):
         # Fetch APIKey
         if apikey_id is not None:
             try:
-                self.apikey = APIKey.objects.select_related('corp_character__corporation').get(pk=apikey_id)
+                self.apikey = APIKey.objects.get(pk=apikey_id)
             except APIKey.DoesNotExist:
                 return False
             else:
@@ -172,7 +169,8 @@ class APITask(Task):
                     self.log_warn('%.3fs  %s', runtime, url)
 
                 for db in sorted(settings.DATABASES.keys()):
-                    self.log_warn('[%s] %.3fs  %d queries',
+                    self.log_warn(
+                        '[%s] %.3fs  %d queries',
                         db,
                         sum(float(q['time']) for q in connections[db].queries),
                         len(connections[db].queries),
@@ -303,7 +301,7 @@ class APITask(Task):
                     cache_expires = total_seconds(self._cache_delta) + 10
                 else:
                     # Work out if we need a cache multiplier for this key
-                    last_seen = APIKey.objects.filter(keyid=self.apikey.keyid, vcode=self.apikey.vcode).aggregate(m=Max('user__userprofile__last_seen'))['m']
+                    last_seen = APIKey.objects.filter(keyid=self.apikey.keyid, vcode=self.apikey.vcode).aggregate(m=Max('user__profile__last_seen'))['m']
                     secs = max(0, total_seconds(utcnow - last_seen))
                     mult = 1 + (min(20, max(0, secs / PENALTY_TIME)) * PENALTY_MULT)
 
@@ -351,7 +349,7 @@ class APITask(Task):
             else:
                 r = self._session.get(url)
             data = r.text
-        except Exception, e:
+        except Exception:
             #self._increment_backoff(e)
             return False
 
@@ -381,7 +379,7 @@ class APITask(Task):
         self.apikey.invalidate()
 
         # Log an error
-        self.log_error('[fetch_api] API key with keyID %d marked invalid!', self.apikey.keyid)
+        self.log_error('[fetch_api] API key with keyID %d marked invalid: %s', self.apikey.keyid, reason)
 
         # Log an error event for the user
         text = "Your API key #%d was marked invalid: %s" % (self.apikey.id, reason)
@@ -405,7 +403,7 @@ class APITask(Task):
         limit = getattr(settings, 'API_FAILURE_LIMIT', 3)
         if limit > 0 and count >= limit:
             # Disable their ability to add keys
-            profile = self.apikey.user.get_profile()
+            profile = self.apikey.user.profile
             profile.can_add_keys = False
             profile.save(update_fields=('can_add_keys',))
 
@@ -416,6 +414,7 @@ class APITask(Task):
                 issued=now,
                 text=text,
             )
+            self.log_error('[fetch_api] Disabling adding of APIKeys for user %d due to %d API failures within 7 days.', self.apikey.user.id, count)
 
     # -----------------------------------------------------------------------
 

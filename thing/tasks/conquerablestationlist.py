@@ -27,7 +27,6 @@ from .apitask import APITask
 
 from thing.models import Station
 
-# ---------------------------------------------------------------------------
 
 class ConquerableStationList(APITask):
     name = 'thing.conquerable_station_list'
@@ -73,5 +72,3 @@ class ConquerableStationList(APITask):
             Station.objects.bulk_create(new)
 
         return True
-
-# ---------------------------------------------------------------------------

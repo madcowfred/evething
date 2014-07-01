@@ -27,9 +27,9 @@ from django.db import models
 
 from thing.models.character import Character
 
-# ------------------------------------------------------------------------------
-# Character configuration information
+
 class CharacterConfig(models.Model):
+    """Character configuration information"""
     character = models.OneToOneField(Character, unique=True, primary_key=True, related_name='config')
 
     is_public = models.BooleanField(default=False)
@@ -53,5 +53,3 @@ class CharacterConfig(models.Model):
 
     def __unicode__(self):
         return self.character.name
-
-# ------------------------------------------------------------------------------

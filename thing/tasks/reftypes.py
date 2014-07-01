@@ -27,7 +27,6 @@ from .apitask import APITask
 
 from thing.models import RefType
 
-# ---------------------------------------------------------------------------
 
 class RefTypes(APITask):
     name = 'thing.ref_types'

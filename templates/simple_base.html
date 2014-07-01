@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="{{ STATIC_URL }}favicon.ico">
 {% if authed %}
-    <link rel="stylesheet" href="{{ STATIC_URL }}css/theme-{{ user.get_profile().theme }}.min.css">
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/theme-{{ user.profile.theme }}.min.css">
 {% else %}
     <link rel="stylesheet" href="{{ STATIC_URL }}css/theme-default.min.css">
 {% endif %}{# authed #}
@@ -27,7 +27,7 @@
             <div class="nav-collapse collapse">
               <ul class="nav" id="nav-list">
 {% if authed %}
-{% set profile = user.get_profile() %}
+{% set profile = user.profile %}
                 {% if profile.show_assets %}<li><a href="{{ url('thing.views.assets_summary') }}">Assets</a></li>{% endif %}
                 {% if profile.show_blueprints %}<li><a href="{{ url('thing.views.blueprints') }}">Blueprints</a></li>{% endif %}
 {% if profile.show_contracts %}
@@ -57,12 +57,12 @@
 {% if authed %}
                 <li class="navbar-text visible-desktop server-status">
 {% if server_open %}
-                  <i class="icon-thumbs-up" rel="tooltip" data-placement="bottom" title="Server is online - {{ online_players|commas }} players"></i>
+                  <span class="fa fa-thumbs-up" rel="tooltip" data-placement="bottom" title="Server is online - {{ online_players|commas }} players"></span>
 {% else %}
-                  <i class="icon-thumbs-down" rel="tooltip" data-placement="bottom" title="Server is offline"></i>
+                  <span class="fa fa-thumbs-down" rel="tooltip" data-placement="bottom" title="Server is offline"></span>
 {% endif %}
                 </li>
-                <li class="navbar-text visible-desktop"{% if not user.get_profile().show_clock %} style="display: none"{% endif %}>
+                <li class="navbar-text visible-desktop"{% if not user.profile.show_clock %} style="display: none"{% endif %}>
                   <span id="utc-time"></span> EVE
                 </li>
                 <li class="dropdown">

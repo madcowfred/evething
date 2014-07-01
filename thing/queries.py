@@ -54,7 +54,7 @@ FROM    thing_marketorder mo,
 WHERE   mo.creator_character_id = c.id
         AND c.id = ac.character_id
         AND ac.apikey_id = a.id
-        AND a.corp_character_id IS NULL
+        AND a.corporation_id IS NULL
         AND a.user_id = %s
 GROUP BY mo.creator_character_id, c.name
 ORDER BY c.name
@@ -116,8 +116,6 @@ WHERE   a.item_id = i.id
         AND ig.category_id != 9
 """
 
-
-# 
 journal_aggregate_char = """
 SELECT  EXTRACT(YEAR FROM date) AS year,
         EXTRACT(MONTH FROM date) AS month,

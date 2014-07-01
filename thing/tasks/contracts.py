@@ -25,13 +25,12 @@
 
 import datetime
 
-from decimal import *
+from decimal import Decimal
 
 from .apitask import APITask
 
-from thing.models import Alliance, Character, Contract, ContractItem, Corporation, Event, Station
+from thing.models import Alliance, Character, Contract, Corporation, Event, Station, APIKey
 
-# ---------------------------------------------------------------------------
 
 class Contracts(APITask):
     name = 'thing.contracts'
@@ -50,22 +49,20 @@ class Contracts(APITask):
         now = datetime.datetime.now()
 
         # Initialise for corporate query
-        if self.apikey.corp_character:
-            c_filter = Contract.objects.filter(corporation=self.apikey.corp_character.corporation)
+        if self.apikey.key_type == APIKey.CORPORATION_TYPE:
+            c_filter = Contract.objects.filter(corporation=self.apikey.corporation)
 
         # Initialise for character query
         else:
             c_filter = Contract.objects.filter(character=character, corporation__isnull=True)
 
-        params = { 'characterID': character_id }
+        params = {'characterID': character_id}
         if self.fetch_api(url, params) is False or self.root is None:
             return
 
-
         # Retrieve a list of this user's characters and corporations
         #user_chars = list(Character.objects.filter(apikeys__user=self.apikey.user).values_list('id', flat=True))
-        #user_corps = list(APIKey.objects.filter(user=self.apikey.user).exclude(corp_character=None).values_list('corp_character__corporation__id', flat=True))
-
+        #user_corps = list(APIKey.objects.filter(user=self.apikey.user).exclude(corpasdasd_character=None).values_list('corpasd_character__corporation__id', flat=True))
 
         # First we need to get all of the acceptor and assignee IDs
         contract_ids = set()
@@ -79,19 +76,20 @@ class Contracts(APITask):
         #      dateAccepted="" numDays="7" dateCompleted="" price="0.00" reward="3000000.00" collateral="0.00" buyout="0.00"
         #      volume="10000"/>
         for row in self.root.findall('result/rowset/row'):
-            if self.apikey.corp_character:
+            if self.apikey.key_type == APIKey.CORPORATION_TYPE:
                 # corp keys don't care about non-corp orders
                 if row.attrib['forCorp'] == '0':
                     continue
                 # corp keys don't care about orders they didn't issue - another fun
                 # bug where corp keys see alliance contracts they didn't make  :ccp:
-                if self.apikey.corp_character.corporation.id not in (int(row.attrib['issuerCorpID']),
-                    int(row.attrib['assigneeID']), int(row.attrib['acceptorID'])):
+                if self.apikey.corporation.id not in (
+                        int(row.attrib['issuerCorpID']), int(row.attrib['assigneeID']), int(row.attrib['acceptorID'])
+                ):
                     #logger.info('Skipping non-corp contract :ccp:')
                     continue
 
             # non-corp keys don't care about corp orders
-            if not self.apikey.corp_character and row.attrib['forCorp'] == '1':
+            if self.apikey.key_type != APIKey.CORPORATION_TYPE and row.attrib['forCorp'] == '1':
                 continue
 
             contract_ids.add(int(row.attrib['contractID']))
@@ -147,7 +145,6 @@ class Contracts(APITask):
         c_map = {}
         for contract in c_filter.filter(contract_id__in=contract_ids):
             c_map[contract.contract_id] = contract
-
 
         # Finally, after all of that other bullshit, we can actually deal with
         # our goddamn contract rows
@@ -250,8 +247,8 @@ class Contracts(APITask):
                     buyout=Decimal(row.attrib['buyout']),
                     volume=Decimal(row.attrib['volume']),
                 )
-                if self.apikey.corp_character:
-                    contract.corporation = self.apikey.corp_character.corporation
+                if self.apikey.key_type == APIKey.CORPORATION_TYPE:
+                    contract.corporation = self.apikey.corporation
 
                 new_contracts.append(contract)
 
@@ -272,7 +269,6 @@ class Contracts(APITask):
         # And save the damn things
         Contract.objects.bulk_create(new_contracts)
         Event.objects.bulk_create(new_events)
-
 
         # Force the queryset to update
         # c_filter.update()
@@ -303,7 +299,4 @@ class Contracts(APITask):
         #     ContractItem.objects.bulk_create(new)
         #     c_filter.filter(contract_id__in=seen_contracts).update(retrieved_items=True)
 
-
         return True
-
-# ---------------------------------------------------------------------------

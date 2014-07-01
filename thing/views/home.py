@@ -35,9 +35,9 @@ from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q, Avg, Count, Max, Min, Sum
 
-from thing.models import *
-from thing.stuff import *
-from thing.templatetags.thing_extras import commas, duration, shortduration
+from thing.models import *  # NOPEP8
+from thing.stuff import *  # NOPEP8
+from thing.templatetags.thing_extras import commas, shortduration
 
 
 from django.http import HttpResponse
@@ -50,10 +50,11 @@ import json
 ONE_DAY = 24 * 60 * 60
 EXPIRE_WARNING = 10 * ONE_DAY
 
-# ---------------------------------------------------------------------------
-# Home page
+
 @login_required
 def home(request):
+    """Home page"""
+    tt = TimerThing('home')
     # We will be splitting the home page up into multiple
     # JSON Deliverable components, so this method will just
     # return the template
@@ -65,6 +66,7 @@ def home(request):
         request
     )
 
+    profile = request.user.profile
 #TODO: Caching
 
 @login_required

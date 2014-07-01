@@ -28,9 +28,9 @@ from django.db import models
 from thing.models.item import Item
 from thing.models.region import Region
 
-# ------------------------------------------------------------------------------
-# Historical item price data
+
 class PriceHistory(models.Model):
+    """Historical item price data"""
     region = models.ForeignKey(Region)
     item = models.ForeignKey(Item)
 
@@ -48,5 +48,3 @@ class PriceHistory(models.Model):
 
     def __unicode__(self):
         return '%s (%s)' % (self.item, self.date)
-
-# ------------------------------------------------------------------------------

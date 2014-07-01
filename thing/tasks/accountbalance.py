@@ -23,13 +23,12 @@
 # OF SUCH DAMAGE.
 # ------------------------------------------------------------------------------
 
-from decimal import *
+from decimal import Decimal
 
 from .apitask import APITask
 
 from thing.models import CorpWallet
 
-# ---------------------------------------------------------------------------
 
 class AccountBalance(APITask):
     name = 'thing.account_balance'
@@ -38,11 +37,11 @@ class AccountBalance(APITask):
         if self.init(taskstate_id, apikey_id) is False:
             return
 
-        params = { 'characterID': character_id }
+        params = {'characterID': character_id}
         if self.fetch_api(url, params) is False or self.root is None:
             return
 
-        corporation = self.apikey.corp_character.corporation
+        corporation = self.apikey.corporation
 
         wallet_map = {}
         for cw in corporation.corpwallet_set.all():
@@ -75,5 +74,3 @@ class AccountBalance(APITask):
             CorpWallet.objects.bulk_create(new)
 
         return True
-
-# ---------------------------------------------------------------------------

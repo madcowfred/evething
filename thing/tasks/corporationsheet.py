@@ -27,7 +27,6 @@ from .apitask import APITask
 
 from thing.models import CorpWallet
 
-# ---------------------------------------------------------------------------
 
 class CorporationSheet(APITask):
     name = 'thing.corporation_sheet'
@@ -37,11 +36,11 @@ class CorporationSheet(APITask):
             return
 
         # Fetch the API data
-        params = { 'characterID': character_id }
+        params = {'characterID': character_id}
         if self.fetch_api(url, params) is False or self.root is None:
             return
 
-        corporation = self.apikey.corp_character.corporation
+        corporation = self.apikey.corporation
 
         corporation.ticker = self.root.findtext('result/ticker')
 
@@ -85,5 +84,3 @@ class CorporationSheet(APITask):
         corporation.save()
 
         return True
-
-# ---------------------------------------------------------------------------

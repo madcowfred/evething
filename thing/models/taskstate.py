@@ -25,9 +25,9 @@
 
 from django.db import models
 
-# ------------------------------------------------------------------------------
-# Task state
+
 class TaskState(models.Model):
+    """Task States"""
     READY_STATE = 0
     QUEUED_STATE = 1
     STATES = (
@@ -49,5 +49,3 @@ class TaskState(models.Model):
     # Are we ready to queue?
     def queue_now(self, now):
         return ((self.state == self.READY_STATE) and self.next_time <= now)
-
-# ------------------------------------------------------------------------------

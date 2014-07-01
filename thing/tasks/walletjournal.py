@@ -23,7 +23,7 @@
 # OF SUCH DAMAGE.
 # ------------------------------------------------------------------------------
 
-from decimal import *
+from decimal import Decimal
 
 try:
     from collections import OrderedDict
@@ -32,11 +32,12 @@ except ImportError:
 
 from .apitask import APITask
 
-from thing.models import Character, Corporation, JournalEntry, RefType
+from thing.models import Character, Corporation, JournalEntry, RefType, APIKey
 
 # ---------------------------------------------------------------------------
 # number of rows to request per WalletTransactions call, max is 2560
 TRANSACTION_ROWS = 2560
+
 
 class WalletJournal(APITask):
     name = 'thing.wallet_journal'
@@ -53,8 +54,8 @@ class WalletJournal(APITask):
             return
 
         # Corporation key, visit each related CorpWallet
-        if self.apikey.corp_character:
-            for corpwallet in self.apikey.corp_character.corporation.corpwallet_set.all():
+        if self.apikey.key_type == APIKey.CORPORATION_TYPE:
+            for corpwallet in self.apikey.corporation.corpwallet_set.all():
                 result = self._work(url, character, corpwallet)
                 if result is False:
                     return
@@ -80,7 +81,7 @@ class WalletJournal(APITask):
         }
 
         # Corporation key
-        if self.apikey.corp_character:
+        if self.apikey.key_type == APIKey.CORPORATION_TYPE:
             params['accountKey'] = corp_wallet.account_key
             je_filter = JournalEntry.objects.filter(corp_wallet=corp_wallet)
         # Account/Character key
@@ -179,7 +180,7 @@ class WalletJournal(APITask):
                     tax_corp=tax_corp,
                     tax_amount=tax_amount,
                 )
-                if self.apikey.corp_character:
+                if self.apikey.key_type == APIKey.CORPORATION_TYPE:
                     je.corp_wallet = corp_wallet
 
                 new.append(je)
@@ -195,5 +196,3 @@ class WalletJournal(APITask):
                 Character.objects.bulk_create(insert_me)
 
         return True
-
-# ---------------------------------------------------------------------------
