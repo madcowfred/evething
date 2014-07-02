@@ -58,6 +58,9 @@ Handlebars.registerHelper('roman', function(num) {
 });
 
 Handlebars.registerHelper('comma', function(x) {
+    if (x === null) return '';
+    x =  String(x);
+
     var parts = x.toString().split(".");
     parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
     return parts.join(".");
@@ -284,7 +287,7 @@ EVEthing.home.animate = function(lastFrame) {
                 for (var i in EVEthing.home.REFRESH_HINTS['skill_queue']) {
                     if (!EVEthing.home.REFRESH_HINTS['skill_queue'].hasOwnProperty(i)) continue;
 
-                    // We want to give evething a little bit of time to actualy run the update
+                    // We want to give evething a little bit of time to actually run the update
                     if (EVEthing.home.REFRESH_HINTS['skill_queue'][i] < (now + EVEthing.home.HOME_PAGE_UPDATE_DELAY)) {
                         characters[i] = true;
                         options['skill_queue'] = true;
@@ -294,7 +297,7 @@ EVEthing.home.animate = function(lastFrame) {
                 for (var i in EVEthing.home.REFRESH_HINTS['character']) {
                     if (!EVEthing.home.REFRESH_HINTS['character'].hasOwnProperty(i)) continue;
 
-                    // We want to give evething a little bit of time to actualy run the update
+                    // We want to give evething a little bit of time to actually run the update
                     if (EVEthing.home.REFRESH_HINTS['character'][i] < (now + EVEthing.home.HOME_PAGE_UPDATE_DELAY)) {
                         characters[i] = true;
                         options['characters'] = true;
@@ -527,8 +530,11 @@ EVEthing.home.handleResponse = function(data, textStatus, jqXHR) {
 
     if (data.hasOwnProperty('characters')) {
         var wallet_total = 0;
+        var total_characters = 0;
         for (var i in data.characters) {
             if (!data.characters.hasOwnProperty(i)) continue;
+
+            total_characters++;
 
             if (EVEthing.home.CHARACTERS.hasOwnProperty(i)) {
                 EVEthing.home.CHARACTERS[i].parseResponse(data);
@@ -540,7 +546,9 @@ EVEthing.home.handleResponse = function(data, textStatus, jqXHR) {
             wallet_total = wallet_total + parseFloat(EVEthing.home.CHARACTERS[i].character.details.wallet_balance);
         }
 
-        $('output[name="total_wallet"]').val(Handlebars.helpers.comma(wallet_total.toFixed(2)) + ' ISK')
+        if (total_characters > 0) {
+            $('output[name="total_wallet"]').val(Handlebars.helpers.comma(wallet_total.toFixed(2)) + ' ISK')
+        }
     }
 
     if (data.hasOwnProperty('events')) {
@@ -551,7 +559,9 @@ EVEthing.home.handleResponse = function(data, textStatus, jqXHR) {
 
     if (data.hasOwnProperty('summary')) {
         if (data.summary.hasOwnProperty('total_assets')) {
-            $('output[name="personal_assets"]').val(Handlebars.helpers.comma(data.summary.total_assets) + ' ISK');
+            if (data.summary.total_assets !== null) {
+                $('output[name="personal_assets"]').val(Handlebars.helpers.comma(data.summary.total_assets) + ' ISK');
+            }
         }
     }
 
@@ -625,7 +635,7 @@ EVEthing.home.screenshot_mode = function() {
     });
 
     var seen_tooltips = Array();
-    $('.row-fluid').each(function() {
+    $('.row').each(function() {
         var $row = $(this);
 
         $('.well', $row).each(function() {
@@ -664,15 +674,15 @@ EVEthing.home.CharacterListDisplay.draw = function() {
 
     this.html = $('<div class="margin-half-top"></div>');
 
-    var row = this.html;
-    //var row = $('<div class="row-fluid"></div>');
+    //var row = this.html;
+    var row = $('<div class="row"></div>');
 
     var defered_chars = [];
     for (var i=0; i < EVEthing.home.CHARACTER_ORDER.length; i++) {
-        //if (row.children().length >= EVEthing.home.PROFILE.HOME_CHARS_PER_ROW) {
-        //    this.html.append(row);
-        //    row = $('<div class="row-fluid"></div>');
-        //}
+        if (row.children().length >= EVEthing.home.PROFILE.HOME_CHARS_PER_ROW) {
+            this.html.append(row);
+            row = $('<div class="row"></div>');
+        }
 
         if (EVEthing.home.PROFILE.HOME_SORT_EMPTY_QUEUE_LAST) {
             var defered = true;
@@ -692,14 +702,14 @@ EVEthing.home.CharacterListDisplay.draw = function() {
     }
 
     for (var i=0; i < defered_chars.length; i++) {
-        //if (row.children().length >= EVEthing.home.PROFILE.HOME_CHARS_PER_ROW) {
-        //    this.html.append(row);
-        //    row = $('<div class="row-fluid"></div>');
-        //}
+        if (row.children().length >= EVEthing.home.PROFILE.HOME_CHARS_PER_ROW) {
+            this.html.append(row);
+            row = $('<div class="row"></div>');
+        }
         row.append(EVEthing.home.CHARACTERS[defered_chars[i]].well);
     }
 
-    //this.html.append(row);
+    this.html.append(row);
     this.html.append('<hr />');
 };
 
@@ -751,15 +761,15 @@ EVEthing.home.GroupDisplay.prototype.draw = function() {
     this.html = $('<div class="margin-half-top clearfix"></div>');
     this.html.append($('<p>' + this.name + '</p>'));
    
-    //var row = $('<div class="row-fluid"></div>');
-    var row = this.html;
+    var row = $('<div class="row"></div>');
+    //var row = this.html;
 
     var defered_chars = [];
     for (var i=0; i < EVEthing.home.CHARACTER_ORDER.length; i++) {
-        //if (row.children().length >= EVEthing.home.PROFILE.HOME_CHARS_PER_ROW) {
-        //    this.html.append(row);
-        //    row = $('<div class="row-fluid"></div>');
-        //}
+        if (row.children().length >= EVEthing.home.PROFILE.HOME_CHARS_PER_ROW) {
+            this.html.append(row);
+            row = $('<div class="row"></div>');
+        }
 
         if (this.characters.indexOf(EVEthing.home.CHARACTER_ORDER[i]) >= 0) {
             if (EVEthing.home.PROFILE.HOME_SORT_EMPTY_QUEUE_LAST) {
@@ -780,14 +790,14 @@ EVEthing.home.GroupDisplay.prototype.draw = function() {
     }
 
     for (var i=0; i < defered_chars.length; i++) {
-        //if (row.children().length >= EVEthing.home.PROFILE.HOME_CHARS_PER_ROW) {
-        //    this.html.append(row);
-        //    row = $('<div class="row-fluid"></div>');
-        //}
+        if (row.children().length >= EVEthing.home.PROFILE.HOME_CHARS_PER_ROW) {
+            this.html.append(row);
+            row = $('<div class="row"></div>');
+        }
         row.append(EVEthing.home.CHARACTERS[defered_chars[i]].well);
     }
 
-    //this.html.append(row);
+    this.html.append(row);
     this.html.append('<hr />');
 };
 
@@ -1014,7 +1024,7 @@ EVEthing.home.CharacterDisplay.prototype.animate = function(now) {
 
 EVEthing.home.CharacterDisplay.prototype.parseResponse = function(data) {
     // The optional things are all at the first level of the character dict
-    //  so just itterate over the first level and assign that
+    //  so just iterate over the first level and assign that
     for (var key in data.characters[this.character_id]) {
         if (!data.characters[this.character_id].hasOwnProperty(key)) continue;
 
@@ -1034,7 +1044,7 @@ EVEthing.home.CharacterDisplay.prototype.parseResponse = function(data) {
             this.character.skill_queue[i].sp_per_minute = pri + (sec / 2);
             this.character.skill_queue[i].sp_per_hour = this.character.skill_queue[i].sp_per_minute * 60;
 
-            // We don't really care about the miliseconds, and they were getting anoying in debuing
+            // We don't really care about the milliseconds, and they were getting annoying in debugging
             this.character.skill_queue[i].end_time = Math.round(new Date(this.character.skill_queue[i].end_time + '+00:00').getTime() / 1000);
             this.character.skill_queue[i].start_time = Math.round(new Date(this.character.skill_queue[i].start_time + '+00:00').getTime() / 1000);
         }
@@ -1043,7 +1053,7 @@ EVEthing.home.CharacterDisplay.prototype.parseResponse = function(data) {
          * Apparently I was wrong and this is not needed.
          */
 
-        /* We need to take the amout of SP that is being trained on the current skill away, so that the animationed upateder
+        /* We need to take the amount of SP that is being trained on the current skill away, so that the animated updater
          * will be able to report back the correct total_sp. *//*
         var training_time_left = this.character.skill_queue[0].end_time - Math.round(new Date().getTime() / 1000);
         var training_sp_left = training_time_left * (this.character.skill_queue[0].sp_per_minute / 60);
