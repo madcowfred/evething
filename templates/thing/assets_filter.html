@@ -37,7 +37,7 @@
           </p>
           {% set show_item_icons = user.profile.show_item_icons -%}
           {% for system_name, asset_roots in systems -%}
-          <table class="table table-striped table-bordered table-condensed">
+          <table class="assets-table table table-striped table-bordered table-condensed">
             <thead>
               <tr class="c">
                 <th class="l" colspan="2">{{ system_name }}</th>
@@ -91,7 +91,7 @@
               </tr>
               {% if asset.z_contents -%}
               {% for content in asset.z_contents recursive -%}
-              <tr class="asset-{{ asset.id }} asset-collapse">
+              <tr class="asset-{{ asset.id }} asset-collapse tablesorter-childRow">
                 <td></td>
                 <td>
                   {%- for i in range(content.z_indent) %}

@@ -8,7 +8,10 @@
       $(document).ready(function () {
         // call the tablesorter plugin
         $("#contracts-table").tablesorter({
-          'sortList': [[0, 1]],
+          widgets: ['uitheme', 'filter'],
+          theme: 'bootstrap',
+          sortList: [[0, 1]],
+          headerTemplate : '{content} {icon}'
         });
       });
     </script>

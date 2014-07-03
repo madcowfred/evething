@@ -87,5 +87,12 @@ EVEthing.assets = {
         $('#eft-modal').on('shown', function () {
             $('#eft-textarea').select();
         });
+
+        $(".assets-table").tablesorter({
+            headers: { 0: { sorter: false }},
+            widgets: ['uitheme', 'filter'],
+            theme: 'bootstrap',
+            headerTemplate : '{content} {icon}'
+        });
     }
 };
