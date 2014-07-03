@@ -27,7 +27,7 @@ An unmodified build of this Dockerfile is located at `robhaswell/evething`.
 Deployment
 ----------
 
-This image takes two required environment variables, `admin_name` and `admin_email`.
+This image takes two required environment variables, ``admin_name`` and ``admin_email``.
 
 Additionally a volume is required at `/evething/data`.
 This acts as storage for the PostgreSQL_ server and static caches.
