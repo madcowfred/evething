@@ -35,12 +35,14 @@ This acts as storage for the PostgreSQL_ server and static caches.
 The web server port exposed is port **8080**, or for including in virtual hosting setups,
 a WSGI service is exposed on port **8081**.
 
-A typical invocation would look like::
+A typical first invocation would look like::
 
-    $ docker run -i -t \
+    $ docker run -i -t
         -v '/opt/evething-data:/evething/data' -p 80:8080 \
         -e admin_name='Your Name' -e admin_email='admin@example.org' \
         yourname/evething
+
+Subsequent invocations do not need ``-i -t``.
 
 
 .. _Dockerfile: https://docs.docker.com/reference/builder/
