@@ -7,7 +7,7 @@ The deployment method is an nginx_ server backed onto DJango's wsgi implementati
 A PostgreSQL_ database is set up and primed with static data on the container's first run.
 A Redis_ server acts as the Celery_ broker.
 
-This build is **interactive** on first boot and requires the administrator to supply root credentials.
+This build is **interactive** on first boot and requires the administrator to create credentials for the superuser account.
 
 
 Building
