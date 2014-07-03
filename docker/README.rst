@@ -13,7 +13,7 @@ This build is **interactive** on first boot and requires the administrator to su
 Building
 --------
 
-:
+::
 
     $ cd docker
     $ docker build -t yourname/evething .
