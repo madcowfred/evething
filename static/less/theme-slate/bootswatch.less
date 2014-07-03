@@ -1,4 +1,4 @@
-// Slate 3.1.1
+// Slate 3.2.0
 // Bootswatch
 // -----------------------------------------------------
 
@@ -148,7 +148,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .table {
 
-  a {
+  a:not(.btn) {
     text-decoration: underline;
   }
 
@@ -195,6 +195,11 @@ textarea {
   .form-control:focus {
     border-color: @brand-warning;
   }
+
+  .input-group-addon {
+    background-color: @body-bg;
+    border: none;
+  }
 }
 
 .has-error {
@@ -208,6 +213,11 @@ textarea {
   .form-control:focus {
     border-color: @brand-danger;
   }
+
+  .input-group-addon {
+    background-color: @body-bg;
+    border: none;
+  }
 }
 
 .has-success {
@@ -220,6 +230,11 @@ textarea {
   .form-control,
   .form-control:focus {
     border-color: @brand-success;
+  }
+
+  .input-group-addon {
+    background-color: @body-bg;
+    border: none;
   }
 }
 
