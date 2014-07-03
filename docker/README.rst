@@ -45,5 +45,5 @@ A typical invocation would look like::
 .. _Dockerfile: https://docs.docker.com/reference/builder/
 .. _nginx: https://nginx.org/
 .. _PostgreSQL: https://www.postgresql.org/
-.. _Redis: https://redis.io/
-.. _Celery: https://www.celeryproject.org/
+.. _Redis: http://redis.io/
+.. _Celery: http://www.celeryproject.org/
