@@ -32,7 +32,8 @@ This image takes two required environment variables, `admin_name` and `admin_ema
 Additionally a volume is required at `/evething/data`.
 This acts as storage for the PostgreSQL_ server and static caches.
 
-The web server port exposed is port **8080**.
+The web server port exposed is port **8080**, or for including in virtual hosting setups,
+a WSGI service is exposed on port **8081**.
 
 A typical invocation would look like::
 
