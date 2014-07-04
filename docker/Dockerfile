@@ -25,7 +25,7 @@ RUN apt-get install -qqy \
     python-sqlite \
     nginx \
     redis-server \
-    sendmail
+    supervisor
 
 # Download EVEThing
 RUN git clone -b develop git://github.com/madcowfred/evething.git
@@ -41,10 +41,10 @@ RUN chown evething /var/lib/evething
 # Add some configuration files
 ADD postgresql.conf /etc/postgresql/9.3/main/postgresql.conf
 ADD local_settings.py /evething/evething/local_settings.py
-ADD nginx.conf /etc/nginx/nginx.conf
 ADD nginx_evething.conf /etc/nginx/sites-enabled/evething.conf
-ADD start.sh /usr/local/bin/start.sh
-RUN chmod +x /usr/local/bin/start.sh
+ADD supervisor_evething.conf /etc/supervisor/conf.d/evething.conf
+ADD firstrun /sbin/firstrun
+RUN chmod +x /sbin/firstrun
 
 VOLUME /evething/data
-CMD /usr/local/bin/start.sh
+CMD /sbin/firstrun
