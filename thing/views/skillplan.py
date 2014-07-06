@@ -27,7 +27,8 @@ import gzip
 import json
 import datetime
 import thread
-import StringIO
+
+from StringIO import StringIO
 
 from django.http import HttpResponse
 from django.conf import settings
