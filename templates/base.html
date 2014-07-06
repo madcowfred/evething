@@ -59,6 +59,7 @@
               {% if profile.show_trade %}<li><a href="{{ url('thing.views.trade') }}">Trade</a></li>{% endif %}
               {% if profile.show_transactions %}<li><a href="{{ url('thing.views.transactions') }}">Transactions</a></li>{% endif %}
               {% if profile.show_wallet_journal %}<li><a href="{{ url('thing.views.wallet_journal') }}">Wallet Journal</a></li>{% endif %}
+              {% if profile.show_pi %}<li><a href="{{ url('thing.views.pi') }}">PI</a></li>{% endif %}
 {% endif %}{# authed #}
             </ul>
 
