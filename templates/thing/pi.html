@@ -39,7 +39,7 @@
               <tr>
                 <th>Character</th>
                 <th>Location</th>
-                <th>Extractor</th>
+                <th>Quantity/Cycle</th>
                 <th>Install Time</th>
                 <th>Expiry Time</th>
                 <th>Remaining</th>
@@ -49,13 +49,13 @@
             {% for character in map %}
             {% for colony in map[character]['colonies'] %}
             {% for extractor in map[character]['colonies'][colony]['extractors']  %}
-              <tr class="{{ extractor.alert_class() }}">
+              <tr>
                 <td>{{ map[character]['character'].name }}</td>
                 <td><a href="#{{ map[character]['colonies'][colony]['colony'].planet_id }}">{{ map[character]['colonies'][colony]['colony'].planet }}</a></td>
-                <td>{{ extractor.type }}</td>
+                <td>{{ extractor.quantity_per_cycle }}</td>
                 <td>{{ extractor.installed }}</td>
                 <td>{{ extractor.expires }}</td>
-                <td>{{ extractor.expires|timeuntil }}</td>
+                <td class="{{ extractor.alert_class() }}">{{ extractor.expires|timeuntil }}</td>
               </tr>
             {% endfor %}
             {% endfor %}
@@ -94,7 +94,7 @@
                 <td>{{ extractor.quantity_per_cycle }}</td>
                 <td>{{ extractor.installed }}</td>
                 <td>{{ extractor.expires }}</td>
-                <td>{{ extractor.expires|timeuntil }}</td>
+                <td class="{{ extractor.alert_class() }}">{{ extractor.expires|timeuntil }}</td>
               </tr>
             {% endfor %}
             </tbody>
