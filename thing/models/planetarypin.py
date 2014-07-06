@@ -60,7 +60,7 @@ class Pin(models.Model):
         if self.type_id in self.LAUNCHPADS:
             return 10000
         elif self.type_id in self.STORAGE:
-            return 5000
+            return 12000
 
         return 0
 
