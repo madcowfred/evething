@@ -25,22 +25,13 @@
 
 import json
 
-try:
-    from collections import OrderedDict
-except ImportError:
-    from ordereddict import OrderedDict
-
-#from django.conf import settings
 from django.contrib.auth.decorators import login_required
-from django.core.paginator import Paginator, EmptyPage, InvalidPage, PageNotAnInteger
-from django.db import connection
-from django.db.models import Q, Avg, Count, Max, Min, Sum
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.db.models import Q, Count, Sum
 
-from thing.models import *
-from thing.stuff import *
-from thing.views.trade import _month_range
+from thing.models import *  # NOPEP8
+from thing.stuff import *  # NOPEP8
 
-# ---------------------------------------------------------------------------
 
 JOURNAL_EXPECTED = {
     'char': {
@@ -73,18 +64,17 @@ JOURNAL_EXPECTED = {
     },
 }
 
-# ---------------------------------------------------------------------------
-# Wallet journal
+
 @login_required
 def wallet_journal(request):
+    """Wallet journal"""
     # Get profile
-    profile = request.user.get_profile()
+    profile = request.user.profile
 
     characters = Character.objects.filter(
         apikeys__user=request.user,
         apikeys__valid=True,
-    ).exclude(
-        apikeys__key_type=APIKey.CORPORATION_TYPE,
+        apikeys__key_type__in=[APIKey.ACCOUNT_TYPE, APIKey.CHARACTER_TYPE]
     ).distinct()
     character_ids = [c.id for c in characters]
 
@@ -102,12 +92,6 @@ def wallet_journal(request):
 
     # Create a new paginator
     paginator = Paginator(journal_ids, profile.entries_per_page)
-
-    # Make sure page request is an int, default to 1st page
-    try:
-        page = int(request.GET.get('page', '1'))
-    except ValueError:
-        page = 1
 
     # If page request is out of range, deliver last page of results
     try:
@@ -205,7 +189,7 @@ def wallet_journal(request):
             if entry.amount >= 0:
                 item = item_map.get(int(entry.arg_name))
                 if item:
-                    entry.z_description = 'Insurance payment for loss of a %s' % (item.name)
+                    entry.z_description = 'Insurance payment for loss of a %s' % item.name
             else:
                 entry.z_description = 'Insurance purchased (RefID: %s)' % (entry.arg_name[1:])
         # Clone Transfer, arg_name is the name of the station you're going to
@@ -257,7 +241,6 @@ def wallet_journal(request):
         corporation_ids,
     )
 
-# ---------------------------------------------------------------------------
 
 @login_required
 def wallet_journal_aggregate(request):
@@ -296,7 +279,7 @@ def wallet_journal_aggregate(request):
         values = ['year', 'month']
 
     else:
-        group_by_date = 'year'
+        # group_by['date'] = 'year'
         extras = {
             'year': 'EXTRACT(year FROM date)',
         }
@@ -325,7 +308,7 @@ def wallet_journal_aggregate(request):
         entries=Count('id'),
         total_amount=Sum('amount'),
     ).order_by(
-    #    *orders
+        #    *orders
     )
 
     # Aggregate!
@@ -349,7 +332,6 @@ def wallet_journal_aggregate(request):
         request,
     )
 
-# ---------------------------------------------------------------------------
 
 class WJAggregator(object):
     def __init__(self, group_by):
@@ -429,7 +411,7 @@ class WJAggregator(object):
                 if owner1 is not None:
                     group_data.extend([owner1.name, owner1])
                 else:
-                    group_data.extend([None, 'Unknown ID: %s' % (owner1_id)])
+                    group_data.extend([None, 'Unknown ID: %s' % owner1_id])
 
             if self.__group_by['owner2']:
                 owner2_id = entry['owner2_id']
@@ -437,7 +419,7 @@ class WJAggregator(object):
                 if owner2 is not None:
                     group_data.extend([owner2.name, owner2])
                 else:
-                    group_data.extend([None, 'Unknown ID: %s' % (owner2_id)])
+                    group_data.extend([None, 'Unknown ID: %s' % owner2_id])
 
             self.data.append((
                 date,
@@ -448,7 +430,6 @@ class WJAggregator(object):
 
         self.data.sort(cmp=self.__cmp_func)
 
-# ---------------------------------------------------------------------------
 
 def _journal_queryset(request, character_ids, corporation_ids):
     journal_ids = JournalEntry.objects.filter(
@@ -511,7 +492,7 @@ def _journal_queryset(request, character_ids, corporation_ids):
             if fc == 'eq':
                 try:
                     start = datetime.datetime.strptime(fv, '%Y-%m-%d')
-                    end = datetime.datetime.strptime('%s 23:59:59' % (fv), '%Y-%m-%d %H:%M:%S')
+                    end = datetime.datetime.strptime('%s 23:59:59' % fv, '%Y-%m-%d %H:%M:%S')
                     qs.append(Q(date__range=(start, end)))
                 except ValueError:
                     pass
@@ -592,7 +573,6 @@ def _journal_queryset(request, character_ids, corporation_ids):
 
     return filters, journal_ids, days
 
-# ---------------------------------------------------------------------------
 
 def _json_data(characters, corporations, filters):
     data = dict(
@@ -613,5 +593,3 @@ def _json_data(characters, corporations, filters):
         data['values']['reftype'][reftype.id] = reftype.name
 
     return json.dumps(data)
-
-# ---------------------------------------------------------------------------

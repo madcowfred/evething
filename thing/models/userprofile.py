@@ -28,9 +28,9 @@ import datetime
 from django.contrib.auth.models import User
 from django.db import models
 
-# ------------------------------------------------------------------------------
-# Profile information for a user
+
 class UserProfile(models.Model):
+    """Profile information for a user"""
     HOME_SORT_ORDERS = (
         ('apiname', 'APIKey name'),
         ('charname', 'Character name'),
@@ -39,7 +39,7 @@ class UserProfile(models.Model):
         ('wallet', 'Wallet balance'),
     )
 
-    user = models.OneToOneField(User)
+    user = models.OneToOneField(User, related_name='profile')
 
     last_seen = models.DateTimeField(default=datetime.datetime.now)
 
@@ -65,7 +65,7 @@ class UserProfile(models.Model):
     home_chars_per_row = models.IntegerField(default=4)
     home_sort_order = models.CharField(choices=HOME_SORT_ORDERS, max_length=12, default='apiname')
     home_sort_descending = models.BooleanField(default=False)
-    home_hide_characters = models.TextField(default='')
+    home_hide_characters = models.TextField(default='', blank=True)
     home_show_locations = models.BooleanField(default=True)
     home_highlight_backgrounds = models.BooleanField(default=True)
     home_highlight_borders = models.BooleanField(default=True)
@@ -75,12 +75,10 @@ class UserProfile(models.Model):
     class Meta:
         app_label = 'thing'
 
-# -----------------------------------------------------------------------------
-# Magical hook to create a UserProfile when a User object is created
+
 def create_user_profile(sender, instance, created, **kwargs):
+    """Magical hook to create a UserProfile when a User object is created"""
     if created:
         UserProfile.objects.create(user=instance)
 
 models.signals.post_save.connect(create_user_profile, sender=User)
-
-# -----------------------------------------------------------------------------

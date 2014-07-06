@@ -11,12 +11,12 @@ html, body {
   margin: 0 auto -40px;
 }
 #wrap > .container-fluid {
-  padding-top: 55px;
+  padding-top: @navbar-height;
   padding-bottom: 5px;
 }
 @media (max-width: 767px) {
   #wrap > .container-fluid {
-    padding-top: 0px;
+    //padding-top: 0px;
   }
 }
 .anchor {
@@ -29,8 +29,8 @@ html, body {
   height: 40px;
 }
 #footer {
-  background-color: @navbarBackground;
-  color: @navbarText;
+  background-color: @navbar-default-bg;
+  color: @navbar-default-color;
 }
 #footer > .container-fluid {
   padding-top: 8px;
@@ -38,7 +38,7 @@ html, body {
 
 /* navbar mail/server status icons */
 .navbar-mail, .navbar-server-status {
-  color: lighten(@navbarText, 20%);
+  color: lighten(@navbar-default-color, 20%);
 
   i {
     font-size: 125%;

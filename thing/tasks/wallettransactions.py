@@ -23,16 +23,17 @@
 # OF SUCH DAMAGE.
 # ------------------------------------------------------------------------------
 
-from decimal import *
+from decimal import Decimal
+
+from django.db import IntegrityError
 
 from .apitask import APITask
-
-from thing.models import Character, Corporation, CorpWallet, Item, Station, Transaction, APIKey
-from django.db import IntegrityError
+from thing.models import Character, Corporation, Item, Station, Transaction, APIKey
 
 # ---------------------------------------------------------------------------
 # number of rows to request per WalletTransactions call, max is 2560
 TRANSACTION_ROWS = 2560
+
 
 class WalletTransactions(APITask):
     name = 'thing.wallet_transactions'
@@ -129,7 +130,8 @@ class WalletTransactions(APITask):
 
             # Skip corporate transactions if this is a personal call, we have no idea
             # what CorpWallet this transaction is related to otherwise :ccp:
-            if row.attrib['transactionFor'].lower() == 'corporation' and self.apikey.key_type != APIKey.CORPORATION_TYPE:
+            if(row.attrib['transactionFor'].lower() == 'corporation'
+                    and self.apikey.key_type != APIKey.CORPORATION_TYPE):
                 continue
 
             # Handle possible new clients
@@ -210,5 +212,3 @@ class WalletTransactions(APITask):
             Transaction.objects.bulk_create(new)
 
         return True
-
-# ---------------------------------------------------------------------------

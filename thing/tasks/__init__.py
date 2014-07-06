@@ -1,3 +1,4 @@
+# flake8: noqa
 # Internal tasks
 from purgeapikey import purge_api_key
 from tablecleaner import table_cleaner
@@ -35,3 +36,4 @@ from serverstatus import ServerStatus
 from fixnames import FixNames
 from historyupdater import HistoryUpdater
 from priceupdater import PriceUpdater
+from fixcontracts import FixContracts

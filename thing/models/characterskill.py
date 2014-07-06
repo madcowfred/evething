@@ -28,12 +28,11 @@ from django.db import models
 from thing.models.character import Character
 from thing.models.skill import Skill
 
-# ------------------------------------------------------------------------------
-
 ROMAN = ['', 'I', 'II', 'III', 'IV', 'V']
 
-# Character skills
+
 class CharacterSkill(models.Model):
+    """Character skill"""
     character = models.ForeignKey(Character)
     skill = models.ForeignKey(Skill)
 
@@ -48,5 +47,3 @@ class CharacterSkill(models.Model):
 
     def get_roman_level(self):
         return ROMAN[self.level]
-
-# ------------------------------------------------------------------------------

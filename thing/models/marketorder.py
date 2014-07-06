@@ -30,9 +30,9 @@ from thing.models.corpwallet import CorpWallet
 from thing.models.item import Item
 from thing.models.station import Station
 
-# ------------------------------------------------------------------------------
-# Market orders
+
 class MarketOrder(models.Model):
+    """Market orders"""
     order_id = models.BigIntegerField(primary_key=True)
 
     station = models.ForeignKey(Station)
@@ -56,5 +56,3 @@ class MarketOrder(models.Model):
     class Meta:
         app_label = 'thing'
         ordering = ('buy_order', 'item__name')
-
-# ------------------------------------------------------------------------------

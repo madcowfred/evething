@@ -28,12 +28,9 @@ from .apitask import APITask
 from thing import queries
 from thing.models import PriceHistory
 
-# ---------------------------------------------------------------------------
-
 HISTORY_PER_REQUEST = 50
 HISTORY_URL = 'http://goonmetrics.com/api/price_history/?region_id=10000002&type_id=%s'
 
-# ---------------------------------------------------------------------------
 
 class HistoryUpdater(APITask):
     name = 'thing.history_updater'
@@ -54,7 +51,7 @@ class HistoryUpdater(APITask):
         new = []
         for i in range(0, len(item_ids), 50):
             # Fetch the XML
-            url = HISTORY_URL % (','.join(str(z) for z in item_ids[i:i+50]))
+            url = HISTORY_URL % (','.join(str(z) for z in item_ids[i:i + 50]))
             data = self.fetch_url(url, {})
             if data is False:
                 return
@@ -90,5 +87,3 @@ class HistoryUpdater(APITask):
             PriceHistory.objects.bulk_create(new)
 
         return True
-
-# ---------------------------------------------------------------------------

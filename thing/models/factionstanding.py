@@ -23,15 +23,14 @@
 # OF SUCH DAMAGE.
 # ------------------------------------------------------------------------------
 
-from django.contrib.auth.models import User
 from django.db import models
 
 from thing.models.character import Character
 from thing.models.faction import Faction
 
-# ------------------------------------------------------------------------------
-# Faction standings
+
 class FactionStanding(models.Model):
+    """Faction standings"""
     faction = models.ForeignKey(Faction)
     character = models.ForeignKey(Character)
 
@@ -40,5 +39,3 @@ class FactionStanding(models.Model):
     class Meta:
         app_label = 'thing'
         ordering = ('-standing',)
-
-# ------------------------------------------------------------------------------

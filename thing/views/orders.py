@@ -32,22 +32,21 @@ from django.contrib.auth.decorators import login_required
 from django.db import connection
 
 from thing import queries
-from thing.models import *
-from thing.stuff import *
+from thing.models import *  # NOPEP8
+from thing.stuff import *   # NOPEP8
 
-# ---------------------------------------------------------------------------
 
 ORDER_SLOT_SKILLS = {
-    3443: 4,  # Trade
-    3444: 8,  # Retail
-    16596: 16,# Wholesale
-    18580: 32,# Tycoon
+    3443: 4,    # Trade
+    3444: 8,    # Retail
+    16596: 16,  # Wholesale
+    18580: 32,  # Tycoon
 }
 
-# ---------------------------------------------------------------------------
-# Market orders
+
 @login_required
 def orders(request):
+    """Market orders"""
     # Retrieve order aggregate data
     cursor = connection.cursor()
     cursor.execute(queries.order_aggregation, (request.user.id,))
@@ -60,8 +59,7 @@ def orders(request):
     order_cs = CharacterSkill.objects.filter(
         character__apikeys__user=request.user,
         skill__in=ORDER_SLOT_SKILLS,
-    ).exclude(
-        character__apikeys__key_type=APIKey.CORPORATION_TYPE
+        character__apikeys__key_type__in=[APIKey.ACCOUNT_TYPE, APIKey.CHARACTER_TYPE]
     )
     for cs in order_cs:
         char_id = cs.character_id
@@ -90,8 +88,7 @@ def orders(request):
     character_ids = list(Character.objects.filter(
         apikeys__user=request.user.id,
         apikeys__valid=True,
-    ).exclude(
-        apikeys__key_type=APIKey.CORPORATION_TYPE,
+        apikeys__key_type__in=[APIKey.ACCOUNT_TYPE, APIKey.CHARACTER_TYPE]
     ).distinct().values_list(
         'id',
         flat=True,

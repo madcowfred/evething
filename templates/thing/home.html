@@ -8,8 +8,9 @@
 {% endblock %}
 
 {% block content %}
-      <div class="row-fluid">
-        <div class="span12">
+      <br/>
+      <div class="row">
+        <div class="col-sm-12">
           <strong>Totals</strong> --&nbsp;
           <strong>Skill Points:</strong> {{ total_sp|commas }}
           <span class="divider">/</span>
@@ -21,7 +22,7 @@
           <strong>Corp Assets:</strong> {{ corp_assets|default('0.00')|commas }} ISK
 {% endif %}
           <span class="pull-right">
-            <i class="js-screenshot clickable icon-picture" title="Screenshot sanitised mode"></i>
+            <p class="js-screenshot clickable fa fa-picture-o" title="Screenshot sanitised mode"></p>
           </span>
         </div>
       </div>
@@ -33,10 +34,10 @@
       <p class="home-group">{{ char_list.0.z_apikey.group_name }}</p>
       {%- endif %}
       {%- for chars in char_list|batch(profile.home_chars_per_row) %}
-      <div class="row-fluid">
+      <div class="row">
         {%- for character in chars %}
-        <div class="span{{ 12 // profile.home_chars_per_row }}">
-          <div class="well-small well home-character{{ character.z_well_class }}">
+        <div class="col-sm-{{ 12 // profile.home_chars_per_row }}">
+          <div class="well-sm well home-character{{ character.z_well_class }}">
             <div>
               <span class="large">
                 {%- if character.name == '*UNKNOWN' %}
@@ -82,8 +83,8 @@
               {%- if character.z_training.queue_duration > character.z_training.skill_duration %}
               <em class="small pull-right">Queue: {{ character.z_training.queue_duration|shortduration }}</em>
               {%- endif %}
-              <div class="progress{% if character.z_training.queue_duration < 86400 %} progress-danger{% endif%}">
-                <div class="bar" style="width: {{ character.z_training.complete_per }}%">{{ character.z_training.complete_per }}%</div>
+              <div class="progress nomargin">
+                <div class="progress-bar{% if character.z_training.queue_duration < 86400 %} progress-bar-danger{% endif%} " style="width: {{ character.z_training.complete_per }}%">{{ character.z_training.complete_per }}%</div>
               </div>
             </div>
             {%- endif %}
@@ -94,7 +95,7 @@
             {%- endif %}
             <div class="home-notifications">
               {%- for notif in character.z_notifications %}
-              {% if loop.index > 1 %}&nbsp;{% endif %}<i class="icon-{{ notif.icon }}" rel="tooltip" title="{{ notif.tooltip }}"></i>
+              {% if loop.index > 1 %}&nbsp;{% endif %}<span class="fa fa-{{ notif.icon }}" rel="tooltip" title="{{ notif.tooltip }}"></span>
               {{ common.span(notif.text, notif.span_class) }}
               {%- endfor %}
             </div>
@@ -109,9 +110,9 @@
 
       {%- if corporations %}
       <hr class="nomargin">
-      <div class="row-fluid">
+      <div class="row">
         {%- for corporation in corporations %}
-        <div class="span3">
+        <div class="col-sm-3">
           <h5 class="sensitive corporation-name">
             {{ corporation.name }} [{{ corporation.ticker }}]
           </h5>
@@ -138,14 +139,16 @@
 
       {%- if events %}
       <hr class="nomargin">
-      <div class="row-fluid">
-        <h4>Event log</h4>
-        <ul>
-          {%- for event in events %}
-          <li>{{ event.get_age()|duration }} ago <strong>/</strong> {{ event.text|safe }}</li>
-          {%- endfor %}
-        </ul>
-        <a href="{{ url('thing.views.events') }}">See all</a>
+      <div class="row">
+        <div class="col-sm-12">
+          <h4>Event log</h4>
+          <ul>
+            {%- for event in events %}
+            <li>{{ event.get_age()|duration }} ago <strong>/</strong> {{ event.text|safe }}</li>
+            {%- endfor %}
+          </ul>
+          <a href="{{ url('thing.views.events') }}">See all</a>
+        </div>
       </div>
       {%- endif %}
 {% endblock %}

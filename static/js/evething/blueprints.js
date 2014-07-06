@@ -1,12 +1,12 @@
 EVEthing.blueprints = {
-    onload: function() {
-        $('#checkall').on('click', function() {
+    onload: function () {
+        $('#checkall').on('click', function () {
             $('.js-check').prop('checked', this.checked ? 'checked' : false);
         });
 
         // bind the edit buttons
-        $('.bp-edit').on('click', function() {
-            $tr = $(this).parents('tr');
+        $('.bp-edit').on('click', function () {
+            var $tr = $(this).parents('tr');
             $('#bp-edit-bpi_id').attr('value', $tr.find('td').eq(0).text());
             $('#bp-edit-name').val($tr.find('td').eq(1).text());
             $('#bp-edit-ml').val($tr.find('td').eq(3).text());
@@ -15,7 +15,7 @@ EVEthing.blueprints = {
         });
 
         // bind the delete buttons
-        $('.bp-delete').on('click', function() {
+        $('.bp-delete').on('click', function () {
             $tr = $(this).parents('tr');
             $('#bp-del-bpi_id').attr('value', $tr.find('td').eq(0).text());
             $('#bp-del-id').text($tr.find('td').eq(0).text());
@@ -43,5 +43,5 @@ EVEthing.blueprints = {
             },
             'sortList': [[0, 1]],
         });*/
-    },
-}
+    }
+};

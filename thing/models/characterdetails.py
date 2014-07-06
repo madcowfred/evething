@@ -28,9 +28,9 @@ from django.db import models
 from thing.models.character import Character
 from thing.models.item import Item
 
-# ------------------------------------------------------------------------------
-# Character details
+
 class CharacterDetails(models.Model):
+    """Character details"""
     character = models.OneToOneField(Character, unique=True, primary_key=True, related_name='details')
 
     wallet_balance = models.DecimalField(max_digits=18, decimal_places=2, default=0)
@@ -47,7 +47,7 @@ class CharacterDetails(models.Model):
     wil_bonus = models.SmallIntegerField(default=0)
 
     clone_name = models.CharField(max_length=32, default='Clone Grade Alpha')
-    clone_skill_points= models.IntegerField(default=900000)
+    clone_skill_points = models.IntegerField(default=900000)
 
     security_status = models.DecimalField(max_digits=6, decimal_places=4, default=0)
 
@@ -58,4 +58,5 @@ class CharacterDetails(models.Model):
     class Meta:
         app_label = 'thing'
 
-# ------------------------------------------------------------------------------
+    def __unicode__(self):
+        return '%s' % self.character

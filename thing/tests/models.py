@@ -1,7 +1,8 @@
-from decimal import *
+from decimal import Decimal
 
 from django.test import TestCase
-from thing.models import *
+from thing.models import *  # NOPEP8
+
 
 class StationTestCase(TestCase):
     #fixtures = ['region_constellation_system_testdata.json']
@@ -26,6 +27,7 @@ class StationTestCase(TestCase):
 
         # Test weird station name
         self.assertEqual(self.station2.short_name, 'VFK-IV 6 - Mr')
+
 
 class InventoryFlagTestCase(TestCase):
     fixtures = ['inventoryflag_testdata.json']
@@ -54,11 +56,12 @@ class InventoryFlagTestCase(TestCase):
     def test_sort_order(self):
         # Test sort order lookups
         flags = [self.fuel_bay, self.ship_hangar, self.drone_bay, self.rig_slot_1,
-            self.low_slot_1, self.med_slot_1, self.hi_slot_1]
+                 self.low_slot_1, self.med_slot_1, self.hi_slot_1]
         flags.sort(key=lambda f: f.sort_order())
-        
+
         self.assertEqual(flags, [self.hi_slot_1, self.med_slot_1, self.low_slot_1, self.rig_slot_1,
-            self.drone_bay, self.ship_hangar, self.fuel_bay])
+                                 self.drone_bay, self.ship_hangar, self.fuel_bay])
+
 
 class BlueprintTestCase(TestCase):
     fixtures = ['blueprint_testdata.json']
@@ -101,7 +104,7 @@ class BlueprintTestCase(TestCase):
         self.assertEqual(self.maelstrom_neg4_neg4.calc_production_cost(), Decimal('319598442.95'))
         self.assertEqual(self.maelstrom_0_0.calc_production_cost(), Decimal('234372093.37'))
         self.assertEqual(self.maelstrom_50_10.calc_production_cost(), Decimal('213480621.36'))
-        
+
         # Production cost from sells
         self.assertEqual(self.maelstrom_neg4_neg4.calc_production_cost(use_sell=True), Decimal('324144004.04'))
         self.assertEqual(self.maelstrom_0_0.calc_production_cost(use_sell=True), Decimal('237705504.90'))
@@ -110,16 +113,18 @@ class BlueprintTestCase(TestCase):
     def test_get_components(self):
         comps = [(item.name, n) for item, n in self.comps_neg4_neg4]
         comps.sort(key=lambda c: c[1])
-        self.assertEqual(comps, [('Megacyte', 3413), ('Zydrine', 14801), ('Nocxium', 62129), ('Isogen', 248777), ('Mexallon', 995930),
-            ('Pyerite', 3982146), ('Tritanium', 15926640)])
+        self.assertEqual(comps, [('Megacyte', 3413), ('Zydrine', 14801), ('Nocxium', 62129), ('Isogen', 248777),
+                                 ('Mexallon', 995930),
+                                 ('Pyerite', 3982146), ('Tritanium', 15926640)])
 
         comps = [(item.name, n) for item, n in self.comps_0_0]
         comps.sort(key=lambda c: c[1])
-        self.assertEqual(comps, [('Megacyte', 2503), ('Zydrine', 10854), ('Nocxium', 45561), ('Isogen', 182436), ('Mexallon', 730348),
-            ('Pyerite', 2920240), ('Tritanium', 11679536)])
+        self.assertEqual(comps, [('Megacyte', 2503), ('Zydrine', 10854), ('Nocxium', 45561), ('Isogen', 182436),
+                                 ('Mexallon', 730348),
+                                 ('Pyerite', 2920240), ('Tritanium', 11679536)])
 
         comps = [(item.name, n) for item, n in self.comps_50_10]
         comps.sort(key=lambda c: c[1])
-        self.assertEqual(comps, [('Megacyte', 2279), ('Zydrine', 9886), ('Nocxium', 41500), ('Isogen', 166176), ('Mexallon', 665255),
-            ('Pyerite', 2659969), ('Tritanium', 10638579)])
-
+        self.assertEqual(comps, [('Megacyte', 2279), ('Zydrine', 9886), ('Nocxium', 41500), ('Isogen', 166176),
+                                 ('Mexallon', 665255),
+                                 ('Pyerite', 2659969), ('Tritanium', 10638579)])

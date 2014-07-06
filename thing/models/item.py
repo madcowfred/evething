@@ -34,8 +34,6 @@ from thing.models.marketgroup import MarketGroup
 from thing.models.itemprerequisite import ItemPrerequisite
 
 
-# ------------------------------------------------------------------------------
-
 class Item(models.Model):
     id = models.IntegerField(primary_key=True)
     name = models.CharField(max_length=128)
@@ -66,10 +64,7 @@ class Item(models.Model):
             return Decimal('0')
         else:
             return Decimal(str(agg['movement__sum']))
-
-    # ------------------------------------------------------------------------------
-    # Item Prerequisite methods
-    
+    # Item Prerequisite methods  
     # dict of all prerequisites for a given item    
     prerequisite_list = None
     
@@ -127,10 +122,7 @@ class Item(models.Model):
         if skill.item_id in self.prerequisite_list and self.prerequisite_list[skill.item_id] >= level:
             return True
         return False
-        
-    # ------------------------------------------------------------------------------
-    # static methods
-    
+         
     @staticmethod
     def get_all_prerequisites(item):
         'Get all the prerequisites of a given item (search in all dependencies)'
@@ -154,4 +146,3 @@ class Item(models.Model):
         
         return list_prereqs
 
-# ------------------------------------------------------------------------------

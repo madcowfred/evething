@@ -28,48 +28,42 @@ import os
 import sys
 import time
 
-try:
-    import xml.etree.cElementTree as ET
-except ImportError:
-    import xml.etree.ElementTree as ET
-
 from decimal import Decimal
 
 # Set up our environment and import settings
 os.environ['DJANGO_SETTINGS_MODULE'] = 'evething.settings'
-from django.conf import settings
 from django.db import connections
 
-from thing.models import *
+from thing.models import *  # NOPEP8
 
 # ---------------------------------------------------------------------------
 # Override volume for ships, assembled volume is mostly useless :ccp:
 PACKAGED = {
-     25: 2500,  # frigate
-     26: 10000, # cruiser
-     27: 50000, # battleship
-     28: 20000, # industrial
-     31: 500,   # shuttle
-    324: 2500,  # assault ship
-    358: 10000, # heavy assault ship
-    380: 20000, # transport ship
-    419: 15000, # battlecruiser
-    420: 5000,  # destroyer
-    463: 3750,  # mining barge
-    540: 15000, # command ship
-    541: 5000,  # interdictor
-    543: 3750,  # exhumer
-    830: 2500,  # covert ops
-    831: 2500,  # interceptor
-    832: 10000, # logistics
-    833: 10000, # force recon
-    834: 2500,  # stealth bomber
-    893: 2500,  # electronic attack ship
-    894: 10000, # heavy interdictor
-    898: 50000, # black ops
-    900: 50000, # marauder
-    906: 10000, # combat recon
-    963: 5000,  # strategic cruiser
+    25: 2500,    # frigate
+    26: 10000,   # cruiser
+    27: 50000,   # battleship
+    28: 20000,   # industrial
+    31: 500,     # shuttle
+    324: 2500,   # assault ship
+    358: 10000,  # heavy assault ship
+    380: 20000,  # transport ship
+    419: 15000,  # battlecruiser
+    420: 5000,   # destroyer
+    463: 3750,   # mining barge
+    540: 15000,  # command ship
+    541: 5000,   # interdictor
+    543: 3750,   # exhumer
+    830: 2500,   # covert ops
+    831: 2500,   # interceptor
+    832: 10000,  # logistics
+    833: 10000,  # force recon
+    834: 2500,   # stealth bomber
+    893: 2500,   # electronic attack ship
+    894: 10000,  # heavy interdictor
+    898: 50000,  # black ops
+    900: 50000,  # marauder
+    906: 10000,  # combat recon
+    963: 5000,   # strategic cruiser
 }
 
 # ---------------------------------------------------------------------------
@@ -91,11 +85,10 @@ PREREQ_LEVELS = {
     1288: 5,
 }
 
-# ---------------------------------------------------------------------------
 
 def time_func(text, f):
     start = time.time()
-    print '=> %s:' % (text),
+    print '=> %s:' % text,
     sys.stdout.flush()
 
     added = f()
@@ -508,7 +501,6 @@ class Importer:
         if new:
             Blueprint.objects.bulk_create(new)
 
-
         # Collect all components
         new = []
         for id, data in bulk_data.items():
@@ -617,8 +609,7 @@ class Importer:
             skill = skill_map.get(id, None)
             if skill is not None:
                 if skill.rank != data['rank'] or skill.description != data['description'] or \
-                   skill.primary_attribute != data['pri'] or skill.secondary_attribute != data['sec']:
-
+                        skill.primary_attribute != data['pri'] or skill.secondary_attribute != data['sec']:
                     skill.rank = data['rank']
                     skill.description = data['description']
                     skill.primary_attribute = data['pri']
@@ -641,22 +632,22 @@ class Importer:
 
         return added
 
-# :skills:
-#       :prerequisite: # These are the attribute ids for skill prerequisites. [item, level]
-#         1: [182, 277]
-#         2: [183, 278]
-#         3: [184, 279]
-#         4: [1285, 1286]
-#         5: [1289, 1287]
-#         6: [1290, 1288]
-#       :primary_attribute: 180 # database attribute ID for primary attribute
-#       :secondary_attribute: 181 # database attribute ID for secondary attribute
-#       :attributes: # Mapping of id keys to the actual attribute
-#         165: :intelligence
-#         164: :charisma
-#         166: :memory
-#         167: :perception
-#         168: :willpower
+    # :skills:
+    #       :prerequisite: # These are the attribute ids for skill prerequisites. [item, level]
+    #         1: [182, 277]
+    #         2: [183, 278]
+    #         3: [184, 279]
+    #         4: [1285, 1286]
+    #         5: [1289, 1287]
+    #         6: [1290, 1288]
+    #       :primary_attribute: 180 # database attribute ID for primary attribute
+    #       :secondary_attribute: 181 # database attribute ID for secondary attribute
+    #       :attributes: # Mapping of id keys to the actual attribute
+    #         165: :intelligence
+    #         164: :charisma
+    #         166: :memory
+    #         167: :perception
+    #         168: :willpower
 
     # -----------------------------------------------------------------------
     # InventoryFlags

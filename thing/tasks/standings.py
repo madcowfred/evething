@@ -23,13 +23,12 @@
 # OF SUCH DAMAGE.
 # ------------------------------------------------------------------------------
 
-from decimal import *
+from decimal import Decimal
 
 from .apitask import APITask
 
 from thing.models import Character, CorporationStanding, Faction, FactionStanding
 
-# ---------------------------------------------------------------------------
 
 class Standings(APITask):
     name = 'thing.standings'
@@ -45,7 +44,7 @@ class Standings(APITask):
             return
 
         # Fetch the API data
-        params = { 'characterID': character_id }
+        params = {'characterID': character_id}
         if self.fetch_api(url, params) is False or self.root is None:
             return
 
@@ -130,5 +129,3 @@ class Standings(APITask):
                         FactionStanding.objects.bulk_create(new_fs)
 
         return True
-
-# ---------------------------------------------------------------------------

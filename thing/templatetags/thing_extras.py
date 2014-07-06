@@ -1,5 +1,5 @@
 import re
-from decimal import *
+from decimal import Decimal, ROUND_UP
 
 from django import template
 from django.template.defaultfilters import stringfilter
@@ -7,13 +7,15 @@ from django.utils.safestring import mark_safe
 
 register = template.Library()
 
-# Put commas in things
-# http://code.activestate.com/recipes/498181-add-thousands-separator-commas-to-formatted-number/
 re_digits_nondigits = re.compile(r'\d+|\D+')
+
 
 @register.filter
 @stringfilter
 def commas(value):
+    """Put commas in things
+    http://code.activestate.com/recipes/498181-add-thousands-separator-commas-to-formatted-number/
+    """
     parts = re_digits_nondigits.findall(value)
     for i in xrange(len(parts)):
         s = parts[i]
@@ -21,6 +23,7 @@ def commas(value):
             parts[i] = _commafy(s)
             break
     return ''.join(parts)
+
 
 def _commafy(s):
     r = []
@@ -31,16 +34,18 @@ def _commafy(s):
     return ''.join(r)
 
 
-# Shorten numbers to a human readable version
-THOUSAND = 10**3
-TEN_THOUSAND = 10**4
-MILLION = 10**6
-BILLION = 10**9
+THOUSAND = 10 ** 3
+TEN_THOUSAND = 10 ** 4
+MILLION = 10 ** 6
+BILLION = 10 ** 9
+
+
 @register.filter
 def humanize(value):
+    """Shorten numbers to a human readable version"""
     if value is None or value == '':
         return '0'
-    
+
     if value >= BILLION or value <= -BILLION:
         v = Decimal(value) / BILLION
         return '%sB' % (v.quantize(Decimal('.01'), rounding=ROUND_UP))
@@ -62,58 +67,61 @@ def humanize(value):
             return value
 
 
-# Turn a duration in seconds into a human readable string
 @register.filter
 def duration(s):
+    """Turn a duration in seconds into a human readable string"""
     m, s = divmod(s, 60)
     h, m = divmod(m, 60)
     d, h = divmod(h, 24)
-    
+
     parts = []
     if d:
-        parts.append('%dd' % (d))
+        parts.append('%dd' % d)
     if h:
-        parts.append('%dh' % (h))
+        parts.append('%dh' % h)
     if m:
-        parts.append('%dm' % (m))
+        parts.append('%dm' % m)
     if s:
-        parts.append('%ds' % (s))
-    
+        parts.append('%ds' % s)
+
     return ' '.join(parts)
+
 
 @register.filter
 def duration_right(s):
     m, s = divmod(s, 60)
     h, m = divmod(m, 60)
     d, h = divmod(h, 24)
-    
+
     parts = []
     if d:
-        parts.append('%dd' % (d))
+        parts.append('%dd' % d)
     if h or d:
-        parts.append('%02dh' % (h))
+        parts.append('%02dh' % h)
     if m or h or d:
-        parts.append('%02dm' % (m))
-    parts.append('%02ds' % (s))
-    
+        parts.append('%02dm' % m)
+    parts.append('%02ds' % s)
+
     return ' '.join(parts)
 
 
-# Turn a duration in seconds into a shorter human readable string
 @register.filter
 def shortduration(s):
+    """Turn a duration in seconds into a shorter human readable string"""
     return ' '.join(duration(s).split()[:2])
 
-# Do balance colouring (red for negative, green for positive)
+
 @register.filter
 @stringfilter
 def balance(s):
+    """Do balance colouring (red for negative, green for positive)"""
     if s == '0':
         return s
     elif s.startswith('-'):
-        return mark_safe('<span class="neg">%s</span>' % (s))
+        return mark_safe('<span class="neg">%s</span>' % s)
     else:
-        return mark_safe('<span class="pos">%s</span>' % (s))
+        return mark_safe('<span class="pos">%s</span>' % s)
+
 
 @register.filter
 def balance_class(n):
@@ -122,13 +130,14 @@ def balance_class(n):
     else:
         return 'pos'
 
-# Conditionally wrap some text in a span if it matches a condition. Ugh.
+
 @register.filter
 def spanif(value, arg):
+    """Conditionally wrap some text in a span if it matches a condition. Ugh."""
     parts = arg.split()
     if len(parts) != 3:
         return value
-    
+
     n = int(parts[2])
     if (parts[1] == '<' and value < n) or (parts[1] == '=' and value == n) or (parts[1] == '>' and value > n):
         return mark_safe('<span class="%s">%s</span>' % (parts[0], value))
@@ -143,7 +152,7 @@ def tablecols(data, cols):
     index = 0
     for user in data:
         row.append(user)
-        index = index + 1
+        index += 1
         if index % cols == 0:
             rows.append(row)
             row = []
@@ -157,6 +166,7 @@ def tablecols(data, cols):
 
 roman_list = ['', 'I', 'II', 'III', 'IV', 'V']
 
+
 @register.filter
 def roman(num):
     if isinstance(num, str) or isinstance(num, unicode):
@@ -167,6 +177,8 @@ def roman(num):
         return ''
 
 MONTHS = [None, 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+
+
 @register.filter
 def month_name(num):
     return MONTHS[num]

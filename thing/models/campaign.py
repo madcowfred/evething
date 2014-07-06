@@ -25,12 +25,10 @@
 
 from django.contrib.auth.models import User
 from django.db import models
-from django.db.models import Q
 
 from thing.models.character import Character
 from thing.models.corpwallet import CorpWallet
 
-# ------------------------------------------------------------------------------
 
 class Campaign(models.Model):
     user = models.ForeignKey(User)
@@ -61,5 +59,3 @@ class Campaign(models.Model):
             ),
             date__range=(self.start_date, self.end_date),
         )
-
-# ------------------------------------------------------------------------------

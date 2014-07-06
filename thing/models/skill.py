@@ -36,7 +36,6 @@ from thing.models.item import Item
 from thing.models.itemprerequisite import ItemPrerequisite
 
 
-# ------------------------------------------------------------------------------
 
 class Skill(models.Model):
     CHARISMA_ATTRIBUTE = 164
@@ -72,7 +71,7 @@ class Skill(models.Model):
         
     def __unicode__(self):
         return '%s (Rank %d; %s/%s)' % (self.item.name, self.rank, self.get_primary_attribute_display(),
-            self.get_secondary_attribute_display())
+                                        self.get_secondary_attribute_display())
 
     def __html__(self):
         return "<strong>Primary:</strong> %s / <strong>Secondary</strong>: %s<br><br>%s" % (
@@ -110,7 +109,6 @@ class Skill(models.Model):
         return pri + (sec / 2.0)
     
 
-    # ------------------------------------------------------------------------------
     # Item Prerequisite methods
     
     # dict of all unlocked item for a given skill and level    
@@ -137,7 +135,6 @@ class Skill(models.Model):
             return True
         return False
 
-    # ------------------------------------------------------------------------------
     
     @staticmethod
     def get_all_items_unlocked_by_skill(skill, level):

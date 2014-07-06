@@ -17,16 +17,16 @@
 }
 
 .background-warn {
-  background: @etWarningBackground;
+  background: @etWarningBackground !important;
 }
 .background-error {
-  background: @etErrorBackground;
+  background: @etErrorBackground !important;
 }
 .background-success {
-  background: @etSuccessBackground;
+  background: @etSuccessBackground !important;
 }
 .background-info {
-  background: @etInfoBackground;
+  background: @etInfoBackground !important;
 }
 
 .border-warn {
@@ -103,8 +103,10 @@ tr.c th.r,
 tr.c td.r,
 td.r { text-align: right; }
 
+.nowrap { white-space: nowrap; }
+
 .divider-row td {
-  border-top: 4px solid @tableBorder;
+  border-top: 4px solid @table-border-color;
 }
 
 /* various layout things */
@@ -156,6 +158,10 @@ h2.nomargin, h3.nomargin, h4.nomargin {
   margin-top: 0px;
   margin-bottom: 4px;
 }
-ul.unstyled {
-  margin-bottom: 0px;
+
+.pagination-centered {
+  float: left;
+  position: relative;
 }
+.pagination-centered { left: 50%; }
+.pagination-centered ul { left: -50%; }

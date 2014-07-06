@@ -27,7 +27,6 @@ from .apitask import APITask
 
 from thing.models.mailinglist import MailingList
 
-# ---------------------------------------------------------------------------
 
 class MailingLists(APITask):
     name = 'thing.mailing_lists'
@@ -37,7 +36,7 @@ class MailingLists(APITask):
             return
 
         # Fetch the API data
-        params = { 'characterID': character_id }
+        params = {'characterID': character_id}
         if self.fetch_api(url, params) is False or self.root is None:
             return
 
@@ -69,5 +68,3 @@ class MailingLists(APITask):
             MailingList.objects.bulk_create(new)
 
         return True
-
-# ---------------------------------------------------------------------------

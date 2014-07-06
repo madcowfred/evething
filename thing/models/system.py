@@ -27,7 +27,6 @@ from django.db import models
 
 from thing.models.constellation import Constellation
 
-# ------------------------------------------------------------------------------
 
 class System(models.Model):
     id = models.IntegerField(primary_key=True)
@@ -41,5 +40,3 @@ class System(models.Model):
 
     def __unicode__(self):
         return self.name
-
-# ------------------------------------------------------------------------------

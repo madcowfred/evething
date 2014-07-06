@@ -31,9 +31,9 @@ from django.db import models
 from thing.models.blueprint import Blueprint
 from thing.models.blueprintcomponent import BlueprintComponent
 
-# ------------------------------------------------------------------------------
-# Blueprint instances - an owned blueprint
+
 class BlueprintInstance(models.Model):
+    """Blueprint instances - an owned blueprint"""
     user = models.ForeignKey(User, blank=True, null=True)
     blueprint = models.ForeignKey(Blueprint)
 
@@ -58,7 +58,7 @@ class BlueprintInstance(models.Model):
         # PTM = ProductionTimeModifier = (1 - (0.04 * IndustrySkill)) * ImplantModifier * ProductionSlotModifier
         # ProductionTime (PL>=0) = BaseProductionTime * (1 - (ProductivityModifier / BaseProductionTime) * (PL / (1 + PL)) * PTM
         # ProductionTime (PL<0)  = BaseProductionTime * (1 - (ProductivityModifier / BaseProductionTime) * (PL - 1)) * PTM
-        PTM = (1 - (Decimal('0.04') * 5))#self.character.industry_skill)) # FIXME:implement implants/production slot modifiers
+        PTM = (1 - (Decimal('0.04') * 5))  # self.character.industry_skill))  # FIXME:implement implants/production slot modifiers
         BPT = Decimal(self.blueprint.production_time)
         BPM = self.blueprint.productivity_modifier
         PL = Decimal(self.productivity_level)
@@ -133,7 +133,7 @@ class BlueprintInstance(models.Model):
     # Get all components required for this item, adjusted for ML and relevant skills
     # TODO: fix this, skills aren't currently available
     def _get_components(self, components=None, runs=1):
-        PES = 5 #fixme: self.character.production_efficiency_skill
+        PES = 5  # fixme: self.character.production_efficiency_skill
         ML = self.material_level
         WF = self.blueprint.waste_factor / 100.0
 

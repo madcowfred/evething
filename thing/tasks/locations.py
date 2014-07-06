@@ -26,12 +26,10 @@
 from urlparse import urljoin
 
 from django.conf import settings
-from django.core.cache import cache
 
 from .apitask import APITask
 from thing.models import Asset
 
-# ---------------------------------------------------------------------------
 
 class Locations(APITask):
     name = 'thing.locations'
@@ -61,5 +59,3 @@ class Locations(APITask):
                 asset.save(update_fields=('name',))
 
         return True
-
-# ---------------------------------------------------------------------------

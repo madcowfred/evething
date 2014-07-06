@@ -7,102 +7,106 @@
     <link rel="icon" href="{{ STATIC_URL }}favicon.ico">
 {% if authed %}
 {% if debug %}
-    <link rel="stylesheet/less" href="{{ STATIC_URL }}less/theme-{{ user.get_profile().theme }}/bootstrap.less">
+    <link rel="stylesheet/less" href="{{ STATIC_URL }}less/theme-{{ user.profile.theme }}/bootstrap.less">
 {% else %}
-    <link rel="stylesheet" href="{{ static('css/theme-' + user.get_profile().theme + '.min.css') }}">
+    <link rel="stylesheet" href="{{ static('css/theme-' + user.profile.theme + '.min.css') }}">
 {% endif %}{# debug #}
 {% else %}
+{% if debug %}
+    <link rel="stylesheet/less" href="{{ STATIC_URL }}less/theme-default/bootstrap.less">
+{% else %}
     <link rel="stylesheet" href="{{ static('css/theme-default.min.css') }}">
+{% endif %}
 {% endif %}{# authed #}
     <title>EVEthing: {% block title %}{% endblock %}</title>
   </head>
 
   <body>
     <div id="wrap">
-      <div class="navbar navbar-fixed-top">
-        <div class="navbar-inner">
-          <div class="container-fluid">
-            <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+      <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+        <div class="container-fluid">
+          <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar-collapse">
+              <span class="sr-only">Toggle navigation</span>
               <span class="icon-bar"></span>
               <span class="icon-bar"></span>
               <span class="icon-bar"></span>
-            </a>
-            <a class="brand" href="{{ url('thing.views.home') }}">EVEthing</a>
-            <div class="nav-collapse collapse">
-              <ul class="nav" id="nav-list">
-{% if authed %}
-{% set profile = user.get_profile() %}
-                {% if profile.show_assets %}<li><a href="{{ url('thing.views.assets_summary') }}">Assets</a></li>{% endif %}
-                {% if profile.show_blueprints %}<li><a href="{{ url('thing.views.blueprints') }}">Blueprints</a></li>{% endif %}
+            </button>
+            <a class="navbar-brand" href="{{ url('thing.views.home') }}">EVEthing</a>
+          </div>
+          <div class="collapse navbar-collapse" id="navbar-collapse">
+            <ul class="nav navbar-nav" id="nav-list">
+{% if authed %}{% set profile = user.profile %}
+              {% if profile.show_assets %}<li><a href="{{ url('thing.views.assets_summary') }}">Assets</a></li>{% endif %}
+              {% if profile.show_blueprints %}<li><a href="{{ url('thing.views.blueprints') }}">Blueprints</a></li>{% endif %}
 {% if profile.show_contracts %}
-                <li>
-                  <a href="{{ url('thing.views.contracts') }}">
-                    Contracts
-                    {% if nav_contracts %}<span class="text-success">[{{ nav_contracts }}]</span>{% endif %}
-                  </a>
-                </li>
+              <li>
+                <a href="{{ url('thing.views.contracts') }}">
+                  Contracts
+                  {% if nav_contracts %}<span class="text-success">[{{ nav_contracts }}]</span>{% endif %}
+                </a>
+              </li>
 {% endif %}{# profile.show_contracts #}
 {% if profile.show_industry %}
-                <li>
-                  <a href="{{ url('thing.views.industry') }}">
-                    Industry
-                    {% if nav_industryjobs %}<span class="text-success">[{{ nav_industryjobs }}]</span>{% endif %}
-                  </a>
-                </li>
+              <li>
+                <a href="{{ url('thing.views.industry') }}">
+                  Industry
+                  {% if nav_industryjobs %}<span class="text-success">[{{ nav_industryjobs }}]</span>{% endif %}
+                </a>
+              </li>
 {% endif %}{# profile.show_industry #}
-                {% if profile.show_orders %}<li><a href="{{ url('thing.views.orders') }}">Orders</a></li>{% endif %}
-                {% if profile.show_trade %}<li><a href="{{ url('thing.views.trade') }}">Trade</a></li>{% endif %}
-                {% if profile.show_transactions %}<li><a href="{{ url('thing.views.transactions') }}">Transactions</a></li>{% endif %}
-                {% if profile.show_wallet_journal %}<li><a href="{{ url('thing.views.wallet_journal') }}">Wallet Journal</a></li>{% endif %}
+              {% if profile.show_orders %}<li><a href="{{ url('thing.views.orders') }}">Orders</a></li>{% endif %}
+              {% if profile.show_trade %}<li><a href="{{ url('thing.views.trade') }}">Trade</a></li>{% endif %}
+              {% if profile.show_transactions %}<li><a href="{{ url('thing.views.transactions') }}">Transactions</a></li>{% endif %}
+              {% if profile.show_wallet_journal %}<li><a href="{{ url('thing.views.wallet_journal') }}">Wallet Journal</a></li>{% endif %}
 {% endif %}{# authed #}
-              </ul>
+            </ul>
 
-              <ul class="nav pull-right">
+            <ul class="nav navbar-nav navbar-right">
 {% if authed %}
-                <li class="navbar-mail">
-                  <a href="{{ url('thing.views.mail') }}"><i class="icon-envelope-alt"></i> {{ nav_mail }}</a>
-                </li>
-                <li class="navbar-text visible-desktop navbar-server-status">
+              <li class="navbar-mail">
+                <a href="{{ url('thing.views.mail') }}"><span class="fa fa-envelope"></span> {{ nav_mail }}</a>
+              </li>
+              <p class="navbar-text visible-desktop navbar-server-status">
 {% if server_open %}
-                  <i class="icon-thumbs-up" rel="tooltip" data-placement="bottom" title="Server is online - {{ online_players|commas }} players"></i>
+                <span class="fa fa-thumbs-up" rel="tooltip" data-placement="bottom" title="Server is online - {{ online_players|commas }} players"></span>
 {% else %}
-                  <i class="icon-thumbs-down" rel="tooltip" data-placement="bottom" title="Server is offline"></i>
+                <span class="fa fa-thumbs-down" rel="tooltip" data-placement="bottom" title="Server is offline"></span>
 {% endif %}{# server_open #}
-                </li>
-                <li class="navbar-text visible-desktop"{% if not user.get_profile().show_clock %} style="display: none"{% endif %}>
-                  <span id="utc-time"></span> EVE
-                </li>
-                <li class="dropdown">
-                  <a class="dropdown-toggle" data-toggle="dropdown" href="#" role="button">
-                    <span class="sensitive user-name">{{ user.username }}</span>
-                    <b class="caret"></b>
-                  </a>
-                  <ul class="dropdown-menu">
-                    <li><a href="{{ url('thing.views.account') }}">My Account</a></li>
-                    <li class="divider"></li>
-                    <li><a href="{{ url('thing.views.events') }}">Event log</a></li>
-                    <li><a href="{{ url('thing.views.mail') }}">Mail</a></li>
-                    <li><a href="{{ url('thing.views.skillplan') }}">Skillplans</a></li>
-                    <li class="divider"></li>
+              </p>
+              <p class="navbar-text visible-desktop"{% if not user.profile.show_clock %} style="display: none"{% endif %}>
+                <span id="utc-time"></span> EVE
+              </p>
+              <li class="dropdown">
+                <a class="dropdown-toggle" data-toggle="dropdown" href="#" role="button">
+                  <span class="sensitive user-name">{{ user.username }}</span>
+                  <b class="caret"></b>
+                </a>
+                <ul class="dropdown-menu">
+                  <li><a href="{{ url('thing.views.account') }}">My Account</a></li>
+                  <li class="divider"></li>
+                  <li><a href="{{ url('thing.views.events') }}">Event log</a></li>
+                  <li><a href="{{ url('thing.views.mail') }}">Mail</a></li>
+                  <li><a href="{{ url('thing.views.skillplan') }}">Skillplan</a></li>
+                  <li class="divider"></li>
 {% if user.is_staff %}
-                    <li><a href="{{ url('admin:index') }}">Site Administration</a></li>
-                    <li class="divider"></li>
+                  <li><a href="{{ url('admin:index') }}">Site Administration</a></li>
+                  <li class="divider"></li>
 {% endif %}{# user.is_staff #}
-                    <li><a href="{{ url('auth_logout') }}">Logout</a>
-                  </ul>
-                </li>
+                  <li><a href="{{ url('auth_logout') }}">Logout</a>
+                </ul>
+              </li>
 {% else %}
-                <li>
-                  <a href="{{ url('auth_login') }}">Login</a>
-                </li>
+              <p class="navbar-text">
+                <a href="{{ url('auth_login') }}">Login</a>
+              </p>
 {% if user|can_register %}
-                <li>
-                  <a href="{{ url('thing.views.account_register') }}">Register</a>
-                </li>
+              <p class="navbar-text">
+                <a href="{{ url('thing.views.account_register') }}">Register</a>
+              </p>
 {% endif %}
 {% endif %}{# authed #}
-              </ul>
-            </div>
+            </ul>
           </div>
         </div>
       </div>
@@ -128,7 +132,7 @@
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
     <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
 {% if debug %}
-    <script src="{{ STATIC_URL}}js/less-1.3.3.min.js"></script>
+    <script src="{{ STATIC_URL}}js/less.min.js"></script>
     <script src="{{ STATIC_URL}}js/jquery.tablesorter.js"></script>
     <script src="{{ STATIC_URL}}js/jquery.cookie.js"></script>
     <script src="{{ STATIC_URL}}js/jquery.tablesorter.widgets.js"></script>

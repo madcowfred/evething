@@ -28,7 +28,6 @@ from django.db.models import Sum
 
 from thing.models.alliance import Alliance
 
-# ------------------------------------------------------------------------------
 
 class Corporation(models.Model):
     id = models.IntegerField(primary_key=True)
@@ -64,7 +63,7 @@ class Corporation(models.Model):
             key_type=APIKey.CORPORATION_TYPE,
             valid=True
         )
-    
+
         corporation_ids = {}
         for api in corp_apis:
             if ((api.corporation_id not in corporation_ids) and
@@ -72,5 +71,3 @@ class Corporation(models.Model):
                 corporation_ids[api.corporation_id] = api.corporation_id
 
         return corporation_ids
-
-# ------------------------------------------------------------------------------

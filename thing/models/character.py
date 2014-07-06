@@ -28,7 +28,6 @@ from django.db.models import Sum
 
 from thing.models.corporation import Corporation
 
-# ------------------------------------------------------------------------------
 
 class Character(models.Model):
     id = models.IntegerField(primary_key=True)
@@ -45,10 +44,7 @@ class Character(models.Model):
 
     @models.permalink
     def get_absolute_url(self):
-        return ('character', (), {
-            'character_name': self.name,
-            }
-        )
+        return ('character', (), {'character_name': self.name, })
 
     def get_short_clone_name(self):
         if self.details and self.details.clone_name:
@@ -59,5 +55,3 @@ class Character(models.Model):
     def get_total_skill_points(self):
         from thing.models.characterskill import CharacterSkill
         return CharacterSkill.objects.filter(character=self).aggregate(total_sp=Sum('points'))['total_sp']
-
-# ------------------------------------------------------------------------------

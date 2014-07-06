@@ -116,8 +116,6 @@ WHERE   a.item_id = i.id
         AND ig.category_id != 9
 """
 
-
-# 
 journal_aggregate_char = """
 SELECT  EXTRACT(YEAR FROM date) AS year,
         EXTRACT(MONTH FROM date) AS month,

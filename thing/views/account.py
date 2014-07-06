@@ -41,13 +41,13 @@ from django.contrib.auth.forms import UserCreationForm
 
 from core.util import get_minimum_keyid
 from thing.forms import UploadSkillPlanForm
-from thing.models import *
-from thing.stuff import *
+from thing.models import *  # NOPEP8
+from thing.stuff import *  # NOPEP8
 
-# ---------------------------------------------------------------------------
-# Account management view
+
 @login_required
 def account(request):
+    """Account management view"""
     if 'message' in request.session:
         message = request.session.pop('message')
         message_type = request.session.pop('message_type')
@@ -55,7 +55,7 @@ def account(request):
         message = None
         message_type = None
 
-    profile = request.user.get_profile()
+    profile = request.user.profile
 
     characters = Character.objects.filter(apikeys__user=request.user).distinct()
     home_hide_characters = set(int(c) for c in profile.home_hide_characters.split(',') if c)
@@ -78,12 +78,12 @@ def account(request):
         [c.id for c in characters],
     )
 
-# ---------------------------------------------------------------------------
-# Change password
+
 @sensitive_post_parameters()
 @sensitive_variables()
 @login_required
 def account_change_password(request):
+    """Change password"""
     old_password = request.POST['old_password']
     new_password = request.POST['new_password']
     confirm_password = request.POST['confirm_password']
@@ -114,9 +114,10 @@ def account_change_password(request):
 
     return redirect('%s#password' % (reverse(account)))
 
+
 @login_required
 def account_settings(request):
-    profile = request.user.get_profile()
+    profile = request.user.profile
 
     theme = request.POST.get('theme', 'theme-default')
     if [t for t in settings.THEMES if t[0] == theme]:
@@ -164,10 +165,10 @@ def account_settings(request):
 
     return redirect(account)
 
-# ---------------------------------------------------------------------------
-# Add an API key
+
 @login_required
 def account_apikey_add(request):
+    """Add an API key"""
     keyid = request.POST.get('keyid', '0')
     vcode = request.POST.get('vcode', '').strip()
     name = request.POST.get('name', '')
@@ -176,7 +177,7 @@ def account_apikey_add(request):
     if not keyid.isdigit():
         request.session['message_type'] = 'error'
         request.session['message'] = 'KeyID is not an integer!'
-    elif int(keyid) < 1 or int(keyid) > 2**31:
+    elif int(keyid) < 1 or int(keyid) > 2 ** 31:
         request.session['message_type'] = 'error'
         request.session['message'] = 'Invalid KeyID!'
     elif len(vcode) != 64:
@@ -186,7 +187,7 @@ def account_apikey_add(request):
         request.session['message_type'] = 'error'
         request.session['message'] = 'This key was created more than 30 minutes ago, make a new one for each app!'
     else:
-        if request.user.get_profile().can_add_keys is False:
+        if request.user.profile.can_add_keys is False:
             request.session['message_type'] = 'error'
             request.session['message'] = 'You are not allowed to add API keys!'
 
@@ -209,10 +210,10 @@ def account_apikey_add(request):
 
     return redirect('%s#apikeys' % (reverse(account)))
 
-# ---------------------------------------------------------------------------
-# Delete an API key
+
 @login_required
 def account_apikey_delete(request):
+    """Delete an API key"""
     apikey_id = request.POST.get('apikey_id', '')
     if apikey_id.isdigit():
         try:
@@ -234,20 +235,19 @@ def account_apikey_delete(request):
 
     return redirect('%s#apikeys' % (reverse(account)))
 
-# ---------------------------------------------------------------------------
-# Edit an API key
+
 @login_required
 def account_apikey_edit(request):
+    """Edit an API key"""
     try:
         apikey = APIKey.objects.get(user=request.user.id, id=request.POST.get('apikey_id', '0'))
 
     except APIKey.DoesNotExist:
         request.session['message_type'] = 'error'
         request.session['message'] = 'You do not have an API key with that KeyID!'
-
     else:
         request.session['message_type'] = 'success'
-        request.session['message'] = 'API key %s edited successfully!' % (apikey.id)
+        request.session['message'] = 'API key %s edited successfully!' % apikey.id
 
         apikey_name = request.POST.get('name', '')
         apikey_group_name = request.POST.get('group_name', '')
@@ -256,17 +256,16 @@ def account_apikey_edit(request):
         if apikey.name != apikey_name and dont_edit != 'name':
             apikey.name = apikey_name
             apikey.save()
-
         elif apikey.group_name != apikey_group_name and dont_edit != 'group_name':
             apikey.group_name = apikey_group_name
             apikey.save()
 
     return redirect('%s#apikeys' % (reverse(account)))
 
-# ---------------------------------------------------------------------------
-# Purge an API key's data
+
 @login_required
 def account_apikey_purge(request):
+    """Purge an API key's data"""
     apikey_id = request.POST.get('apikey_id', '')
     if apikey_id.isdigit():
         try:
@@ -289,9 +288,10 @@ def account_apikey_purge(request):
     return redirect('%s#apikeys' % (reverse(account)))
 
 
-# ---------------------------------------------------------------------------
-# Register Account
+
+
 def account_register(request):
+    """Register Account"""
     if not settings.ALLOW_REGISTRATION:
         return HttpResponseForbidden()
 
@@ -301,7 +301,7 @@ def account_register(request):
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
         if form.is_valid():
-            new_user = form.save()
+            form.save()
             return redirect(reverse('home'))
     else:
         form = UserCreationForm()

@@ -23,14 +23,12 @@
 # OF SUCH DAMAGE.
 # ------------------------------------------------------------------------------
 
-from django.contrib.auth.models import User
 from django.db import models
 
 from thing.models.character import Character
 from thing.models.corporation import Corporation
 from thing.models.station import Station
 
-# ------------------------------------------------------------------------------
 
 class Contract(models.Model):
     character = models.ForeignKey(Character)
@@ -81,5 +79,3 @@ class Contract(models.Model):
             return self.issuer_corp.name
         else:
             return self.issuer_char.name
-
-# ------------------------------------------------------------------------------
