@@ -23,6 +23,8 @@
 # OF SUCH DAMAGE.
 # ------------------------------------------------------------------------------
 
+from datetime import timedelta, datetime
+
 from django.db import models
 
 from thing.models.planetarycolony import Colony
@@ -70,6 +72,15 @@ class Pin(models.Model):
             return (self.content_size/cap)*100
         else:
             return 0
+
+    def alert_class(self):
+        diff = self.expires - datetime.now()
+        if diff >= timedelta(days=1):
+            return 'success'
+        elif diff > timedelta(hours=8):
+            return 'warning'
+        else:
+            return 'danger'
 
 
 class PinContent(models.Model):

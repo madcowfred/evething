@@ -7,7 +7,7 @@
     <script type="text/javascript">
       $(document).ready(function() {
         // template provided variables
-        //EVEthing.assets.onload();
+        EVEthing.pi.onload();
       });
     </script>
 {% endblock %}
@@ -18,13 +18,61 @@
           <h2>Planetary Interaction</h2>
         </div>
       </div>
+      <div id="sidenav-container" class="row">
+        <div class="col-sm-3">
+          <div class="pi-sidenav">
+            <div class="panel panel-default">
+              <div class="panel-heading"><a href="#extractors"><span class="fa fa-chevron-right"></span> All Extractors</a></div>
+              <ul class="list-group" id="sidenav">
+              {%- for character in map %}
+              <li class="list-group-item"><a href="#{{ map[character]['character'].id }}"><span class="fa fa-chevron-right"></span> {{ map[character]['character'].name }}</a></li>
+              {%- endfor %}
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-9">
+          <div id="extractors" class="anchor"></div>
+          <table class="table table-striped table-bordered table-condensed">
+            <caption>Extractors for all characters and locations</caption>
+            <thead>
+              <tr>
+                <th>Character</th>
+                <th>Location</th>
+                <th>Extractor</th>
+                <th>Install Time</th>
+                <th>Expiry Time</th>
+                <th>Remaining</th>
+              </tr>
+            </thead>
+            <tbody>
+            {% for character in map %}
+            {% for colony in map[character]['colonies'] %}
+            {% for extractor in map[character]['colonies'][colony]['extractors']  %}
+              <tr class="{{ extractor.alert_class() }}">
+                <td>{{ map[character]['character'].name }}</td>
+                <td><a href="#{{ map[character]['colonies'][colony]['colony'].planet_id }}">{{ map[character]['colonies'][colony]['colony'].planet }}</a></td>
+                <td>{{ extractor.type }}</td>
+                <td>{{ extractor.installed }}</td>
+                <td>{{ extractor.expires }}</td>
+                <td>{{ extractor.expires|timeuntil }}</td>
+              </tr>
+            {% endfor %}
+            {% endfor %}
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
       {% for character in map %}
       <div class="row">
-        <div class="col-sm-12">
+        <div class="col-sm-9 col-sm-offset-3">
           {% if not loop.first %}<hr/>{% endif %}
+          <div id="{{ map[character]['character'].id }}" class="anchor"></div>
           <h4>{{ map[character]['character'].name }}</h4>
           {% for colony in map[character]['colonies'] %}
           <div class="panel panel-default">
+          <div id="{{ map[character]['colonies'][colony]['colony'].planet_id }}" class="anchor"></div>
           <div class="panel-heading">
             <h3 class="panel-title">{{ map[character]['colonies'][colony]['colony'].planet }}</h3>
           </div
@@ -53,7 +101,7 @@
           </table>
           <br/>
           <div class="row">
-            <div class="col-sm-8">
+            <div class="col-sm-12">
               <table class="table table-striped table-bordered table-condensed">
                 <thead>
                   <tr>
