@@ -52,6 +52,25 @@ class Pin(models.Model):
     def __str__(self):
         return '%s - %s' % (self.colony, self.type.name)
 
+    EXTRACTORS = [2848, 3060, 3061, 3062, 3063, 3064, 3067, 3068]
+    LAUNCHPADS = [2544, 2543, 2552, 2555, 2542, 2556, 2557, 2256]
+    STORAGE = [2541, 2536, 2257, 2558, 2535, 2560, 2561, 2562] + LAUNCHPADS
+
+    def get_capacity(self):
+        if self.type_id in self.LAUNCHPADS:
+            return 10000
+        elif self.type_id in self.STORAGE:
+            return 5000
+
+        return 0
+
+    def percent_full(self):
+        cap = self.get_capacity()
+        if cap > 0:
+            return (self.content_size/cap)*100
+        else:
+            return 0
+
 
 class PinContent(models.Model):
     pin = models.ForeignKey(Pin)

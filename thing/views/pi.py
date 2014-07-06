@@ -29,9 +29,6 @@ from django.contrib.auth.decorators import login_required
 from thing.models import *  # NOPEP8
 from thing.stuff import *  # NOPEP8
 
-EXTRACTORS = [2848, 3060, 3061, 3062, 3063, 3064, 3067, 3068]
-LAUNCHPADS = [2544, 2543, 2552, 2555, 2542, 2556, 2557, 2256]
-STORAGE = [2541, 2536, 2257, 2558, 2535, 2560, 2561, 2562] + LAUNCHPADS
 
 @login_required
 def pi(request):
@@ -59,11 +56,11 @@ def pi(request):
                     'colony': colony
                 }
                 char['colonies'][colony.id]['extractors'] = colony.pin_set.filter(
-                    type__in=EXTRACTORS).all()
+                    type__in=Pin.EXTRACTORS).all()
                 char['colonies'][colony.id]['launchpads'] = colony.pin_set.filter(
-                    type__in=LAUNCHPADS).all()
+                    type__in=Pin.LAUNCHPADS).all()
                 char['colonies'][colony.id]['storage'] = colony.pin_set.filter(
-                    type__in=STORAGE).all()
+                    type__in=Pin.STORAGE).all()
 
             pi_map[character.id] = char
 
