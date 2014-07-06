@@ -6,7 +6,7 @@
 
 {% block content %}
       <div class="row">
-        <div class="col-sm-9">
+        <div class="col-sm-10">
           <h2>Skill Plan</h2>
 
           <ul class="list-unstyled">
@@ -18,7 +18,7 @@
               <a href="{{ url('thing.views.character_sheet', char.name) }}">{{ char.name }}</a>
               {%- endif %}
             </li>
-            <li><strong>Skill Plan</strong>: {{ skillplan.name }}</li>
+            <li><strong>Skill Plan</strong>: {{ skillplan.name }} <a class="download-skillplan" href="{{ url('thing.views.skillplan_export',skillplan.id) }}"><i class="icon-download-alt"></i></a></li>
           </ul>
 
           <form class="form-inline" action="">
@@ -35,6 +35,9 @@
               <label>
                 <input type="checkbox" name="show_trained"{% if show_trained %} checked{% endif %}> Show already trained skills
               </label>
+              <label>
+                <input type="checkbox" name="show_cumulative"{% if show_cumulative %} checked{% endif %}> Show cumulative skill time
+              </label>
             </div>
             <button type="submit" class="btn btn-default">Apply</button>
           </form>
@@ -49,14 +52,15 @@
                 <th>Sec</th>
                 <th>SP/hr</th>
                 <th>Time</th>
+                {% if show_cumulative %}<th><span style="border-bottom:1px dotted;" rel="tooltip" title="Cumulative Time (Does not count trained skills)">&Sigma;Time</span></th>{% endif %}
               </tr>
             </thead>
             <tbody>
               {% for entry in entries -%}
-              <tr class="c">
-                {% if entry.sp_remap -%}
+               {% if entry.sp_remap -%}
+               <tr class="c">
                 <td></td>
-                <td class="l" colspan="6">
+                <td class="l" colspan="{% if show_cumulative %}7{% else %}6{% endif %}">
                   <span class="fa fa-user"></span> Remap to
                   <strong>{{ entry.sp_remap.int_stat }}</strong> Int /
                   <strong>{{ entry.sp_remap.mem_stat }}</strong> Mem /
@@ -64,8 +68,16 @@
                   <strong>{{ entry.sp_remap.wil_stat }}</strong> Wil /
                   <strong>{{ entry.sp_remap.cha_stat }}</strong> Cha
                   </strong>
+                  <span class="pull-right small">
+                    <strong>Remaining remap time</strong>:
+                    {{ entry.z_duration|duration }}
+                    {% if entry.z_total_duration != entry.z_duration %}
+                    <span class="muted">(<strong>Total:</strong> {{ entry.z_total_duration|duration }})</span>
+                    {% endif %}
+                  </span>
                 </td>
-                {%- else %}
+               {%- else %}
+               <tr class="c">
                 <td class="sp-trained">
                   {% if entry.z_training -%}
                   <span class="fa fa-flag"></span>
@@ -91,12 +103,13 @@
                 <td class="sp-small">{{ entry.sp_skill.skill.get_secondary_attribute_display() }}</td>
                 <td class="sp-small">{{ entry.z_spph|commas }}</td>
                 <td class="r sp-time">{{ entry.z_remaining|duration }}</td>
-                {%- endif %}
+                {% if show_cumulative %}<td class="r sp-time {% if entry.z_trained %}muted{% endif %}">{{ entry.z_cumulative|duration }}</td>{% endif %}
+              {%- endif %}
               </tr>
               {%- else %}
               <tr>
                 <td></td>
-                <td colspan="6">This skill plan is empty.</td>
+                <td colspan="{% if show_cumulative %}7{% else %}6{% endif %}">This skill plan is empty.</td>
               </tr>
               {%- endfor %}
             </tbody>
@@ -104,7 +117,12 @@
             <tfoot>
               <tr>
                 <td></td>
-                <td colspan="6" class="r"><strong>Total time remaining</strong>: {{ total_remaining|duration }}</td>
+                <td colspan="{% if show_cumulative %}8{% else %}7{% endif %}" class="r">
+                  <strong>Total time remaining</strong>: {{ total_remaining|duration }}
+                  {% if total_duration != total_remaining %}
+                  <span class="muted">(<strong>Total:</strong> {{ total_duration|duration }})</span>
+                  {% endif %}
+                </td>
               </tr>
             </tfoot>
             {%- endif %}

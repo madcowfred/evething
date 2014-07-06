@@ -22,6 +22,7 @@ from thing.models.itemcategory import ItemCategory
 from thing.models.itemgroup import ItemGroup
 from thing.models.item import Item
 from thing.models.blueprint import Blueprint
+from thing.models.itemprerequisite import ItemPrerequisite
 from thing.models.skill import Skill
 
 # Everything else

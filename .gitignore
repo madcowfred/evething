@@ -5,5 +5,7 @@
 local_settings.py
 skill_map.pickle
 thing/profile_middleware.py
+
+.DS_Store
 .*.swp
 node_modules/

@@ -23,18 +23,18 @@
 # OF SUCH DAMAGE.
 # ------------------------------------------------------------------------------
 
-import cPickle
 import math
 
 from django.db import models
-
-from thing.models.item import Item
-
-
+from django.db import models
 try:
-    SKILL_MAP = cPickle.load(open('skill_map.pickle', 'r'))
-except:
-    SKILL_MAP = {}
+    from collections import OrderedDict
+except ImportError:
+    from ordereddict import OrderedDict
+    
+from thing.models.item import Item
+from thing.models.itemprerequisite import ItemPrerequisite
+
 
 
 class Skill(models.Model):
@@ -65,9 +65,10 @@ class Skill(models.Model):
     primary_attribute = models.SmallIntegerField(choices=ATTRIBUTE_CHOICES)
     secondary_attribute = models.SmallIntegerField(choices=ATTRIBUTE_CHOICES)
 
+    
     class Meta:
         app_label = 'thing'
-
+        
     def __unicode__(self):
         return '%s (Rank %d; %s/%s)' % (self.item.name, self.rank, self.get_primary_attribute_display(),
                                         self.get_secondary_attribute_display())
@@ -106,18 +107,61 @@ class Skill(models.Model):
         sec = stats.get(sec_attrs[0]) + implants.get(sec_attrs[1])
 
         return pri + (sec / 2.0)
+    
 
+    # Item Prerequisite methods
+    
+    # dict of all unlocked item for a given skill and level    
+    unlocked_list = None
+    
+    # return the list of item that need the skill as a prerequisite
+    def get_items_unlocked_by_skill(self, level=1):
+        return ItemPrerequisite.objects.filter(
+            skill=self,
+            level__gte=level)
+        
+    def is_unlocked_by_skill(self, item, level):
+        """
+        Return true if the given item is unlocked by the current skill at the given level
+        """
+
+        if self.unlocked_list is None:
+            self.unlocked_list = dict()
+        
+        if level not in self.unlocked_list:
+            self.unlocked_list[level] = Skill.get_all_items_unlocked_by_skill(self,level)
+
+        if item.id in self.unlocked_list[level]:
+            return True
+        return False
+
+    
     @staticmethod
-    def get_prereqs(skill_id):
-        'Get all pre-requisite skills for a given skill ID'
+    def get_all_items_unlocked_by_skill(skill, level):
+        """
+            Get all the items unlocked by a skill at a given level 
+        """
+        
+        # return a list of ItemPrerequisite
+        unlocked_items = skill.get_items_unlocked_by_skill(level)
+        if unlocked_items is None:
+            return {}
+        
+        list_unlocked_item=set()
+        
+        for itemprereq in unlocked_items:
+            # add the item found (can be a skill or something else)
+            list_unlocked_item.add(itemprereq.item_id)
+            
+            # if it's a skill, we need to dig deeper
+            try:
+                skill_unlocked = Skill.objects.get(item__id=itemprereq.item_id)
+                
+            except Skill.DoesNotExist:
+                continue 
 
-        def _recurse_prereqs(prereqs, skill):
-            for sid, level in SKILL_MAP.get(skill, {}).values():
-                prereqs.append([sid, level])
-                _recurse_prereqs(prereqs, sid)
+            list_unlocked_item.update(Skill.get_all_items_unlocked_by_skill(skill_unlocked,1))
+        
+        return list_unlocked_item
 
-        prereqs = []
-        _recurse_prereqs(prereqs, skill_id)
-
-        # Return a reversed list so it's in training order
-        return list(reversed(prereqs))
+# ------------------------------------------------------------------------------

@@ -87,6 +87,7 @@
                   <li class="divider"></li>
                   <li><a href="{{ url('thing.views.events') }}">Event log</a></li>
                   <li><a href="{{ url('thing.views.mail') }}">Mail</a></li>
+                  <li><a href="{{ url('thing.views.skillplan') }}">Skillplan</a></li>
                   <li class="divider"></li>
 {% if user.is_staff %}
                   <li><a href="{{ url('admin:index') }}">Site Administration</a></li>
@@ -129,9 +130,11 @@
     </div>
 
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
 {% if debug %}
     <script src="{{ STATIC_URL}}js/less.min.js"></script>
     <script src="{{ STATIC_URL}}js/jquery.tablesorter.js"></script>
+    <script src="{{ STATIC_URL}}js/jquery.cookie.js"></script>
     <script src="{{ STATIC_URL}}js/jquery.tablesorter.widgets.js"></script>
     <script src="{{ STATIC_URL}}js/handlebars.js"></script>
     <script src="{{ STATIC_URL}}js/bootstrap.js"></script>
@@ -149,6 +152,7 @@
     <script src="{{ STATIC_URL}}js/evething/orders.js"></script>
     <script src="{{ STATIC_URL}}js/evething/transactions.js"></script>
     <script src="{{ STATIC_URL}}js/evething/wallet_journal.js"></script>
+    <script src="{{ STATIC_URL}}js/evething/skillplan.js"></script>
 {% else %}
     <script src="{{ static('js/evething-combined.min.js') }}"></script>
 {% endif %}{# if debug #}

@@ -344,6 +344,7 @@ def character_skillplan_common(request, character, skillplan, public=True, anony
         implants = 3
 
     show_trained = ('show_trained' in request.GET)
+    show_cumulative = ('show_cumulative' in request.GET)
 
     tt.add_time('init')
 
@@ -378,12 +379,13 @@ def character_skillplan_common(request, character, skillplan, public=True, anony
             cha_attribute=character.details.cha_attribute,
         )
     else:
+        # 0/0/0/0/0 stats is not possible. So we take new char default remap as base
         remap_stats = dict(
-            int_attribute=0,
-            mem_attribute=0,
-            per_attribute=0,
-            wil_attribute=0,
-            cha_attribute=0,
+            int_attribute=20,
+            mem_attribute=20,
+            per_attribute=20,
+            wil_attribute=20,
+            cha_attribute=19,
         )
 
     implant_stats = {}
@@ -397,9 +399,20 @@ def character_skillplan_common(request, character, skillplan, public=True, anony
     # Iterate over all entries in this skill plan
     entries = []
     total_remaining = 0.0
+    total_duration = 0.0
+    skill_cumulative_time = 0.0
+    last_remap = None
+    
     for entry in skillplan.entries.select_related('sp_remap', 'sp_skill__skill__item__item_group'):
         # It's a remap entry
         if entry.sp_remap is not None:
+            
+            # If the remap have every attributes set to 0, we do not add it.
+            # (happen when remap are not set on evemon before exporting .emp
+            if entry.sp_remap.int_stat == 0 and entry.sp_remap.mem_stat == 0 and \
+               entry.sp_remap.per_stat == 0 and entry.sp_remap.wil_stat == 0 and entry.sp_remap.cha_stat == 0:
+               continue
+               
             # Delete the previous remap if it's two in a row, that makes no sense
             if entries and entries[-1].sp_remap is not None:
                 entries.pop()
@@ -410,10 +423,16 @@ def character_skillplan_common(request, character, skillplan, public=True, anony
             remap_stats['wil_attribute'] = entry.sp_remap.wil_stat
             remap_stats['cha_attribute'] = entry.sp_remap.cha_stat
 
+            entry.z_duration = 0.0
+            entry.z_total_duration = 0.0
+            
+            last_remap = entry
+            
         # It's a skill entry
         if entry.sp_skill is not None:
             skill = entry.sp_skill.skill
-
+            entry.z_percent_trained = 0
+            
             # If this skill is already learned
             cs = learned.get(skill.item.id, None)
             if cs is not None:
@@ -439,6 +458,7 @@ def character_skillplan_common(request, character, skillplan, public=True, anony
             else:
                 entry.z_buy = True
 
+            
             # Calculate SP/hr
             if remap_stats:
                 entry.z_sppm = skill.get_sppm_stats(remap_stats, implant_stats)
@@ -457,16 +477,35 @@ def character_skillplan_common(request, character, skillplan, public=True, anony
                 entry.z_remaining = total_seconds(training_skill.end_time - utcnow)
                 entry.z_training = True
                 entry.z_percent_trained = training_skill.get_complete_percentage()
+                
             elif hasattr(entry, 'z_partial_trained'):
                 remaining_sp = skill.get_sp_at_level(entry.sp_skill.level) - skill.get_sp_at_level(entry.sp_skill.level - 1)
                 entry.z_remaining = (remaining_sp - entry.z_sp_done) / entry.z_sppm * 60
                 entry.z_total_time = remaining_sp / entry.z_sppm * 60
             else:
                 entry.z_remaining = (skill.get_sp_at_level(entry.sp_skill.level) - skill.get_sp_at_level(entry.sp_skill.level - 1)) / entry.z_sppm * 60
-
+            
+            if not hasattr(entry, 'z_trained'):
+                # set the cumulative time
+                skill_cumulative_time += entry.z_remaining
+            entry.z_cumulative = skill_cumulative_time
+            
             # Add time remaining to total
             if not hasattr(entry, 'z_trained'):
                 total_remaining += entry.z_remaining
+                if last_remap is not None:
+                    last_remap.z_duration += entry.z_remaining
+            
+            if hasattr(entry, 'z_total_time'):
+                total_duration += entry.z_total_time
+                if last_remap is not None:
+                    last_remap.z_total_duration += entry.z_total_time
+            else: 
+                total_duration += entry.z_remaining                
+                if last_remap is not None:
+                    last_remap.z_total_duration += entry.z_remaining
+
+                
 
         entries.append(entry)
 
@@ -476,6 +515,7 @@ def character_skillplan_common(request, character, skillplan, public=True, anony
         'thing/character_skillplan.html',
         {
             'show_trained': show_trained,
+            'show_cumulative': show_cumulative,
             'implants': implants,
             'implants_visible': implants_visible,
             'anonymous': anonymous,
@@ -483,6 +523,7 @@ def character_skillplan_common(request, character, skillplan, public=True, anony
             'skillplan': skillplan,
             'entries': entries,
             'total_remaining': total_remaining,
+            'total_duration': total_duration,
         },
         request,
     )

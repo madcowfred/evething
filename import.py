@@ -24,7 +24,6 @@
 # OF SUCH DAMAGE.
 # ------------------------------------------------------------------------------
 
-import cPickle
 import os
 import sys
 import time
@@ -117,7 +116,7 @@ class Importer:
         time_func('InventoryFlag', self.import_inventoryflag)
         time_func('NPCFaction', self.import_npcfaction)
         time_func('NPCCorporation', self.import_npccorporation)
-        time_func('SkillMap', self.build_skill_map)
+        time_func('Item Prerequisite', self.import_item_prerequisite)
 
     # -----------------------------------------------------------------------
     # Regions
@@ -382,9 +381,22 @@ class Importer:
     def import_item(self):
         added = 0
 
-        self.cursor.execute(
-            'SELECT typeID, typeName, groupID, marketGroupID, portionSize, volume, basePrice FROM invTypes')
-
+        self.cursor.execute("""
+            SELECT 
+                  i.typeID
+                , i.typeName
+                , i.groupID
+                , i.marketGroupID
+                , i.portionSize
+                , i.volume
+                , i.basePrice 
+                , COALESCE(dta.valueInt, dta.valueFloat)
+            FROM invTypes i
+            LEFT JOIN dgmTypeAttributes dta
+                ON  dta.typeID      = i.typeID
+                AND dta.attributeID = 633
+        """)
+				
         bulk_data = {}
         mg_ids = set()
         for row in self.cursor:
@@ -394,9 +406,9 @@ class Importer:
 
         data_map = Item.objects.in_bulk(bulk_data.keys())
         mg_map = MarketGroup.objects.in_bulk(mg_ids)
-
         new = []
         for id, data in bulk_data.items():
+
             if not data[0] or not data[1]:
                 continue
 
@@ -416,13 +428,14 @@ class Importer:
             item = data_map.get(id, None)
             if item is not None:
                 if item.name != data[0] or item.portion_size != portion_size or item.volume != volume or \
-                        item.base_price != base_price or item.market_group_id != mg_id:
+                   item.base_price != base_price or item.market_group_id != mg_id or item.meta_level != data[6]:
                     print '==> Updated data for #%s (%r)' % (item.id, item.name)
-                    item.name = data[0]
-                    item.portion_size = portion_size
-                    item.volume = volume
-                    item.base_price = base_price
+                    item.name            = data[0]
+                    item.portion_size    = portion_size
+                    item.volume          = volume
+                    item.base_price      = base_price
                     item.market_group_id = mg_id
+                    item.meta_level      = data[6]
                     item.save()
                 continue
 
@@ -434,6 +447,7 @@ class Importer:
                 portion_size=portion_size,
                 volume=volume,
                 base_price=base_price,
+                meta_level=data[6]
             )
             new.append(item)
             added += 1
@@ -750,40 +764,85 @@ class Importer:
 
         return added
 
+
     # -----------------------------------------------------------------------
-    # Build the skill map
-    def build_skill_map(self):
-        # Get all skills
-        skill_map = {}
-        for skill in Skill.objects.all():
-            skill_map[skill.item_id] = {}
-
-        ids = ','.join(map(str, skill_map.keys()))
-
-        # Gather skill pre-requisite data
+    # Items prerequisites
+    def import_item_prerequisite(self):
+        added = 0
+ 
+        # skill prerequisites
         self.cursor.execute("""
-            SELECT  typeID,
-                    attributeID,
-                    COALESCE(valueFloat, valueInt)
-            FROM    dgmTypeAttributes
-            WHERE   attributeID in (182, 183, 184, 1285, 1289, 1290, 277, 278, 279, 1286, 1287, 1288)
-                    AND typeID in (%s)
-        """ % (ids))
-
+            SELECT 
+                i.typeID         as itemID, 
+                ip.typeID        as prerqSkillID,
+                dtal.valueInt    as prerqSkillLevelInt,
+                dtal.valueFloat  as prerqSkillLevelFloat
+            FROM invGroups g
+            LEFT JOIN invTypes i 
+                ON i.groupID = g.groupID
+            LEFT JOIN dgmTypeAttributes dta
+                ON dta.typeID = i.typeID AND
+                   dta.attributeID IN (182, 183, 184, 1285, 1289, 1290)
+            LEFT JOIN dgmTypeAttributes dtal 
+                ON dtal.typeID = dta.typeID AND 
+                (
+                    (dtal.attributeID = 277 AND dta.attributeID = 182) OR
+                    (dtal.attributeID = 278 AND dta.attributeID = 183) OR
+                    (dtal.attributeID = 279 AND dta.attributeID = 184) OR
+                    (dtal.attributeID = 1286 AND dta.attributeID = 1285) OR
+                    (dtal.attributeID = 1287 AND dta.attributeID = 1289) OR
+                    (dtal.attributeID = 1288 AND dta.attributeID = 1290)
+                )
+            JOIN invTypes ip 
+                ON ip.typeID = dta.valueInt OR
+                   ip.typeID = dta.valueFloat
+            
+            WHERE i.typeID NOT IN (19430, 9955) 
+                AND i.published = 1
+                AND g.categoryID NOT IN (0,1,2,3,25)
+            ORDER BY g.groupName DESC        
+        """)
+        
+        ItemPrerequisite.objects.all().delete()
+        new=[]
+        
         for row in self.cursor:
-            typeID = int(row[0])
-            attrID = int(row[1])
-            value = int(row[2])
+            # if no parent skills, continue
+            if row[1] is None:
+                continue
+            
+            # get the item where we'll add some prereq skills
+            try:
+                item = Item.objects.get(id=row[0])
+            except Item.DoesNotExist:
+                continue
+            
+            # get the prereq skill
+            try:
+                skill = Skill.objects.get(item_id=row[1])
+            except Skill.DoesNotExist:
+                continue
+            
+            # get the skill level required
+            if row[2]:
+                level = row[2]
+            else:
+                level = row[3]
+                
+            prereq = ItemPrerequisite(
+                item=item,
+                skill=skill,
+                level=level
+            )
+            new.append(prereq)
+            
+            added += 1
 
-            if attrID in PREREQ_SKILLS:
-                skill_map[typeID].setdefault(PREREQ_SKILLS[attrID], [None, None])[0] = value
-            elif attrID in PREREQ_LEVELS:
-                skill_map[typeID].setdefault(PREREQ_LEVELS[attrID], [None, None])[1] = value
+        if new:
+            ItemPrerequisite.objects.bulk_create(new)
 
-        # Save the skill map to a pickle
-        cPickle.dump(skill_map, open('skill_map.pickle', 'w'))
+        return added
 
-        return 1
 
 # ---------------------------------------------------------------------------
 

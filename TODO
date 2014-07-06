@@ -30,13 +30,6 @@
     = Will require modifying all view code to use .extra() and a binary AND on the access_mask field, ugh
       # apikey.get_masks() and comparing the list to apikey.foo_MASK maybe? Possibly slow.
 
-* skill plans:
-  - Implement skill plan creation (hahahaha oh god)
-    = Use AJAX and modal windows for add/delete/re-order?
-    = Step 1: basic adding of skills with pre-requisites
-    = Step 2: deletion of skills and a useful "are you sure?" prompt if other skills depend on it
-    = Step 3: re-ordering of entries (complete with moving pre-reqs)
-
 * tasks:
   - Make SystemEvent objects for admin-related events
   - Do something about fixing the godawful mess where adding a task requires editing multiple places.
@@ -84,13 +77,12 @@
   - Skill tooltips:
     = Should display training time for each further level
 
-* views.character_skillplan:
-  - When visiting a skill plan with a character, it seems the remaining time does not take into account the sp
-    already spent on this skill, unless it's currently training.
-
 * views.contracts:
   - Summary table similar to orders
 
 * views.home:
   - Add options to hide corp wallet/event log sections
   - Add options to ignore specific notifications for specific characters.
+
+* views.skillplan
+  - Add items/ships/certificates browser to add skill based on these points.

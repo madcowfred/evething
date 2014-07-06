@@ -6,3 +6,4 @@ django-mptt>=0.5
 requests>=1.0
 MarkupSafe>=0.15
 ordereddict
+python-memcached

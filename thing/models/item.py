@@ -31,17 +31,20 @@ from django.db.models import Sum
 from thing.models.itemgroup import ItemGroup
 from thing.models.marketgroup import MarketGroup
 
+from thing.models.itemprerequisite import ItemPrerequisite
+
 
 class Item(models.Model):
     id = models.IntegerField(primary_key=True)
     name = models.CharField(max_length=128)
 
     item_group = models.ForeignKey(ItemGroup)
-    market_group = models.ForeignKey(MarketGroup, blank=True, null=True)
+    market_group = models.ForeignKey(MarketGroup, blank=True, null=True, related_name='items')
 
     portion_size = models.IntegerField()
     # 0.0025 -> 10,000,000,000
     volume = models.DecimalField(max_digits=16, decimal_places=4, default=0)
+    meta_level = models.IntegerField(null=True)
 
     base_price = models.DecimalField(max_digits=15, decimal_places=2, default=0)
     sell_price = models.DecimalField(max_digits=15, decimal_places=2, default=0)
@@ -49,6 +52,7 @@ class Item(models.Model):
 
     class Meta:
         app_label = 'thing'
+        ordering = ('meta_level','name')
 
     def __unicode__(self):
         return self.name
@@ -60,3 +64,85 @@ class Item(models.Model):
             return Decimal('0')
         else:
             return Decimal(str(agg['movement__sum']))
+    # Item Prerequisite methods  
+    # dict of all prerequisites for a given item    
+    prerequisite_list = None
+    
+    def add_prerequisite(self, skill, level):
+        prereq_skill, created = ItemPrerequisite.objects.get_or_create(
+            item=self,
+            skill=skill,
+            level=level)
+        return prereq_skill
+    
+    def remove_prerequisite(self, skill):
+        ItemPrerequisite.objects.filter(
+            item=self,
+            skill=skill).delete()
+        return self
+    
+    def clean_prerequisites(self):
+        ItemPrerequisite.objects.filter(
+            item=self).delete()
+        return self
+
+    def get_prerequisites(self):
+        """
+        Return the "first level" of prerequisites.
+        """
+        return ItemPrerequisite.objects.filter(
+            item=self)
+
+    def get_flat_prerequisites(self):
+        prerequisites = self.get_prerequisites()
+        skill_list = []
+        if prerequisites is None:
+            return skill_list
+            
+        for itemprereq in prerequisites:
+            prereq_skill = itemprereq.skill
+            
+            # get prereq of the current parent
+            skill_list.extend(prereq_skill.item.get_flat_prerequisites())
+            
+            # and add the skill into the list too
+            skill_list.append((prereq_skill.item_id, itemprereq.level))
+            
+        return skill_list
+
+
+    def is_prerequisite(self, skill, level): 
+        """
+        Return true if a given skill at a given level is a prerequisite of the current item
+        """
+
+        if self.prerequisite_list is None:
+            self.prerequisite_list = Item.get_all_prerequisites(self)
+        
+        if skill.item_id in self.prerequisite_list and self.prerequisite_list[skill.item_id] >= level:
+            return True
+        return False
+         
+    @staticmethod
+    def get_all_prerequisites(item):
+        'Get all the prerequisites of a given item (search in all dependencies)'
+        
+        # return a list of ItemPrerequisite
+        prereqs = item.get_prerequisites()
+        
+        if prereqs is None:
+            return dict()
+        
+        list_prereqs=dict()
+        
+        for itemprereq in prereqs:
+            list_prereqs[itemprereq.skill.item_id] = itemprereq.level
+            
+            for skill_id,level in Item.get_all_prerequisites(itemprereq.skill.item).items():
+                if skill_id in list_prereqs: 
+                    list_prereqs[skill_id] = max(list_prereqs[skill_id], level)
+                else:
+                    list_prereqs[skill_id] = level
+        
+        return list_prereqs
+

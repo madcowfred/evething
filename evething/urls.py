@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.conf.urls import patterns, include, url
+from django.http import HttpResponseRedirect
 
 
 # Uncomment the next two lines to enable the admin:
@@ -29,9 +30,23 @@ urlpatterns += patterns(
     (r'^account/apikey/delete/$', 'account_apikey_delete'),
     (r'^account/apikey/edit/$', 'account_apikey_edit'),
     (r'^account/apikey/purge/$', 'account_apikey_purge'),
-    (r'^account/skillplan/add/$', 'account_skillplan_add'),
-    (r'^account/skillplan/delete/$', 'account_skillplan_delete'),
-    (r'^account/skillplan/edit/$', 'account_skillplan_edit'),
+    
+    (r'^skillplan/$', 'skillplan'),
+    (r'^skillplan/ajax/add/skill/(?P<skillplan_id>\d+)/$','skillplan_ajax_add_skill'),
+    (r'^skillplan/ajax/add/remap/(?P<skillplan_id>\d+)/$','skillplan_ajax_add_remap'),
+    (r'^skillplan/ajax/clean/(?P<skillplan_id>\d+)/$','skillplan_ajax_clean'),
+    (r'^skillplan/ajax/delete/entry/(?P<skillplan_id>\d+)/$','skillplan_ajax_delete_entry'),
+    (r'^skillplan/ajax/entries/reorder/(?P<skillplan_id>\d+)/$','skillplan_ajax_reorder_entry'),
+    (r'^skillplan/ajax/entries/(?P<skillplan_id>\d+)/(?P<character_id>\d+)/(?P<implants>\d+)/(?P<show_trained>\d+)/$','skillplan_ajax_render_entries'),
+    (r'^skillplan/ajax/import/eft/(?P<skillplan_id>\d+)/$', 'skillplan_ajax_import_eft'),
+    (r'^skillplan/ajax/optimize/remaps/(?P<skillplan_id>\d+)/$','skillplan_ajax_optimize_remaps'),
+    (r'^skillplan/create/$', 'skillplan_create'),
+    (r'^skillplan/delete/$', 'skillplan_delete'),
+    (r'^skillplan/edit/(?P<skillplan_id>\d+)$', 'skillplan_edit'),
+    (r'^skillplan/edit/$', lambda x: HttpResponseRedirect('/skillplan/')),
+    (r'^skillplan/import/$', 'skillplan_import_emp'),
+    (r'^skillplan/export/(?P<skillplan_id>\d+)$', 'skillplan_export'),
+    (r'^skillplan/info/edit/$', 'skillplan_edit_info'),
 
     (r'^assets/$', 'assets_summary'),
     (r'^assets/filter/$', 'assets_filter'),
