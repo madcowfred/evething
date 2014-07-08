@@ -9,9 +9,6 @@ EVEthing.mail = {
         // Mark read button
         $('#mail-mark-read-button').on('click', EVEthing.mail.mark_read_click);
 
-        // Mail all checkbox click
-        $('#mail-list-check-all').on('click', EVEthing.mail.mail_check_all_click);
-
         // Mail link click
         $('#mail-list-table').on('click', '.mail-link', EVEthing.mail.mail_link_click);
 
@@ -113,7 +110,10 @@ EVEthing.mail = {
         });
         Handlebars.registerHelper('subjectText', function () {
             return this.title || '*BLANK SUBJECT*';
-        })
+        });
+
+        // Mail all checkbox click, move down here so it triggers after the tablesorter changes the DOM
+        $('#mail-list-check-all').on('click', EVEthing.mail.mail_check_all_click);
     },
 
     // Sets filters based on the document hash
