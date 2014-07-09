@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+{% import 'macros/icons.html' as icons %}
+
+{% block title %}PI{% endblock %}
+
+{% block extra_js %}
+    <script type="text/javascript">
+      $(document).ready(function() {
+        // template provided variables
+        EVEthing.pi.onload();
+      });
+    </script>
+{% endblock %}
+
+{% block content %}
+      <div class="row">
+        <div class="col-sm-12">
+          <h2>Planetary Interaction</h2>
+        </div>
+      </div>
+      <div id="sidenav-container" class="row">
+        <div class="col-sm-3">
+          <div class="pi-sidenav">
+            <div class="panel panel-default">
+              <div class="panel-heading"><a href="#extractors"><span class="fa fa-chevron-right"></span> All Extractors</a></div>
+              <ul class="list-group" id="sidenav">
+              {%- for character in map %}
+              <li class="list-group-item"><a href="#{{ map[character]['character'].id }}"><span class="fa fa-chevron-right"></span> {{ map[character]['character'].name }}</a></li>
+              {%- endfor %}
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-9">
+          <div id="extractors" class="anchor"></div>
+          <table class="table table-striped table-bordered table-condensed">
+            <caption>Extractors for all characters and locations</caption>
+            <thead>
+              <tr>
+                <th>Character</th>
+                <th>Location</th>
+                <th>Quantity/Cycle</th>
+                <th>Install Time</th>
+                <th>Expiry Time</th>
+                <th>Remaining</th>
+              </tr>
+            </thead>
+            <tbody>
+            {% for character in map %}
+            {% for colony in map[character]['colonies'] %}
+            {% for extractor in map[character]['colonies'][colony]['extractors']  %}
+              <tr>
+                <td>{{ map[character]['character'].name }}</td>
+                <td><a href="#{{ map[character]['colonies'][colony]['colony'].planet_id }}">{{ map[character]['colonies'][colony]['colony'].planet }}</a></td>
+                <td>{{ extractor.quantity_per_cycle }}</td>
+                <td>{{ extractor.installed }}</td>
+                <td>{{ extractor.expires }}</td>
+                <td class="{{ extractor.alert_class() }}">{{ extractor.expires|timeuntil }}</td>
+              </tr>
+            {% endfor %}
+            {% endfor %}
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      {% for character in map %}
+      <div class="row">
+        <div class="col-sm-9 col-sm-offset-3">
+          {% if not loop.first %}<hr/>{% endif %}
+          <div id="{{ map[character]['character'].id }}" class="anchor"></div>
+          <h4>{{ map[character]['character'].name }}</h4>
+          {% for colony in map[character]['colonies'] %}
+          <div class="panel panel-default">
+          <div id="{{ map[character]['colonies'][colony]['colony'].planet_id }}" class="anchor"></div>
+          <div class="panel-heading">
+            <h3 class="panel-title">{{ map[character]['colonies'][colony]['colony'].planet }}</h3>
+          </div
+          <div class="panel-body">
+          <table class="table table-striped table-bordered table-condensed">
+            <thead>
+              <tr>
+                <th>Extractors</th>
+                <th>Quantity/Cycle</th>
+                <th>Install Time</th>
+                <th>Expiry Time</th>
+                <th>Remaining</th>
+              </tr>
+            </thead>
+            <tbody>
+            {% for extractor in map[character]['colonies'][colony]['extractors']  %}
+              <tr>
+                <td>{{ extractor.type }}</td>
+                <td>{{ extractor.quantity_per_cycle }}</td>
+                <td>{{ extractor.installed }}</td>
+                <td>{{ extractor.expires }}</td>
+                <td class="{{ extractor.alert_class() }}">{{ extractor.expires|timeuntil }}</td>
+              </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+          <br/>
+          <div class="row">
+            <div class="col-sm-12">
+              <table class="table table-striped table-bordered table-condensed">
+                <thead>
+                  <tr>
+                    <th>Pin</th>
+                    <th>Type</th>
+                    <th>Contents</th>
+                    <th>Quantity</th>
+                    <th>Size</th>
+                  </tr>
+                </thead>
+                <tbody>
+                {% for storage in map[character]['colonies'][colony]['storage']  %}
+                  {%- set percentage = storage.percent_full() -%}
+                  <tr>
+                    <td>{{ storage.pin_id }}</td>
+                    <td>{{ storage.type }}</td>
+                    <td>&nbsp;</td>
+                    <td>&nbsp;</td>
+                    <td><div class="progress nomargin"><div class="progress-bar {% if percentage > 90 %}progress-bar-danger{% elif percentage > 80 %}progress-bar-warning{% else %}progress-bar-success{% endif %}" role="progressbar" aria-valuenow="{{ storage.content_size }}" aria-valuemin="0" aria-valuemax="{{ storage.get_capacity() }}" style="width: {{ percentage|round(1) }}%;">{{ storage.content_size|round(1) }}</div></div></td>
+                  </tr>
+                  {% for content in storage.pincontent_set.all() %}
+                  <tr>
+                    <td>&nbsp;</td>
+                    <td>&nbsp;</td>
+                    <td>{{ content.item }}</td>
+                    <td>{{ content.quantity }}</td>
+                    <td>{{ (content.item.volume*content.quantity)|round(1) }}</td>
+                  </tr>
+                  {% endfor %}
+                {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endfor %}
+{% endblock %}

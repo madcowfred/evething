@@ -25,6 +25,8 @@ from skillqueue import SkillQueue
 from standings import Standings
 from walletjournal import WalletJournal
 from wallettransactions import WalletTransactions
+from planetarycolonies import PlanetaryColonies
+from planetarypins import PlanetaryPins
 
 # Global API tasks
 from alliancelist import AllianceList

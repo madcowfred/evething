@@ -55,3 +55,5 @@ from thing.models.spskill import SPSkill
 from thing.models.taskstate import TaskState
 from thing.models.transaction import Transaction
 from thing.models.userprofile import UserProfile
+from thing.models.planetarycolony import Colony
+from thing.models.planetarypin import Pin, PinContent

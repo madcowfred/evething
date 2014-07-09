@@ -73,6 +73,8 @@ urlpatterns += patterns(
 
     (r'^wallet_journal/$', 'wallet_journal'),
     (r'^wallet_journal/aggregate/$', 'wallet_journal_aggregate'),
+
+    (r'^pi/$', 'pi'),
 )
 
 if getattr(settings, 'ENABLE_GSFAPI', None):

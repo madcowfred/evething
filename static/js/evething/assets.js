@@ -27,13 +27,27 @@ EVEthing.assets = {
         $(".asset-expand").on('click', function () {
             var $this = $(this);
 
-            if ($this.hasClass('icon-chevron-right')) {
-                $this.addClass('icon-chevron-down').removeClass('icon-chevron-right');
+            if ($this.hasClass('fa-chevron-right')) {
+                $this.addClass('fa-chevron-down').removeClass('fa-chevron-right');
                 $($this.attr('data-target')).show();
             } else {
-                $this.addClass('icon-chevron-right').removeClass('icon-chevron-down');
+                $this.addClass('fa-chevron-right').removeClass('fa-chevron-down');
                 $($this.attr('data-target')).hide();
             }
+        });
+
+        $('#collapse-all').on('click', function () {
+            var assets = $('.asset-collapse'),
+                expand = $('.asset-expand');
+            expand.addClass('fa-chevron-right').removeClass('fa-chevron-down');
+            assets.hide();
+        });
+
+        $('#expand-all').on('click', function () {
+            var assets = $('.asset-collapse'),
+                expand = $('.asset-expand');
+            expand.addClass('fa-chevron-down').removeClass('fa-chevron-right');
+            assets.show();
         });
 
         // Bind the ship EFT fitting buttons
@@ -72,6 +86,13 @@ EVEthing.assets = {
         // Select the EFT textarea when the modal is shown
         $('#eft-modal').on('shown', function () {
             $('#eft-textarea').select();
+        });
+
+        $(".assets-table").tablesorter({
+            headers: { 0: { sorter: false }},
+            widgets: ['uitheme', 'filter'],
+            theme: 'bootstrap',
+            headerTemplate : '{content} {icon}'
         });
     }
 };

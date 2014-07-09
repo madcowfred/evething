@@ -198,7 +198,7 @@ def home(request):
 
             if timediff < 0:
                 char.z_notifications.append({
-                    'icon': 'time',
+                    'icon': 'clock-o',
                     'text': 'Expired',
                     'tooltip': 'Game time has expired!',
                     'span_class': 'low-game-time',
@@ -206,7 +206,7 @@ def home(request):
 
             elif timediff < EXPIRE_WARNING:
                 char.z_notifications.append({
-                    'icon': 'time',
+                    'icon': 'clock-o',
                     'text': shortduration(timediff),
                     'tooltip': 'Remaining game time is low!',
                     'span_class': 'low-game-time',
@@ -255,7 +255,7 @@ def home(request):
 
             if t:
                 char.z_notifications.append({
-                    'icon': 'lightbulb',
+                    'icon': 'lightbulb-o',
                     'text': ', '.join(t),
                     'tooltip': 'Missing stat implants for currently training skill!',
                 })
