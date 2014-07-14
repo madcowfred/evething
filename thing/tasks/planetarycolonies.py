@@ -93,7 +93,8 @@ class PlanetaryColonies(APITask):
                 )
 
         # Remove old colonies that weren't present in the current API request
-        for old_colony in c_map:
+        for id in c_map:
+            old_colony = c_map.get(id)
             old_colony.delete()
 
         return True
