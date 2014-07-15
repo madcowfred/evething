@@ -110,7 +110,7 @@ class PlanetaryPins(APITask):
             pin.save(update_fields=['content_size'])
 
         # Delete pins that weren't in the API results
-        for pin in p_map.itervalues():
+        for pin in old_pins.itervalues():
             pin.delete()
 
         return True
