@@ -52,8 +52,10 @@ class PlanetaryPins(APITask):
         p_filter = Pin.objects.filter(colony=colony)
 
         p_map = {}
+        old_pins = {}
         for pin in p_filter.all():
             p_map[pin.pin_id] = pin
+            old_pins[pin.pin_id] = pin
 
         if self.fetch_api(PlanetaryPins.url, params) is False or self.root is None:
             return
@@ -68,6 +70,8 @@ class PlanetaryPins(APITask):
             if pin is None:
                 pin = Pin()
                 pin.pin_id = pin_id
+            else:
+                del old_pins[pin_id]
 
             pin.colony = colony
             pin.type_id = int(row.attrib['typeID'])
@@ -104,5 +108,9 @@ class PlanetaryPins(APITask):
                     content.save()
             pin.content_size = volume
             pin.save(update_fields=['content_size'])
+
+        # Delete pins that weren't in the API results
+        for pin in p_map.itervalues():
+            pin.delete()
 
         return True
