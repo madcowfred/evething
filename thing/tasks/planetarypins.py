@@ -70,8 +70,6 @@ class PlanetaryPins(APITask):
             if pin is None:
                 pin = Pin()
                 pin.pin_id = pin_id
-            else:
-                del old_pins[pin_id]
 
             pin.colony = colony
             pin.type_id = int(row.attrib['typeID'])
@@ -94,6 +92,9 @@ class PlanetaryPins(APITask):
                     i_map[content_id] = Item.objects.get(id=content_id)
 
             p_map[pin_id] = pin
+
+            if pin_id in old_pins:
+                del old_pins[pin_id]
 
         for pid, pin in p_map.items():
             pin.save()
