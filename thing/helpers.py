@@ -232,4 +232,4 @@ def can_register(user):
 
 @register.filter
 def timeuntil(d):
-    return timesince(datetime.now(), d)
+    return timesince(datetime.utcnow(), d)
