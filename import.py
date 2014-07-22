@@ -31,6 +31,8 @@ import time
 
 from decimal import Decimal
 
+import yaml
+
 # Set up our environment and import settings
 os.environ['DJANGO_SETTINGS_MODULE'] = 'evething.settings'
 from django.db import connections
@@ -283,7 +285,7 @@ class Importer:
                 # hasn't changed
                 mg = data_map.get(id, None)
                 if mg is not None:
-                    if parent is not None and mg.parent.id != parent.id:
+                    if parent is not None and mg.parent is not None and mg.parent.id != parent.id:
                         mg.delete()
                     else:
                         if mg.name != data[0]:
@@ -447,6 +449,8 @@ class Importer:
     def import_blueprint(self):
         # Blueprints
         added = 0
+
+        return added
 
         self.cursor.execute("""
             SELECT  b.blueprintTypeID, t.typeName, b.productTypeID, b.productionTime, b.productivityModifier, b.materialModifier, b.wasteFactor
