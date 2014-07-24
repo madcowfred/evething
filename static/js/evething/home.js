@@ -290,7 +290,7 @@ EVEthing.home.animate = function(lastFrame) {
                     // We want to give evething a little bit of time to actually run the update
                     if (EVEthing.home.REFRESH_HINTS['skill_queue'][i] < (now + EVEthing.home.HOME_PAGE_UPDATE_DELAY)) {
                         characters[i] = true;
-                        options['skill_queue'] = true;
+                        options['skill_queues'] = true;
                     }
                 }
 
