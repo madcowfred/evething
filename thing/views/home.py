@@ -80,10 +80,10 @@ def __characters(request, out, known):
     # We need to cache a list of all of the users characters we know about
     # so that we can attempt to load them from the cache in a moment
     cached_char_list_key = 'home:characters:%d' % (request.user.id,)
-    cached_char_list = cache.get(cached_char_list_key)
+    cached_char_list = cache.get(cached_char_list_key, [])
 
     # keep an unalterd copy of the list for recaching later
-    cached_char_list_unaltered = cached_char_list if cached_char_list else []
+    cached_char_list_unaltered = cached_char_list
 
     cached_char_key_base = 'home:character:%d'
 
@@ -93,7 +93,7 @@ def __characters(request, out, known):
     # additional characters
     if out['characters']:
         cached_char_list = list(
-            set(cached_char_list).intersection(out['characters'])
+            set(cached_char_list).intersection(out['characters'].keys())
         )
 
     # Try and retreived chached character information
