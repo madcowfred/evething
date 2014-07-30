@@ -69,7 +69,7 @@ class Pin(models.Model):
     def percent_full(self):
         cap = self.get_capacity()
         if cap > 0:
-            return (self.content_size/cap)*100
+            return (self.content_size / cap) * 100
         else:
             return 0
 

@@ -75,7 +75,7 @@ def render_page(template, data, request, character_ids=None, corporation_ids=Non
                 |
                 Q(corporation__in=corp_job_ids)
             )
-            jobs = jobs.filter(completed=False, end_time__lte=utcnow)
+            jobs = jobs.filter(status=1, end_date__lte=utcnow)
             data['nav_industryjobs'] = jobs.aggregate(t=Count('id'))['t']
 
             # Aggregate unread mail messages

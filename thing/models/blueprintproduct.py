@@ -25,19 +25,21 @@
 
 from django.db import models
 
-#from thing.models.blueprintcomponent import BlueprintComponent
+from thing.models.blueprint import Blueprint
+from thing.models.item import Item
+from thing.models.industryjob import IndustryJob
 
 
-class Blueprint(models.Model):
-    """Blueprints"""
-    id = models.IntegerField(primary_key=True)
-    name = models.CharField(max_length=128)
+class BlueprintProduct(models.Model):
+    """Blueprint products"""
+    blueprint = models.ForeignKey(Blueprint)
 
-    productionLimit = models.IntegerField()
+    activity = models.IntegerField(choices=IndustryJob.ACTIVITY_CHOICES)
+    item = models.ForeignKey(Item)
+    count = models.IntegerField()
 
     class Meta:
         app_label = 'thing'
-        ordering = ('name',)
 
     def __unicode__(self):
-        return self.name
+        return '%dx %s' % (self.activity, self.item.name)

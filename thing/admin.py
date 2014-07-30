@@ -1,7 +1,8 @@
 from django.contrib import admin
 from thing.models import APIKey, BlueprintInstance, Campaign, Character, CharacterConfig, Corporation, \
     Alliance, APIKeyFailure, Asset, AssetSummary, BlueprintComponent, Blueprint, CorpWallet, \
-    TaskState, CharacterDetails, Contract, UserProfile, Transaction, JournalEntry, Colony, Pin
+    TaskState, CharacterDetails, Contract, UserProfile, Transaction, JournalEntry, Colony, Pin, BlueprintProduct, \
+    IndustryJob
 
 
 class APIKeyAdmin(admin.ModelAdmin):
@@ -43,11 +44,17 @@ class AssetSummaryAdmin(admin.ModelAdmin):
 
 
 class BlueprintComponentAdmin(admin.ModelAdmin):
-    list_display = ('blueprint', 'item', 'count', 'needs_waste')
+    list_display = ('blueprint', 'activity', 'item', 'count', 'consumed')
+    list_filter = ('activity',)
+
+
+class BlueprintProductAdmin(admin.ModelAdmin):
+    list_display = ('blueprint', 'activity', 'item', 'count')
+    list_filter = ('activity',)
 
 
 class BlueprintAdmin(admin.ModelAdmin):
-    list_display = ('name', 'item', 'production_time')
+    list_display = ('name',)
 
 
 class CorpWalletAdmin(admin.ModelAdmin):
@@ -82,6 +89,10 @@ class ColonyAdmin(admin.ModelAdmin):
 class PinAdmin(admin.ModelAdmin):
     list_display = ('pin_id', 'colony', 'type', 'expires')
 
+
+class IndustryJobAdmin(admin.ModelAdmin):
+    list_display = ('character', 'activity', 'blueprint', 'product', 'status')
+
 admin.site.register(APIKey, APIKeyAdmin)
 admin.site.register(Character, CharacterAdmin)
 admin.site.register(CharacterConfig)
@@ -93,6 +104,7 @@ admin.site.register(APIKeyFailure, APIKeyFailureAdmin)
 admin.site.register(Asset, AssetAdmin)
 admin.site.register(AssetSummary, AssetSummaryAdmin)
 admin.site.register(BlueprintComponent, BlueprintComponentAdmin)
+admin.site.register(BlueprintProduct, BlueprintProductAdmin)
 admin.site.register(Blueprint, BlueprintAdmin)
 admin.site.register(CorpWallet, CorpWalletAdmin)
 admin.site.register(TaskState, TaskStateAdmin)
@@ -103,3 +115,4 @@ admin.site.register(Transaction, TransactionAdmin)
 admin.site.register(JournalEntry, JournalEntryAdmin)
 admin.site.register(Colony, ColonyAdmin)
 admin.site.register(Pin, PinAdmin)
+admin.site.register(IndustryJob, IndustryJobAdmin)

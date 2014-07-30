@@ -27,15 +27,17 @@ from django.db import models
 
 from thing.models.blueprint import Blueprint
 from thing.models.item import Item
+from thing.models.industryjob import IndustryJob
 
 
 class BlueprintComponent(models.Model):
     """Blueprint components"""
     blueprint = models.ForeignKey(Blueprint)
 
+    activity = models.IntegerField(choices=IndustryJob.ACTIVITY_CHOICES)
     item = models.ForeignKey(Item)
     count = models.IntegerField()
-    needs_waste = models.BooleanField(default=True)
+    consumed = models.BooleanField()
 
     class Meta:
         app_label = 'thing'

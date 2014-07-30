@@ -29,11 +29,8 @@
                       <th>Installer</th>
                       <th>Location</th>
                       <th>Type</th>
-                      <th>ML</th>
-                      <th>PL</th>
-                      <th>Output</th>
+                      <th>Blueprint</th>
                       <th>Runs</th>
-                      <th>Units</th>
                       <th>Start Time</th>
                       <th>End Time</th>
                       <th>Ready</th>
@@ -68,13 +65,10 @@
                         {%- endif %}
                       </td>
                       <td>{{ job.get_activity_display() }}</td>
-                      <td class="industry-level">{{ job.item_material_level }}</td>
-                      <td class="industry-level">{{ job.item_productivity_level }}</td>
-                      <td>{{ job.output_item }}</td>
+                      <td>{{ job.blueprint }}</td>
                       <td class="industry-runs">{{ job.runs|commas }}</td>
-                      <td class="industry-units">{{ job.z_units|commas }}</td>
-                      <td class="journal-date">{{ job.begin_time }}</td>
-                      <td class="journal-date">{{ job.end_time }}</td>
+                      <td class="journal-date">{{ job.start_date }}</td>
+                      <td class="journal-date">{{ job.end_date }}</td>
                       <td class="industry-ready">
                         {{ icons.success_fail(job.z_ready) }}
                       </td>
@@ -100,11 +94,8 @@
                       <th>Installer</th>
                       <th>Location</th>
                       <th>Type</th>
-                      <th>ML</th>
-                      <th>PL</th>
                       <th>Output</th>
                       <th>Runs</th>
-                      <th>Units</th>
                       <th>Start Time</th>
                       <th>End Time</th>
                       <th>Status</th>
@@ -139,14 +130,11 @@
                         {%- endif %}
                       </td>
                       <td>{{ job.get_activity_display() }}</td>
-                      <td class="industry-level">{{ job.item_material_level }}</td>
-                      <td class="industry-level">{{ job.item_productivity_level }}</td>
-                      <td>{{ job.output_item }}</td>
+                      <td>{{ job.product }}</td>
                       <td class="industry-runs">{{ job.runs|commas }}</td>
-                      <td class="industry-units">{{ job.z_units|commas }}</td>
-                      <td class="journal-date">{{ job.begin_time }}</td>
-                      <td class="journal-date">{{ job.end_time }}</td>
-                      <td class="industry-status">{{ job.get_completed_status_display() }}</td>
+                      <td class="journal-date">{{ job.start_date }}</td>
+                      <td class="journal-date">{{ job.end_date }}</td>
+                      <td class="industry-status">{{ job.get_status_display() }}</td>
                     </tr>
                     {%- else %}
                     <tr>

@@ -97,7 +97,8 @@ WHERE   ca.character_id = c.id
 """
 
 # item_ids for all BlueprintInstance objects and related components
-all_item_ids = """
+# Commenting out old query until blueprints are functional again
+'''all_item_ids = """
 SELECT  bp.item_id
 FROM    thing_blueprint bp, thing_blueprintinstance bpi
 WHERE   bp.id = bpi.blueprint_id
@@ -114,6 +115,12 @@ FROM    thing_asset a, thing_item i, thing_itemgroup ig
 WHERE   a.item_id = i.id
         AND i.item_group_id = ig.id
         AND ig.category_id != 9
+""" '''
+all_item_ids = """
+SELECT  a.item_id
+FROM    thing_asset a, thing_item i, thing_itemgroup ig
+WHERE   a.item_id = i.id
+        AND i.item_group_id = ig.id
 """
 
 journal_aggregate_char = """

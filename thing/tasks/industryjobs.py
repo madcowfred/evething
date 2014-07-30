@@ -27,7 +27,7 @@ import datetime
 
 from .apitask import APITask
 
-from thing.models import Character, IndustryJob, Event, InventoryFlag, Item, System, APIKey
+from thing.models import Character, IndustryJob, Event, Item, Blueprint, System, APIKey
 
 
 class IndustryJobs(APITask):
@@ -56,6 +56,7 @@ class IndustryJobs(APITask):
         # Fetch the API data
         params = {'characterID': character_id}
         if self.fetch_api(url, params) is False or self.root is None:
+            self.log_info('API error')
             return
 
         # Generate a job id map
@@ -65,8 +66,8 @@ class IndustryJobs(APITask):
 
         # Iterate over the returned result set
         now = datetime.datetime.now()
-        flag_ids = set()
         item_ids = set()
+        blueprint_ids = set()
         system_ids = set()
 
         rows = []
@@ -77,28 +78,27 @@ class IndustryJobs(APITask):
             # Job exists
             ij = job_map.get(job_id, None)
             if ij is not None:
-                # Job is still active, update relevant details
-                if row.attrib['completed'] == '0':
-                    install_time = self.parse_api_date(row.attrib['installTime'])
-                    begin_time = self.parse_api_date(row.attrib['beginProductionTime'])
-                    end_time = self.parse_api_date(row.attrib['endProductionTime'])
-                    pause_time = self.parse_api_date(row.attrib['pauseProductionTime'])
+                # Update changable details
+                start_date = self.parse_api_date(row.attrib['startDate'])
+                end_date = self.parse_api_date(row.attrib['endDate'])
+                pause_date = self.parse_api_date(row.attrib['pauseDate'])
+                completed_date = self.parse_api_date(row.attrib['completedDate'])
+                duration = row.attrib['timeInSeconds']
+                status = row.attrib['status']
 
-                    if install_time > ij.install_time or begin_time > ij.begin_time or end_time > ij.end_time or \
-                       pause_time > ij.pause_time:
-                        ij.install_time = install_time
-                        ij.begin_time = begin_time
-                        ij.end_time = end_time
-                        ij.pause_time = pause_time
-                        ij.save()
+                if row.attrib['productTypeID'] != '0':
+                    ij.product_id = row.attrib['productTypeID']
 
-                # Job is now complete, issue an event
-                elif not ij.completed:
-                    ij.completed = True
-                    ij.completed_status = row.attrib['completedStatus']
-                    ij.save()
+                ij.start_date = start_date
+                ij.end_date = end_date
+                ij.pause_date = pause_date
+                ij.completed_date = completed_date
+                ij.duration = duration
+                ij.status = status
+                ij.save()
 
-                    text = '%s: industry job #%s (%s) has been delivered' % (ij.system.name, ij.job_id, ij.get_activity_display())
+                if ij.status != 1:
+                    text = '%s: industry job #%s (%s) status has been changed to ' % (ij.system.name, ij.job_id, ij.get_activity_display())
                     if self.apikey.key_type == APIKey.CORPORATION_TYPE:
                         text = '%s ([%s] %s)' % (text, ij.corporation.ticker, ij.corporation.name)
                     else:
@@ -109,14 +109,11 @@ class IndustryJobs(APITask):
                         issued=now,
                         text=text,
                     ))
-
             # Doesn't exist, save data for later
             else:
-                flag_ids.add(int(row.attrib['installedItemFlag']))
-                flag_ids.add(int(row.attrib['outputFlag']))
-                item_ids.add(int(row.attrib['installedItemTypeID']))
-                item_ids.add(int(row.attrib['outputTypeID']))
-                system_ids.add(int(row.attrib['installedInSolarSystemID']))
+                blueprint_ids.add(int(row.attrib['blueprintTypeID']))
+                item_ids.add(int(row.attrib['productTypeID']))
+                system_ids.add(int(row.attrib['solarSystemID']))
 
                 rows.append(row)
 
@@ -124,8 +121,8 @@ class IndustryJobs(APITask):
         Event.objects.bulk_create(new_events)
 
         # Bulk query data
-        flag_map = InventoryFlag.objects.in_bulk(flag_ids)
         item_map = Item.objects.in_bulk(item_ids)
+        blueprint_map = Blueprint.objects.in_bulk(blueprint_ids)
         system_map = System.objects.in_bulk(system_ids)
 
         # Create new IndustryJob objects
@@ -135,62 +132,40 @@ class IndustryJobs(APITask):
             jobID = int(row.attrib['jobID'])
             seen_jobs.append(jobID)
 
-            installed_item = item_map.get(int(row.attrib['installedItemTypeID']))
-            if installed_item is None:
-                self.log_warn("industry_jobs: No matching Item %s", row.attrib['installedItemTypeID'])
+            blueprint = blueprint_map.get(int(row.attrib['blueprintTypeID']))
+            if blueprint is None:
+                self.log_warn("industry_jobs: No matching blueprint Item %s", row.attrib['blueprintTypeID'])
                 continue
 
-            installed_flag = flag_map.get(int(row.attrib['installedItemFlag']))
-            if installed_flag is None:
-                self.log_warn("industry_jobs: No matching InventoryFlag %s", row.attrib['installedItemFlag'])
-                continue
+            product = item_map.get(int(row.attrib['productTypeID']))
+            if product is None:
+                self.log_warn("industry_jobs: No matching product Item %s", row.attrib['productTypeID'])
+                # this apparently is normal to be set to 0, woo :ccp:
 
-            output_item = item_map.get(int(row.attrib['outputTypeID']))
-            if output_item is None:
-                self.log_warn("industry_jobs: No matching Item %s", row.attrib['outputTypeID'])
-                continue
-
-            output_flag = flag_map.get(int(row.attrib['outputFlag']))
-            if output_flag is None:
-                self.log_warn("industry_jobs: No matching InventoryFlag %s", row.attrib['outputFlag'])
-                continue
-
-            system = system_map.get(int(row.attrib['installedInSolarSystemID']))
+            system = system_map.get(int(row.attrib['solarSystemID']))
             if system is None:
-                self.log_warn("industry_jobs: No matching System %s", row.attrib['installedInSolarSystemID'])
+                self.log_warn("industry_jobs: No matching System %s", row.attrib['solarSystemID'])
                 continue
 
             # Create the new job object
             ij = IndustryJob(
                 character=character,
                 job_id=jobID,
-                assembly_line_id=row.attrib['assemblyLineID'],
-                container_id=row.attrib['containerID'],
-                location_id=row.attrib['installedItemLocationID'],
-                item_productivity_level=row.attrib['installedItemProductivityLevel'],
-                item_material_level=row.attrib['installedItemMaterialLevel'],
-                licensed_production_runs_remaining=row.attrib['installedItemLicensedProductionRunsRemaining'],
-                output_location_id=row.attrib['outputLocationID'],
                 installer_id=row.attrib['installerID'],
-                runs=row.attrib['runs'],
-                licensed_production_runs=row.attrib['licensedProductionRuns'],
                 system=system,
-                container_location_id=row.attrib['containerLocationID'],
-                material_multiplier=row.attrib['materialMultiplier'],
-                character_material_multiplier=row.attrib['charMaterialMultiplier'],
-                time_multiplier=row.attrib['timeMultiplier'],
-                character_time_multiplier=row.attrib['charTimeMultiplier'],
-                installed_item=installed_item,
-                installed_flag=installed_flag,
-                output_item=output_item,
-                output_flag=output_flag,
-                completed=row.attrib['completed'],
-                completed_status=row.attrib['completedStatus'],
                 activity=row.attrib['activityID'],
-                install_time=self.parse_api_date(row.attrib['installTime']),
-                begin_time=self.parse_api_date(row.attrib['beginProductionTime']),
-                end_time=self.parse_api_date(row.attrib['endProductionTime']),
-                pause_time=self.parse_api_date(row.attrib['pauseProductionTime']),
+                blueprint=blueprint,
+                output_location_id=row.attrib['outputLocationID'],
+                runs=row.attrib['runs'],
+                team_id=row.attrib['teamID'],
+                licensed_runs=row.attrib['licensedRuns'],
+                product=product,
+                status=row.attrib['status'],
+                duration=row.attrib['timeInSeconds'],
+                start_date=self.parse_api_date(row.attrib['startDate']),
+                end_date=self.parse_api_date(row.attrib['endDate']),
+                pause_date=self.parse_api_date(row.attrib['pauseDate']),
+                completed_date=self.parse_api_date(row.attrib['completedDate'])
             )
 
             if self.apikey.key_type == APIKey.CORPORATION_TYPE:
@@ -203,14 +178,15 @@ class IndustryJobs(APITask):
             IndustryJob.objects.bulk_create(new)
 
         # Clean up old jobs in weird states
-        ij_filter.filter(
-            completed=0,
-            end_time__lte=datetime.datetime.utcnow() - datetime.timedelta(days=14),
+        unknowns = ij_filter.filter(
+            status=1,
+            end_date__lte=datetime.datetime.utcnow() - datetime.timedelta(days=90),
         ).exclude(
             job_id__in=seen_jobs,
         ).update(
-            completed=1,
-            completed_status=IndustryJob.DELIVERED_STATUS,
+            status=IndustryJob.UNKNOWN_STATUS
         )
+        if unknowns > 0:
+            self.log_warn('%d jobs set to UNKNOWN state.' % unknowns)
 
         return True
