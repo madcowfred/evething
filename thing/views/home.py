@@ -67,7 +67,6 @@ def home(request):
     )
 
     profile = request.user.profile
-#TODO: Caching
 
 @login_required
 def __characters(request, out, known):
@@ -78,6 +77,30 @@ def __characters(request, out, known):
 
     characters = None
 
+    # We need to cache a list of all of the users characters we know about
+    # so that we can attempt to load them from the cache in a moment
+    cached_char_list_key = 'home:characters:%d' % (request.user.id,)
+    cached_char_list = cache.get(cached_char_list_key)
+
+    # keep an unalterd copy of the list for recaching later
+    cached_char_list_unaltered = cached_char_list if cached_char_list else []
+
+    cached_char_key_base = 'home:character:%d'
+
+    cached_chars = {}
+
+    # In case we are only doing a partial update, prune out the extra characters
+    if out['characters']:
+        cached_char_list = list(set(cached_char_list).intersection(out['characters']))
+
+    # Try and retreived chached character information
+    if cached_char_list:
+        for i in cached_char_list:
+            c = cache.get(cached_char_key_base % (i,))
+            if c:
+                print 'Cache Hit! %s' % (i, )
+                cached_chars[i] = c
+
     if out['characters']:
         characters = Character.objects.filter(
             pk__in=out['characters'].keys(),
@@ -85,6 +108,8 @@ def __characters(request, out, known):
             apikeys__user=request.user,
             apikeys__valid=True,
             apikeys__key_type__in=(APIKey.ACCOUNT_TYPE, APIKey.CHARACTER_TYPE)
+        ).exclude(
+            pk__in=cached_chars.keys()
         )
     else:
         characters = Character.objects.filter(
@@ -92,7 +117,7 @@ def __characters(request, out, known):
             apikeys__valid=True,
             apikeys__key_type__in=(APIKey.ACCOUNT_TYPE, APIKey.CHARACTER_TYPE)
         ).exclude(
-            pk__in=hide_characters
+            pk__in=list(hide_characters)+cached_chars.keys()
         )
 
     characters.prefetch_related(
@@ -109,7 +134,10 @@ def __characters(request, out, known):
     out['characters'] = {}
 
     for char in characters:
-        if char.pk in hide_characters: continue
+        print 'Cache Miss: %s' % char.pk
+
+        if char.pk in hide_characters:
+            continue
 
         if char.pk not in out['characters'].keys():
             out['characters'][char.pk] = {}
@@ -120,8 +148,10 @@ def __characters(request, out, known):
 
         out['characters'][char.pk]['apikey'] = {}
         for key, value in vars(char.apikeys.all()[0]).items():
-            if key.startswith('_'): continue
-            if key == 'vcode': continue
+            if key.startswith('_'):
+                continue
+            if key == 'vcode':
+                continue
             out['characters'][char.pk]['apikey'][key] = value
 
         if char.corporation_id not in out['corporations'].keys():
@@ -132,20 +162,24 @@ def __characters(request, out, known):
         if 'config' not in out['characters'][char.pk]:
             out['characters'][char.pk]['config'] = {}
         for key, value in vars(char.config).items():
-            if key.startswith('_'): continue
-            if key == 'character_id': continue
+            if key.startswith('_'):
+                continue
+            if key == 'character_id':
+                continue
 
             out['characters'][char.pk]['config'][key] = value
 
         if 'details' not in out['characters'][char.pk]:
             out['characters'][char.pk]['details'] = {}
         if char.details.ship_item_id is not None:
-            ship_item_ids.add(char.details.ship_item_id)            
+            ship_item_ids.add(char.details.ship_item_id)
         if char.details.last_known_location is not None:
             system_names.add(char.details.last_known_location)
         for key, value in vars(char.details).items():
-            if key.startswith('_'): continue
-            if key == 'character_id': continue
+            if key.startswith('_'):
+                continue
+            if key == 'character_id':
+                continue
 
             out['characters'][char.pk]['details'][key] = value
 
@@ -159,13 +193,41 @@ def __characters(request, out, known):
         total_sp=Sum('points'),
     )
     for cskill in cskill_qs:
-        out['characters'][cskill['character']]['details']['total_sp'] = cskill['total_sp']
+        out['characters'][cskill['character']]['details']['total_sp'] = \
+            cskill['total_sp']
 
-    out['ships'] = {pk: ship.name for pk, ship in Item.objects.in_bulk(set(ship_item_ids) - set([int(s) for s in known['ships']])).items()}
+    out['ships'] = {
+        pk: ship.name for pk, ship in
+        Item.objects.in_bulk(
+            set(ship_item_ids) - set([int(s) for s in known['ships']])
+        ).items()
+    }
 
-    out['systems'] = {name: {'constellation': '', 'region': ''} for name in system_names}
+    out['systems'] = {
+        name: {'constellation': '', 'region': ''} for name in system_names
+    }
+
+    # Cache all of the character ids that we know of for this user.
+    cache.set(
+        cached_char_list_key,
+        list(set(cached_char_list_unaltered).union(out['characters'].keys())),
+        300
+    )
+
+    # And now cache all the individual characters
+    for char_id, char in out['characters'].items():
+        cache.set(
+            cached_char_key_base % (char['id'], ),
+            char,
+            300
+        )
+
+    # and finaly add in all the characters we puulled out of the cache earleir
+    for char_id, char in cached_chars.items():
+        out['characters'][char_id] = char
 
     return out
+
 
 def __skill_queues(request, out, known):
     now = datetime.datetime.utcnow()
