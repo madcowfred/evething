@@ -49,8 +49,8 @@ class FixContracts(APITask):
         # We use hours_ago just so we try not to duplicate the chance that this call overlaps with the
         # normal Contracts APITask
         expired_contracts = Contract.objects.filter(date_expired__lte=hours_ago).filter(
-            Q(status='Outstanding') | Q(status='InProgress')).filter(corporation=None).prefetch_related(
-            'character__apikeys')
+            Q(status='Outstanding') | Q(status='InProgress')).filter(corporation=None).filter(
+            character__apikeys__valid=True).prefetch_related('character__apikeys')
 
         # Group contracts to lookup by APIKey
         for contract in expired_contracts:
