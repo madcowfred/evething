@@ -101,7 +101,6 @@ def __characters(request, out, known):
         for i in cached_char_list:
             c = cache.get(cached_char_key_base % (i,))
             if c:
-                print 'Cache Hit! %s' % (i, )
                 cached_chars[i] = c
 
     if out['characters']:
@@ -137,8 +136,6 @@ def __characters(request, out, known):
     out['characters'] = {}
 
     for char in characters:
-        print 'Cache Miss: %s' % char.pk
-
         if char.pk in hide_characters:
             continue
 
