@@ -4,6 +4,7 @@
         <a href="character/{{ character.name }}" class="sensitive character-name" rel="tooltip" title="{{ corp character.corporation }}">{{ character.name }}</a>
       </span>
       <span class="small pull-right sensitive apikey-name">[{{ character.apikey.name }}]</span>
+      {{ security character.details.security_status }}
     </div>
 
     <div>

@@ -66,6 +66,46 @@ Handlebars.registerHelper('comma', function(x) {
     return parts.join(".");
 });
 
+Handlebars.registerHelper('security', function(security) {
+    var cssClass = '';
+    var title = '';
+
+    if (security <= -2.0) {
+        cssClass = 'text-warning';
+        title += 'Will be attacked ';
+
+        if (security <= -5.0) {
+            title += 'anywhere in highsec.';
+        } else {
+            title += ' in ';
+            if (security <= -4.5) {
+                title += '0.5';
+            } else if (security <= -4.0) {
+                title += '0.6';
+            } else if (security <= -3.5) {
+                title += '0.7';
+            } else if (security <= -3.0) {
+                title += '0.8';
+            } else if (security <= -2.5) {
+                title += '0.9';
+            } else if (security <= -2.0) {
+                title += '1.0';
+            }
+            title += ' systems and above.';
+        }
+    } else {
+        cssClass = 'text-success';
+        title += 'No travel restrictions.';
+    }
+
+    var out = '<span class="small pull-right sensitive security {{cssClass}}" rel="tooltip" title="{{title}}" data-content="">{{security}}</span>'
+    out = out.replace('{{cssClass}}', cssClass);
+    out = out.replace('{{title}}', title);
+    out = out.replace('{{security}}', security)
+
+    return new Handlebars.SafeString(out);
+}); 
+
 function __duration(s) {
     var m = Math.floor(s/60);
     s = s % 60
@@ -130,6 +170,7 @@ EVEthing.home = {
 
         'HOME_SHOW_LOCATIONS': true,
         'HOME_SHOW_SEPARATORS': true,
+        'HOME_SHOW_SECURITY': true,
 
         'HOME_SORT_ORDER': 'apiname',
         'HOME_SORT_DESCENDING': false,
@@ -1029,6 +1070,19 @@ EVEthing.home.CharacterDisplay.prototype.parseResponse = function(data) {
         if (!data.characters[this.character_id].hasOwnProperty(key)) continue;
 
         this.character[key] = data.characters[this.character_id][key];
+    }
+
+    // Round Security Status to two decimal places
+    if (data.characters[this.character_id].hasOwnProperty('details')) {
+        if (data.characters[this.character_id].details.security_status > 1 ||
+            data.characters[this.character_id].details.security_status < -1) {
+            
+            data.characters[this.character_id].details.security_status = 
+                parseFloat(data.characters[this.character_id].details.security_status).toPrecision(3);
+        } else {
+            data.characters[this.character_id].details.security_status = 
+                parseFloat(data.characters[this.character_id].details.security_status).toPrecision(2);
+        }            
     }
 
     if (data.characters[this.character_id].hasOwnProperty('skill_queue')) {
