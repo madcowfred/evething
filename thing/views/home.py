@@ -24,7 +24,6 @@
 # ------------------------------------------------------------------------------
 
 import datetime
-import operator
 
 try:
     from collections import OrderedDict
@@ -33,11 +32,10 @@ except ImportError:
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
-from django.db.models import Q, Avg, Count, Max, Min, Sum
+from django.db.models import Q, Sum
 
 from thing.models import *  # NOPEP8
 from thing.stuff import *  # NOPEP8
-from thing.templatetags.thing_extras import commas, shortduration
 
 
 from django.http import HttpResponse
@@ -54,26 +52,28 @@ EXPIRE_WARNING = 10 * ONE_DAY
 @login_required
 def home(request):
     """Home page"""
-    tt = TimerThing('home')
     # We will be splitting the home page up into multiple
     # JSON Deliverable components, so this method will just
     # return the template
     return render_page(
         'thing/home.html',
         {
-            'home_page_update_delay': json.dumps(settings.HOME_PAGE_UPDATE_DELAY)
+            'home_page_update_delay': json.dumps(
+                settings.HOME_PAGE_UPDATE_DELAY
+            )
         },
         request
     )
 
-    profile = request.user.profile
 
 @login_required
 def __characters(request, out, known):
     profile = request.user.get_profile()
 
     # Make a set of characters to hide
-    hide_characters = set(int(c) for c in profile.home_hide_characters.split(',') if c)
+    hide_characters = set(
+        int(c) for c in profile.home_hide_characters.split(',') if c
+    )
 
     characters = None
 
@@ -89,9 +89,12 @@ def __characters(request, out, known):
 
     cached_chars = {}
 
-    # In case we are only doing a partial update, prune out the extra characters
+    # In case we are only doing a partial update, prune out the
+    # additional characters
     if out['characters']:
-        cached_char_list = list(set(cached_char_list).intersection(out['characters']))
+        cached_char_list = list(
+            set(cached_char_list).intersection(out['characters'])
+        )
 
     # Try and retreived chached character information
     if cached_char_list:
@@ -242,16 +245,21 @@ def __skill_queues(request, out, known):
     ).select_related('skill__item')
 
     for skill_queue in skill_queues:
-        if 'skill_queue' not in out['characters'][skill_queue.character_id].keys():
-            out['characters'][skill_queue.character_id]['skill_queue'] = []
-            out['characters'][skill_queue.character_id]['skill_queue_duration'] = 0
+        # Because PEP8 hates long lines
+        char_id = skill_queue.character_id
+
+        if 'skill_queue' not in out['characters'][char_id].keys():
+            out['characters'][char_id]['skill_queue'] = []
+            out['characters'][char_id]['skill_queue_duration'] = 0
 
         duration = total_seconds(skill_queue.end_time - now)
 
         item = {}
         for key, value in vars(skill_queue).items():
-            if key.startswith('_'): continue
-            if key == 'character_id': continue
+            if key.startswith('_'):
+                continue
+            if key == 'character_id':
+                continue
             item[key] = value
 
         item['start_time'] = item['start_time']
@@ -259,8 +267,10 @@ def __skill_queues(request, out, known):
 
         del item['skill_id']
         item['skill'] = {
-            'primary_attribute': Skill.ATTRIBUTE_MAP[skill_queue.skill.primary_attribute],
-            'secondary_attribute': Skill.ATTRIBUTE_MAP[skill_queue.skill.secondary_attribute],
+            'primary_attribute':
+                Skill.ATTRIBUTE_MAP[skill_queue.skill.primary_attribute],
+            'secondary_attribute':
+                Skill.ATTRIBUTE_MAP[skill_queue.skill.secondary_attribute],
             'name': skill_queue.skill.item.name,
             'description': skill_queue.skill.description,
             'rank': skill_queue.skill.rank,
@@ -270,15 +280,17 @@ def __skill_queues(request, out, known):
 
         item['duration'] = duration
 
-        out['characters'][skill_queue.character_id]['skill_queue'].append(item)
-        out['characters'][skill_queue.character_id]['skill_queue_duration'] += duration
+        out['characters'][char_id]['skill_queue'].append(item)
+        out['characters'][char_id]['skill_queue_duration'] += duration
 
-        skill_qs.append(Q(character=skill_queue.character_id, skill=skill_queue.skill))
+        skill_qs.append(Q(character=char_id, skill=skill_queue.skill))
 
     return out
 
+
 def __corporations(request, out, known):
-    corps = set(out['corporations'].keys()) - set([int(c) for c in known['corporations']])
+    corps = set(out['corporations'].keys()) - \
+        set([int(c) for c in known['corporations']])
     out['corporations'] = {}
 
     for corp in Corporation.objects.filter(pk__in=corps):
@@ -288,13 +300,16 @@ def __corporations(request, out, known):
         out['corporations'][corp.pk]['ticker'] = corp.ticker
         out['corporations'][corp.pk]['alliance'] = corp.alliance_id
 
-        if corp.alliance_id and (corp.alliance_id not in out['alliances'].keys()):
+        if corp.alliance_id and \
+                (corp.alliance_id not in out['alliances'].keys()):
             out['alliances'][corp.alliance_id] = {}
 
     return out
 
+
 def __alliances(request, out, known):
-    alliances = set(out['alliances'].keys()) - set([int(a) for a in known['alliances']])
+    alliances = set(out['alliances'].keys()) - \
+        set([int(a) for a in known['alliances']])
     out['alliances'] = {}
 
     for alliance in Alliance.objects.filter(pk__in=alliances):
@@ -304,6 +319,7 @@ def __alliances(request, out, known):
         out['alliances'][alliance.pk]['short_name'] = alliance.short_name
 
     return out
+
 
 def __event_log(request, out, known):
     out['events'] = []
@@ -315,6 +331,7 @@ def __event_log(request, out, known):
         out['events'].append(item)
 
     return out
+
 
 def __summary(request, out, known):
     out['summary'] = {}
@@ -336,17 +353,25 @@ def __summary(request, out, known):
 
     return out
 
+
 def __systems(request, out, known):
     if 'systems' in out.keys():
         system_names = set(out['systems'].keys()) - set(known['systems'])
         out['systems'] = {}
 
-        for system in System.objects.all().select_related('constellation__region').filter(name__in=system_names):
+        systems = System.objects.all()
+        systems = systems.select_related('constellation__region')
+        systems = systems.filter(name__in=system_names)
+
+        for system in systems:
             out['systems'][system.name] = {}
-            out['systems'][system.name]['constellation'] = system.constellation.name
-            out['systems'][system.name]['region'] = system.constellation.region.name
-    
+            out['systems'][system.name]['constellation'] = \
+                system.constellation.name
+            out['systems'][system.name]['region'] = \
+                system.constellation.region.name
+
     return out
+
 
 def __getRefreshTimes(out):
     key_to_character = {}
@@ -366,7 +391,6 @@ def __getRefreshTimes(out):
 
         key_to_character[char['apikey']['keyid']].append(charid)
 
-
     out['refresh_hints'] = {
         'character': {},
         'skill_queue': {},
@@ -376,19 +400,25 @@ def __getRefreshTimes(out):
         if task.url == u'/account/AccountStatus.xml.aspx':
             for charid in key_to_character[task.keyid]:
                 if charid in out['refresh_hints']['character']:
-                    if out['refresh_hints']['character'][charid] > task.next_time:
-                        out['refresh_hints']['character'][charid] = task.next_time
+                    if out['refresh_hints']['character'][charid] > \
+                            task.next_time:
+                        out['refresh_hints']['character'][charid] = \
+                            task.next_time
                 else:
                     out['refresh_hints']['character'][charid] = task.next_time
 
         elif task.url == u'/char/SkillQueue.xml.aspx':
-            out['refresh_hints']['skill_queue'][task.parameter] = task.next_time
+            out['refresh_hints']['skill_queue'][task.parameter] = \
+                task.next_time
         elif task.url == u'/char/CharacterSheet.xml.aspx':
             if task.parameter in out['refresh_hints']['character']:
-                if out['refresh_hints']['character'][task.parameter] > task.next_time:
-                    out['refresh_hints']['character'][task.parameter] = task.next_time
+                if out['refresh_hints']['character'][task.parameter] > \
+                        task.next_time:
+                    out['refresh_hints']['character'][task.parameter] = \
+                        task.next_time
             else:
-                out['refresh_hints']['character'][task.parameter] = task.next_time
+                out['refresh_hints']['character'][task.parameter] = \
+                    task.next_time
 
     return out
 
@@ -399,10 +429,11 @@ ALL_OPTIONS = OrderedDict([
     ('corporations', __corporations),
     ('alliances', __alliances),
     ('systems', __systems),
-    
+
     ('event_log', __event_log),
     ('summary', __summary),
 ])
+
 
 @login_required
 def home_api(request):
@@ -444,7 +475,7 @@ def home_api(request):
     }
 
     for key in known.keys():
-        known[key] = request.REQUEST.getlist('known_' + key);
+        known[key] = request.REQUEST.getlist('known_' + key)
 
     tt.add_time('prep')
 
@@ -465,5 +496,7 @@ def home_api(request):
     if settings.DEBUG:
         tt.finished()
 
-    return HttpResponse(content=json.dumps(out, cls=DjangoJSONEncoder), content_type='application/json')
-
+    return HttpResponse(
+        content=json.dumps(out, cls=DjangoJSONEncoder),
+        content_type='application/json'
+    )
