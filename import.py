@@ -104,20 +104,20 @@ class Importer:
         connections['import'].connection.text_factory = lambda x: unicode(x, "utf-8", "ignore")
 
     def import_all(self):
-        #time_func('Region', self.import_region)
-        #time_func('Constellation', self.import_constellation)
-        #time_func('System', self.import_system)
-        #time_func('Station', self.import_station)
-        #time_func('MarketGroup', self.import_marketgroup)
-        #time_func('ItemCategory', self.import_itemcategory)
-        #time_func('ItemGroup', self.import_itemgroup)
-        #time_func('Item', self.import_item)
+        time_func('Region', self.import_region)
+        time_func('Constellation', self.import_constellation)
+        time_func('System', self.import_system)
+        time_func('Station', self.import_station)
+        time_func('MarketGroup', self.import_marketgroup)
+        time_func('ItemCategory', self.import_itemcategory)
+        time_func('ItemGroup', self.import_itemgroup)
+        time_func('Item', self.import_item)
         time_func('Blueprint', self.import_blueprint)
-        #time_func('Skill', self.import_skill)
-        #time_func('InventoryFlag', self.import_inventoryflag)
-        #time_func('NPCFaction', self.import_npcfaction)
-        #time_func('NPCCorporation', self.import_npccorporation)
-        #time_func('SkillMap', self.build_skill_map)
+        time_func('Skill', self.import_skill)
+        time_func('InventoryFlag', self.import_inventoryflag)
+        time_func('NPCFaction', self.import_npcfaction)
+        time_func('NPCCorporation', self.import_npccorporation)
+        time_func('SkillMap', self.build_skill_map)
 
     # -----------------------------------------------------------------------
     # Regions
