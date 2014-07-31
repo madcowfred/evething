@@ -8,6 +8,7 @@ from thing.models import APIKey, BlueprintInstance, Campaign, Character, Charact
 class APIKeyAdmin(admin.ModelAdmin):
     list_display = ('id', 'user', 'name', 'key_type', 'corporation', 'valid')
     raw_id_fields = ('characters', 'corp_character', 'corporation')
+    search_fields = ['characters__name', 'corporation__name']
 
 
 class BlueprintInstanceAdmin(admin.ModelAdmin):
@@ -22,6 +23,7 @@ class CharacterAdmin(admin.ModelAdmin):
     ]
     list_display = ('id', 'name', 'corporation')
     raw_id_fields = ('corporation',)
+    search_fields = ['name']
 
 
 class CharacterDetailsAdmin(admin.ModelAdmin):
