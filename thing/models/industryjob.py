@@ -27,26 +27,26 @@ from django.db import models
 
 from thing.models.character import Character
 from thing.models.corporation import Corporation
-from thing.models.inventoryflag import InventoryFlag
 from thing.models.item import Item
+from thing.models.blueprint import Blueprint
 from thing.models.system import System
 
 
 class IndustryJob(models.Model):
     """Industry job"""
-    FAILED_STATUS = 0
-    DELIVERED_STATUS = 1
-    ABORTED_STATUS = 2
-    GM_ABORTED_STATUS = 3
-    INFLIGHT_UNANCHORED_STATUS = 4
-    DESTROYED_STATUS = 5
+    ACTIVE_STATUS = 1
+    PAUSED_STATUS = 2
+    CANCELLED_STATUS = 102
+    DELIVERED_STATUS = 104
+    FAILED_STATUS = 105
+    UNKNOWN_STATUS = 999
     STATUS_CHOICES = (
-        (FAILED_STATUS, 'Failed'),
+        (ACTIVE_STATUS, 'Active'),
+        (PAUSED_STATUS, 'Paused (Facility Offline)'),
+        (CANCELLED_STATUS, 'Cancelled'),
         (DELIVERED_STATUS, 'Delivered'),
-        (ABORTED_STATUS, 'Aborted'),
-        (GM_ABORTED_STATUS, 'GM aborted'),
-        (INFLIGHT_UNANCHORED_STATUS, 'Inflight unanchored'),
-        (DESTROYED_STATUS, 'Destroyed'),
+        (FAILED_STATUS, 'Failed'),
+        (UNKNOWN_STATUS, 'Unknown')
     )
 
     NONE_ACTIVITY = 0
@@ -74,43 +74,24 @@ class IndustryJob(models.Model):
     corporation = models.ForeignKey(Corporation, blank=True, null=True)
 
     job_id = models.IntegerField()
-    assembly_line_id = models.IntegerField()
-    container_id = models.BigIntegerField()
-    location_id = models.BigIntegerField()
-
-    # asset ID?
-    #item_id = models.IntegerField()
-    item_productivity_level = models.IntegerField()
-    item_material_level = models.IntegerField()
-
-    output_location_id = models.BigIntegerField()
     installer_id = models.IntegerField()
-    runs = models.IntegerField()
-    licensed_production_runs_remaining = models.IntegerField()
-    licensed_production_runs = models.IntegerField()
 
     system = models.ForeignKey(System)
-    container_location_id = models.IntegerField()
-
-    material_multiplier = models.DecimalField(max_digits=5, decimal_places=3)
-    character_material_multiplier = models.DecimalField(max_digits=5, decimal_places=3)
-    time_multiplier = models.DecimalField(max_digits=5, decimal_places=3)
-    character_time_multiplier = models.DecimalField(max_digits=5, decimal_places=3)
-
-    installed_item = models.ForeignKey(Item, related_name='job_installed_items')
-    installed_flag = models.ForeignKey(InventoryFlag, related_name='job_installed_flags')
-    output_item = models.ForeignKey(Item, related_name='job_output_items')
-    output_flag = models.ForeignKey(InventoryFlag, related_name='job_output_flags')
-
-    completed = models.IntegerField()
-    completed_status = models.IntegerField(choices=STATUS_CHOICES)
     activity = models.IntegerField(choices=ACTIVITY_CHOICES)
+    blueprint = models.ForeignKey(Blueprint, related_name='job_installed_blueprints')
+    output_location_id = models.BigIntegerField()
+    runs = models.IntegerField()
+    team_id = models.BigIntegerField()
+    licensed_runs = models.IntegerField()
+    product = models.ForeignKey(Item, related_name='job_products', null=True, blank=True)
+    status = models.IntegerField(choices=STATUS_CHOICES)
+    duration = models.IntegerField()
 
-    install_time = models.DateTimeField()
-    begin_time = models.DateTimeField()
-    end_time = models.DateTimeField()
-    pause_time = models.DateTimeField()
+    start_date = models.DateTimeField()
+    end_date = models.DateTimeField()
+    pause_date = models.DateTimeField()
+    completed_date = models.DateTimeField()
 
     class Meta:
         app_label = 'thing'
-        ordering = ('-end_time',)
+        ordering = ('-end_date',)

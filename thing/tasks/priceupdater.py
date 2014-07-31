@@ -28,7 +28,7 @@ from .apitask import APITask
 from django.conf import settings
 
 from thing import queries
-from thing.models import Blueprint, BlueprintInstance, Item
+from thing.models import Item
 
 CAPITAL_SHIP_GROUPS = (
     'Capital Industrial Ship',
@@ -78,15 +78,16 @@ class PriceUpdater(APITask):
                 item.save()
 
         # Calculate capital ship costs now
-        for bp in Blueprint.objects.select_related('item').filter(item__item_group__name__in=CAPITAL_SHIP_GROUPS):
-            bpi = BlueprintInstance(
-                user=None,
-                blueprint=bp,
-                original=True,
-                material_level=2,
-                productivity_level=0,
-            )
-            bp.item.sell_price = bpi.calc_capital_production_cost()
-            bp.item.save()
+        #for bp in Blueprint.objects.select_related('item').filter(item__item_group__name__in=CAPITAL_SHIP_GROUPS):
+        #    bpi = BlueprintInstance(
+        #        user=None,
+        #        blueprint=bp,
+        #        original=True,
+        #        material_level=2,
+        #        productivity_level=0,
+        #    )
+        #    bp.item.sell_price = bpi.calc_capital_production_cost()
+        #    bp.item.save()
+        # TODO: Fix this all when BP stuff is resolved
 
         return True
