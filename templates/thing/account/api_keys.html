@@ -54,7 +54,7 @@
             <i class="js-edit-name pull-right clickable fa fa-edit"></i>
           </td>
           <td class="c api-icons">
-            <i class="js-delete fa-trash-o clickable" data-toggle="modal" href="#delete-apikey-modal" rel="tooltip" title="Delete API key"></i>
+            <i class="js-delete fa fa-trash-o clickable" data-toggle="modal" href="#delete-apikey-modal" rel="tooltip" title="Delete API key"></i>
             &nbsp;
             <i class="js-purge fa fa-warning neg clickable" data-toggle="modal" href="#purge-apikey-modal" rel="tooltip" title="Purge API key data"></i>
           </td>
@@ -63,13 +63,23 @@
       </tbody>
     </table>
 
+<div class="col-xs-12 col-sm-12 col-md-10 col-lg-8 col-md-offset-1 col-lg-offset-2">
+  <div class="row">
     {%- if profile.can_add_keys %}
-    <form action="{{ url('thing.views.account_apikey_add') }}" method="POST" class="form-inline">
+    <form action="{{ url('thing.views.account_apikey_add') }}" method="POST" class="row">
       {{ csrf() }}
-      <input type="text" name="keyid" class="input-small" placeholder="KeyID">
-      <input type="text" name="vcode" class="input-xlarge" placeholder="vCode">
-      <input type="text" name="name" class="input-medium" placeholder="Name" rel="tooltip" title="This is to help you remember what this key is for. It will be displayed on the Home screen.">
-      <button type="submit" class="btn btn-success">Add Key</button>
+      <div class="form-group col-sm-3"> 
+        <input type="text" name="keyid" class="form-control" placeholder="KeyID">
+      </div>
+      <div class="form-group col-sm-4"> 
+        <input type="text" name="vcode" class="col-xs-3 col-sm-3 col-md-3 col-lg-3 form-control" placeholder="vCode">
+      </div>
+      <div class="form-group col-sm-3"> 
+        <input type="text" name="name" class="col-xs-3 col-sm-3 col-md-3 col-lg-3 form-control" placeholder="Name" rel="tooltip" title="This is to help you remember what this key is for. It will be displayed on the Home screen.">
+      </div>
+      <div class="form-group col-sm-2">
+        <button type="submit" class="btn btn-success" style="width:100%;">Add Key</button>
+      </div>
     </form>
     {%- else %}
     <div class="alert alert-error">
@@ -136,3 +146,5 @@
         </div>
       </div>
     </div>
+  </div>
+</div>

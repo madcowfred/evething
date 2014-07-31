@@ -1,5 +1,5 @@
 
-  <div class="span6">
+  <div class="col-xs-12 col-sm-7 col-md-6">
     <table class="table table-striped table-bordered table-condensed">
       <thead>
         <tr class="c">
@@ -27,41 +27,32 @@
         {%- endfor %}
       </tbody>
     </table>
-
+  </div>
+  <div class="col-xs-12 col-sm-5 col-md-6">
     <h4>Add new skill plan</h4>
-    <form class="well form-horizontal" action="{{ url('thing.views.account_skillplan_add') }}" method="POST" enctype="multipart/form-data">
+    <form class="well" action="{{ url('thing.views.account_skillplan_add') }}" method="POST" enctype="multipart/form-data">
       {{ csrf() }}
-      <fieldset>
         <div class="form-group">
-          <label class="form-label" for="name">Plan name</label>
-          <div class="controls">
-            <input type="text" class="input-large" name="name">
-          </div>
+          <label for="name">Plan name</label>
+          <input type="text" class="form-control" name="name">
         </div>
         <div class="form-group">
-          <label class="form-label" for="file">.EMP file</label>
-          <div class="controls">
-            <input class="input-file" name="file" type="file">
-          </div>
+          <label for="file">.EMP file</label>
+          <input name="file" type="file">
         </div>
         <div class="form-group">
-          <label class="form-label" for="visibility">Visibility</label>
-          <div class="controls">
-            <select name="visibility">
-              {%- for value, text in visibilities %}
-              <option value="{{ value }}">{{ text }}</option>
-              {%- endfor %}
-            </select>
-            <p class="help-block">Private: visibile only to your user account.</p>
-            <p class="help-block">Public: visibile to anyone on <u>your</u> character pages.</p>
-            <p class="help-block">Global: visibile to anyone on any character page.</p>
-          </div>
+          <label for="visibility">Visibility</label>
+          <select name="visibility" class="form-control">
+            {%- for value, text in visibilities %}
+            <option value="{{ value }}">{{ text }}</option>
+            {%- endfor %}
+          </select>
+          <p class="help-block">Private: visibile only to your user account.</p>
+          <p class="help-block">Public: visibile to anyone on <u>your</u> character pages.</p>
+          <p class="help-block">Global: visibile to anyone on any character page.</p>
         </div>
-      </fieldset>
-      <fieldset>
+
         <div class="form-actions margin-half-top" style="margin-bottom: 0; padding-bottom: 0;">
           <button type="submit" class="btn btn-primary">Upload</button>
         </div>
-      </fieldset>
-    </form>
   </div>
