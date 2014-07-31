@@ -92,6 +92,7 @@ class PinAdmin(admin.ModelAdmin):
 
 class IndustryJobAdmin(admin.ModelAdmin):
     list_display = ('character', 'activity', 'blueprint', 'product', 'status')
+    list_filter = ('activity', 'status')
 
 admin.site.register(APIKey, APIKeyAdmin)
 admin.site.register(Character, CharacterAdmin)
