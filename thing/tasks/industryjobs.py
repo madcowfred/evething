@@ -85,30 +85,35 @@ class IndustryJobs(APITask):
                 completed_date = self.parse_api_date(row.attrib['completedDate'])
                 duration = row.attrib['timeInSeconds']
                 status = row.attrib['status']
+                product = row.attrib['productTypeID']
 
-                if row.attrib['productTypeID'] != '0':
-                    ij.product_id = row.attrib['productTypeID']
+                # Only update if stuff changed
+                if (start_date != ij.start_date or end_date != ij.end_date or pause_date != ij.pause_date or
+                            completed_date != ij.pause_date or status != ij.status or product != ij.product):
 
-                ij.start_date = start_date
-                ij.end_date = end_date
-                ij.pause_date = pause_date
-                ij.completed_date = completed_date
-                ij.duration = duration
-                ij.status = status
-                ij.save()
+                    if row.attrib['productTypeID'] != '0':
+                        ij.product_id = product
 
-                if ij.status != 1:
-                    text = '%s: industry job #%s (%s) status has been changed to ' % (ij.system.name, ij.job_id, ij.get_activity_display())
-                    if self.apikey.key_type == APIKey.CORPORATION_TYPE:
-                        text = '%s ([%s] %s)' % (text, ij.corporation.ticker, ij.corporation.name)
-                    else:
-                        text = '%s (%s)' % (text, ij.character.name)
+                    ij.start_date = start_date
+                    ij.end_date = end_date
+                    ij.pause_date = pause_date
+                    ij.completed_date = completed_date
+                    ij.duration = duration
+                    ij.status = status
+                    ij.save()
 
-                    new_events.append(Event(
-                        user_id=self.apikey.user.id,
-                        issued=now,
-                        text=text,
-                    ))
+                    if ij.status != 1:
+                        text = '%s: industry job #%s (%s) status has been changed to ' % (ij.system.name, ij.job_id, ij.get_activity_display())
+                        if self.apikey.key_type == APIKey.CORPORATION_TYPE:
+                            text = '%s ([%s] %s)' % (text, ij.corporation.ticker, ij.corporation.name)
+                        else:
+                            text = '%s (%s)' % (text, ij.character.name)
+
+                        new_events.append(Event(
+                            user_id=self.apikey.user.id,
+                            issued=now,
+                            text=text,
+                        ))
             # Doesn't exist, save data for later
             else:
                 blueprint_ids.add(int(row.attrib['blueprintTypeID']))
