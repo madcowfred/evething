@@ -56,7 +56,6 @@ class IndustryJobs(APITask):
         # Fetch the API data
         params = {'characterID': character_id}
         if self.fetch_api(url, params) is False or self.root is None:
-            self.log_info('API error')
             return
 
         # Generate a job id map
@@ -89,7 +88,8 @@ class IndustryJobs(APITask):
 
                 # Only update if stuff changed
                 if (start_date != ij.start_date or end_date != ij.end_date or pause_date != ij.pause_date or
-                            completed_date != ij.pause_date or status != ij.status or product != str(ij.product_id)):
+                            completed_date != ij.completed_date or status != str(ij.status) or
+                            (ij.product is not None and product != str(ij.product_id))):
 
                     if row.attrib['productTypeID'] != '0':
                         ij.product_id = product
