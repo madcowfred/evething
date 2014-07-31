@@ -51,12 +51,12 @@
           </td>
           <td class="api-name">
             {{ apikey.name }}
-            <i class="js-edit-name icon-edit pull-right clickable"></i>
+            <i class="js-edit-name pull-right clickable fa fa-edit"></i>
           </td>
           <td class="c api-icons">
-            <i class="js-delete icon-trash clickable" data-toggle="modal" href="#delete-apikey-modal" rel="tooltip" title="Delete API key"></i>
+            <i class="js-delete fa-trash-o clickable" data-toggle="modal" href="#delete-apikey-modal" rel="tooltip" title="Delete API key"></i>
             &nbsp;
-            <i class="js-purge icon-warning-sign neg clickable" data-toggle="modal" href="#purge-apikey-modal" rel="tooltip" title="Purge API key data"></i>
+            <i class="js-purge fa fa-warning neg clickable" data-toggle="modal" href="#purge-apikey-modal" rel="tooltip" title="Purge API key data"></i>
           </td>
         </tr>
         {%- endfor %}
