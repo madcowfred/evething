@@ -89,7 +89,7 @@ class IndustryJobs(APITask):
 
                 # Only update if stuff changed
                 if (start_date != ij.start_date or end_date != ij.end_date or pause_date != ij.pause_date or
-                            completed_date != ij.pause_date or status != ij.status or product != ij.product):
+                            completed_date != ij.pause_date or status != ij.status or product != str(ij.product_id)):
 
                     if row.attrib['productTypeID'] != '0':
                         ij.product_id = product
