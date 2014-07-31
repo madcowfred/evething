@@ -44,11 +44,17 @@ EVEthing.account = {
                     dont_edit = 'group_name';
             }
 
-            html.push('<form action="' + account_edit_url + '" method="POST" class="form-inline nomargin">');
+            html.push('<form action="' + account_edit_url + '" method="POST" class="nomargin">');
             html.push(csrf);
             html.push('<input type="hidden" class="nomargin" name="apikey_id" value="' + keyid + '">');
             html.push('<input type="hidden" class="nomargin" name="dont_edit" value="' + dont_edit + '">');
-            html.push('<input type="text" class="nomargin input-medium" name="' + fieldname + '" id="magic_keyname" value="' + $.trim(keyname) + '">');
+
+            var input_group = '<div class="input-group">';
+            input_group += '<input type="text" class="form-control" name="' + fieldname + '" id="magic_keyname" value="' + $.trim(keyname) + '">';
+            input_group += '<span class="input-group-btn"><button class="btn btn-default" type="submit"><i class="fa fa-save"></i></button></span>';
+            input_group += '</div>';
+            html.push(input_group);
+
             html.push('</form>');
 
             $(this).parent().html(html.join(''));
