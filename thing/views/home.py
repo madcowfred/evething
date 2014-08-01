@@ -196,17 +196,6 @@ def __characters(request, out, known):
         out['characters'][cskill['character']]['details']['total_sp'] = \
             cskill['total_sp']
 
-    out['ships'] = {
-        pk: ship.name for pk, ship in
-        Item.objects.in_bulk(
-            set(ship_item_ids) - set([int(s) for s in known['ships']])
-        ).items()
-    }
-
-    out['systems'] = {
-        name: {'constellation': '', 'region': ''} for name in system_names
-    }
-
     # Cache all of the character ids that we know of for this user.
     cache.set(
         cached_char_list_key,
@@ -225,6 +214,17 @@ def __characters(request, out, known):
     # and finaly add in all the characters we puulled out of the cache earleir
     for char_id, char in cached_chars.items():
         out['characters'][char_id] = char
+
+    out['ships'] = {
+        pk: ship.name for pk, ship in
+        Item.objects.in_bulk(
+            set(ship_item_ids) - set([int(s) for s in known['ships']])
+        ).items()
+    }
+
+    out['systems'] = {
+        name: {'constellation': '', 'region': ''} for name in system_names
+    }
 
     return out
 
