@@ -219,23 +219,20 @@ EVEthing.home = {
     'HOME_PAGE_UPDATE_DELAY': null,
 };
 
-for (var i in EVEthing.home.SORT_PROFILE_TO_FUNC_MAP) {
-    if (!EVEthing.home.SORT_PROFILE_TO_FUNC_MAP.hasOwnProperty(i)) continue;
-
-    EVEthing.home.FUNC_TO_SORT_PROFILE_MAP[EVEthing.home.SORT_PROFILE_TO_FUNC_MAP[i]] = i;
-}
-
 EVEthing.home.onload = function() {
     // Bind screenshot mode button
     $('body').on('click', '.js-screenshot', EVEthing.home.screenshot_mode);
 
+    // Lets normalise some values...
+    EVEthing.home.PROFILE.HOME_SORT_ORDER = EVEthing.home.SORT_PROFILE_TO_FUNC_MAP[EVEthing.home.PROFILE.HOME_SORT_ORDER]
+
     EVEthing.home.initialLoad();
 
     var cookies = document.cookie.split(/[;\s|=]/);
-    var indexOfSortMethod = cookies.indexOf('homePageSortBy');
-    if (indexOfSortMethod >= 0) {
-        EVEthing.home.PROFILE.HOME_SORT_ORDER = EVEthing.home.FUNC_TO_SORT_PROFILE_MAP[cookies[indexOfSortMethod + 1]];
-        EVEthing.home.PROFILE.HOME_SORT_DESCENDING = cookies[cookies.indexOf('homePageSortOrder') + 1] == 'desc';
+
+    if ($.cookie('homePageSortBy') != null) { // != 'undefined') {
+        EVEthing.home.PROFILE.HOME_SORT_ORDER = $.cookie('homePageSortBy');
+        EVEthing.home.PROFILE.HOME_SORT_DESCENDING = $.cookie('homePageSortOrder') == 'desc';
     }
     var indexOfSortEmptyQueueLast = cookies.indexOf('homePageSortEmptyQueueLast');
     if (indexOfSortEmptyQueueLast >= 0) {
@@ -254,7 +251,8 @@ EVEthing.home.onload = function() {
         }
     }
 
-    var sort_method = EVEthing.home.character_ordering[EVEthing.home.SORT_PROFILE_TO_FUNC_MAP[EVEthing.home.PROFILE.HOME_SORT_ORDER]];
+    var sort_method = EVEthing.home.character_ordering[EVEthing.home.PROFILE.HOME_SORT_ORDER];
+
     var sortSelect = $('<li class="pull-right dropdown sort-by"><a href="#" class="dropdown-toggle" data-toggle="dropdown"><b class="caret"></b>Sort By: <output></output></a></li>');
     sortSelect.find('output').val(sort_method.NAME + ' ' + (EVEthing.home.PROFILE.HOME_SORT_DESCENDING ? sort_method.NAME_REVERSE : sort_method.NAME_FORWARD));
 
@@ -368,7 +366,7 @@ EVEthing.home.onSortByClicked = function(event) {
         icon.removeClass('fa fa-circle-o fa-check-circle');
         icon.addClass('fa fa-' + (EVEthing.home.IGNORE_GROUPS ? 'circle-o' : 'check-circle'));
 
-        document.cookie = 'homePageIgnoreGroups=' + String(EVEthing.home.IGNORE_GROUPS);
+        $.cookie('homePageIgnoreGroups', String(EVEthing.home.IGNORE_GROUPS));
     } else if (href == "empty_queue_last") {
         EVEthing.home.PROFILE.HOME_SORT_EMPTY_QUEUE_LAST = !EVEthing.home.PROFILE.HOME_SORT_EMPTY_QUEUE_LAST;
         
@@ -376,27 +374,42 @@ EVEthing.home.onSortByClicked = function(event) {
         icon.removeClass('fa fa-circle-o fa-check-circle');
         icon.addClass('fa fa-' + (EVEthing.home.PROFILE.HOME_SORT_EMPTY_QUEUE_LAST ? 'check-circle' : 'circle-o' ));
 
-        document.cookie = 'homePageSortEmptyQueueLast=' + String(EVEthing.home.PROFILE.HOME_SORT_EMPTY_QUEUE_LAST);
+        $.cookie('homePageSortEmptyQueueLast', String(EVEthing.home.PROFILE.HOME_SORT_EMPTY_QUEUE_LAST));
     } else {
         var sort_by = EVEthing.home.character_ordering[href];
 
-        var sort_order = 'asc';
+        if (sort_by != 'undefined') {
+            if (EVEthing.home.PROFILE.HOME_SORT_ORDER == href) {
+                EVEthing.home.PROFILE.HOME_SORT_DESCENDING = !EVEthing.home.PROFILE.HOME_SORT_DESCENDING;
+            }
 
-        var name = sort_by.NAME + ' ' + (EVEthing.home.PROFILE.HOME_SORT_DESCENDING ? sort_by.NAME_REVERSE : sort_by.NAME_FORWARD);
-        var name_output = $('li.sort-by output');
-        if (name_output.val() != name) {
-            name_output.val(name);
-        } else {
-            name_output.val(sort_by.NAME + ' ' + (EVEthing.home.PROFILE.HOME_SORT_DESCENDING ? sort_by.NAME_FORWARD : sort_by.NAME_REVERSE));
+            EVEthing.home.PROFILE.HOME_SORT_ORDER = href;
 
-            sort_order = 'desc';
-            sort_by = EVEthing.home.reverse_ordering(sort_by);
+            var out = EVEthing.home.character_ordering[href].NAME;
+            out += ' ';
+            out += (
+                EVEthing.home.PROFILE.HOME_SORT_DESCENDING ?
+                EVEthing.home.character_ordering[href].NAME_REVERSE :
+                EVEthing.home.character_ordering[href].NAME_FORWARD
+            )
+
+            $('li.sort-by output').val(out);
+
+            if (EVEthing.home.PROFILE.HOME_SORT_DESCENDING) {
+                EVEthing.home.sort_characters(
+                    //EVEthing.home.reverse_ordering(
+                        EVEthing.home.character_ordering[href]
+                    //)
+                );
+            } else {
+                EVEthing.home.sort_characters(
+                    EVEthing.home.character_ordering[href]
+                );
+            } 
+
+            $.cookie('homePageSortBy', href);
+            $.cookie('homePageSortOrder', (EVEthing.home.PROFILE.HOME_SORT_DESCENDING ? 'desc' : 'asc'));    
         }
-
-        document.cookie = 'homePageSortBy=' + href;
-        document.cookie = 'homePageSortOrder=' + sort_order;
-
-        EVEthing.home.sort_characters(sort_by);
     }
 
     EVEthing.home.draw_characters();
@@ -472,8 +485,9 @@ EVEthing.home.character_ordering.wallet_balance.NAME_FORWARD = 'Asc';
 EVEthing.home.character_ordering.wallet_balance.NAME_REVERSE = 'Desc';
 
 EVEthing.home.reverse_ordering = function(method) {
+    var m = method;
     return function(a, b) {
-        return method(b, a);
+        return m(b, a);
     };
 };
 
@@ -488,8 +502,8 @@ EVEthing.home.sort_characters = function() {
     }
 
 
-    if (methods.length == 0 && EVEthing.home.SORT_PROFILE_TO_FUNC_MAP.hasOwnProperty(EVEthing.home.PROFILE.HOME_SORT_ORDER)) {
-        var sort_method = EVEthing.home.SORT_PROFILE_TO_FUNC_MAP[EVEthing.home.PROFILE.HOME_SORT_ORDER];
+    if (methods.length == 0) {
+        var sort_method = EVEthing.home.PROFILE.HOME_SORT_ORDER;
         if (EVEthing.home.character_ordering.hasOwnProperty(sort_method)) {
             methods[0] = EVEthing.home.character_ordering[sort_method];
         }
@@ -957,7 +971,7 @@ EVEthing.home.CharacterDisplay.prototype.animate = function(now) {
                     this.well.find('.progress').addClass('progress-danger');
 
                     this.well.find('.home-notifications .low-skill-queue').show();
-                    this.well.find('.home-notifications .low-skill-queue span').text(Handlebars.helpers.shortduration(training_time_left));
+                    this.well.find('.home-notifications .low-skill-queue span').text(Handlebars.helpers.shortduration(total));
 
                     errors = true;
                 } else {
