@@ -36,6 +36,7 @@ class UserProfile(models.Model):
         ('charname', 'Character name'),
         ('corpname', 'Corporation name'),
         ('totalsp', 'Total SP'),
+        ('skillqueue', 'Skill Queue Length'),
         ('wallet', 'Wallet balance'),
     )
 
