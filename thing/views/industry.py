@@ -53,15 +53,14 @@ def industry(request):
         |
         Q(corporation__in=corporation_ids)
     )
-    jobs = jobs.prefetch_related('character', 'corporation', 'system', 'output_item')
+    jobs = jobs.prefetch_related('character', 'corporation', 'system', 'product', 'blueprint')
 
     # Gather some lookup ids
     char_ids = set()
     station_ids = set()
     for ij in jobs:
         char_ids.add(ij.installer_id)
-        if ij.container_id > 0:
-            station_ids.add(ij.container_id)
+        station_ids.add(ij.output_location_id)
 
     # Bulk lookups
     char_map = Character.objects.in_bulk(char_ids)
@@ -73,24 +72,22 @@ def industry(request):
     incomplete = []
     complete = []
     for ij in jobs:
-        if ij.end_time < utcnow:
+        if ij.end_date < utcnow:
             ij.z_ready = True
-
-        ij.z_units = ij.runs * ij.output_item.portion_size
 
         if ij.installer_id in character_ids:
             ij.z_installer_mine = True
 
         ij.z_installer = char_map.get(ij.installer_id)
-        ij.z_station = station_map.get(ij.container_id)
+        ij.z_station = station_map.get(ij.output_location_id)
 
-        if ij.completed:
-            complete.append(ij)
-        else:
+        if ij.status == 1:
             incomplete.append(ij)
+        else:
+            complete.append(ij)
 
     # Incomplete should be probably sorted in reverse order
-    incomplete.sort(key=lambda j: j.end_time)
+    incomplete.sort(key=lambda j: j.end_date)
 
     tt.add_time('load jobs')
 

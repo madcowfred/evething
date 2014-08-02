@@ -58,3 +58,6 @@ class InventoryFlag(models.Model):
                 return data[1]
 
         return 999
+
+    def __unicode__(self):
+        return self.name

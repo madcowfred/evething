@@ -30,6 +30,7 @@ from thing.models.apikeyfailure import APIKeyFailure
 from thing.models.asset import Asset
 from thing.models.assetsummary import AssetSummary
 from thing.models.blueprintcomponent import BlueprintComponent
+from thing.models.blueprintproduct import BlueprintProduct
 from thing.models.blueprintinstance import BlueprintInstance
 from thing.models.campaign import Campaign
 from thing.models.characterconfig import CharacterConfig
@@ -55,3 +56,5 @@ from thing.models.spskill import SPSkill
 from thing.models.taskstate import TaskState
 from thing.models.transaction import Transaction
 from thing.models.userprofile import UserProfile
+from thing.models.planetarycolony import Colony
+from thing.models.planetarypin import Pin, PinContent

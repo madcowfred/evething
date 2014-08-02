@@ -53,10 +53,22 @@ table .headerSortUp:after {
   .tablesorter-headerAsc, .tablesorter-headerDesc {
     background: @etInfoBackground;
   }
-  i.icon-caret-up {
+  i.fa-caret-up {
     margin-top: -11px;
   }
-  i.icon-caret-down {
+  i.fa-caret-down {
     margin-top: -4px;
   }
 }
+
+.tablesorter-bootstrap {
+  width: 100%;
+  .tablesorter-filter-row .tablesorter-filter {
+    .form-control;
+    .input-sm;
+  }
+  .tablesorter-header-inner {
+    white-space: nowrap;
+  }
+}
+

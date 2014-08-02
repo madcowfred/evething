@@ -283,7 +283,7 @@ class Importer:
                 # hasn't changed
                 mg = data_map.get(id, None)
                 if mg is not None:
-                    if parent is not None and mg.parent.id != parent.id:
+                    if parent is not None and mg.parent is not None and mg.parent.id != parent.id:
                         mg.delete()
                     else:
                         if mg.name != data[0]:
@@ -449,11 +449,10 @@ class Importer:
         added = 0
 
         self.cursor.execute("""
-            SELECT  b.blueprintTypeID, t.typeName, b.productTypeID, b.productionTime, b.productivityModifier, b.materialModifier, b.wasteFactor
-            FROM    invBlueprintTypes AS b
+            SELECT  b.typeID, t.typeName, b.maxProductionLimit
+            FROM    industryBlueprints AS b
             INNER JOIN invTypes AS t
-            ON      b.blueprintTypeID = t.typeID
-            WHERE   t.published = 1
+            ON      b.typeID = t.typeID
         """)
         bulk_data = {}
         for row in self.cursor:
@@ -476,11 +475,7 @@ class Importer:
                 new.append(Blueprint(
                     id=id,
                     name=data[0],
-                    item_id=data[1],
-                    production_time=data[2],
-                    productivity_modifier=data[3],
-                    material_modifier=data[4],
-                    waste_factor=data[5],
+                    productionLimit=data[1]
                 ))
                 added += 1
 
@@ -491,43 +486,43 @@ class Importer:
         new = []
         for id, data in bulk_data.items():
             # Base materials
-            self.cursor.execute('SELECT materialTypeID, quantity FROM invTypeMaterials WHERE typeID=%s', (data[1],))
+            self.cursor.execute('SELECT activityID, materialTypeID, quantity, consume FROM industryActivityMaterials WHERE typeID=%s', (id,))
             for baserow in self.cursor:
-                new.append(BlueprintComponent(
-                    blueprint_id=id,
-                    item_id=baserow[0],
-                    count=baserow[1],
-                    needs_waste=True,
-                ))
-                added += 1
-
-            # Extra materials. activityID 1 is manufacturing - categoryID 16 is skill requirements
-            self.cursor.execute("""
-                SELECT  r.requiredTypeID, r.quantity
-                FROM    ramTypeRequirements AS r
-                INNER JOIN invTypes AS t
-                ON      r.requiredTypeID = t.typeID
-                INNER JOIN invGroups AS g
-                ON      t.groupID = g.groupID
-                WHERE   r.typeID = %s
-                        AND r.activityID = 1
-                        AND g.categoryID <> 16
-            """, (id,))
-
-            for extrarow in self.cursor:
-                new.append(BlueprintComponent(
-                    blueprint_id=id,
-                    item_id=extrarow[0],
-                    count=extrarow[1],
-                    needs_waste=False,
-                ))
-                added += 1
-
+                # blueprint 3927 references itemId 3924 which doesn't exist,
+                # so ignore it, :ccp:
+                if id != 3927:
+                    new.append(BlueprintComponent(
+                        blueprint_id=id,
+                        activity=baserow[0],
+                        item_id=baserow[1],
+                        count=baserow[2],
+                        consumed=baserow[3]
+                    ))
+                    added += 1
         # If there's any new ones just drop and recreate the whole lot, easier
         # than trying to work out what has changed for every single blueprint
         if new:
             BlueprintComponent.objects.all().delete()
             BlueprintComponent.objects.bulk_create(new)
+
+        # Products!
+        new = []
+        for id, data in bulk_data.items():
+            # Base materials
+            self.cursor.execute('SELECT activityID, productTypeID, quantity FROM industryActivityProducts WHERE typeID=%s', (id,))
+            for baserow in self.cursor:
+                new.append(BlueprintProduct(
+                    blueprint_id=id,
+                    activity=baserow[0],
+                    item_id=baserow[1],
+                    count=baserow[2]
+                ))
+                added += 1
+        # If there's any new ones just drop and recreate the whole lot, easier
+        # than trying to work out what has changed for every single blueprint
+        if new:
+            BlueprintProduct.objects.all().delete()
+            BlueprintProduct.objects.bulk_create(new)
 
         return added
 

@@ -35,19 +35,22 @@ from thing.models import APIKey, TaskState
 API_KEY_INFO_URL = ('thing.api_key_info', '/account/APIKeyInfo.xml.aspx', 'et_low')
 
 CHAR_URLS = {
-    APIKey.CHAR_ACCOUNT_STATUS_MASK: ('thing.account_status', '/account/AccountStatus.xml.aspx', 'et_medium'),
-    APIKey.CHAR_ASSET_LIST_MASK: ('thing.asset_list', '/char/AssetList.xml.aspx', 'et_medium'),
-    APIKey.CHAR_CHARACTER_INFO_MASK: ('thing.character_info', '/eve/CharacterInfo.xml.aspx', 'et_medium'),
-    APIKey.CHAR_CHARACTER_SHEET_MASK: ('thing.character_sheet', '/char/CharacterSheet.xml.aspx', 'et_medium'),
-    APIKey.CHAR_CONTRACTS_MASK: ('thing.contracts', '/char/Contracts.xml.aspx', 'et_medium'),
-    APIKey.CHAR_INDUSTRY_JOBS_MASK: ('thing.industry_jobs', '/char/IndustryJobs.xml.aspx', 'et_medium'),
-    APIKey.CHAR_MAILING_LISTS_MASK: ('thing.mailing_lists', '/char/MailingLists.xml.aspx', 'et_medium'),
-    APIKey.CHAR_MAIL_MESSAGES_MASK: ('thing.mail_messages', '/char/MailMessages.xml.aspx', 'et_medium'),
-    APIKey.CHAR_MARKET_ORDERS_MASK: ('thing.market_orders', '/char/MarketOrders.xml.aspx', 'et_medium'),
-    APIKey.CHAR_SKILL_QUEUE_MASK: ('thing.skill_queue', '/char/SkillQueue.xml.aspx', 'et_medium'),
-    APIKey.CHAR_STANDINGS_MASK: ('thing.standings', '/char/Standings.xml.aspx', 'et_medium'),
-    APIKey.CHAR_WALLET_JOURNAL_MASK: ('thing.wallet_journal', '/char/WalletJournal.xml.aspx', 'et_medium'),
-    APIKey.CHAR_WALLET_TRANSACTIONS_MASK: ('thing.wallet_transactions', '/char/WalletTransactions.xml.aspx', 'et_medium'),
+    APIKey.CHAR_ACCOUNT_STATUS_MASK: [('thing.account_status', '/account/AccountStatus.xml.aspx', 'et_medium')],
+    APIKey.CHAR_ASSET_LIST_MASK: [
+        ('thing.asset_list', '/char/AssetList.xml.aspx', 'et_medium'),
+        ('thing.planetary_colonies', '/char/PlanetaryColonies.xml.aspx', 'et_medium')
+    ],
+    APIKey.CHAR_CHARACTER_INFO_MASK: [('thing.character_info', '/eve/CharacterInfo.xml.aspx', 'et_medium')],
+    APIKey.CHAR_CHARACTER_SHEET_MASK: [('thing.character_sheet', '/char/CharacterSheet.xml.aspx', 'et_medium')],
+    APIKey.CHAR_CONTRACTS_MASK: [('thing.contracts', '/char/Contracts.xml.aspx', 'et_medium')],
+    APIKey.CHAR_INDUSTRY_JOBS_MASK: [('thing.industry_jobs', '/char/IndustryJobsHistory.xml.aspx', 'et_medium')],
+    APIKey.CHAR_MAILING_LISTS_MASK: [('thing.mailing_lists', '/char/MailingLists.xml.aspx', 'et_medium')],
+    APIKey.CHAR_MAIL_MESSAGES_MASK: [('thing.mail_messages', '/char/MailMessages.xml.aspx', 'et_medium')],
+    APIKey.CHAR_MARKET_ORDERS_MASK: [('thing.market_orders', '/char/MarketOrders.xml.aspx', 'et_medium')],
+    APIKey.CHAR_SKILL_QUEUE_MASK: [('thing.skill_queue', '/char/SkillQueue.xml.aspx', 'et_medium')],
+    APIKey.CHAR_STANDINGS_MASK: [('thing.standings', '/char/Standings.xml.aspx', 'et_medium')],
+    APIKey.CHAR_WALLET_JOURNAL_MASK: [('thing.wallet_journal', '/char/WalletJournal.xml.aspx', 'et_medium')],
+    APIKey.CHAR_WALLET_TRANSACTIONS_MASK: [('thing.wallet_transactions', '/char/WalletTransactions.xml.aspx', 'et_medium')],
 }
 
 CORP_URLS = {
@@ -55,7 +58,7 @@ CORP_URLS = {
     APIKey.CORP_ASSET_LIST_MASK: ('thing.asset_list', '/corp/AssetList.xml.aspx', 'et_medium'),
     APIKey.CORP_CONTRACTS_MASK: ('thing.contracts', '/corp/Contracts.xml.aspx', 'et_medium'),
     APIKey.CORP_CORPORATION_SHEET_MASK: ('thing.corporation_sheet', '/corp/CorporationSheet.xml.aspx', 'et_medium'),
-    APIKey.CORP_INDUSTRY_JOBS_MASK: ('thing.industry_jobs', '/corp/IndustryJobs.xml.aspx', 'et_medium'),
+    APIKey.CORP_INDUSTRY_JOBS_MASK: ('thing.industry_jobs', '/corp/IndustryJobsHistory.xml.aspx', 'et_medium'),
     APIKey.CORP_MARKET_ORDERS_MASK: ('thing.market_orders', '/corp/MarketOrders.xml.aspx', 'et_medium'),
     APIKey.CORP_WALLET_JOURNAL_MASK: ('thing.wallet_journal', '/corp/WalletJournal.xml.aspx', 'et_medium'),
     APIKey.CORP_WALLET_TRANSACTIONS_MASK: ('thing.wallet_transactions', '/corp/WalletTransactions.xml.aspx', 'et_medium'),
@@ -128,25 +131,26 @@ def task_spawner():
         if apikey.key_type in (APIKey.ACCOUNT_TYPE, APIKey.CHARACTER_TYPE):
             for mask in masks:
                 # get useful URL data for this mask
-                url_data = CHAR_URLS.get(mask, None)
-                if url_data is None:
+                url_datas = CHAR_URLS.get(mask, None)
+                if url_datas is None:
                     continue
 
-                func, url, queue = url_data
+                for url_data in url_datas:
+                    func, url, queue = url_data
 
-                for character in apikey.characters.all():
-                    if mask == APIKey.CHAR_ACCOUNT_STATUS_MASK:
-                        parameter = 0
-                    else:
-                        parameter = character.id
+                    for character in apikey.characters.all():
+                        if mask == APIKey.CHAR_ACCOUNT_STATUS_MASK and func == 'thing.account_status':
+                            parameter = 0
+                        else:
+                            parameter = character.id
 
-                    taskstate = status[keyid].get((url, parameter), None)
+                        taskstate = status[keyid].get((url, parameter), None)
 
-                    _init_taskstate(taskdata, now, taskstate, keyid, apikey.id, func, url, queue, parameter)
+                        _init_taskstate(taskdata, now, taskstate, keyid, apikey.id, func, url, queue, parameter)
 
-                    # Only do account status once per key
-                    if mask == APIKey.CHAR_ACCOUNT_STATUS_MASK:
-                        break
+                        # Only do account status once per key
+                        if mask == APIKey.CHAR_ACCOUNT_STATUS_MASK:
+                            break
 
         # Corporation keys
         elif apikey.key_type == APIKey.CORPORATION_TYPE:

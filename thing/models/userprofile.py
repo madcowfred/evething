@@ -58,6 +58,7 @@ class UserProfile(models.Model):
     show_trade = models.BooleanField(default=True)
     show_transactions = models.BooleanField(default=True)
     show_wallet_journal = models.BooleanField(default=True)
+    show_pi = models.BooleanField(default=True)
 
     show_item_icons = models.BooleanField(default=False)
     entries_per_page = models.IntegerField(default=100)

@@ -25,10 +25,12 @@
 
 import re
 from decimal import Decimal, ROUND_UP
+from datetime import datetime
 
 from django.contrib.staticfiles.storage import staticfiles_storage
 from django.template.defaultfilters import stringfilter
 from django.conf import settings
+from django.utils.timesince import timesince
 
 from jingo import register
 
@@ -226,3 +228,8 @@ def can_register(user):
         return False
 
     return True
+
+
+@register.filter
+def timeuntil(d):
+    return timesince(datetime.utcnow(), d)

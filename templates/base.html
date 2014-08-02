@@ -38,7 +38,7 @@
             <ul class="nav navbar-nav" id="nav-list">
 {% if authed %}{% set profile = user.profile %}
               {% if profile.show_assets %}<li><a href="{{ url('thing.views.assets_summary') }}">Assets</a></li>{% endif %}
-              {% if profile.show_blueprints %}<li><a href="{{ url('thing.views.blueprints') }}">Blueprints</a></li>{% endif %}
+              {# {% if profile.show_blueprints %}<li><a href="{{ url('thing.views.blueprints') }}">Blueprints</a></li>{% endif %} #}
 {% if profile.show_contracts %}
               <li>
                 <a href="{{ url('thing.views.contracts') }}">
@@ -59,6 +59,7 @@
               {% if profile.show_trade %}<li><a href="{{ url('thing.views.trade') }}">Trade</a></li>{% endif %}
               {% if profile.show_transactions %}<li><a href="{{ url('thing.views.transactions') }}">Transactions</a></li>{% endif %}
               {% if profile.show_wallet_journal %}<li><a href="{{ url('thing.views.wallet_journal') }}">Wallet Journal</a></li>{% endif %}
+              {% if profile.show_pi %}<li><a href="{{ url('thing.views.pi') }}">PI</a></li>{% endif %}
 {% endif %}{# authed #}
             </ul>
 
@@ -120,7 +121,7 @@
     <div id="footer">
       <div class="container-fluid">
         <p class="pull-left">
-          <a href="https://github.com/madcowfred/evething/tree/develop#readme">EVEthing</a> &copy; Freddie (EVE: Tazuki Falorn) 2010-2014
+          <a href="https://github.com/madcowfred/evething/tree/develop#readme">EVEthing</a> &copy; Freddie &amp; Gillingham (EVE: bikezen) 2010-2014
         </p>
         <p class="pull-right">
           <strong>Queued tasks:</strong> {{ task_count|default(0) }}
@@ -151,6 +152,7 @@
     <script src="{{ STATIC_URL}}js/evething/orders.js"></script>
     <script src="{{ STATIC_URL}}js/evething/transactions.js"></script>
     <script src="{{ STATIC_URL}}js/evething/wallet_journal.js"></script>
+    <script src="{{ STATIC_URL}}js/evething/pi.js"></script>
 {% else %}
     <script src="{{ static('js/evething-combined.min.js') }}"></script>
 {% endif %}{# if debug #}
