@@ -1,7 +1,7 @@
 EVEthing.mail = {
-    onload: function() {
+    onload: function () {
         // Filter changes
-        $('#mail-side').on('click', '.js-filter', function() {
+        $('#mail-side').on('click', '.js-filter', function () {
             setTimeout(EVEthing.mail.build_table, 1);
         });
         $('#mail-side').on('change', 'select', EVEthing.mail.build_table);
@@ -18,7 +18,7 @@ EVEthing.mail = {
 
         // Build character list
         var options = '<option value="0" selected>-ALL-</option><option value="-" disabled>——————————</option>';
-        $.each(EVEthing.util.sorted_keys_by_value(EVEthing.mail.characters), function(i, character_id) {
+        $.each(EVEthing.util.sorted_keys_by_value(EVEthing.mail.characters), function (i, character_id) {
             options += '<option value="' + character_id + '">' + EVEthing.mail.characters[character_id] + '</option>';
         });
         $('#filter-character').html(options);
@@ -29,9 +29,9 @@ EVEthing.mail = {
             headerTemplate: '{content} {icon}',
             widgets: ['uitheme'],
             headers: {
-                0: { sorter: false, },
+                0: { sorter: false }
             },
-            sortList: [[4, 1]],
+            sortList: [[4, 1]]
         });
 
         // Deal with hash stuff
@@ -40,34 +40,34 @@ EVEthing.mail = {
         // Retrieve mail headers
         $.get(
             EVEthing.mail.headers_url,
-            function(data) {
+            function (data) {
                 EVEthing.mail.data = data;
                 EVEthing.mail.data.message_map = {};
 
                 for (var i = 0; i < data.messages.length; i++) {
-                    var message = data.messages[i];
+                    message = data.messages[i];
                     EVEthing.mail.data.message_map[message.message_id] = message;
 
                     // Mailing list
                     if (message.to_list_id > 0) {
                         var list = EVEthing.mail.data.mailing_lists[message.to_list_id] || 'Unknown list';
-                        message.to_list = '<i class="icon-list"></i> ' + list;
+                        message.to_list = '<span class="fa fa-list"></span> ' + list;
                     }
                     // Corp or alliance
                     else if (message.to_corp_or_alliance_id > 0) {
                         var corp = EVEthing.mail.data.corporations[message.to_corp_or_alliance_id];
                         // Corp
                         if (corp !== undefined) {
-                            message.to_corporation = '<i class="icon-group"></i> ' + corp.name;
+                            message.to_corporation = '<span class="fa fa-group"></span> ' + corp.name;
                         }
                         // Alliance
                         else {
                             var alliance = EVEthing.mail.data.alliances[message.to_corp_or_alliance_id];
                             if (alliance !== undefined) {
-                                message.to_alliance = '<i class="icon-hospital"></i> ' + alliance.name;
+                                message.to_alliance = '<span class="fa fa-hospital-o"></span> ' + alliance.name;
                             }
                             else {
-                                message.to_alliance = '<i class="icon-hospital"></i> Unknown alliance';
+                                message.to_alliance = '<span class="fa fa-hospital-o"></span> Unknown alliance';
                             }
                         }
                     }
@@ -75,7 +75,7 @@ EVEthing.mail = {
                     else {
                         if (message.to_characters.length > 0) {
                             if (message.to_characters.length > 1) {
-                                message.to_character = '<i class="icon-asterisk"></i> Multiple characters';
+                                message.to_character = '<span class="fa fa-asterisk"></span> Multiple characters';
                             }
                             else {
                                 message.to_character = EVEthing.mail.data.characters[message.to_characters[0]] || '*UNKNOWN*';
@@ -94,7 +94,7 @@ EVEthing.mail = {
         );
 
         // Register Handlebars helpers
-        Handlebars.registerHelper('rowClass', function() {
+        Handlebars.registerHelper('rowClass', function () {
             if (this.read) {
                 return new Handlebars.SafeString(' class="success"');
             }
@@ -102,13 +102,13 @@ EVEthing.mail = {
                 return new Handlebars.SafeString(' class="error"');
             }
         });
-        Handlebars.registerHelper('toText', function() {
+        Handlebars.registerHelper('toText', function () {
             return new Handlebars.SafeString(this.to_list || this.to_alliance || this.to_corporation || this.to_character);
         });
-        Handlebars.registerHelper('senderText', function() {
+        Handlebars.registerHelper('senderText', function () {
             return EVEthing.mail.data.characters[this.sender_id] || '*UNKNOWN*';
         });
-        Handlebars.registerHelper('subjectText', function() {
+        Handlebars.registerHelper('subjectText', function () {
             return this.title || '*BLANK SUBJECT*';
         });
 
@@ -117,22 +117,20 @@ EVEthing.mail = {
     },
 
     // Sets filters based on the document hash
-    onload_hash: function() {
+    onload_hash: function () {
         var parts = document.location.hash.replace('#', '').split(';');
         if (parts.length === 2) {
             var bools = parts[0].split('');
             if (bools.length === 6) {
                 if (bools[0] === 'f') {
                     $('#filter-unread').removeClass('active');
-                }
-                else {
+                } else {
                     $('#filter-unread').addClass('active');
                 }
 
                 if (bools[1] === 'f') {
                     $('#filter-read').removeClass('active');
-                }
-                else {
+                } else {
                     $('#filter-read').addClass('active');
                 }
 
@@ -147,15 +145,15 @@ EVEthing.mail = {
     },
 
     // Resize event
-    resize: function(e) {
-        var h = ($('#wrap').height() - $('#wrap .navbar').height() - $('#footer').height() - 40) / 2;
-        var props = { 'min-height': h + 'px', 'max-height': h + 'px' };
+    resize: function () {
+        var h = ($('#wrap').height() - $('#wrap .navbar').height() - $('#footer').height() - 40) / 2,
+            props = { 'min-height': h + 'px', 'max-height': h + 'px' };
         $('.mail-list').css(props);
         $('.mail-message').css(props);
     },
 
     // Build mail-list-table
-    build_table: function() {
+    build_table: function () {
         var template = Handlebars.getTemplate('mail_list');
 
         // Collect filter settings
@@ -203,7 +201,7 @@ EVEthing.mail = {
             }
 
             // Display this based on to: filters?
-            var keep_to = false;
+            keep_to = false;
             if ((filter_to_character && message.to_character) ||
                 (filter_to_corporation && message.to_corporation) ||
                 (filter_to_alliance && message.to_alliance) ||
@@ -247,7 +245,7 @@ EVEthing.mail = {
             filter_to_alliance ? 't' : 'f',
             filter_to_mailing_list ? 't' : 'f',
             ';',
-            character_id,
+            character_id
         ].join('');
     },
 
@@ -258,7 +256,7 @@ EVEthing.mail = {
         $.post(
             $form.attr('action'),
             $form.serialize(),
-            function(data) {
+            function (data) {
                 $.each($('#mail-list-table tbody input:checked'), function(i, input) {
                     var message_id = $(input).closest('tr').attr('data-message-id');
                     EVEthing.mail.data.message_map[message_id].read = true;
@@ -269,7 +267,7 @@ EVEthing.mail = {
         );
     },
 
-    mail_check_all_click: function() {
+    mail_check_all_click: function () {
         if ($('#mail-list-check-all').is(':checked')) {
             $('#mail-list-table tbody input').prop('checked', 'checked');
         }
@@ -278,7 +276,7 @@ EVEthing.mail = {
         }
     },
 
-    mail_link_click: function(e) {
+    mail_link_click: function (e) {
         if (e.preventDefault) {
             e.preventDefault();
         }
@@ -288,7 +286,7 @@ EVEthing.mail = {
 
         var message_id = parseInt($(this).attr('href').replace('#', ''));
         for (var i = 0; i < EVEthing.mail.data.messages.length; i++) {
-            var message = EVEthing.mail.data.messages[i];
+            message = EVEthing.mail.data.messages[i];
 
             if (message.message_id === message_id) {
                 // Fill in the data we already have
@@ -317,8 +315,7 @@ EVEthing.mail = {
                 // If we already have a body, display it!
                 if (message.body !== undefined) {
                     $('#mail-message-body').html(message.body);
-                }
-                else {
+                } else {
                     // Loading spinner in the body for now
                     $('#mail-message-body').html('<i class="icon-spinner icon-spin icon-4x"></i>');
 
@@ -326,7 +323,7 @@ EVEthing.mail = {
                     var url = EVEthing.mail.body_url.replace('0000', message_id);
                     $.get(
                         url,
-                        function(data) {
+                        function (data) {
                             if (data.body) {
                                 $tr.removeClass('warning');
 
@@ -336,9 +333,7 @@ EVEthing.mail = {
                                 $('#mail-message-body').html(message.body);
 
                                 EVEthing.mail.build_table();
-                            }
-                            // Error probably
-                            else {
+                            } else {
                                 $('#mail-message.body').html('<strong>ERROR:</strong> ' + data.error);
                             }
                         }
@@ -350,5 +345,5 @@ EVEthing.mail = {
         }
 
         return false;
-    },
+    }
 };
