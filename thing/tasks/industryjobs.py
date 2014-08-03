@@ -103,7 +103,7 @@ class IndustryJobs(APITask):
                     ij.save()
 
                     if ij.status != 1:
-                        text = '%s: industry job #%s (%s) status has been changed to ' % (ij.system.name, ij.job_id, ij.get_activity_display())
+                        text = '%s: industry job #%s (%s) status has been changed to ' % (ij.system.name, ij.job_id, ij.get_status_display())
                         if self.apikey.key_type == APIKey.CORPORATION_TYPE:
                             text = '%s ([%s] %s)' % (text, ij.corporation.ticker, ij.corporation.name)
                         else:
