@@ -1,4 +1,9 @@
+(function() {
 "use strict";
+
+/* global $: false */
+/* global EVEThing */
+/* global Handlebars: false */
 
 /* Django CSRF Handleing */
 function csrfSafeMethod(method) {
@@ -24,27 +29,28 @@ Handlebars.registerHelper('corp', function(key) {
     if (EVEthing.home.CORPORATIONS.hasOwnProperty(key)) {
         var corp = EVEthing.home.CORPORATIONS[key];
 
-        var out = '[' + corp['ticker'] + '] ' + corp['name'];
+        var out = '[' + corp.ticker + '] ' + corp.name;
 
-        if (EVEthing.home.ALLIANCES.hasOwnProperty(corp['alliance'])) {
-            var alliance = EVEthing.home.ALLIANCES[corp['alliance']];
+        if (EVEthing.home.ALLIANCES.hasOwnProperty(corp.alliance)) {
+            var alliance = EVEthing.home.ALLIANCES[corp.alliance];
 
-            out = out + '<br/> (' + alliance['short_name'] + ') ' + alliance['name'];
+            out = out + '<br/> (' + alliance.short_name + ') ' + alliance.name;
         }
-        return out
+        return out;
     }
     return key;
 });
 
 Handlebars.registerHelper('systems_details', function(name) {
     if (EVEthing.home.SYSTEMS.hasOwnProperty(name)) {
-        return name + ' - ' + EVEthing.home.SYSTEMS[name]['constellation'] + ' - ' + EVEthing.home.SYSTEMS[name]['region'];
+        return name + ' - ' + EVEthing.home.SYSTEMS[name].constellation + ' - ' + EVEthing.home.SYSTEMS[name].region;
     }
     return '';
 });
 
 Handlebars.registerHelper('roman', function(num) {
-    if (!+num)
+    /* http://blog.stevenlevithan.com/archives/javascript-roman-numeral-converter */
+    if (!+num) // jshint ignore:line
         return false;
     var digits = String(+num).split(""),
         key = ["","C","CC","CCC","CD","D","DC","DCC","DCCC","CM",
@@ -54,7 +60,7 @@ Handlebars.registerHelper('roman', function(num) {
         i = 3;
     while (i--)
         roman = (key[+digits.pop() + (i * 10)] || "") + roman;
-    return Array(+digits.join("") + 1).join("M") + roman;
+    return new Array(+digits.join("") + 1).join("M") + roman;
 });
 
 Handlebars.registerHelper('comma', function(x) {
@@ -98,30 +104,30 @@ Handlebars.registerHelper('security', function(security) {
         title += 'No travel restrictions.';
     }
 
-    var out = '<span class="small pull-right sensitive security {{cssClass}}" rel="tooltip" title="{{title}}" data-content="">{{security}}</span>'
+    var out = '<span class="small pull-right sensitive security {{cssClass}}" rel="tooltip" title="{{title}}" data-content="">{{security}}</span>';
     out = out.replace('{{cssClass}}', cssClass);
     out = out.replace('{{title}}', title);
-    out = out.replace('{{security}}', security)
+    out = out.replace('{{security}}', security);
 
     return new Handlebars.SafeString(out);
 }); 
 
 function __duration(s) {
     var m = Math.floor(s/60);
-    s = s % 60
+    s = s % 60;
     var h = Math.floor(m/60);
-    m = m % 60
+    m = m % 60;
     var d = Math.floor(h/24);
-    h = h % 24
+    h = h % 24;
     
     var parts = [];
-    if (d != 0) parts[parts.length] = d + 'd';
-    if (h != 0) parts[parts.length] = h + 'h';
-    if (m != 0) parts[parts.length] = m + 'm';
-    if (s != 0) parts[parts.length] = s + 's';
+    if (d !== 0) parts[parts.length] = d + 'd';
+    if (h !== 0) parts[parts.length] = h + 'h';
+    if (m !== 0) parts[parts.length] = m + 'm';
+    if (s !== 0) parts[parts.length] = s + 's';
     
     return parts;
-};
+}
 
 Handlebars.registerHelper('duration', function(s) {
     return __duration(s).join(' ');
@@ -139,31 +145,65 @@ Handlebars.registerHelper('shortduration', function(s) {
     return bits.join(' ');
 });
 
+if (typeof(EVEthing.home) === 'undefined') { EVEthing.home = {}; }
 
-if (typeof(EVEthing) === "undefined") EVEthing = {};
-EVEthing.home = {
-    'ONE_DAY': 24*60*60,
-    'EXPIRE_WARNING': 10 * 24*60*60,
+EVEthing.home.ONE_DAY = 24*60*60;
+EVEthing.home.EXPIRE_WARNING = 10 * 24*60*60;
 
-    // CSS class:text mapping
-    'REPLACEMENTS': {
-        'character-name': 'Character Name',
-        'apikey-name': 'API name',
-        'corporation-name': 'Corporation Name [TICKR]',
-        'character-location': 'Hoth -- X-Wing',
-        'wallet-division': 'Hookers & Blow',
-        'user-name': 'Mr. User',
-    },
+EVEthing.home.SP_PER_LEVEL = {
+    0: 0,
+    1: 250,
+    2: 1415,
+    3: 8000,
+    4: 45255,
+    5: 256000,
+};
 
-    'SP_PER_LEVEL': {
-        0: 0,
-        1: 250,
-        2: 1415,
-        3: 8000,
-        4: 45255,
-        5: 256000,
-    },
+EVEthing.home.SORT_PROFILE_TO_FUNC_MAP = {
+    'skillqueue': 'skill_queue',
+    'apiname': 'api_name',
+    'charname': 'char_name',
+    'corpname': 'corp_name',
+    'totalsp': 'total_sp',
+    'wallet': 'wallet_balance',
+};
 
+EVEthing.home.FUNC_TO_SORT_PROFILE_MAP = {};
+EVEthing.home.UPDATE_CHECK_PERIOD = 60 * 5;
+EVEthing.home.IGNORE_GROUPS = false;
+EVEthing.home.SHIPS = {};
+EVEthing.home.CORPORATIONS = {};
+EVEthing.home.ALLIANCES = {};
+EVEthing.home.SYSTEMS = {};
+EVEthing.home.CHARACTERS = {};
+EVEthing.home.EVENTS = [];
+
+EVEthing.home.CHARACTER_TEMPLATE = Handlebars.getTemplate('home_character');
+
+EVEthing.home.CHARACTER_ORDER = [];
+
+EVEthing.home.REFRESH_HINTS = {
+    'skill_queue': {},
+    'character': {},
+};
+
+// CSS class:text mapping
+EVEthing.home.REPLACEMENTS = {
+    'character-name': 'Character Name',
+    'apikey-name': 'API name',
+    'corporation-name': 'Corporation Name [TICKR]',
+    'character-location': 'Hoth -- X-Wing',
+    'wallet-division': 'Hookers & Blow',
+    'user-name': 'Mr. User',
+};
+
+EVEthing.home.SUCCESS_CSS_CLASS = "";
+EVEthing.home.WARNING_CSS_CLASS = "";
+EVEthing.home.ERROR_CSS_CLASS = "";
+
+EVEthing.home.PROFILE = {};
+
+EVEthing.home.DEFAULTS = {
     'PROFILE': {
         'CHAR_COL_SPAN': 3,
         'HOME_CHARS_PER_ROW': 4,
@@ -180,58 +220,50 @@ EVEthing.home = {
         'HOME_HIGHLIGHT_BORDER': true,
     },
 
-    'SUCCESS_CSS_CLASS': "",
-    'WARNING_CSS_CLASS': "",
-    'ERROR_CSS_CLASS': "",
-
-    'SORT_PROFILE_TO_FUNC_MAP': {
-        'skillqueue': 'skill_queue',
-        'apiname': 'api_name',
-        'charname': 'char_name',
-        'corpname': 'corp_name',
-        'totalsp': 'total_sp',
-        'wallet': 'wallet_balance',
-    },
-
-    'FUNC_TO_SORT_PROFILE_MAP': {},
-
-    'UPDATE_CHECK_PERIOD': 60*5,
-
-    'IGNORE_GROUPS': false,
-
-    'SHIPS': {},
-    'CORPORATIONS': {},
-    'ALLIANCES': {},
-    'SYSTEMS': {},
-
-    'CHARACTERS': {},
-    'EVENTS': [],
-
-    'CHARACTER_TEMPLATE': Handlebars.getTemplate('home_character'),
-
-    'CHARACTER_ORDER': [],
-
-    'REFRESH_HINTS': {
-        'skill_queue': {},
-        'character': {},
-    },
-
     'HOME_PAGE_UPDATE_DELAY': null,
 };
 
 EVEthing.home.onload = function() {
+    var i, j;
+
+    // Apply the default values
+    for (i in EVEthing.home.DEFAULTS) {
+        if (!EVEthing.home.DEFAULTS.hasOwnProperty(i)) { continue; }
+
+        if (typeof(EVEthing.home.DEFAULTS[i]) === "object") {
+            if (typeof(EVEthing.home[i]) === "object") {
+                for (j in EVEthing.home[i]) {
+                    if (!EVEthing.home[i].hasOwnProperty(j)) { continue; }
+    
+                    if (!EVEthing.home.hasOwnProperty(i)) {
+                        EVEthing.home[i][j] = EVEthing.home.DEFAULTS[i][j];
+                    }
+                }
+            } else {
+                EVEthing.home[i] = EVEthing.home.DEFAULTS[i];
+            }
+        } else {
+            if (!EVEthing.home.hasOwnProperty(i)) {
+                EVEthing.home[i] = EVEthing.home.DEFAULTS[i];
+            }
+        }
+    }
+
     // Bind screenshot mode button
     $('body').on('click', '.js-screenshot', EVEthing.home.screenshot_mode);
 
     // Lets normalise some values...
-    EVEthing.home.PROFILE.HOME_SORT_ORDER = EVEthing.home.SORT_PROFILE_TO_FUNC_MAP[EVEthing.home.PROFILE.HOME_SORT_ORDER]
+    EVEthing.home.PROFILE.HOME_SORT_ORDER = EVEthing.home.SORT_PROFILE_TO_FUNC_MAP[EVEthing.home.PROFILE.HOME_SORT_ORDER];
 
     EVEthing.home.initialLoad();
 
     var cookies = document.cookie.split(/[;\s|=]/);
 
-    if ($.cookie('homePageSortBy') != null) { // != 'undefined') {
-        EVEthing.home.PROFILE.HOME_SORT_ORDER = $.cookie('homePageSortBy');
+    var home_page_sort_by_cookie = $.cookie('homePageSortBy');
+    if (home_page_sort_by_cookie !== null && typeof(home_page_sort_by_cookie) !== 'undefined') {
+        if (typeof(EVEthing.home.character_ordering[home_page_sort_by_cookie]) !== 'undefined') {
+            EVEthing.home.PROFILE.HOME_SORT_ORDER = home_page_sort_by_cookie;
+        }
         EVEthing.home.PROFILE.HOME_SORT_DESCENDING = $.cookie('homePageSortOrder') == 'desc';
     }
     var indexOfSortEmptyQueueLast = cookies.indexOf('homePageSortEmptyQueueLast');
@@ -259,7 +291,7 @@ EVEthing.home.onload = function() {
     var sortSelectMenu = $('<ul class="dropdown-menu"></ul>');
     sortSelect.append(sortSelectMenu);
 
-    for (var i in EVEthing.home.character_ordering) {
+    for (i in EVEthing.home.character_ordering) {
         if (EVEthing.home.character_ordering.hasOwnProperty(i)) {
             sortSelectMenu.append('<li><a href="#' + i + '">' + EVEthing.home.character_ordering[i].NAME + '</a></li>');
         }
@@ -300,17 +332,20 @@ EVEthing.home.animate = function(lastFrame) {
     } else {
         window.requestAnimationFrame(function() { EVEthing.home.animate(now); });
 
+        var i;
+
         var total_sp = 0;
-        for (var i in EVEthing.home.CHARACTERS) {
+        for (i in EVEthing.home.CHARACTERS) {
             if (EVEthing.home.CHARACTERS.hasOwnProperty(i)) {
                 var dyn_data = EVEthing.home.CHARACTERS[i].animate(now);
                 
-                total_sp = total_sp + dyn_data['total_sp'];
+                total_sp = total_sp + dyn_data.total_sp;
             }
         }
+
         $('output[name="total_sp"]').val(Handlebars.helpers.comma(total_sp) + ' SP');
 
-        for (var i in EVEthing.home.EventDisplay.EVENTS) {
+        for (i in EVEthing.home.EventDisplay.EVENTS) {
             if (!EVEthing.home.EventDisplay.EVENTS.hasOwnProperty(i)) continue;
 
             EVEthing.home.EventDisplay.EVENTS[i].animate(now);
@@ -323,23 +358,23 @@ EVEthing.home.animate = function(lastFrame) {
                 var characters = {};
                 var options = {};
 
-                for (var i in EVEthing.home.REFRESH_HINTS['skill_queue']) {
-                    if (!EVEthing.home.REFRESH_HINTS['skill_queue'].hasOwnProperty(i)) continue;
+                for (i in EVEthing.home.REFRESH_HINTS.skill_queue) {
+                    if (!EVEthing.home.REFRESH_HINTS.skill_queue.hasOwnProperty(i)) continue;
 
                     // We want to give evething a little bit of time to actually run the update
-                    if (EVEthing.home.REFRESH_HINTS['skill_queue'][i] < (now + EVEthing.home.HOME_PAGE_UPDATE_DELAY)) {
+                    if (EVEthing.home.REFRESH_HINTS.skill_queue[i] < (now + EVEthing.home.HOME_PAGE_UPDATE_DELAY)) {
                         characters[i] = true;
-                        options['skill_queues'] = true;
+                        options.skill_queues = true;
                     }
                 }
 
-                for (var i in EVEthing.home.REFRESH_HINTS['character']) {
-                    if (!EVEthing.home.REFRESH_HINTS['character'].hasOwnProperty(i)) continue;
+                for (i in EVEthing.home.REFRESH_HINTS.character) {
+                    if (!EVEthing.home.REFRESH_HINTS.character.hasOwnProperty(i)) continue;
 
                     // We want to give evething a little bit of time to actually run the update
-                    if (EVEthing.home.REFRESH_HINTS['character'][i] < (now + EVEthing.home.HOME_PAGE_UPDATE_DELAY)) {
+                    if (EVEthing.home.REFRESH_HINTS.character[i] < (now + EVEthing.home.HOME_PAGE_UPDATE_DELAY)) {
                         characters[i] = true;
-                        options['characters'] = true;
+                        options.characters = true;
                     }
                 }
 
@@ -359,10 +394,11 @@ EVEthing.home.onSortByClicked = function(event) {
 
     var href = elem[0].href.split('#')[1];
 
+    var icon;
     if (href == "use_groups") {
         EVEthing.home.IGNORE_GROUPS = !EVEthing.home.IGNORE_GROUPS;
 
-        var icon = $(elem).find('b');
+        icon = $(elem).find('b');
         icon.removeClass('fa fa-circle-o fa-check-circle');
         icon.addClass('fa fa-' + (EVEthing.home.IGNORE_GROUPS ? 'circle-o' : 'check-circle'));
 
@@ -370,7 +406,7 @@ EVEthing.home.onSortByClicked = function(event) {
     } else if (href == "empty_queue_last") {
         EVEthing.home.PROFILE.HOME_SORT_EMPTY_QUEUE_LAST = !EVEthing.home.PROFILE.HOME_SORT_EMPTY_QUEUE_LAST;
         
-        var icon = $(elem).find('b');
+        icon = $(elem).find('b');
         icon.removeClass('fa fa-circle-o fa-check-circle');
         icon.addClass('fa fa-' + (EVEthing.home.PROFILE.HOME_SORT_EMPTY_QUEUE_LAST ? 'check-circle' : 'circle-o' ));
 
@@ -391,7 +427,7 @@ EVEthing.home.onSortByClicked = function(event) {
                 EVEthing.home.PROFILE.HOME_SORT_DESCENDING ?
                 EVEthing.home.character_ordering[href].NAME_REVERSE :
                 EVEthing.home.character_ordering[href].NAME_FORWARD
-            )
+            );
 
             $('li.sort-by output').val(out);
 
@@ -496,27 +532,28 @@ EVEthing.home.sort_characters = function() {
         EVEthing.home.CHARACTER_ORDER = Object.keys(EVEthing.home.CHARACTERS);
     }
     var methods = [];
-    for (var i in arguments) {
+    var i;
+    for (i in arguments) {
         if (!arguments.hasOwnProperty(i)) continue;
         methods[methods.length] = arguments[i];
     }
 
 
-    if (methods.length == 0) {
+    if (methods.length === 0) {
         var sort_method = EVEthing.home.PROFILE.HOME_SORT_ORDER;
         if (EVEthing.home.character_ordering.hasOwnProperty(sort_method)) {
             methods[0] = EVEthing.home.character_ordering[sort_method];
         }
     }
 
-    if (methods.length == 0) {
-        for (var i in EVEthing.home.character_ordering) {
+    if (methods.length === 0) {
+        for (i in EVEthing.home.character_ordering) {
             if (!EVEthing.home.character_ordering.hasOwnProperty(i)) continue;
             methods[methods.length] = EVEthing.home.character_ordering[i];
         }
     }
 
-    for (var i=0; i<methods.length; i++) {
+    for (i=0; i<methods.length; i++) {
         var method = methods[i];
 
         if (EVEthing.home.PROFILE.HOME_SORT_DESCENDING) {
@@ -561,32 +598,34 @@ EVEthing.home.partialLoad = function(options, characters) {
 };
 
 EVEthing.home.handleResponse = function(data, textStatus, jqXHR) {
+    var i;
+
     if (data.hasOwnProperty('ships')) {
         EVEthing.home.parseShips(data);
-        delete data['ships'];
+        delete data.ships;
     }
     if (data.hasOwnProperty('alliances')) {
         EVEthing.home.parseAlliances(data);
-        delete data['alliances'];
+        delete data.alliances;
     }
     if (data.hasOwnProperty('corporations')) {
         EVEthing.home.parseCorporations(data);
-        delete data['corporations'];
+        delete data.corporations;
     }
     if (data.hasOwnProperty('systems')) {
         EVEthing.home.parseSystems(data);
-        delete data['systems'];
+        delete data.systems;
     }
 
     if (data.hasOwnProperty('refresh_hints')) {
         EVEthing.home.parseRefreshHints(data);
-        delete data['refresh_hints'];
+        delete data.refresh_hints;
     }
 
     if (data.hasOwnProperty('characters')) {
         var wallet_total = 0;
         var total_characters = 0;
-        for (var i in data.characters) {
+        for (i in data.characters) {
             if (!data.characters.hasOwnProperty(i)) continue;
 
             total_characters++;
@@ -602,13 +641,13 @@ EVEthing.home.handleResponse = function(data, textStatus, jqXHR) {
         }
 
         if (total_characters > 0) {
-            $('output[name="total_wallet"]').val(Handlebars.helpers.comma(wallet_total.toFixed(2)) + ' ISK')
+            $('output[name="total_wallet"]').val(Handlebars.helpers.comma(wallet_total.toFixed(2)) + ' ISK');
         }
     }
 
     if (data.hasOwnProperty('events')) {
-        for (var i=data.events.length-1; i>=0; i--) {
-            new EVEthing.home.EventDisplay(data.events[i]['text'], data.events[i]['issued']);
+        for (i=data.events.length-1; i>=0; i--) {
+            new EVEthing.home.EventDisplay(data.events[i].text, data.events[i].issued);
         }
     }
 
@@ -689,7 +728,7 @@ EVEthing.home.screenshot_mode = function() {
         }
     });
 
-    var seen_tooltips = Array();
+    var seen_tooltips = [];
     $('.row').each(function() {
         var $row = $(this);
 
@@ -699,7 +738,7 @@ EVEthing.home.screenshot_mode = function() {
 
             $('[rel=tooltip]', $well).each(function () {
                 var $i = $(this);
-                if (seen == false && seen_tooltips[$i.attr('class')] === undefined) {
+                if (seen === false && seen_tooltips[$i.attr('class')] === undefined) {
                     seen = true;
                     seen_tooltips[$i.attr('class')] = true;
 
@@ -727,13 +766,14 @@ EVEthing.home.CharacterListDisplay.draw = function() {
     if (typeof(this.html) == "undefined") this.html = null;
     if (this.html !== null) this.html.remove();
 
+    var i;
     this.html = $('<div class="margin-half-top"></div>');
 
     //var row = this.html;
     var row = $('<div class="row"></div>');
 
     var defered_chars = [];
-    for (var i=0; i < EVEthing.home.CHARACTER_ORDER.length; i++) {
+    for (i=0; i < EVEthing.home.CHARACTER_ORDER.length; i++) {
         if (row.children().length >= EVEthing.home.PROFILE.HOME_CHARS_PER_ROW) {
             this.html.append(row);
             row = $('<div class="row"></div>');
@@ -748,7 +788,7 @@ EVEthing.home.CharacterListDisplay.draw = function() {
                 }
             }
             if (defered) {
-                defered_chars[defered_chars.length] = EVEthing.home.CHARACTER_ORDER[i];;
+                defered_chars[defered_chars.length] = EVEthing.home.CHARACTER_ORDER[i];
             }
         } else {
             row.append(EVEthing.home.CHARACTERS[EVEthing.home.CHARACTER_ORDER[i]].well);
@@ -756,7 +796,7 @@ EVEthing.home.CharacterListDisplay.draw = function() {
 
     }
 
-    for (var i=0; i < defered_chars.length; i++) {
+    for (i=0; i < defered_chars.length; i++) {
         if (row.children().length >= EVEthing.home.PROFILE.HOME_CHARS_PER_ROW) {
             this.html.append(row);
             row = $('<div class="row"></div>');
@@ -771,7 +811,7 @@ EVEthing.home.CharacterListDisplay.draw = function() {
 EVEthing.home.CharacterListDisplay.remove = function() {
     if (typeof(this.html) == "undefined") this.html = null;
     if (this.html !== null) this.html.remove();
-}
+};
 
 
 /**
@@ -813,6 +853,8 @@ EVEthing.home.GroupDisplay.prototype.add = function(character) {
 EVEthing.home.GroupDisplay.prototype.draw = function() {
     if (this.html !== null) this.html.remove();
 
+    var i;
+
     this.html = $('<div class="margin-half-top clearfix"></div>');
     this.html.append($('<p>' + this.name + '</p>'));
    
@@ -820,7 +862,7 @@ EVEthing.home.GroupDisplay.prototype.draw = function() {
     //var row = this.html;
 
     var defered_chars = [];
-    for (var i=0; i < EVEthing.home.CHARACTER_ORDER.length; i++) {
+    for (i=0; i < EVEthing.home.CHARACTER_ORDER.length; i++) {
         if (row.children().length >= EVEthing.home.PROFILE.HOME_CHARS_PER_ROW) {
             this.html.append(row);
             row = $('<div class="row"></div>');
@@ -836,7 +878,7 @@ EVEthing.home.GroupDisplay.prototype.draw = function() {
                     }
                 }
                 if (defered) {
-                    defered_chars[defered_chars.length] = EVEthing.home.CHARACTER_ORDER[i];;
+                    defered_chars[defered_chars.length] = EVEthing.home.CHARACTER_ORDER[i];
                 }
             } else {
                 row.append(EVEthing.home.CHARACTERS[EVEthing.home.CHARACTER_ORDER[i]].well);
@@ -844,7 +886,7 @@ EVEthing.home.GroupDisplay.prototype.draw = function() {
         }
     }
 
-    for (var i=0; i < defered_chars.length; i++) {
+    for (i=0; i < defered_chars.length; i++) {
         if (row.children().length >= EVEthing.home.PROFILE.HOME_CHARS_PER_ROW) {
             this.html.append(row);
             row = $('<div class="row"></div>');
@@ -982,21 +1024,22 @@ EVEthing.home.CharacterDisplay.prototype.animate = function(now) {
             }
 
             if (!this.character.config.home_suppress_implants) {
-                if (this.character.details[this.character.skill_queue[0].skill.primary_attribute[1]] == 0 ||
-                    this.character.details[this.character.skill_queue[0].skill.secondary_attribute[1]] == 0) {
+                if (this.character.details[this.character.skill_queue[0].skill.primary_attribute[1]] === 0 ||
+                    this.character.details[this.character.skill_queue[0].skill.secondary_attribute[1]] === 0) {
 
                     // I should probably have a better way of getting the short skill names, but this works for
                     //  now and has the added benifit of not making me add more to the the api
 
+                    var attr;
                     var text = '';
-                    if (this.character.details[this.character.skill_queue[0].skill.primary_attribute[1]] == 0) {
-                        var attr = this.character.skill_queue[0].skill.primary_attribute[1].split('_')[0];
-                        text = attr.charAt(0).toUpperCase() + attr.slice(1)
+                    if (this.character.details[this.character.skill_queue[0].skill.primary_attribute[1]] === 0) {
+                        attr = this.character.skill_queue[0].skill.primary_attribute[1].split('_')[0];
+                        text = attr.charAt(0).toUpperCase() + attr.slice(1);
                     }
-                    if (this.character.details[this.character.skill_queue[0].skill.secondary_attribute[1]] == 0) {
-                        var attr = this.character.skill_queue[0].skill.secondary_attribute[1].split('_')[0];
-                        if (text != '') text = text + ', ';
-                        text = text + attr.charAt(0).toUpperCase() + attr.slice(1)
+                    if (this.character.details[this.character.skill_queue[0].skill.secondary_attribute[1]] === 0) {
+                        attr = this.character.skill_queue[0].skill.secondary_attribute[1].split('_')[0];
+                        if (text !== '') text = text + ', ';
+                        text = text + attr.charAt(0).toUpperCase() + attr.slice(1);
                     }
                     this.well.find('.home-notifications .implants span').text(text);
 
@@ -1074,7 +1117,7 @@ EVEthing.home.CharacterDisplay.prototype.animate = function(now) {
         }
     }
 
-    return {'total_sp': total_sp}
+    return {'total_sp': total_sp};
 };
 
 EVEthing.home.CharacterDisplay.prototype.parseResponse = function(data) {
@@ -1161,4 +1204,6 @@ EVEthing.home.CharacterDisplay.prototype.render = function() {
     this.well.empty();
     this.well.append(this.html);
 };
+
+}());
 
