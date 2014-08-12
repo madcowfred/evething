@@ -623,7 +623,6 @@ EVEthing.home.handleResponse = function(data, textStatus, jqXHR) {
     }
 
     if (data.hasOwnProperty('characters')) {
-        var wallet_total = 0;
         var total_characters = 0;
         for (i in data.characters) {
             if (!data.characters.hasOwnProperty(i)) continue;
@@ -637,7 +636,14 @@ EVEthing.home.handleResponse = function(data, textStatus, jqXHR) {
                 EVEthing.home.GroupDisplay.addCharacter(EVEthing.home.CHARACTERS[i]);
             }
 
-            wallet_total = wallet_total + parseFloat(EVEthing.home.CHARACTERS[i].character.details.wallet_balance);
+        }
+
+        var wallet_total = 0;
+
+        for (i in EVEthing.home.CHARACTERS) {
+            if (EVEthing.home.CHARACTERS.hasOwnProperty(i)) {
+                wallet_total = wallet_total + parseFloat(EVEthing.home.CHARACTERS[i].character.details.wallet_balance);
+            }
         }
 
         if (total_characters > 0) {
@@ -1204,6 +1210,4 @@ EVEthing.home.CharacterDisplay.prototype.render = function() {
     this.well.empty();
     this.well.append(this.html);
 };
-
 }());
-
