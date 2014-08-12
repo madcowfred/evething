@@ -345,8 +345,14 @@ def __summary(request, out, known):
     total_assets = cache.get(cache_key)
     # Not cached, fetch from database and cache
     if total_assets is None:
+        characters = Character.objects.filter(
+            apikeys__user=request.user,
+            apikeys__valid=True,
+            apikeys__key_type__in=(APIKey.ACCOUNT_TYPE, APIKey.CHARACTER_TYPE)
+        ).values_list('pk', flat=True)
+
         total_assets = AssetSummary.objects.filter(
-            character__in=out['characters'].keys(),
+            character__in=characters,
             corporation_id=0,
         ).aggregate(
             t=Sum('total_value'),
