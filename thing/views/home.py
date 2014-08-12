@@ -129,10 +129,6 @@ def __characters(request, out, known):
         'details'
     ).distinct()
 
-    corporation_ids = set()
-    ship_item_ids = set()
-    system_names = set()
-
     out['characters'] = {}
 
     for char in characters:
@@ -154,11 +150,6 @@ def __characters(request, out, known):
                 continue
             out['characters'][char.pk]['apikey'][key] = value
 
-        if char.corporation_id not in out['corporations'].keys():
-            out['corporations'][char.corporation_id] = {}
-
-        corporation_ids.add(char.corporation_id)
-
         if 'config' not in out['characters'][char.pk]:
             out['characters'][char.pk]['config'] = {}
         for key, value in vars(char.config).items():
@@ -171,10 +162,6 @@ def __characters(request, out, known):
 
         if 'details' not in out['characters'][char.pk]:
             out['characters'][char.pk]['details'] = {}
-        if char.details.ship_item_id is not None:
-            ship_item_ids.add(char.details.ship_item_id)
-        if char.details.last_known_location is not None:
-            system_names.add(char.details.last_known_location)
         for key, value in vars(char.details).items():
             if key.startswith('_'):
                 continue
@@ -196,13 +183,24 @@ def __characters(request, out, known):
         out['characters'][cskill['character']]['details']['total_sp'] = \
             cskill['total_sp']
 
-    # and finaly add in all the characters we puulled out of the cache earleir
+    corporation_ids = set()
+    ship_item_ids = set()
+    system_names = set()
+
+    # and finaly add in all the characters we puled out of the cache earleir
     for char_id, char in cached_chars.items():
         out['characters'][char_id] = char
 
+    for char_id, char in out['characters'].items():
         if 'details' in char.keys():
-            ship_item_ids.add(char['details']['ship_item_id'])
+            if char['details']['ship_item_id'] is not None:
+                ship_item_ids.add(char['details']['ship_item_id'])
 
+            if char['details']['last_known_location'] is not None:
+                system_names.add(char['details']['last_known_location'])
+
+            if char['corporation'] is not None:
+                corporation_ids.add(char['corporation'])
 
     out['ships'] = {
         pk: ship.name for pk, ship in
@@ -214,6 +212,8 @@ def __characters(request, out, known):
     out['systems'] = {
         name: {'constellation': '', 'region': ''} for name in system_names
     }
+
+    out['corporations'] = {corp_id: {} for corp_id in corporation_ids}
 
     # #########
     # And now Caching
