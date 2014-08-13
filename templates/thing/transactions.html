@@ -71,7 +71,7 @@
             <tbody>
               {% for transaction in transactions -%}
               <tr>
-                <td class="journal-date moment" data-moment="{{ transaction.date }}">{{ transaction.date }}</td>
+                <td class="journal-date moment" title="{{ transaction.date }}">{{ transaction.date }}</td>
                 <td>
                   {% if transaction.corp_wallet -%}
                   {{ icons.corporation() }}

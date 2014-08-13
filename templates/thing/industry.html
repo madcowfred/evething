@@ -67,8 +67,8 @@
                       <td>{{ job.get_activity_display() }}</td>
                       <td>{{ job.blueprint }}</td>
                       <td class="industry-runs">{{ job.runs|commas }}</td>
-                      <td class="journal-date moment" data-moment="{{ job.start_date }}">{{ job.start_date }}</td>
-                      <td class="journal-date moment" data-moment="{{ job.end_date }}">{{ job.end_date }}</td>
+                      <td class="journal-date moment" title="{{ job.start_date }}">{{ job.start_date }}</td>
+                      <td class="journal-date moment" title="{{ job.end_date }}">{{ job.end_date }}</td>
                       <td class="industry-ready">
                         {{ icons.success_fail(job.z_ready) }}
                       </td>
@@ -132,8 +132,8 @@
                       <td>{{ job.get_activity_display() }}</td>
                       <td>{{ job.product }}</td>
                       <td class="industry-runs">{{ job.runs|commas }}</td>
-                      <td class="journal-date moment" data-moment="{{ job.start_date }}">{{ job.start_date }}</td>
-                      <td class="journal-date moment" data-moment="{{ job.end_date }}">{{ job.end_date }}</td>
+                      <td class="journal-date moment" title="{{ job.start_date }}">{{ job.start_date }}</td>
+                      <td class="journal-date moment" title="{{ job.end_date }}">{{ job.end_date }}</td>
                       <td class="industry-status">{{ job.get_status_display() }}</td>
                     </tr>
                     {%- else %}

@@ -39,7 +39,7 @@
               {% for contract in contracts -%}
               <tr>
                 <td class="con-id">{{ contract.contract_id }}</td>
-                <td class="con-date moment" data-moment="{{ contract.date_issued }}">{{ contract.date_issued }}</td>
+                <td class="con-date moment" title="{{ contract.date_issued }}">{{ contract.date_issued }}</td>
                 <td class="con-issuer">
                   {% if contract.for_corp -%}
                   {{ icons.corporation() }}
@@ -80,7 +80,7 @@
                   --
                   {%- endif %}
                 </td>
-                <td class="con-date moment" data-moment="{% if contract.date_completed -%}
+                <td class="con-date moment" title="{% if contract.date_completed -%}
                   {{ contract.date_completed }}
                   {%- elif contract.date_accepted -%}
                   {{ contract.date_accepted }}
