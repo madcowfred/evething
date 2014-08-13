@@ -27,15 +27,7 @@ var EVEthing = {
 
     misc: {
         setClock: function() {
-            // set up the clock
-            var time = new Date();
-            var h = time.getUTCHours();
-            if (h < 10)
-                h = "0" + h;
-            var m = time.getUTCMinutes();
-            if (m < 10)
-                m = "0" + m;
-            $('#utc-time').text(h + ":" + m);
+            $('#utc-time').text(moment().utc().format('HH:mm'));
         },
 
         // Enable linking directly to a tab with a #location
