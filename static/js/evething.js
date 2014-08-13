@@ -30,6 +30,13 @@ var EVEthing = {
             $('#utc-time').text(moment().utc().format('HH:mm'));
         },
 
+        refreshMoments: function () {
+            EVEthing.moments.each(function (index, element) {
+                var time = moment($element.data('moment'));
+                $(element).text(time.fromNow());
+            });
+        },
+
         // Enable linking directly to a tab with a #location
         setup_tab_hash: function() {
             // Show the correct tab
@@ -45,7 +52,9 @@ var EVEthing = {
             });
         },
     },
-}
+    // Caching the moments selectors for performance
+    moments: $('.moment')
+};
 
 // Global ready function
 $(document).ready(function() {
@@ -68,6 +77,9 @@ $(document).ready(function() {
 
     EVEthing.misc.setClock();
     window.setInterval(EVEthing.misc.setClock, 5000);
+
+    EVEthing.misc.refreshMoments();
+    window.setInterval(EVEthing.misc.refreshMoments, 5000);
 });
 
 // Add our 'human' parser to deal with K/M/B suffixes
