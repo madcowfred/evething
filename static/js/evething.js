@@ -32,7 +32,7 @@ var EVEthing = {
 
         refreshMoments: function () {
             EVEthing.moments.each(function (index, element) {
-                var time = moment($element.attr('title'));
+                var time = moment.utc($element.attr('title'));
                 $(element).text(time.fromNow());
             });
         },
