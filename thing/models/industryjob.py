@@ -62,7 +62,7 @@ class IndustryJob(models.Model):
         (NONE_ACTIVITY, 'None'),
         (MANUFACTURING_ACTIVITY, 'Manufacturing'),
         (RESEARCHING_TECHNOLOGY_ACTIVITY, 'Researching Technology'),
-        (RESEARCHING_TIME_ACTIVITY, 'PE Research'),
+        (RESEARCHING_TIME_ACTIVITY, 'TE Research'),
         (RESEARCHING_MATERIAL_ACTIVITY, 'ME Research'),
         (COPYING_ACTIVITY, 'Copying'),
         (DUPLICATING_ACTIVITY, 'Duplicating'),
