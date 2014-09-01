@@ -117,7 +117,7 @@ WHERE   a.item_id = i.id
         AND ig.category_id != 9
 """ '''
 all_item_ids = """
-SELECT  a.item_id
+SELECT  DISTINCT a.item_id
 FROM    thing_asset a, thing_item i, thing_itemgroup ig
 WHERE   a.item_id = i.id
         AND i.item_group_id = ig.id
