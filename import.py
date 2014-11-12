@@ -112,6 +112,7 @@ class Importer:
         time_func('ItemCategory', self.import_itemcategory)
         time_func('ItemGroup', self.import_itemgroup)
         time_func('Item', self.import_item)
+        time_func('Implant', self.import_implant)
         time_func('Blueprint', self.import_blueprint)
         time_func('Skill', self.import_skill)
         time_func('InventoryFlag', self.import_inventoryflag)
@@ -440,6 +441,91 @@ class Importer:
 
         if new:
             Item.objects.bulk_create(new)
+
+        return added
+
+    # -----------------------------------------------------------------------
+    def import_implant(self):
+        added = 0
+
+        self.cursor.execute("""
+            SELECT
+                invTypes.typeid,
+                invTypes.description,
+                coalesce(c.valueint,c.valuefloat) as 'cha',
+                coalesce(i.valueint,i.valuefloat) as 'int',
+                coalesce(m.valueint,m.valuefloat) as 'mem',
+                coalesce(p.valueint,p.valuefloat) as 'per',
+                coalesce(w.valueint,w.valuefloat) as 'wil',
+                coalesce(s.valueint,s.valuefloat) as 'slot'
+            FROM invTypes
+            LEFT JOIN dgmTypeAttributes AS c ON (
+                invTypes.typeid = c.typeid and c.attributeid=175)
+            LEFT JOIN dgmTypeAttributes AS i ON (
+                invTypes.typeid = i.typeid and i.attributeid=176)
+            LEFT JOIN dgmTypeAttributes AS m ON (
+                invTypes.typeid = m.typeid and m.attributeid=177)
+            LEFT JOIN dgmTypeAttributes AS p ON (
+                invTypes.typeid = p.typeid and p.attributeid=178)
+            LEFT JOIN dgmTypeAttributes AS w ON (
+                invTypes.typeid = w.typeid and w.attributeid=179)
+            JOIN dgmTypeAttributes AS s ON (
+                invTypes.typeid = s.typeid and s.attributeid=331)
+            LEFT JOIN invGroups ON (invGroups.groupid=invTypes.groupid)
+            WHERE invGroups.categoryid=20
+            ORDER BY invTypes.typeid;
+        """)
+        implants = {}
+        for row in self.cursor:
+            id = int(row[0])
+
+            if row[1] is None:
+                desc = ''
+            else:
+                desc = row[1].strip()
+
+            if id:
+                implants[id] = {
+                    'description': desc,
+                    'charisma_modifier': row[2] if row[2] else 0,
+                    'intelligence_modifier': row[3] if row[3] else 0,
+                    'memory_modifier': row[4] if row[4] else 0,
+                    'perception_modifier': row[5] if row[5] else 0,
+                    'willpower_modifier': row[6] if row[6] else 0,
+                    'implant_slot': row[7]
+                }
+
+        implant_map = {}
+        for implant in Implant.objects.all():
+            implant_map[implant.item_id] = implant
+
+        new = []
+        for id, data in implants.items():
+            implant = implant_map.get(id, None)
+            if implant is not None:
+                if implant.description != data['description'] or \
+                        implant.charisma_modifier != data['charisma_modifier'] or \
+                        implant.intelligence_modifier != data['intelligence_modifier'] or \
+                        implant.memory_modifier != data['memory_modifier'] or \
+                        implant.perception_modifier != data['perception_modifier'] or \
+                        implant.willpower_modifier != data['willpower_modifier'] or \
+                        implant.implant_slot != data['implant_slot']:
+                    implant.description = data['description']
+                    implant.charisma_modifier = data['charisma_modifier']
+                    implant.intelligence_modifier = \
+                        data['intelligence_modifier']
+                    implant.memory_modifier = data['memory_modifier']
+                    implant.perception_modifier = data['perception_modifier']
+                    implant.willpower_modifier = data['willpower_modifier']
+                    implant.implant_slot = data['implant_slot']
+                    implant.save()
+                    print '=>> Updated implant details for %d' % (id,)
+                continue
+            new.append(Implant(item_id=id, **data))
+            added += 1
+
+        if new:
+            Implant.objects.bulk_create(new)
 
         return added
 
