@@ -27,29 +27,67 @@ from django.db import models
 
 from thing.models.character import Character
 from thing.models.item import Item
+from thing.models.implant import Implant
 
 
 class CharacterDetails(models.Model):
     """Character details"""
-    character = models.OneToOneField(Character, unique=True, primary_key=True, related_name='details')
+    character = models.OneToOneField(
+        Character, unique=True, primary_key=True, related_name='details'
+    )
 
-    wallet_balance = models.DecimalField(max_digits=18, decimal_places=2, default=0)
+    wallet_balance = models.DecimalField(
+        max_digits=18, decimal_places=2, default=0
+    )
 
     cha_attribute = models.SmallIntegerField(default=20)
     int_attribute = models.SmallIntegerField(default=20)
     mem_attribute = models.SmallIntegerField(default=20)
     per_attribute = models.SmallIntegerField(default=20)
     wil_attribute = models.SmallIntegerField(default=19)
-    cha_bonus = models.SmallIntegerField(default=0)
-    int_bonus = models.SmallIntegerField(default=0)
-    mem_bonus = models.SmallIntegerField(default=0)
-    per_bonus = models.SmallIntegerField(default=0)
-    wil_bonus = models.SmallIntegerField(default=0)
+
+    __attr_bonus = {}
+
+    def __get_attr_bonus(self, attr):
+        if not self.__attr_bonus:
+            self.__attr_bonus = self.implants.all().aggregate(
+                models.Sum('charisma_modifier'),
+                models.Sum('intelligence_modifier'),
+                models.Sum('memory_modifier'),
+                models.Sum('perception_modifier'),
+                models.Sum('willpower_modifier')
+            )
+        return self.__attr_bonus[attr + '_modifier__sum'] if \
+            self.__attr_bonus[attr + '_modifier__sum'] else 0
+
+    @property
+    def cha_bonus(self):
+        return self.__get_attr_bonus('charisma')
+
+    @property
+    def int_bonus(self):
+        return self.__get_attr_bonus('intelligence')
+
+    @property
+    def mem_bonus(self):
+        return self.__get_attr_bonus('memory')
+
+    @property
+    def per_bonus(self):
+        return self.__get_attr_bonus('perception')
+
+    @property
+    def wil_bonus(self):
+        return self.__get_attr_bonus('perception')
+
+    implants = models.ManyToManyField(Implant)
 
     clone_name = models.CharField(max_length=32, default='Clone Grade Alpha')
     clone_skill_points = models.IntegerField(default=900000)
 
-    security_status = models.DecimalField(max_digits=6, decimal_places=4, default=0)
+    security_status = models.DecimalField(
+        max_digits=6, decimal_places=4, default=0
+    )
 
     last_known_location = models.CharField(max_length=255, default='')
     ship_item = models.ForeignKey(Item, blank=True, null=True)

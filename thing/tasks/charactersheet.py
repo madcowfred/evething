@@ -25,7 +25,7 @@
 
 from .apitask import APITask
 
-from thing.models import Character, CharacterSkill, Skill
+from thing.models import Character, CharacterSkill, Skill, Implant
 
 
 class CharacterSheet(APITask):
@@ -56,27 +56,25 @@ class CharacterSheet(APITask):
         character.details.per_attribute = self.root.findtext('result/attributes/perception')
         character.details.wil_attribute = self.root.findtext('result/attributes/willpower')
 
-        # Update attribute bonuses :ccp:
-        enh = self.root.find('result/attributeEnhancers')
-        character.details.cha_bonus = enh.findtext('charismaBonus/augmentatorValue', '0')
-        character.details.int_bonus = enh.findtext('intelligenceBonus/augmentatorValue', '0')
-        character.details.mem_bonus = enh.findtext('memoryBonus/augmentatorValue', '0')
-        character.details.per_bonus = enh.findtext('perceptionBonus/augmentatorValue', '0')
-        character.details.wil_bonus = enh.findtext('willpowerBonus/augmentatorValue', '0')
-
         # Update clone information
         character.details.clone_skill_points = self.root.findtext('result/cloneSkillPoints', '900000')
         character.details.clone_name = self.root.findtext('result/cloneName', 'Clone Grade Alpha')
 
+        character.details.implants.clear()
+        implant_rowset = self.root.find("result/rowset[@name='implants']")
+        for row in implant_rowset:
+            character.details.implants.add(
+                Implant.objects.get(pk=row.attrib['typeID'])
+            )
+
         # Save character details
         character.details.save()
 
-        # Get all of the rowsets
-        rowsets = self.root.findall('result/rowset')
-
         # First rowset is skills
+        skill_rowset = self.root.find("result/rowset[@name='skills']")
+
         skills = {}
-        for row in rowsets[0]:
+        for row in skill_rowset:
             skills[int(row.attrib['typeID'])] = (int(row.attrib['skillpoints']), int(row.attrib['level']))
 
         # Grab any already existing skills
