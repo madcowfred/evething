@@ -23,6 +23,7 @@ from thing.models.itemgroup import ItemGroup
 from thing.models.item import Item
 from thing.models.blueprint import Blueprint
 from thing.models.skill import Skill
+from thing.models.implant import Implant
 
 # Everything else
 from thing.models.apikey import APIKey
