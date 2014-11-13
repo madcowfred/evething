@@ -169,6 +169,16 @@ def __characters(request, out, known):
                 continue
 
             out['characters'][char.pk]['details'][key] = value
+        out['characters'][char.pk]['details']['cha_bonus'] = \
+            char.details.cha_bonus
+        out['characters'][char.pk]['details']['int_bonus'] = \
+            char.details.int_bonus
+        out['characters'][char.pk]['details']['mem_bonus'] = \
+            char.details.mem_bonus
+        out['characters'][char.pk]['details']['per_bonus'] = \
+            char.details.per_bonus
+        out['characters'][char.pk]['details']['wil_bonus'] = \
+            char.details.wil_bonus
 
     # Fetch skill data now WITHOUT Unpublished SP
     cskill_qs = CharacterSkill.objects.filter(
