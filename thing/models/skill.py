@@ -76,7 +76,7 @@ class Skill(models.Model):
         return "<strong>Primary:</strong> %s / <strong>Secondary</strong>: %s<br><br>%s" % (
             self.get_primary_attribute_display(),
             self.get_secondary_attribute_display(),
-            self.description.replace('\n', '<br>'),
+            self.description.replace('\n', '<br>').replace('"', "'"),
         )
 
     def get_sp_at_level(self, level=5):
