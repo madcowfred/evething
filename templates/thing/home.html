@@ -4,151 +4,41 @@
 {% block title %}Home{% endblock %}
 
 {% block extra_js %}
-    <script type="text/javascript">$(document).ready(EVEthing.home.onload);</script>
+    <script type="text/javascript">
+        EVEthing.home.PROFILE.CHAR_COL_SPAN = {{ 12 / profile.home_chars_per_row }};
+        EVEthing.home.PROFILE.HOME_CHARS_PER_ROW = {{  profile.home_chars_per_row }};
+
+        EVEthing.home.PROFILE.HOME_SHOW_LOCATIONS = {{ profile.home_show_locations|lower }};
+        EVEthing.home.PROFILE.HOME_SHOW_SECURITY = {{ profile.home_show_security|lower }};
+        EVEthing.home.PROFILE.HOME_SHOW_SEPARATORS = {{ profile.home_show_separators|lower }};
+
+        EVEthing.home.PROFILE.HOME_SORT_ORDER = "{{ profile.home_sort_order }}";
+        EVEthing.home.PROFILE.HOME_SORT_DESCENDING = {{ profile.home_sort_descending|lower }};
+        EVEthing.home.PROFILE.HOME_SORT_EMPTY_QUEUE_LAST = {{ profile.home_sort_empty_queue_last|lower }};
+
+        EVEthing.home.PROFILE.HOME_HIGHLIGHT_BACKGROUNDS = {{ profile.home_highlight_backgrounds|lower }};
+        EVEthing.home.PROFILE.HOME_HIGHLIGHT_BORDER = {{ profile.home_highlight_borders|lower }};
+
+        EVEthing.home.HOME_PAGE_UPDATE_DELAY = {{ home_page_update_delay }};
+
+        $(document).ready(EVEthing.home.onload);
+    </script>
 {% endblock %}
 
 {% block content %}
-      <br/>
-      <div class="row">
-        <div class="col-sm-12">
-          <strong>Totals</strong> --&nbsp;
-          <strong>Skill Points:</strong> {{ total_sp|commas }}
-          <span class="divider">/</span>
-          <strong>Wallet:</strong> {{ total_balance|commas }} ISK
-          <span class="divider">/</span>
-          <strong>Personal Assets:</strong> {{ total_assets|default('0.00')|commas }} ISK
-{% if corp_assets %}
-          <span class="divider">/</span>
-          <strong>Corp Assets:</strong> {{ corp_assets|default('0.00')|commas }} ISK
-{% endif %}
-          <span class="pull-right">
-            <p class="js-screenshot clickable fa fa-picture-o" title="Screenshot sanitised mode"></p>
-          </span>
-        </div>
-      </div>
-
-      {%- for char_list in characters %}
-      {%- if char_list %}
-      <hr class="margin-half-top">
-      {%- if char_list.0.z_apikey.group_name %}
-      <p class="home-group">{{ char_list.0.z_apikey.group_name }}</p>
-      {%- endif %}
-      {%- for chars in char_list|batch(profile.home_chars_per_row) %}
-      <div class="row">
-        {%- for character in chars %}
-        <div class="col-sm-{{ 12 // profile.home_chars_per_row }}">
-          <div class="well-sm well home-character{{ character.z_well_class }}">
-            <div>
-              <span class="large">
-                {%- if character.name == '*UNKNOWN' %}
-                {{ character.name }}
-                {%- else %}
-                <a href="{{ url('thing.views.character_sheet', character.name) }}" class="sensitive character-name">
-                  {{ character.name }}
-                </a>
-                {%- endif %}
-              </span>
-              <span class="small pull-right sensitive apikey-name">[{{ character.z_apikey.name }}]</span>
-              {%- if profile.home_show_security %}
-              {{ common.security_hover(character.details.security_status) }}
-              {%- endif %}
-            </div>
-
-            <div>
-              <span>{{ character.details.wallet_balance|commas }} ISK</span>
-              <span class="small pull-right">{{ character.z_total_sp|commas }} SP</span>
-            </div>
-
-            {%- if profile.home_show_locations and character.details.last_known_location %}
-            {%- if profile.home_show_separators %}
-            <hr>
-            {%- endif %}
-            <div class="sensitive character-location{% if not profile.home_show_separators %} margin-half-top{% endif %}">
-              {{ character.details.last_known_location }}
-              {%- if character.details.ship_item_id %}
-              -- {{ ship_map[character.details.ship_item_id] }}
-              {%- endif %}
-            </div>
-            {%- endif %}
-
-            {%- if character.z_training %}
-            {%- if profile.home_show_separators %}
-            <hr>
-            {%- endif %}
-            <div{% if not profile.home_show_separators %} class="margin-half-top"{% endif %}>
-              {{ common.skill_hover(character.z_training.sq.skill, character.z_training.sq.to_level) }}
-              <span class="small">(Rank {{ character.z_training.sq.skill.rank }})</span>
-              <br>
-              <em class="small">{{ character.z_training.skill_duration|shortduration }} @ {{ character.z_training.sp_per_hour }} SP/hr</em>
-              {%- if character.z_training.queue_duration > character.z_training.skill_duration %}
-              <em class="small pull-right">Queue: {{ character.z_training.queue_duration|shortduration }}</em>
-              {%- endif %}
-              <div class="progress nomargin">
-                <div class="progress-bar{% if character.z_training.queue_duration < 86400 %} progress-bar-danger{% endif%} " style="width: {{ character.z_training.complete_per }}%">{{ character.z_training.complete_per }}%</div>
-              </div>
-            </div>
-            {%- endif %}
-
-            {%- if character.z_notifications %}
-            {%- if profile.home_show_separators %}
-            <hr>
-            {%- endif %}
-            <div class="home-notifications">
-              {%- for notif in character.z_notifications %}
-              {% if loop.index > 1 %}&nbsp;{% endif %}<span class="fa fa-{{ notif.icon }}" rel="tooltip" title="{{ notif.tooltip }}"></span>
-              {{ common.span(notif.text, notif.span_class) }}
-              {%- endfor %}
-            </div>
-            {%- endif %}
-          </div>
-        </div>
-        {%- endfor %}
-      </div>
-      {%- endfor %}
-      {%- endif %}{# char_list #}
-      {%- endfor %}{# char_list in characters #}
-
-      {%- if corporations %}
-      <hr class="nomargin">
-      <div class="row">
-        {%- for corporation in corporations %}
-        <div class="col-sm-3">
-          <h5 class="sensitive corporation-name">
-            {{ corporation.name }} [{{ corporation.ticker }}]
-          </h5>
-          <table class="table table-striped table-bordered table-condensed">
-            <thead>
-              <tr class="l">
-                <th>Wallet Division</th>
-                <th class="c">Balance</th>
-              </tr>
-            </thead>
-            <tbody>
-              {%- for wallet in corporation.wallets %}
-              <tr>
-                <td class="sensitive wallet-division">{{ wallet.description }}</td>
-                <td class="r">{{ wallet.balance|commas }}</td>
-              </tr>
-              {%- endfor %}
-            </tbody>
-          </table>
-        </div>
-        {%- endfor %}
-      </div>
-      {%- endif %}
-
-      {%- if events %}
-      <hr class="nomargin">
-      <div class="row">
-        <div class="col-sm-12">
-          <h4>Event log</h4>
-          <ul>
-            {%- for event in events %}
-            <li>{{ event.get_age()|duration }} ago <strong>/</strong> {{ event.text|safe }}</li>
-            {%- endfor %}
-          </ul>
-          <a href="{{ url('thing.views.events') }}">See all</a>
-        </div>
-      </div>
-      {%- endif %}
+    <ul class="summary-row nav">
+        <li class="title">Totals</li>
+        <li>Skill Points: <output name="total_sp"></output></li>
+        <li>Wallet: <output name="total_wallet">0.00 ISK</output></li>
+        <li>Personal Assets: <output name="personal_assets">0.00 ISK</output></li>
+        <li class="corp-totals hide">Corp Assets: <output name="corp_assets">0.00 ISK</output></li>
+        <li class="pull-right">
+            <i class="js-screenshot clickable icon-picture" title="Screenshot sanitised mode"></i>
+        </li>
+    </ul>
+    <div class="col-sm-12">
+        <h4>Event log</h4>
+        <ul class="events"></ul>
+        <a href="{{ url('thing.views.events') }}">See all</a>
+    </diV>
 {% endblock %}

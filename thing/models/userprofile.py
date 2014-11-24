@@ -36,6 +36,7 @@ class UserProfile(models.Model):
         ('charname', 'Character name'),
         ('corpname', 'Corporation name'),
         ('totalsp', 'Total SP'),
+        ('skillqueue', 'Skill Queue Length'),
         ('wallet', 'Wallet balance'),
     )
 
@@ -66,7 +67,8 @@ class UserProfile(models.Model):
     home_chars_per_row = models.IntegerField(default=4)
     home_sort_order = models.CharField(choices=HOME_SORT_ORDERS, max_length=12, default='apiname')
     home_sort_descending = models.BooleanField(default=False)
-    home_hide_characters = models.TextField(default='', blank=True)
+    home_sort_empty_queue_last = models.BooleanField(default=False)
+    home_hide_characters = models.TextField(default='')
     home_show_locations = models.BooleanField(default=True)
     home_highlight_backgrounds = models.BooleanField(default=True)
     home_highlight_borders = models.BooleanField(default=True)

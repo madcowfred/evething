@@ -1,0 +1,43 @@
+  <form action="{{ url('thing.views.account_characters') }}" method="POST" class="form-horizontal">
+    <fieldset>
+      {{ csrf() }}
+        <table class="table characters table-sortable">
+            <thead>
+                <tr>
+                    <th rowspan="2" style="width:1%;white-space:nowrap;text-align:center;">Hide</th>
+                    <th rowspan="2">Character Name</th>
+                    <th rowspan="2">Group</th>
+                    <th colspan="5">Suppressed Notifications</th>
+                </tr>
+                <tr>
+                    <th style="width:120px;white-space:nowrap;text-align:center;">Missing Implants</th>
+                    <th style="width:120px;white-space:nowrap;text-align:center;">Low Skill Queue</th>
+                    <th style="width:120px;white-space:nowrap;text-align:center;">Empty Skill Queue</th>
+                    <th style="width:120px;white-space:nowrap;text-align:center;">Low Game Time</th>
+                    <th style="width:120px;white-space:nowrap;text-align:center;">No Game Time</th>
+                </tr>
+            </thead>
+            <tbody class="characters">
+            {% for character in characters %}
+                <tr>
+                    <td style="text-align:center;"><input type="checkbox" name="home_hide_characters" value="{{ character.id }}" {% if character.id in home_hide_characters %}checked="checked" {% endif %}/></td>
+                    <td>{{ character.name }}</td>
+                    <td><input type="text" name="group_{{ character.id }}" value="{{ character.config.home_group }}" list="home_groups" style="width: 90%" class="form-control" /></td>
+                    <td style="text-align:center;"><input type="checkbox" name="implants" value="{{ character.id }}" {% if character.config.home_suppress_implants %}checked="checked" {% endif %}/></td>
+                    <td style="text-align:center;"><input type="checkbox" name="low_skill_queue" value="{{ character.id }}" {% if character.config.home_suppress_low_skill_queue %}checked="checked" {% endif %}/></td>
+                    <td style="text-align:center;"><input type="checkbox" name="empty_skill_queue" value="{{ character.id }}" {% if character.config.home_suppress_empty_skill_queue %}checked="checked" {% endif %}/></td>
+                    <td style="text-align:center;"><input type="checkbox" name="low_game_time" value="{{ character.id }}" {% if character.config.home_suppress_low_game_time %}checked="checked" {% endif %}/></td>
+                    <td style="text-align:center;"><input type="checkbox" name="no_game_time" value="{{ character.id }}" {% if character.config.home_suppress_no_game_time %}checked="checked" {% endif %}/></td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        <datalist id="home_groups">
+        </datalist>
+    </fieldset>
+    <fieldset>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Save changes</button>
+      </div>
+    </fieldset>
+  </form>

@@ -1,0 +1,48 @@
+  <div class="well-small well home-character">
+    <div>
+      <span class="large">
+        <a href="character/{{ character.name }}" class="sensitive character-name" rel="tooltip" title="{{ corp character.corporation }}">{{ character.name }}</a>
+      </span>
+      <span class="small pull-right sensitive apikey-name">[{{ character.apikey.name }}]</span>
+      {{ security character.details.security_status }}
+    </div>
+
+    <div>
+      <span>{{ comma character.details.wallet_balance }} ISK</span>
+      <span class="small pull-right total-sp">{{ comma character.details.total_sp }} SP</span>
+    </div>
+
+    {{#if profile.HOME_SHOW_LOCATIONS }}
+    {{#if profile.HOME_SHOW_SEPARATORS }}<hr>{{/if}}
+    <div class="sensitive character-location{{#unless profile.HOME_SHOW_SEPARATORS}} margin-half-top{{/unless}}">
+      <span class="location-hover" rel="tooltip" title="{{ systems_details character.details.last_known_location }}">{{ character.details.last_known_location }}</span>
+      {{#if character.details.ship_item_id }}
+      -- {{ lookup ships character.details.ship_item_id }}
+      {{/if}}
+    </div>
+    {{/if}}
+
+    {{#if character.skill_queue }}
+    {{#if profile.HOME_SHOW_SEPARATORS }}<hr>{{/if}}
+    <div{{#unless profile.HOME_SHOW_SEPARATORS}} class="margin-half-top"{{/unless}}>
+      <span class="skill-hover" rel="popover" title="{{ character.skill_queue.0.skill.name }}" data-content="{{{ character.skill_queue.0.skill.html }}}">{{ character.skill_queue.0.skill.name }} {{#if character.skill_queue.0.to_level}}{{ roman character.skill_queue.0.to_level }}{{/if}}</span>
+      <span class="small">(Rank {{ character.skill_queue.0.skill.rank }})</span>
+      <br>
+      <em class="small skillduration">{{ shortduration character.skill_queue.0.duration }} @ {{ comma character.skill_queue.0.sp_per_hour }} SP/hr</em>
+      <em class="small pull-right queueduration">Queue: {{ shortduration character.skill_queue_duration }}</em>
+      <div class="progress{{#if character.skill_queue_low }} progress-danger{{/if}}">
+        <div class="progress-bar" style="width: {{ character.skill_queue.0.complete_percent }}%">{{ character.skill_queue.0.complete_percent }}%</div>
+      </div>
+    </div>
+    {{/if}}
+    {{#if profile.HOME_SHOW_SEPARATORS }}<hr class="home-notifications" />{{/if}}
+    <ul class="home-notifications">
+        <li class="no-game-time" style="display: none;"><i class="fa fa-clock-o" rel="tooltip" title="Game time has expired!"></i><span>Expired</span></li>
+        <li class="low-game-time" style="display: none;"><i class="fa fa-clock-o" rel="tooltip" title="Remaining game time is low!"></i><span></span></li>
+        <li class="key-expiring" style="display: none;"><i class="fa fa-key" rel="tooltip" title="API key is close to expiring!"></i></li>
+        <li class="empty-skill-queue" style="display: none;"><i class="fa fa-list-ol" rel="tooltip" title="Skill queue is empty!"></i><span>Empty!</span></li>
+        <li class="low-skill-queue" style="display: none;"><i class="fa fa-list-ol" rel="tooltip" title="Skill queue is not full!"></i><span></span></li>
+        <li class="implants" style="display: none;"><i class="fa fa-lightbulb-o" rel="tooltip" title="Missing stat implants for currently training skill!"></i><span></span></li>
+        <li class="clone" style="display: none;"><i class="fa fa-user" rel="tooltip" title="Insufficient clone!"></i><span></span></li>
+    </ul>
+  </div>

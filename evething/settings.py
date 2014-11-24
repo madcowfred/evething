@@ -178,6 +178,10 @@ STAGGER_APITASK_STARTUP = True
 # to local_settings.
 PRICE_URL = 'http://goonmetrics.com/api/price_data/?station_id=60003760&type_id=%s'
 
+# Time in seconds that the home page should delay from the TastQueus next_time before
+#  polling evething for the update information
+HOME_PAGE_UPDATE_DELAY = 300
+
 # load local settings
 from local_settings import *  # NOPEP8
 MANAGERS = ADMINS
