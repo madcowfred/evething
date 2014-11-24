@@ -1,82 +1,20 @@
 /* Home stuff */
-.summary-row {
-    // .navbar-inner();
-    .nav();
-
-    margin-top: 10px;
-
-    min-height: 24px;
-
-    /*background-color: #f5f5f5;*/
-    background-color: @well-bg; // @wellBackground;
-    background-image: none;
-    border: 1px solid #ddd;
-
-    > li {
-        float: left;
-        // Vertically center the text given @navbarHeight
-        padding: 4px 3px 3px 3px;
-        color: @text-color;
-        text-decoration: none;
-        // text-shadow: 0 1px 0 invert(@navbar-background-highlight);
-
-        font-weight: bold;
-        line-height: 22px;
-        vertical-align: middle;
-
-        output {
-            color: @text-color;
-            display: inline;
-            font-weight: normal;
-        }
-
-        > a { padding: 0; }
-    }
-    li.title {
-        font-weight: normal;
-        font-size: 20px;
-        padding: 4px 3px 0 2px;
-    }
-
+.home-character hr {
+  margin: 7px -6px 5px;
+  border-bottom: 1px solid @text-color;
 }
-
-.well.home-character {
-  padding: 12px;
-
-  span.security {
-    margin-right: 0.5em;
-  }
-
-  hr {
-    margin: 7px -6px 5px;
-    border-bottom: 1px solid @text-color;
-  }
-
-  ul.home-notifications {
-    .margin-half-top;
-    .clearfix();
-
-    font-size: 0.9em;
-    list-style: none;
-    list-style-type: none;
-    margin-left: 0;
-    margin-bottom: 0;
-    padding-left: 0;
-
-    min-height: 18px;
-
-    li {
-      float: left;
-      margin-right: 1em;
-
-      i {
-        margin-right: 0.3em;
-      }
-    }
-  }
+.home-notifications {
+  .margin-half-top;
+  font-size: 0.9em;
 }
-
 .home-group {
   .margin-half-bot;
   font-size: 110%;
+}
+span.security-status {
+  padding-right: 5px;
+}
+
+.progress-bar {
+  text-shadow: -1px -1px 1px #000,-1px 1px 1px #000,1px -1px 1px #000,1px 1px 1px #000;
 }

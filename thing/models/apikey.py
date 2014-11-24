@@ -108,6 +108,7 @@ class APIKey(models.Model):
     paid_until = models.DateTimeField(null=True, blank=True)
 
     name = models.CharField(max_length=64, default='')
+    group_name = models.CharField(max_length=32, default='')
 
     created_at = models.DateTimeField(auto_now=True)
 
