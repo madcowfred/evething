@@ -44,17 +44,11 @@ EVEthing.account = {
                     dont_edit = 'group_name';
             }
 
-            html.push('<form action="' + account_edit_url + '" method="POST" class="nomargin">');
+            html.push('<form action="' + account_edit_url + '" method="POST" class="form-inline nomargin">');
             html.push(csrf);
             html.push('<input type="hidden" class="nomargin" name="apikey_id" value="' + keyid + '">');
             html.push('<input type="hidden" class="nomargin" name="dont_edit" value="' + dont_edit + '">');
-
-            var input_group = '<div class="input-group">';
-            input_group += '<input type="text" class="form-control" name="' + fieldname + '" id="magic_keyname" value="' + $.trim(keyname) + '">';
-            input_group += '<span class="input-group-btn"><button class="btn btn-default" type="submit"><i class="fa fa-save"></i></button></span>';
-            input_group += '</div>';
-            html.push(input_group);
-
+            html.push('<input type="text" class="nomargin input-medium" name="' + fieldname + '" id="magic_keyname" value="' + $.trim(keyname) + '">');
             html.push('</form>');
 
             $(this).parent().html(html.join(''));
@@ -100,50 +94,6 @@ EVEthing.account = {
         // Bind apikey build table magic
         $('#build-table').on('change', '.apikey-build', EVEthing.account.build_apikey);
         EVEthing.account.build_apikey();
-
-        EVEthing.account.HOME_GROUP_DATALIST = $('datalist#home_groups');
-        EVEthing.account.build_home_group_list();
-        $('tbody.characters input[type="text"]').change(EVEthing.account.build_home_group_list);
-
-        $.tablesorter.addParser({
-            id: 'inputValueParser',
-            is: function(s, table, cell) {
-                return $(cell).find('input').length > 0
-            },
-            format: function(s, table, cell, cellIndex) {
-                var input = $($(cell).find('input')[0]);
-                if (input.attr('type') == 'checkbox') {
-                    return (input[0].checked == true ? "0" : "1");
-                }
-                return input.val();
-            },
-            parsed: true,
-            type: 'text',
-        });
-
-        $('table.characters').tablesorter({'uitheme': 'bootstrap'});
-    },
-
-    HOME_GROUP_DATALIST: null,
-
-    build_home_group_list: function() {
-        EVEthing.account.HOME_GROUP_DATALIST.empty();
-
-        var home_groups = {};
-        var inputs = $('tbody.characters input[type="text"]');
-        for (var i=0; i<inputs.length; i++) {
-            var item = $(inputs[i]).val();
-
-            if (!(item in home_groups)) {
-                home_groups[item] = true;
-            }
-        }
-
-        home_groups = Object.keys(home_groups);
-        home_groups.sort();
-        for (var i in home_groups) {
-            EVEthing.account.HOME_GROUP_DATALIST.append($('<option value="' + home_groups[i] + '" />'));
-        }
     },
 
     build_apikey: function () {

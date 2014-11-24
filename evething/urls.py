@@ -21,13 +21,10 @@ urlpatterns = patterns(
 urlpatterns += patterns(
     'thing.views',
     url(r'^$', 'home', name='home'),
-    (r'^home/api$', 'home_api'),
 
     (r'^account/$', 'account'),
     (r'^account/change_password/$', 'account_change_password'),
     (r'^account/settings/$', 'account_settings'),
-    (r'^account/home_page/$', 'account_home_page'),
-    (r'^account/characters/$', 'account_characters'),
     (r'^account/apikey/add/$', 'account_apikey_add'),
     (r'^account/apikey/delete/$', 'account_apikey_delete'),
     (r'^account/apikey/edit/$', 'account_apikey_edit'),
