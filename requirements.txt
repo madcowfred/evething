@@ -7,3 +7,4 @@ requests>=1.0
 MarkupSafe>=0.15
 ordereddict
 pyyaml
+python-memcached>=1.53
