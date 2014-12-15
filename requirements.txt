@@ -1,4 +1,4 @@
-Django<=1.7
+Django<1.7
 Jinja2>=2.6
 jingo>=0.6
 South>=0.7
@@ -7,3 +7,4 @@ requests>=1.0
 MarkupSafe>=0.15
 ordereddict
 pyyaml
+python-memcached>=1.53
