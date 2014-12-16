@@ -56,10 +56,6 @@ class CharacterSheet(APITask):
         character.details.per_attribute = self.root.findtext('result/attributes/perception')
         character.details.wil_attribute = self.root.findtext('result/attributes/willpower')
 
-        # Update clone information
-        character.details.clone_skill_points = self.root.findtext('result/cloneSkillPoints', '900000')
-        character.details.clone_name = self.root.findtext('result/cloneName', 'Clone Grade Alpha')
-
         character.details.implants.clear()
         implant_rowset = self.root.find("result/rowset[@name='implants']")
         for row in implant_rowset:

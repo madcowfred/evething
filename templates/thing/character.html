@@ -49,13 +49,6 @@
                   </div>
                 </label>
                 <label class="checkbox indent">
-                  <input type="checkbox" class="disable-toggle" name="clone"{% if char.config.show_clone %} checked{% endif %}>
-                  Clone information
-                  <div class="pull-right">
-                    <span class="fa fa-info-sign" rel="tooltip" title="Show clone information on public sheet"></span>
-                  </div>
-                </label>
-                <label class="checkbox indent">
                   <input type="checkbox" class="disable-toggle" name="implants"{% if char.config.show_implants %} checked{% endif %}>
                   Implants
                   <div class="pull-right">
@@ -181,9 +174,6 @@
                 </ul>
                 <ul class="list-unstyled">
                   <li><strong>Total SP:</strong> {{ total_sp|commas }}</li>
-                  {% if show.clone -%}
-                  <li><strong>Clone limit:</strong> {{ char.details.clone_skill_points|commas }} ({{ char.get_short_clone_name() }})</li>
-                  {%- endif %}
                 </ul>
               </div>
               <div class="col-sm-7 col-md-8 pull-right">

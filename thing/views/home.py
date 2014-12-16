@@ -260,14 +260,6 @@ def home(request):
                     'tooltip': 'Missing stat implants for currently training skill!',
                 })
 
-        # Insufficient clone
-        if hasattr(char, 'z_total_sp') and char.z_total_sp > char.details.clone_skill_points:
-            char.z_notifications.append({
-                'icon': 'user-md',
-                'text': '%s' % (commas(char.details.clone_skill_points)),
-                'tooltip': 'Insufficient clone!',
-            })
-
         # Sort out well classes here ugh
         classes = []
         if char.z_apikey in not_training:
