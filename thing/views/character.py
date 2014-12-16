@@ -82,7 +82,6 @@ def character_common(request, char, public=True, anonymous=False):
 
     # Do various visibility things here instead of in awful template code
     show = {
-        'clone': not anonymous and (not public or char.config.show_clone),
         'implants': not anonymous and (not public or char.config.show_implants),
         'queue': anonymous or not public or char.config.show_skill_queue,
         'standings': not anonymous and (not public or char.config.show_standings),
@@ -269,7 +268,6 @@ def character_settings(request, character_name):
     char = chars[0]
 
     char.config.is_public = ('public' in request.POST)
-    char.config.show_clone = ('clone' in request.POST)
     char.config.show_implants = ('implants' in request.POST)
     char.config.show_skill_queue = ('queue' in request.POST)
     char.config.show_standings = ('standings' in request.POST)

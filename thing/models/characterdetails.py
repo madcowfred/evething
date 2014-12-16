@@ -82,9 +82,6 @@ class CharacterDetails(models.Model):
 
     implants = models.ManyToManyField(Implant)
 
-    clone_name = models.CharField(max_length=32, default='Clone Grade Alpha')
-    clone_skill_points = models.IntegerField(default=900000)
-
     security_status = models.DecimalField(
         max_digits=6, decimal_places=4, default=0
     )

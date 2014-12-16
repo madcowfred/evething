@@ -33,7 +33,6 @@ class CharacterConfig(models.Model):
     character = models.OneToOneField(Character, unique=True, primary_key=True, related_name='config')
 
     is_public = models.BooleanField(default=False)
-    show_clone = models.BooleanField(default=False)
     show_implants = models.BooleanField(default=False)
     show_skill_queue = models.BooleanField(default=False)
     show_standings = models.BooleanField(default=False)
