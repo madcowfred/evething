@@ -47,8 +47,10 @@ urlpatterns += patterns(
 
     (r'^character/(?P<character_name>[\w\'\- ]+)/$', 'character_sheet'),
     (r'^character/(?P<character_name>[\w\'\- ]+)/settings/', 'character_settings'),
+    (r'^character/(?P<character_name>[\w\'\- ]+)/mastery/', 'character_mastery'),
     (r'^character/(?P<character_name>[\w\'\- ]+)/skillplan/(?P<skillplan_id>\d+)$', 'character_skillplan'),
     (r'^character_anon/(?P<anon_key>[a-z0-9]+)/$', 'character_anonymous',),
+    (r'^character_anon/(?P<anon_key>[a-z0-9]+)/mastery/', 'character_anonymous_mastery'),
     (r'^character_anon/(?P<anon_key>[a-z0-9]+)/skillplan/(?P<skillplan_id>\d+)$', 'character_anonymous_skillplan'),
 
     (r'^contracts/', 'contracts'),
