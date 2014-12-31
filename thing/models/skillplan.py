@@ -45,13 +45,9 @@ class SkillPlan(models.Model):
     name = models.CharField(max_length=64)
     visibility = models.IntegerField(default=1, choices=VISIBILITY_CHOICES)
 
-    mastery_typeid = models.ForeignKey(Item, null=True, blank=True)
-    mastery_level = models.IntegerField(null=True, blank=True)
-
     class Meta:
         app_label = 'thing'
         ordering = ('name',)
-        index_together = (('mastery_typeid', 'mastery_level'),)
 
     def __unicode__(self):
         if hasattr(self.user, 'username'):

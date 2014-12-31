@@ -8,14 +8,14 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Adding index on 'SkillPlan', fields ['mastery_typeid', 'mastery_level']
-        db.create_index(u'thing_skillplan', ['mastery_typeid_id', 'mastery_level'])
 
+        # Changing field 'SkillPlan.user'
+        db.alter_column(u'thing_skillplan', 'user_id', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'], null=True))
 
     def backwards(self, orm):
-        # Removing index on 'SkillPlan', fields ['mastery_typeid', 'mastery_level']
-        db.delete_index(u'thing_skillplan', ['mastery_typeid_id', 'mastery_level'])
 
+        # Changing field 'SkillPlan.user'
+        db.alter_column(u'thing_skillplan', 'user_id', self.gf('django.db.models.fields.related.ForeignKey')(default=1, to=orm['auth.User']))
 
     models = {
         u'auth.group': {
@@ -482,10 +482,8 @@ class Migration(SchemaMigration):
             'secondary_attribute': ('django.db.models.fields.SmallIntegerField', [], {})
         },
         'thing.skillplan': {
-            'Meta': {'ordering': "('name',)", 'object_name': 'SkillPlan', 'index_together': "(('mastery_typeid', 'mastery_level'),)"},
+            'Meta': {'ordering': "('name',)", 'object_name': 'SkillPlan'},
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'mastery_level': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
-            'mastery_typeid': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['thing.Item']", 'null': 'True', 'blank': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '64'}),
             'user': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']", 'null': 'True', 'blank': 'True'}),
             'visibility': ('django.db.models.fields.IntegerField', [], {'default': '1'})
