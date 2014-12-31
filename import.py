@@ -908,9 +908,7 @@ class Importer:
 
                 skillplan = SkillPlan.objects.create(
                     name='%s - Mastery %s' % (ship_masteries[type_id]['name'], roman(mastery_level + 1)),
-                    visibility=SkillPlan.MASTERY_VISIBILITY,
-                    mastery_typeid_id=type_id,
-                    mastery_level=(mastery_level + 1)
+                    visibility=SkillPlan.MASTERY_VISIBILITY
                 )
 
                 seen = {}
