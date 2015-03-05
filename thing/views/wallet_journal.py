@@ -24,10 +24,12 @@
 # ------------------------------------------------------------------------------
 
 import json
+import csv
 
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Q, Count, Sum
+from django.http import StreamingHttpResponse
 
 from thing.models import *  # NOPEP8
 from thing.stuff import *  # NOPEP8
@@ -241,6 +243,163 @@ def wallet_journal(request):
         corporation_ids,
     )
 
+    
+class Echo(object):
+    """An object that implements just the write method of the file-like
+    interface.
+    """
+    def write(self, value):
+        """Write the value by returning it, instead of storing in a buffer."""
+        return value    
+    
+@login_required
+def wallet_journal_export(request):
+    """Wallet journal"""
+    # Get profile
+    profile = request.user.profile
+
+    characters = Character.objects.filter(
+        apikeys__user=request.user,
+        apikeys__valid=True,
+        apikeys__key_type__in=[APIKey.ACCOUNT_TYPE, APIKey.CHARACTER_TYPE]
+    ).distinct()
+    character_ids = [c.id for c in characters]
+
+    corporation_ids = Corporation.get_ids_with_access(request.user, APIKey.CORP_WALLET_JOURNAL_MASK)
+    corporations = Corporation.objects.filter(pk__in=corporation_ids)
+
+    # Parse filters and apply magic
+    filters, journal_ids, days = _journal_queryset(request, character_ids, corporation_ids) 
+    
+    # Return query set of journal entries with current filter
+    #entriesx = JournalEntry.objects.filter(pk__in=journal_ids).select_related('character', 'corp_wallet__corporation')    
+    entries = journal_ids.select_related('character', 'corp_wallet__corporation')
+    
+    # Do some stuff with entries
+    item_ids = set()
+    owner_ids = set()
+    reftype_ids = set()
+    station_ids = set()
+        
+    for entry in entries:
+        owner_ids.add(entry.owner1_id)
+        owner_ids.add(entry.owner2_id)
+        reftype_ids.add(entry.ref_type_id)
+
+        # Insurance
+        if entry.ref_type_id == 19:
+            item_ids.add(int(entry.arg_name))
+        # Clone Transfer
+        elif entry.ref_type_id == 52:
+            station_ids.add(int(entry.arg_id))
+        # Bounty Prizes
+        elif entry.ref_type_id == 85:
+            for thing in entry.reason.split(','):
+                thing = thing.strip()
+                if ':' in thing:
+                    item_ids.add(int(thing.split(':')[0]))
+                    
+    char_map = Character.objects.in_bulk(owner_ids)
+    corp_map = Corporation.objects.in_bulk(owner_ids)
+    alliance_map = Alliance.objects.in_bulk(owner_ids)
+    item_map = Item.objects.in_bulk(item_ids)
+    rt_map = RefType.objects.in_bulk(reftype_ids)
+    station_map = Station.objects.in_bulk(station_ids)
+    
+    pseudo_buffer = Echo()
+    writer = csv.writer(pseudo_buffer)
+
+    def rowformatter(queryset):
+        yield writer.writerow([
+                                'reference id',
+                                'source',
+                                'wallet division',
+                                'timestamp',
+                                'reference type',
+                                'owner 1',
+                                'owner 2',
+                                'amount',
+                                'balance',
+                                'tax corp',
+                                'tax amount',
+                                'description'
+                            ])
+        for row in queryset:
+            owner1 = char_map.get(row.owner1_id)
+            if owner1 is None:
+                owner1 = corp_map.get(row.owner1_id)
+                if owner1 is None:
+                    alliance_map.get(row.owner1_id)
+                    if owner1 is None:
+                        owner1 = row.owner1_id
+                        
+            owner2 = char_map.get(row.owner2_id)
+            if owner2 is None:
+                owner2 = corp_map.get(row.owner2_id)
+                if owner2 is None:
+                    alliance_map.get(row.owner2_id)
+                    if owner2 is None:
+                        owner2 = row.owner2_id
+                        
+            description = ''    
+            # Inheritance
+            if row.ref_type_id == 9:
+                description = row.reason
+            # Player Donation/Corporation Account Withdrawal
+            elif row.ref_type_id in (10, 37) and row.reason != '':
+                description = '"%s"' % (row.get_unescaped_reason()[5:].strip())
+            # Insurance, arg_name is the item_id of the ship that exploded
+            elif row.ref_type_id == 19:
+                if row.amount >= 0:
+                    item = item_map.get(int(row.arg_name))
+                    if item:
+                        description = 'Insurance payment for loss of a %s' % item.name
+                else:
+                    description = 'Insurance purchased (RefID: %s)' % (row.arg_name[1:])
+            # Clone Transfer, arg_name is the name of the station you're going to
+            elif row.ref_type_id == 52:
+                station = station_map.get(row.arg_id)
+                if station:
+                    description = 'Clone transfer to %s' % (station.short_name)
+            # Bounty Prizes
+            elif row.ref_type_id == 85:
+                killed = []
+
+                for thing in row.reason.split(','):
+                    thing = thing.strip()
+                    if ':' in thing:
+                        item_id, count = thing.split(':')
+                        item = item_map.get(int(item_id))
+                        if item:
+                            killed.append((item.name, '%sx %s' % (count, item.name)))
+                    elif thing == '...':
+                        killed.append(('ZZZ', '... (list truncated)'))
+
+                # Sort killed
+                killed = [k[1] for k in sorted(killed)]
+
+                description = 'Bounty prizes for killing pirates in %s' % (row.arg_name.strip())
+            
+            yield writer.writerow([
+                                    row.ref_id,
+                                    row.character,
+                                    row.corp_wallet,
+                                    row.date,
+                                    rt_map.get(row.ref_type_id),
+                                    owner1,
+                                    owner2,
+                                    row.amount,
+                                    row.balance,
+                                    row.tax_corp,
+                                    row.tax_amount,
+                                    description
+                                ])
+            
+    response = StreamingHttpResponse(rowformatter(entries), content_type="text/csv")
+    response['Content-Disposition'] = 'attachment; filename="somefilename.csv"'
+    return response 
+    #for entry in entries:
+    #    print entry.date,entry.balance
 
 @login_required
 def wallet_journal_aggregate(request):
