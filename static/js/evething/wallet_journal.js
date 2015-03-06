@@ -9,7 +9,16 @@ EVEthing.wallet_journal = {
                 $(this).attr('href', '?' + $.param(params));
             }
         });
-
+        
+        // Add query string to export link
+        $('a#export-button').each(function() {
+            var href = $(this).attr('href').split('?', 1)[0];
+            var param = $.param(parseQueryString())
+            if (param !== '') {
+                $(this).attr('href', href + '?' + param);
+            }
+        });  
+        
         // Bind filter events
         EVEthing.filters.bind_events();
         
