@@ -243,15 +243,16 @@ def wallet_journal(request):
         corporation_ids,
     )
 
-    
+
 class Echo(object):
     """An object that implements just the write method of the file-like
     interface.
     """
     def write(self, value):
         """Write the value by returning it, instead of storing in a buffer."""
-        return value    
-    
+        return value
+
+
 @login_required
 def wallet_journal_export(request):
     """Wallet journal"""
@@ -265,22 +266,31 @@ def wallet_journal_export(request):
     ).distinct()
     character_ids = [c.id for c in characters]
 
-    corporation_ids = Corporation.get_ids_with_access(request.user, APIKey.CORP_WALLET_JOURNAL_MASK)
+    corporation_ids = Corporation.get_ids_with_access(
+        request.user,
+        APIKey.CORP_WALLET_JOURNAL_MASK
+    )
     corporations = Corporation.objects.filter(pk__in=corporation_ids)
 
     # Parse filters and apply magic
-    filters, journal_ids, days = _journal_queryset(request, character_ids, corporation_ids) 
-    
+    filters, journal_ids, days = _journal_queryset(
+        request,
+        character_ids,
+        corporation_ids
+    )
+
     # Return query set of journal entries with current filter
-    #entriesx = JournalEntry.objects.filter(pk__in=journal_ids).select_related('character', 'corp_wallet__corporation')    
-    entries = journal_ids.select_related('character', 'corp_wallet__corporation')
-    
+    entries = journal_ids.select_related(
+        'character',
+        'corp_wallet__corporation'
+    )
+
     # Do some stuff with entries
     item_ids = set()
     owner_ids = set()
     reftype_ids = set()
     station_ids = set()
-        
+
     for entry in entries:
         owner_ids.add(entry.owner1_id)
         owner_ids.add(entry.owner2_id)
@@ -298,14 +308,14 @@ def wallet_journal_export(request):
                 thing = thing.strip()
                 if ':' in thing:
                     item_ids.add(int(thing.split(':')[0]))
-                    
+
     char_map = Character.objects.in_bulk(owner_ids)
     corp_map = Corporation.objects.in_bulk(owner_ids)
     alliance_map = Alliance.objects.in_bulk(owner_ids)
     item_map = Item.objects.in_bulk(item_ids)
     rt_map = RefType.objects.in_bulk(reftype_ids)
     station_map = Station.objects.in_bulk(station_ids)
-    
+
     pseudo_buffer = Echo()
     writer = csv.writer(pseudo_buffer)
 
@@ -332,7 +342,7 @@ def wallet_journal_export(request):
                     alliance_map.get(row.owner1_id)
                     if owner1 is None:
                         owner1 = row.owner1_id
-                        
+
             owner2 = char_map.get(row.owner2_id)
             if owner2 is None:
                 owner2 = corp_map.get(row.owner2_id)
@@ -340,8 +350,8 @@ def wallet_journal_export(request):
                     alliance_map.get(row.owner2_id)
                     if owner2 is None:
                         owner2 = row.owner2_id
-                        
-            description = ''    
+
+            description = ''
             # Inheritance
             if row.ref_type_id == 9:
                 description = row.reason
@@ -353,10 +363,13 @@ def wallet_journal_export(request):
                 if row.amount >= 0:
                     item = item_map.get(int(row.arg_name))
                     if item:
-                        description = 'Insurance payment for loss of a %s' % item.name
+                        description = \
+                            'Insurance payment for loss of a %s' % item.name
                 else:
-                    description = 'Insurance purchased (RefID: %s)' % (row.arg_name[1:])
-            # Clone Transfer, arg_name is the name of the station you're going to
+                    description = \
+                        'Insurance purchased (RefID: %s)' % (row.arg_name[1:])
+            # Clone Transfer, arg_name is the name of the station
+            #   you're going to
             elif row.ref_type_id == 52:
                 station = station_map.get(row.arg_id)
                 if station:
@@ -371,15 +384,21 @@ def wallet_journal_export(request):
                         item_id, count = thing.split(':')
                         item = item_map.get(int(item_id))
                         if item:
-                            killed.append((item.name, '%sx %s' % (count, item.name)))
+                            killed.append((
+                                item.name,
+                                '%sx %s' % (count, item.name)
+                            ))
                     elif thing == '...':
                         killed.append(('ZZZ', '... (list truncated)'))
 
                 # Sort killed
                 killed = [k[1] for k in sorted(killed)]
 
-                description = 'Bounty prizes for killing pirates in %s' % (row.arg_name.strip())
-            
+                description = \
+                    'Bounty prizes for killing pirates in %s' % (
+                        row.arg_name.strip()
+                    )
+
             yield writer.writerow([
                                     row.ref_id,
                                     row.character,
@@ -394,12 +413,15 @@ def wallet_journal_export(request):
                                     row.tax_amount,
                                     description
                                 ])
-            
-    response = StreamingHttpResponse(rowformatter(entries), content_type="text/csv")
-    response['Content-Disposition'] = 'attachment; filename="somefilename.csv"'
-    return response 
-    #for entry in entries:
-    #    print entry.date,entry.balance
+
+    response = StreamingHttpResponse(
+        rowformatter(entries),
+        content_type="text/csv"
+    )
+    response['Content-Disposition'] = \
+        'attachment; filename="WalletJournal.csv"'
+    return response
+
 
 @login_required
 def wallet_journal_aggregate(request):
