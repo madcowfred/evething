@@ -29,11 +29,11 @@ import csv
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Q, Count, Sum
-from django.http import StreamingHttpResponse
+from django.http import StreamingHttpResponse, HttpResponse
+from django.core.serializers.json import DjangoJSONEncoder
 
 from thing.models import *  # NOPEP8
 from thing.stuff import *  # NOPEP8
-
 
 JOURNAL_EXPECTED = {
     'char': {
@@ -422,6 +422,61 @@ def wallet_journal_export(request):
         'attachment; filename="WalletJournal.csv"'
     return response
 
+
+@login_required
+def wallet_journal_graph_single(request):
+    profile = request.user.profile
+
+    characters = Character.objects.filter(
+        apikeys__user=request.user,
+        apikeys__valid=True,
+        apikeys__key_type__in=[APIKey.ACCOUNT_TYPE, APIKey.CHARACTER_TYPE]
+    ).distinct()
+    character_ids = [c.id for c in characters]
+
+    corporation_ids = Corporation.get_ids_with_access(request.user, APIKey.CORP_WALLET_JOURNAL_MASK)
+    corporations = Corporation.objects.filter(pk__in=corporation_ids)
+
+    # Parse filters and apply magic
+    filters, journal_ids, days = _journal_queryset(request, character_ids, corporation_ids)
+    return render_page(
+        'thing/wallet_journal_graph.html',
+        {
+            "group_by":(),
+            'json_data': _json_data(characters, corporations, filters)
+        },
+        request,
+        character_ids,
+        corporation_ids
+    )
+
+@login_required
+def wallet_journal_graph_single_character_data(request):
+    # Get profile
+    profile = request.user.profile
+
+    characters = Character.objects.filter(
+        apikeys__user=request.user,
+        apikeys__valid=True,
+        apikeys__key_type__in=[APIKey.ACCOUNT_TYPE, APIKey.CHARACTER_TYPE]
+    ).distinct()
+    character_ids = [c.id for c in characters]
+
+    corporation_ids = Corporation.get_ids_with_access(
+        request.user,
+        APIKey.CORP_WALLET_JOURNAL_MASK
+    )
+    corporations = Corporation.objects.filter(pk__in=corporation_ids)
+
+    # Parse filters and apply magic
+    filters, journal_ids, days = _journal_queryset(
+        request,
+        character_ids,
+        corporation_ids
+    )
+
+    response_data = [[entry.date, entry.balance, str(entry.character)] for entry in journal_ids.order_by('date')]
+    return HttpResponse(json.dumps(response_data, cls=DjangoJSONEncoder), content_type="application/json")
 
 @login_required
 def wallet_journal_aggregate(request):

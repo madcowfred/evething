@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% import 'macros/icons.html' as icons %}
+
+{% block title %}Wallet Journal{% endblock %}
+
+{% block extra_js %}
+    <script type="text/javascript" src="https://www.google.com/jsapi?autoload={'modules':[{'name':'visualization','version':'1.1','packages':['annotationchart']}]}"></script>
+    <script type="text/javascript">
+      $(document).ready(function() {
+        var data = $.parseJSON('{{ json_data|safe }}');
+        EVEthing.filters.data = data.values;
+        EVEthing.filters.expected = data.expected;
+        EVEthing.wallet_journal.filters = data.filters;
+
+        EVEthing.wallet_journal.onload();
+        google.setOnLoadCallback(drawChart);
+      });
+
+
+    </script>
+{% endblock %}
+{% block content %}
+      <div class="row">
+        <div class="col-sm-12">
+          <h2>Wallet Journal</h2>
+
+          {% include 'includes/wallet_journal_filters.html' %}
+
+          <a id="export-button" href="{{ url('thing.views.wallet_journal_export') }}" class="btn btn-info">Export filter as CSV</a>
+          <strong>Balance for this filter set</strong>: {{ total_amount|default('0.00')|commas }} ISK
+        </div>
+      </div>
+    <div id='chart_div' style='width: 900px; height: 500px;'></div>
+{% endblock %}

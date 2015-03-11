@@ -77,6 +77,9 @@ urlpatterns += patterns(
     (r'^wallet_journal/$', 'wallet_journal'),
     (r'^wallet_journal/aggregate/$', 'wallet_journal_aggregate'),
     (r'^wallet_journal/export/$', 'wallet_journal_export'),
+    (r'^wallet_journal/graph/single/data/$', 'wallet_journal_graph_single_character_data'),
+    (r'^wallet_journal/graph/$', 'wallet_journal_graph_single'),
+    
 
     (r'^pi/$', 'pi'),
 )
