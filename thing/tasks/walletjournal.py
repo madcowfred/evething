@@ -25,10 +25,7 @@
 
 from decimal import Decimal
 
-try:
-    from collections import OrderedDict
-except ImportError:
-    from ordereddict import OrderedDict
+from collections import OrderedDict
 
 from .apitask import APITask
 

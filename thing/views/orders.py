@@ -23,10 +23,7 @@
 # OF SUCH DAMAGE.
 # ------------------------------------------------------------------------------
 
-try:
-    from collections import OrderedDict
-except ImportError:
-    from ordereddict import OrderedDict
+from collections import OrderedDict
 
 from django.contrib.auth.decorators import login_required
 from django.db import connection

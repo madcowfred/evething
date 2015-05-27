@@ -88,7 +88,7 @@ Installation
 There are some common requirements for any install method, most of these
 will be installed using pip in 'Common Install Steps' below:
 
-- [Python](http://www.python.org) \>=2.6 <3.0
+- [Python](http://www.python.org) \>=2.7 <3.0
 - [Django](http://www.djangoproject.com) \>=1.6 <1.7
 - [Celery](http://docs.celeryproject.org/en/latest/) \>= 3.1 <3.2
   * This includes the celery[flavor] package that may be required for the
