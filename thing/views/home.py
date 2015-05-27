@@ -25,11 +25,7 @@
 
 import datetime
 import operator
-
-try:
-    from collections import OrderedDict
-except ImportError:
-    from ordereddict import OrderedDict
+from collections import OrderedDict
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
