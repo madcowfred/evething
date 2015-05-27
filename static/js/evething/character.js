@@ -9,6 +9,7 @@ EVEthing.character = {
         $('#skillplans-toggle').on('click', function () {
             $('#skillplans-personal').toggle();
             $('#skillplans-global').toggle();
+            $('#skillplans-mastery').toggle();
         });
 
         // Bind settings toggle
@@ -28,6 +29,9 @@ EVEthing.character = {
         $('#settings-form').on('submit', EVEthing.character.settings_submit);
 
         $('.character-skills').affix({offset: EVEthing.character.skills_offset});
+
+        $('#mastery-form').on('submit', EVEthing.character.mastery_search);
+
     },
 
     // Magic object with a function to calculate the sidenav offset
@@ -90,6 +94,41 @@ EVEthing.character = {
                     EVEthing.character.anon_toggle();
                 } else {
                     $('#settings-status').html('<span class="fa fa-times"></span> Error!');
+                }
+            }
+        );
+
+        return false;
+    },
+
+    mastery_search: function (e) {
+        if (e.preventDefault) {
+            e.preventDefault();
+        }
+
+        $('#mastery-status').html('<span class="fa fa-spinner fa-spin"></span> Searching...');
+
+        // Submit the form
+        $.post(
+            $(this).attr('action'),
+            $(this).serialize(),
+            function (data) {
+                if (typeof data === 'object') {
+                    if (data.hasOwnProperty('error')) {
+                        $('div#mastery-results').html('');
+                        $('#mastery-status').html('<span class="fa fa-times"></span> ' + data.error);
+                    } else {
+                        var plan_html = '<ul class="list-unstyled">\n';
+                        for (var i = 0; i < data.plans.length; i++) {
+                            plan_html += '<li><a href="' + data.plans[i].url + '">' + data.plans[i].name + '</a></li>\n';
+                        }
+                        plan_html += '</ul>\n';
+                        $('div#mastery-results').html(plan_html);
+                        $('#mastery-status').html('');
+                    }
+                } else {
+                    $('div#mastery-results').html('');
+                    $('#mastery-status').html('<span class="fa fa-times"></span> Error!');
                 }
             }
         );

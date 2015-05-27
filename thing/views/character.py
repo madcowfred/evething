@@ -35,6 +35,7 @@ from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.http import Http404
 from django.shortcuts import get_object_or_404
+from django.core.urlresolvers import reverse
 
 from core.util import json_response
 from thing.models import *  # NOPEP8
@@ -181,8 +182,7 @@ def character_common(request, char, public=True, anonymous=False):
     if anonymous is False and request.user.is_authenticated():
         plans = SkillPlan.objects.filter(
             Q(user=request.user)
-            |
-            Q(visibility=SkillPlan.GLOBAL_VISIBILITY)
+            | Q(visibility=SkillPlan.GLOBAL_VISIBILITY)
         )
         # |
         # (
@@ -290,6 +290,38 @@ def character_settings(request, character_name):
     return json_response(dict(anon_key=char.config.anon_key))
 
 
+@login_required
+def character_mastery(request, character_name):
+    return _character_mastery(request, 'thing.views.character_skillplan', character_name)
+
+
+@login_required
+def character_anonymous_mastery(request, anon_key):
+    return _character_mastery(request, 'thing.views.character_anonymous_skillplan', anon_key)
+
+
+def _character_mastery(request, view, arg):
+    name = request.POST.get('mastery-input', None)
+
+    if name is None:
+        return json_response({'error': 'No search value specified.'})
+
+    if len(name) < 2:
+        return json_response({'error': 'Please specify at least two letters.'})
+
+    results = SkillPlan.objects.filter(visibility=SkillPlan.MASTERY_VISIBILITY,
+                                       name__icontains=name)
+
+    plans = []
+    for plan in results:
+        plans.append({
+            'url': reverse(view, args=[arg, plan.id]),
+            'name': plan.name
+        })
+
+    return json_response({'plans': plans})
+
+
 def character_skillplan(request, character_name, skillplan_id):
     """Display a SkillPlan for a character"""
     public = True
@@ -302,14 +334,14 @@ def character_skillplan(request, character_name, skillplan_id):
             pass
         else:
             public = False
-            qs = Q(visibility=SkillPlan.GLOBAL_VISIBILITY) | Q(user=request.user)
+            qs = Q(visibility=SkillPlan.GLOBAL_VISIBILITY) | Q(visibility=SkillPlan.MASTERY_VISIBILITY) | Q(user=request.user)
             skillplan = get_object_or_404(SkillPlan.objects.prefetch_related('entries'), qs, pk=skillplan_id)
 
     # Not logged in or character does not belong to user
     if public is True:
         character = get_object_or_404(Character.objects.select_related('config', 'details'), name=character_name, config__is_public=True)
 
-        qs = Q(visibility=SkillPlan.GLOBAL_VISIBILITY)
+        qs = Q(visibility=SkillPlan.GLOBAL_VISIBILITY) | Q(visibility=SkillPlan.MASTERY_VISIBILITY)
         if request.user.is_authenticated():
             qs |= Q(user=request.user)
         skillplan = get_object_or_404(SkillPlan.objects.prefetch_related('entries'), qs, pk=skillplan_id)
@@ -320,7 +352,8 @@ def character_skillplan(request, character_name, skillplan_id):
 def character_anonymous_skillplan(request, anon_key, skillplan_id):
     """Display a SkillPlan for an anonymous character"""
     character = get_object_or_404(Character.objects.select_related('config', 'details'), config__anon_key=anon_key)
-    skillplan = get_object_or_404(SkillPlan.objects.prefetch_related('entries'), pk=skillplan_id, visibility=SkillPlan.GLOBAL_VISIBILITY)
+    qs = Q(visibility=SkillPlan.GLOBAL_VISIBILITY) | Q(visibility=SkillPlan.MASTERY_VISIBILITY)
+    skillplan = get_object_or_404(SkillPlan.objects.prefetch_related('entries'), qs, pk=skillplan_id)
 
     return character_skillplan_common(request, character, skillplan, anonymous=True)
 

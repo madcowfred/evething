@@ -26,18 +26,21 @@
 from django.contrib.auth.models import User
 from django.db import models
 
+from thing.models.item import Item
+
 
 class SkillPlan(models.Model):
     PRIVATE_VISIBILITY = 1
     PUBLIC_VISIBILITY = 2
     GLOBAL_VISIBILITY = 3
+    MASTERY_VISIBILITY = 99
     VISIBILITY_CHOICES = (
         (PRIVATE_VISIBILITY, 'Private'),
         (PUBLIC_VISIBILITY, 'Public'),
         (GLOBAL_VISIBILITY, 'Global'),
     )
 
-    user = models.ForeignKey(User)
+    user = models.ForeignKey(User, null=True, blank=True)
 
     name = models.CharField(max_length=64)
     visibility = models.IntegerField(default=1, choices=VISIBILITY_CHOICES)
@@ -47,4 +50,7 @@ class SkillPlan(models.Model):
         ordering = ('name',)
 
     def __unicode__(self):
-        return '%s - %s' % (self.user.username, self.name)
+        if hasattr(self.user, 'username'):
+            return '%s - %s' % (self.user.username, self.name)
+        else:
+            return '%s' % self.name

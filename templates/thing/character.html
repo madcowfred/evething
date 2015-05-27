@@ -140,6 +140,31 @@
           </div>
         </div>
         {%- endif %}
+        {% if authed -%}
+        <div class="row">
+          <div id="skillplans-mastery" class="collapse panel panel-default">
+            <div class="panel-heading">
+              <h4 class="panel-title">Masteries</h4>
+            </div>
+            {% if anonymous -%}
+            <form id="mastery-form" action="{{ url('thing.views.character_anonymous_mastery', char.config.anon_key) }}" method="POST" style="margin: 0">
+            {%- else -%}
+            <form id="mastery-form" action="{{ url('thing.views.character_mastery', char.name) }}" method="POST" style="margin: 0">
+            {%- endif %}
+              {{ csrf() }}
+              <div class="panel-body">
+                <input type="text" class="form-control" name="mastery-input" id="mastery-input" placeholder="Ship/Hull Name">
+                <div id="mastery-results">
+                </div>
+              </div>
+              <div class="panel-footer">
+                <button type="submit" class="btn btn-primary">Search</button>
+                <span id="mastery-status" class="pull-right"></span>
+              </div>
+            </form>
+          </div>
+        </div>
+        {%- endif %}
         <br/>
         <div id="character-skills-container" class="row">
           <div class="character-skills">
