@@ -61,8 +61,9 @@ class Contracts(APITask):
             return
 
         # Retrieve a list of this user's characters and corporations
-        #user_chars = list(Character.objects.filter(apikeys__user=self.apikey.user).values_list('id', flat=True))
-        #user_corps = list(APIKey.objects.filter(user=self.apikey.user).exclude(corpasdasd_character=None).values_list('corpasd_character__corporation__id', flat=True))
+        # user_chars = list(Character.objects.filter(apikeys__user=self.apikey.user).values_list('id', flat=True))
+        # user_corps = list(APIKey.objects.filter(user=self.apikey.user).exclude(
+        #   corpasdasd_character=None).values_list('corpasd_character__corporation__id', flat=True))
 
         # First we need to get all of the acceptor and assignee IDs
         contract_ids = set()
@@ -72,9 +73,9 @@ class Contracts(APITask):
         contract_rows = []
         # <row contractID="58108507" issuerID="2004011913" issuerCorpID="751993277" assigneeID="401273477"
         #      acceptorID="0" startStationID="60014917" endStationID="60003760" type="Courier" status="Outstanding"
-        #      title="" forCorp="0" availability="Private" dateIssued="2012-08-02 06:50:29" dateExpired="2012-08-09 06:50:29"
-        #      dateAccepted="" numDays="7" dateCompleted="" price="0.00" reward="3000000.00" collateral="0.00" buyout="0.00"
-        #      volume="10000"/>
+        #      title="" forCorp="0" availability="Private" dateIssued="2012-08-02 06:50:29"
+        #      dateExpired="2012-08-09 06:50:29" dateAccepted="" numDays="7" dateCompleted="" price="0.00"
+        #      reward="3000000.00" collateral="0.00" buyout="0.00" volume="10000"/>
         for row in self.root.findall('result/rowset/row'):
             if self.apikey.key_type == APIKey.CORPORATION_TYPE:
                 # corp keys don't care about non-corp orders
@@ -85,7 +86,7 @@ class Contracts(APITask):
                 if self.apikey.corporation.id not in (
                         int(row.attrib['issuerCorpID']), int(row.attrib['assigneeID']), int(row.attrib['acceptorID'])
                 ):
-                    #logger.info('Skipping non-corp contract :ccp:')
+                    # logger.info('Skipping non-corp contract :ccp:')
                     continue
 
             # non-corp keys don't care about corp orders
@@ -254,7 +255,7 @@ class Contracts(APITask):
 
                 # If this contract is a new contract in a non-completed state, log an event
                 if contract.status in ('Outstanding', 'InProgress'):
-                    #if assigneeID in user_chars or assigneeID in user_corps:
+                    # if assigneeID in user_chars or assigneeID in user_corps:
                     assignee = char_map.get(assigneeID, corp_map.get(assigneeID, alliance_map.get(assigneeID)))
                     if assignee is not None:
                         text = "Contract %s was created from '%s' to '%s' with status '%s'" % (

@@ -108,7 +108,7 @@ class MailMessages(APITask):
                 ))
 
             # MailMessage does exist, not caring since mail headers should never change :ccp:
-            #else:
+            # else:
 
         # Create any new MailMessage objects
         if new:

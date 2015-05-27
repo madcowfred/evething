@@ -57,7 +57,7 @@ class WalletJournal(APITask):
                 if result is False:
                     return
 
-                #_wjs_work(character, corpwallet)
+                # _wjs_work(character, corpwallet)
 
         # Account/character key
         else:
@@ -65,7 +65,7 @@ class WalletJournal(APITask):
             if result is False:
                 return
 
-            #_wjs_work(character)
+            # _wjs_work(character)
 
         return True
 

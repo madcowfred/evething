@@ -21,13 +21,11 @@ RUN if [ ! -e sqlite-latest.sqlite ]; then wget https://www.fuzzwork.co.uk/dump/
 
 # Install python deps into virtualenv, and activate at login
 RUN . /evething-env/bin/activate && \
-pip install -r /evething/requirements.txt -r /evething/docker/requirements-docker.txt && \
+pip install -r /evething/requirements.txt -r /evething/docker/requirements-docker.txt -r /evething/docker/requirements-docker-dev.txt && \
 echo '. /evething-env/bin/activate' >> /root/.bashrc
 
-# Install npm deps and add to PATH
-RUN npm install && \
-npm install npm-check-updates && \
-echo 'export PATH=${PATH}:/evething/node_modules/.bin' >> /root/.bashrc
+# Add node_modules to PATH
+RUN echo 'export PATH=${PATH}:/evething/node_modules/.bin' >> /root/.bashrc
 
 # Define default command, this gets overwritten by docker-compose
 CMD ["bash"]

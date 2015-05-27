@@ -114,7 +114,7 @@ class MarketOrders(APITask):
                 seen.append(order_id)
 
         # Bulk query data
-        #char_map = Character.objects.in_bulk(char_ids)
+        # char_map = Character.objects.in_bulk(char_ids)
         item_map = Item.objects.in_bulk(item_ids)
         station_map = Station.objects.in_bulk(station_ids)
 

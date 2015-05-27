@@ -78,7 +78,7 @@ class PriceUpdater(APITask):
                 item.save()
 
         # Calculate capital ship costs now
-        #for bp in Blueprint.objects.select_related('item').filter(item__item_group__name__in=CAPITAL_SHIP_GROUPS):
+        # for bp in Blueprint.objects.select_related('item').filter(item__item_group__name__in=CAPITAL_SHIP_GROUPS):
         #    bpi = BlueprintInstance(
         #        user=None,
         #        blueprint=bp,

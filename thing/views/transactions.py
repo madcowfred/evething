@@ -101,9 +101,9 @@ def transactions(request):
     transaction_ids = transaction_ids.order_by('-date')
 
     # Get a QuerySet of transactions IDs by this user
-    #characters = list(Character.objects.filter(apikeys__user=request.user.id).values_list('id', flat=True))
-    #transaction_ids = Transaction.objects.filter(character_id__in=characters)
-    #transaction_ids = transaction_ids.order_by('-date')
+    # characters = list(Character.objects.filter(apikeys__user=request.user.id).values_list('id', flat=True))
+    # transaction_ids = Transaction.objects.filter(character_id__in=characters)
+    # transaction_ids = transaction_ids.order_by('-date')
 
     # Get only the ids, at this point joining the rest is unnecessary
     transaction_ids = transaction_ids.values_list('pk', flat=True)

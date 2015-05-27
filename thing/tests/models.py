@@ -5,7 +5,7 @@ from thing.models import *  # NOPEP8
 
 
 class StationTestCase(TestCase):
-    #fixtures = ['region_constellation_system_testdata.json']
+    # fixtures = ['region_constellation_system_testdata.json']
 
     def setUp(self):
         super(StationTestCase, self).setUp()
