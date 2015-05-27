@@ -21,7 +21,7 @@ RUN if [ ! -e sqlite-latest.sqlite ]; then wget https://www.fuzzwork.co.uk/dump/
 
 # Install python deps into virtualenv, and activate at login
 RUN . /evething-env/bin/activate && \
-pip install -r /evething/requirements.txt -r /evething/docker/requirements-docker.txt && \
+pip install -r /evething/requirements.txt -r /evething/docker/requirements-docker.txt -r /evething/docker/requirements-docker-dev.txt && \
 echo '. /evething-env/bin/activate' >> /root/.bashrc
 
 # Install npm deps and add to PATH

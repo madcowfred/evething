@@ -33,7 +33,7 @@ from django.db.models import Q, Sum
 
 from thing.models import *  # NOPEP8
 from thing.stuff import *  # NOPEP8
-from thing.templatetags.thing_extras import commas, shortduration
+from thing.templatetags.thing_extras import shortduration
 
 ONE_DAY = 24 * 60 * 60
 EXPIRE_WARNING = 10 * ONE_DAY
@@ -361,11 +361,11 @@ def home(request):
             'total_assets': total_assets,
             'corp_assets': corp_assets,
             'corporations': corporations,
-            #'characters': first + last,
+            # 'characters': first + last,
             'characters': char_lists,
             'events': list(Event.objects.filter(user=request.user)[:10]),
             'ship_map': ship_map,
-            #'task_count': task_count,
+            # 'task_count': task_count,
         },
         request,
         chars.keys(),

@@ -224,7 +224,7 @@ class APITask(Task):
             # Sleep now if we have to
             sleep_for = self._get_backoff()
             if sleep_for > 0:
-                #self.log_warn('Sleeping for %d seconds', sleep_for)
+                # self.log_warn('Sleeping for %d seconds', sleep_for)
                 time.sleep(sleep_for)
 
             # Add the vCode to params now
@@ -350,14 +350,14 @@ class APITask(Task):
                 r = self._session.get(url)
             data = r.text
         except Exception:
-            #self._increment_backoff(e)
+            # self._increment_backoff(e)
             return False
 
         self._api_log.append((url, time.time() - start))
 
         # If the status code is bad return False
         if not r.status_code == requests.codes.ok:
-            #self._increment_backoff('Bad status code: %s' % (r.status_code))
+            # self._increment_backoff('Bad status code: %s' % (r.status_code))
             return False
 
         return data
@@ -446,7 +446,7 @@ class APITask(Task):
 
         # Calculate the sleep value and return it
         return 0.5 * (2 ** min(6, backoff_count - 1))
-        #return sleep_for
+        # return sleep_for
 
     def _increment_backoff(self, e):
         """

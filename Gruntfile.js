@@ -12,7 +12,7 @@ module.exports = function (grunt) {
                     '*.py',
                     'core/*.py',
                     'evething/*.py',
-                    '!evething/local_settings.py'
+                    '!evething/local_settings*.py'
                 ]
             },
             thing: {

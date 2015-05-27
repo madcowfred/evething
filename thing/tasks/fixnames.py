@@ -100,9 +100,9 @@ class FixNames(APITask):
         #         ))
 
         # Now we can create the new corporation objects
-        #corp_map = Corporation.objects.in_bulk([c.id for c in new_corps])
-        #new_corps = [c for c in new_corps if c.id not in corp_map]
-        #Corporation.objects.bulk_create(new_corps)
+        # corp_map = Corporation.objects.in_bulk([c.id for c in new_corps])
+        # new_corps = [c for c in new_corps if c.id not in corp_map]
+        # Corporation.objects.bulk_create(new_corps)
 
         # And finally delete any characters that have equivalent corporations now
         cursor = self.get_cursor()

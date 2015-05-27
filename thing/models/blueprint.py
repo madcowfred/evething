@@ -25,7 +25,7 @@
 
 from django.db import models
 
-#from thing.models.blueprintcomponent import BlueprintComponent
+# from thing.models.blueprintcomponent import BlueprintComponent
 
 
 class Blueprint(models.Model):

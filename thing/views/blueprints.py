@@ -304,7 +304,7 @@ def bpcalc(request):
                 bpi.z_sell_profit = bpi.z_total_sell - bpi.z_sell_build
                 bpi.z_sell_profit_per = (bpi.z_sell_profit / bpi.z_sell_build * 100).quantize(Decimal('.1'))
 
-                #bpi.z_volume_week = bpi.blueprint.item.get_volume()
+                # bpi.z_volume_week = bpi.blueprint.item.get_volume()
                 bpi.z_volume_week = move_map.get(bpi.blueprint.item.id, 0)
                 if bpi.z_volume_week:
                     bpi.z_volume_percent = (bpi.z_built / bpi.z_volume_week * 100).quantize(Decimal('.1'))

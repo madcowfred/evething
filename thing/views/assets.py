@@ -209,7 +209,7 @@ def assets_filter(request):
         Q(corporation_id__in=corporation_ids)
     )
     assets = assets.prefetch_related('item__item_group__category', 'inv_flag', 'system', 'station')
-    #assets = assets.distinct()
+    # assets = assets.distinct()
 
     tt.add_time('init')
 

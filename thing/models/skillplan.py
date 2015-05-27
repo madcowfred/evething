@@ -26,8 +26,6 @@
 from django.contrib.auth.models import User
 from django.db import models
 
-from thing.models.item import Item
-
 
 class SkillPlan(models.Model):
     PRIVATE_VISIBILITY = 1

@@ -46,14 +46,14 @@ def trade(request):
     # now = datetime.datetime.now()
 
     # Order information
-    #orders = Order.objects.filter(corporation=corporation)
-    #buy_orders = orders.filter(o_type='B')
-    #sell_orders = orders.filter(o_type='S')
-    #data['sell_total'] = orders.filter(o_type='S').aggregate(Sum('total_price'))['total_price__sum'] or 0
-    #buy_orders = orders.filter(o_type='B')
-    #data['buy_total'] = buy_orders.aggregate(Sum('total_price'))['total_price__sum'] or 0
-    #data['escrow_total'] = buy_orders.aggregate(Sum('escrow'))['escrow__sum'] or 0
-    #data['net_asset_value'] = data['wallet_balance'] + data['sell_total'] + data['escrow_total']
+    # orders = Order.objects.filter(corporation=corporation)
+    # buy_orders = orders.filter(o_type='B')
+    # sell_orders = orders.filter(o_type='S')
+    # data['sell_total'] = orders.filter(o_type='S').aggregate(Sum('total_price'))['total_price__sum'] or 0
+    # buy_orders = orders.filter(o_type='B')
+    # data['buy_total'] = buy_orders.aggregate(Sum('total_price'))['total_price__sum'] or 0
+    # data['escrow_total'] = buy_orders.aggregate(Sum('escrow'))['escrow__sum'] or 0
+    # data['net_asset_value'] = data['wallet_balance'] + data['sell_total'] + data['escrow_total']
 
     # Transaction stuff oh god
     characters = list(Character.objects.filter(
