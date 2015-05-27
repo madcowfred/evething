@@ -33,6 +33,8 @@ from decimal import Decimal
 
 # Set up our environment and import settings
 os.environ['DJANGO_SETTINGS_MODULE'] = 'evething.settings'
+import django
+django.setup()
 from django.db import connections
 
 from thing.models import *  # NOPEP8

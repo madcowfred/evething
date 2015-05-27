@@ -1,7 +1,8 @@
 #!/bin/bash
 . /evething-env/bin/activate
 cd /evething/
-/evething/manage.py syncdb --noinput
-/evething/manage.py migrate --all
+npm install
+npm install npm-check-updates
+/evething/manage.py migrate --noinput
 /evething/import.py
 /evething/manage.py createsuperuser
