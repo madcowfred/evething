@@ -1,0 +1,27 @@
+###############################################################
+# THIS IS A WORK IN PROGRESS, NOT SUITABLE FOR DEPLOYMENT YET #
+###############################################################
+# Pull base image.
+FROM ubuntu:14.04
+
+MAINTAINER Eric Gillingham "Eric.J.Gillingham@jpl.nasa.gov"
+
+# Install.
+RUN sed -i 's/# \(.*multiverse$\)/\1/g' /etc/apt/sources.list && \
+apt-get update && \
+apt-get -y upgrade && \
+apt-get install -y python2.7 python2.7-dev python-virtualenv python-pip \
+                    libmysqlclient-dev \
+                    build-essential && \
+/usr/bin/virtualenv /ttc-env
+
+ADD . /ttcweb
+WORKDIR /ttcweb
+
+# Install python deps into virtualenv, and activate at login
+RUN . /ttc-env/bin/activate && \
+pip install -r /ttcweb/requirements.txt && \
+echo '. /ttc-env/bin/activate' >> /root/.bashrc
+
+# Define default command, this gets overwritten by docker-compose
+CMD ["bash"]
