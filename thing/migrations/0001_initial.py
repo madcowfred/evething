@@ -1,780 +1,1064 @@
 # -*- coding: utf-8 -*-
+from __future__ import unicode_literals
+
+from django.db import models, migrations
+import mptt.fields
 import datetime
-from south.db import db
-from south.v2 import SchemaMigration
-from django.db import models
-
-
-class Migration(SchemaMigration):
-
-    def forwards(self, orm):
-        # Adding model 'UserProfile'
-        db.create_table('thing_userprofile', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('user', self.gf('django.db.models.fields.related.OneToOneField')(to=orm['auth.User'], unique=True)),
-            ('theme', self.gf('django.db.models.fields.CharField')(default='theme-default', max_length=32)),
-            ('home_chars_per_row', self.gf('django.db.models.fields.IntegerField')(default=4)),
-        ))
-        db.send_create_signal('thing', ['UserProfile'])
-
-        # Adding model 'APIKey'
-        db.create_table('thing_apikey', (
-            ('user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'])),
-            ('id', self.gf('django.db.models.fields.IntegerField')(primary_key=True)),
-            ('vcode', self.gf('django.db.models.fields.CharField')(max_length=64)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=64)),
-            ('access_mask', self.gf('django.db.models.fields.BigIntegerField')(null=True, blank=True)),
-            ('key_type', self.gf('django.db.models.fields.CharField')(max_length=16, null=True, blank=True)),
-            ('expires', self.gf('django.db.models.fields.DateTimeField')(null=True, blank=True)),
-            ('valid', self.gf('django.db.models.fields.BooleanField')(default=True)),
-            ('corp_character', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='corporate_apikey', null=True, to=orm['thing.Character'])),
-            ('paid_until', self.gf('django.db.models.fields.DateTimeField')(null=True, blank=True)),
-        ))
-        db.send_create_signal('thing', ['APIKey'])
-
-        # Adding model 'APICache'
-        db.create_table('thing_apicache', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('url', self.gf('django.db.models.fields.URLField')(max_length=200)),
-            ('parameters', self.gf('django.db.models.fields.TextField')()),
-            ('cached_until', self.gf('django.db.models.fields.DateTimeField')()),
-            ('text', self.gf('django.db.models.fields.TextField')()),
-            ('completed_ok', self.gf('django.db.models.fields.BooleanField')(default=False)),
-        ))
-        db.send_create_signal('thing', ['APICache'])
-
-        # Adding model 'Event'
-        db.create_table('thing_event', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'])),
-            ('issued', self.gf('django.db.models.fields.DateTimeField')()),
-            ('text', self.gf('django.db.models.fields.TextField')()),
-        ))
-        db.send_create_signal('thing', ['Event'])
-
-        # Adding model 'Corporation'
-        db.create_table('thing_corporation', (
-            ('id', self.gf('django.db.models.fields.IntegerField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=64)),
-            ('ticker', self.gf('django.db.models.fields.CharField')(max_length=5, null=True, blank=True)),
-            ('division1', self.gf('django.db.models.fields.CharField')(max_length=64, null=True, blank=True)),
-            ('division2', self.gf('django.db.models.fields.CharField')(max_length=64, null=True, blank=True)),
-            ('division3', self.gf('django.db.models.fields.CharField')(max_length=64, null=True, blank=True)),
-            ('division4', self.gf('django.db.models.fields.CharField')(max_length=64, null=True, blank=True)),
-            ('division5', self.gf('django.db.models.fields.CharField')(max_length=64, null=True, blank=True)),
-            ('division6', self.gf('django.db.models.fields.CharField')(max_length=64, null=True, blank=True)),
-            ('division7', self.gf('django.db.models.fields.CharField')(max_length=64, null=True, blank=True)),
-        ))
-        db.send_create_signal('thing', ['Corporation'])
-
-        # Adding model 'CorpWallet'
-        db.create_table('thing_corpwallet', (
-            ('account_id', self.gf('django.db.models.fields.IntegerField')(primary_key=True)),
-            ('corporation', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['thing.Corporation'])),
-            ('account_key', self.gf('django.db.models.fields.IntegerField')()),
-            ('description', self.gf('django.db.models.fields.CharField')(max_length=64)),
-            ('balance', self.gf('django.db.models.fields.DecimalField')(max_digits=18, decimal_places=2)),
-        ))
-        db.send_create_signal('thing', ['CorpWallet'])
-
-        # Adding model 'Character'
-        db.create_table('thing_character', (
-            ('id', self.gf('django.db.models.fields.IntegerField')(primary_key=True)),
-            ('apikey', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['thing.APIKey'], null=True, blank=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=64)),
-            ('corporation', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['thing.Corporation'])),
-            ('wallet_balance', self.gf('django.db.models.fields.DecimalField')(default=0.0, max_digits=18, decimal_places=2)),
-            ('cha_attribute', self.gf('django.db.models.fields.SmallIntegerField')(default=0)),
-            ('int_attribute', self.gf('django.db.models.fields.SmallIntegerField')(default=0)),
-            ('mem_attribute', self.gf('django.db.models.fields.SmallIntegerField')(default=0)),
-            ('per_attribute', self.gf('django.db.models.fields.SmallIntegerField')(default=0)),
-            ('wil_attribute', self.gf('django.db.models.fields.SmallIntegerField')(default=0)),
-            ('cha_bonus', self.gf('django.db.models.fields.SmallIntegerField')(default=0)),
-            ('int_bonus', self.gf('django.db.models.fields.SmallIntegerField')(default=0)),
-            ('mem_bonus', self.gf('django.db.models.fields.SmallIntegerField')(default=0)),
-            ('per_bonus', self.gf('django.db.models.fields.SmallIntegerField')(default=0)),
-            ('wil_bonus', self.gf('django.db.models.fields.SmallIntegerField')(default=0)),
-            ('clone_name', self.gf('django.db.models.fields.CharField')(default='', max_length=32)),
-            ('clone_skill_points', self.gf('django.db.models.fields.IntegerField')(default=0)),
-            ('factory_cost', self.gf('django.db.models.fields.DecimalField')(default=0.0, max_digits=8, decimal_places=2)),
-            ('factory_per_hour', self.gf('django.db.models.fields.DecimalField')(default=0.0, max_digits=8, decimal_places=2)),
-            ('sales_tax', self.gf('django.db.models.fields.DecimalField')(default=1.5, max_digits=3, decimal_places=2)),
-            ('brokers_fee', self.gf('django.db.models.fields.DecimalField')(default=1.0, max_digits=3, decimal_places=2)),
-        ))
-        db.send_create_signal('thing', ['Character'])
-
-        # Adding model 'CharacterConfig'
-        db.create_table('thing_characterconfig', (
-            ('character', self.gf('django.db.models.fields.related.OneToOneField')(related_name='config', unique=True, primary_key=True, to=orm['thing.Character'])),
-            ('is_public', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('show_clone', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('show_implants', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('show_skill_queue', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('show_wallet', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('anon_key', self.gf('django.db.models.fields.CharField')(max_length=16, null=True, blank=True)),
-        ))
-        db.send_create_signal('thing', ['CharacterConfig'])
-
-        # Adding model 'CharacterSkill'
-        db.create_table('thing_characterskill', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('character', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['thing.Character'])),
-            ('skill', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['thing.Skill'])),
-            ('level', self.gf('django.db.models.fields.SmallIntegerField')()),
-            ('points', self.gf('django.db.models.fields.IntegerField')()),
-        ))
-        db.send_create_signal('thing', ['CharacterSkill'])
-
-        # Adding model 'SkillQueue'
-        db.create_table('thing_skillqueue', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('character', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['thing.Character'])),
-            ('skill', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['thing.Skill'])),
-            ('start_time', self.gf('django.db.models.fields.DateTimeField')()),
-            ('end_time', self.gf('django.db.models.fields.DateTimeField')()),
-            ('start_sp', self.gf('django.db.models.fields.IntegerField')()),
-            ('end_sp', self.gf('django.db.models.fields.IntegerField')()),
-            ('to_level', self.gf('django.db.models.fields.SmallIntegerField')()),
-        ))
-        db.send_create_signal('thing', ['SkillQueue'])
-
-        # Adding model 'Region'
-        db.create_table('thing_region', (
-            ('id', self.gf('django.db.models.fields.IntegerField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=64)),
-        ))
-        db.send_create_signal('thing', ['Region'])
-
-        # Adding model 'Constellation'
-        db.create_table('thing_constellation', (
-            ('id', self.gf('django.db.models.fields.IntegerField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=64)),
-            ('region', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['thing.Region'])),
-        ))
-        db.send_create_signal('thing', ['Constellation'])
-
-        # Adding model 'System'
-        db.create_table('thing_system', (
-            ('id', self.gf('django.db.models.fields.IntegerField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=32)),
-            ('constellation', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['thing.Constellation'])),
-        ))
-        db.send_create_signal('thing', ['System'])
-
-        # Adding model 'Station'
-        db.create_table('thing_station', (
-            ('id', self.gf('django.db.models.fields.IntegerField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=128)),
-            ('short_name', self.gf('django.db.models.fields.CharField')(max_length=64, null=True, blank=True)),
-            ('system', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['thing.System'])),
-        ))
-        db.send_create_signal('thing', ['Station'])
-
-        # Adding model 'MarketGroup'
-        db.create_table('thing_marketgroup', (
-            ('id', self.gf('django.db.models.fields.IntegerField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=100)),
-            ('parent', self.gf('mptt.fields.TreeForeignKey')(blank=True, related_name='children', null=True, to=orm['thing.MarketGroup'])),
-            ('lft', self.gf('django.db.models.fields.PositiveIntegerField')(db_index=True)),
-            ('rght', self.gf('django.db.models.fields.PositiveIntegerField')(db_index=True)),
-            ('tree_id', self.gf('django.db.models.fields.PositiveIntegerField')(db_index=True)),
-            ('level', self.gf('django.db.models.fields.PositiveIntegerField')(db_index=True)),
-        ))
-        db.send_create_signal('thing', ['MarketGroup'])
-
-        # Adding model 'ItemCategory'
-        db.create_table('thing_itemcategory', (
-            ('id', self.gf('django.db.models.fields.IntegerField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=64)),
-        ))
-        db.send_create_signal('thing', ['ItemCategory'])
-
-        # Adding model 'ItemGroup'
-        db.create_table('thing_itemgroup', (
-            ('id', self.gf('django.db.models.fields.IntegerField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=64)),
-            ('category', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['thing.ItemCategory'])),
-        ))
-        db.send_create_signal('thing', ['ItemGroup'])
-
-        # Adding model 'Item'
-        db.create_table('thing_item', (
-            ('id', self.gf('django.db.models.fields.IntegerField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=128)),
-            ('item_group', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['thing.ItemGroup'])),
-            ('market_group', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['thing.MarketGroup'], null=True, blank=True)),
-            ('portion_size', self.gf('django.db.models.fields.IntegerField')()),
-            ('volume', self.gf('django.db.models.fields.DecimalField')(default=0, max_digits=16, decimal_places=4)),
-            ('sell_price', self.gf('django.db.models.fields.DecimalField')(default=0, max_digits=15, decimal_places=2)),
-            ('buy_price', self.gf('django.db.models.fields.DecimalField')(default=0, max_digits=15, decimal_places=2)),
-        ))
-        db.send_create_signal('thing', ['Item'])
-
-        # Adding model 'Skill'
-        db.create_table('thing_skill', (
-            ('item', self.gf('django.db.models.fields.related.OneToOneField')(to=orm['thing.Item'], unique=True, primary_key=True)),
-            ('rank', self.gf('django.db.models.fields.SmallIntegerField')()),
-            ('primary_attribute', self.gf('django.db.models.fields.SmallIntegerField')()),
-            ('secondary_attribute', self.gf('django.db.models.fields.SmallIntegerField')()),
-        ))
-        db.send_create_signal('thing', ['Skill'])
-
-        # Adding model 'PriceHistory'
-        db.create_table('thing_pricehistory', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('region', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['thing.Region'])),
-            ('item', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['thing.Item'])),
-            ('date', self.gf('django.db.models.fields.DateField')()),
-            ('minimum', self.gf('django.db.models.fields.DecimalField')(max_digits=18, decimal_places=2)),
-            ('maximum', self.gf('django.db.models.fields.DecimalField')(max_digits=18, decimal_places=2)),
-            ('average', self.gf('django.db.models.fields.DecimalField')(max_digits=18, decimal_places=2)),
-            ('movement', self.gf('django.db.models.fields.BigIntegerField')()),
-            ('orders', self.gf('django.db.models.fields.IntegerField')()),
-        ))
-        db.send_create_signal('thing', ['PriceHistory'])
-
-        # Adding unique constraint on 'PriceHistory', fields ['region', 'item', 'date']
-        db.create_unique('thing_pricehistory', ['region_id', 'item_id', 'date'])
-
-        # Adding model 'Campaign'
-        db.create_table('thing_campaign', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'])),
-            ('title', self.gf('django.db.models.fields.CharField')(max_length=32)),
-            ('slug', self.gf('django.db.models.fields.SlugField')(max_length=32)),
-            ('start_date', self.gf('django.db.models.fields.DateTimeField')()),
-            ('end_date', self.gf('django.db.models.fields.DateTimeField')()),
-        ))
-        db.send_create_signal('thing', ['Campaign'])
-
-        # Adding M2M table for field corp_wallets on 'Campaign'
-        db.create_table('thing_campaign_corp_wallets', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('campaign', models.ForeignKey(orm['thing.campaign'], null=False)),
-            ('corpwallet', models.ForeignKey(orm['thing.corpwallet'], null=False))
-        ))
-        db.create_unique('thing_campaign_corp_wallets', ['campaign_id', 'corpwallet_id'])
-
-        # Adding M2M table for field characters on 'Campaign'
-        db.create_table('thing_campaign_characters', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('campaign', models.ForeignKey(orm['thing.campaign'], null=False)),
-            ('character', models.ForeignKey(orm['thing.character'], null=False))
-        ))
-        db.create_unique('thing_campaign_characters', ['campaign_id', 'character_id'])
-
-        # Adding model 'Transaction'
-        db.create_table('thing_transaction', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('station', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['thing.Station'])),
-            ('character', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['thing.Character'])),
-            ('item', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['thing.Item'])),
-            ('corp_wallet', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['thing.CorpWallet'], null=True, blank=True)),
-            ('transaction_id', self.gf('django.db.models.fields.BigIntegerField')()),
-            ('date', self.gf('django.db.models.fields.DateTimeField')(db_index=True)),
-            ('buy_transaction', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('quantity', self.gf('django.db.models.fields.IntegerField')()),
-            ('price', self.gf('django.db.models.fields.DecimalField')(max_digits=14, decimal_places=2)),
-            ('total_price', self.gf('django.db.models.fields.DecimalField')(max_digits=17, decimal_places=2)),
-        ))
-        db.send_create_signal('thing', ['Transaction'])
-
-        # Adding model 'MarketOrder'
-        db.create_table('thing_marketorder', (
-            ('order_id', self.gf('django.db.models.fields.BigIntegerField')(primary_key=True)),
-            ('station', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['thing.Station'])),
-            ('item', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['thing.Item'])),
-            ('character', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['thing.Character'])),
-            ('corp_wallet', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['thing.CorpWallet'], null=True, blank=True)),
-            ('escrow', self.gf('django.db.models.fields.DecimalField')(max_digits=14, decimal_places=2)),
-            ('price', self.gf('django.db.models.fields.DecimalField')(max_digits=14, decimal_places=2)),
-            ('total_price', self.gf('django.db.models.fields.DecimalField')(max_digits=17, decimal_places=2)),
-            ('buy_order', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('volume_entered', self.gf('django.db.models.fields.IntegerField')()),
-            ('volume_remaining', self.gf('django.db.models.fields.IntegerField')()),
-            ('minimum_volume', self.gf('django.db.models.fields.IntegerField')()),
-            ('issued', self.gf('django.db.models.fields.DateTimeField')(db_index=True)),
-            ('expires', self.gf('django.db.models.fields.DateTimeField')(db_index=True)),
-        ))
-        db.send_create_signal('thing', ['MarketOrder'])
-
-        # Adding model 'InventoryFlag'
-        db.create_table('thing_inventoryflag', (
-            ('id', self.gf('django.db.models.fields.IntegerField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=64)),
-            ('text', self.gf('django.db.models.fields.CharField')(max_length=128)),
-        ))
-        db.send_create_signal('thing', ['InventoryFlag'])
-
-        # Adding model 'Asset'
-        db.create_table('thing_asset', (
-            ('id', self.gf('django.db.models.fields.BigIntegerField')(primary_key=True)),
-            ('parent', self.gf('mptt.fields.TreeForeignKey')(blank=True, related_name='children', null=True, to=orm['thing.Asset'])),
-            ('character', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['thing.Character'], null=True, blank=True)),
-            ('corporation', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['thing.Corporation'], null=True, blank=True)),
-            ('system', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['thing.System'], null=True, blank=True)),
-            ('station', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['thing.Station'], null=True, blank=True)),
-            ('item', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['thing.Item'])),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=128, null=True, blank=True)),
-            ('inv_flag', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['thing.InventoryFlag'])),
-            ('quantity', self.gf('django.db.models.fields.IntegerField')()),
-            ('raw_quantity', self.gf('django.db.models.fields.IntegerField')()),
-            ('singleton', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('lft', self.gf('django.db.models.fields.PositiveIntegerField')(db_index=True)),
-            ('rght', self.gf('django.db.models.fields.PositiveIntegerField')(db_index=True)),
-            ('tree_id', self.gf('django.db.models.fields.PositiveIntegerField')(db_index=True)),
-            ('level', self.gf('django.db.models.fields.PositiveIntegerField')(db_index=True)),
-        ))
-        db.send_create_signal('thing', ['Asset'])
-
-        # Adding model 'Blueprint'
-        db.create_table('thing_blueprint', (
-            ('id', self.gf('django.db.models.fields.IntegerField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=128)),
-            ('item', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['thing.Item'])),
-            ('production_time', self.gf('django.db.models.fields.IntegerField')()),
-            ('productivity_modifier', self.gf('django.db.models.fields.IntegerField')()),
-            ('material_modifier', self.gf('django.db.models.fields.IntegerField')()),
-            ('waste_factor', self.gf('django.db.models.fields.IntegerField')()),
-        ))
-        db.send_create_signal('thing', ['Blueprint'])
-
-        # Adding model 'BlueprintComponent'
-        db.create_table('thing_blueprintcomponent', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('blueprint', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['thing.Blueprint'])),
-            ('item', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['thing.Item'])),
-            ('count', self.gf('django.db.models.fields.IntegerField')()),
-            ('needs_waste', self.gf('django.db.models.fields.BooleanField')(default=True)),
-        ))
-        db.send_create_signal('thing', ['BlueprintComponent'])
-
-        # Adding model 'BlueprintInstance'
-        db.create_table('thing_blueprintinstance', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'])),
-            ('blueprint', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['thing.Blueprint'])),
-            ('original', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('material_level', self.gf('django.db.models.fields.IntegerField')(default=0)),
-            ('productivity_level', self.gf('django.db.models.fields.IntegerField')(default=0)),
-        ))
-        db.send_create_signal('thing', ['BlueprintInstance'])
-
-
-    def backwards(self, orm):
-        # Removing unique constraint on 'PriceHistory', fields ['region', 'item', 'date']
-        db.delete_unique('thing_pricehistory', ['region_id', 'item_id', 'date'])
-
-        # Deleting model 'UserProfile'
-        db.delete_table('thing_userprofile')
-
-        # Deleting model 'APIKey'
-        db.delete_table('thing_apikey')
-
-        # Deleting model 'APICache'
-        db.delete_table('thing_apicache')
-
-        # Deleting model 'Event'
-        db.delete_table('thing_event')
-
-        # Deleting model 'Corporation'
-        db.delete_table('thing_corporation')
-
-        # Deleting model 'CorpWallet'
-        db.delete_table('thing_corpwallet')
-
-        # Deleting model 'Character'
-        db.delete_table('thing_character')
-
-        # Deleting model 'CharacterConfig'
-        db.delete_table('thing_characterconfig')
-
-        # Deleting model 'CharacterSkill'
-        db.delete_table('thing_characterskill')
-
-        # Deleting model 'SkillQueue'
-        db.delete_table('thing_skillqueue')
-
-        # Deleting model 'Region'
-        db.delete_table('thing_region')
-
-        # Deleting model 'Constellation'
-        db.delete_table('thing_constellation')
-
-        # Deleting model 'System'
-        db.delete_table('thing_system')
-
-        # Deleting model 'Station'
-        db.delete_table('thing_station')
-
-        # Deleting model 'MarketGroup'
-        db.delete_table('thing_marketgroup')
-
-        # Deleting model 'ItemCategory'
-        db.delete_table('thing_itemcategory')
-
-        # Deleting model 'ItemGroup'
-        db.delete_table('thing_itemgroup')
-
-        # Deleting model 'Item'
-        db.delete_table('thing_item')
-
-        # Deleting model 'Skill'
-        db.delete_table('thing_skill')
-
-        # Deleting model 'PriceHistory'
-        db.delete_table('thing_pricehistory')
-
-        # Deleting model 'Campaign'
-        db.delete_table('thing_campaign')
-
-        # Removing M2M table for field corp_wallets on 'Campaign'
-        db.delete_table('thing_campaign_corp_wallets')
-
-        # Removing M2M table for field characters on 'Campaign'
-        db.delete_table('thing_campaign_characters')
-
-        # Deleting model 'Transaction'
-        db.delete_table('thing_transaction')
-
-        # Deleting model 'MarketOrder'
-        db.delete_table('thing_marketorder')
-
-        # Deleting model 'InventoryFlag'
-        db.delete_table('thing_inventoryflag')
-
-        # Deleting model 'Asset'
-        db.delete_table('thing_asset')
-
-        # Deleting model 'Blueprint'
-        db.delete_table('thing_blueprint')
-
-        # Deleting model 'BlueprintComponent'
-        db.delete_table('thing_blueprintcomponent')
-
-        # Deleting model 'BlueprintInstance'
-        db.delete_table('thing_blueprintinstance')
-
-
-    models = {
-        'auth.group': {
-            'Meta': {'object_name': 'Group'},
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '80'}),
-            'permissions': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['auth.Permission']", 'symmetrical': 'False', 'blank': 'True'})
-        },
-        'auth.permission': {
-            'Meta': {'ordering': "('content_type__app_label', 'content_type__model', 'codename')", 'unique_together': "(('content_type', 'codename'),)", 'object_name': 'Permission'},
-            'codename': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
-            'content_type': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['contenttypes.ContentType']"}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '50'})
-        },
-        'auth.user': {
-            'Meta': {'object_name': 'User'},
-            'date_joined': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
-            'email': ('django.db.models.fields.EmailField', [], {'max_length': '75', 'blank': 'True'}),
-            'first_name': ('django.db.models.fields.CharField', [], {'max_length': '30', 'blank': 'True'}),
-            'groups': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['auth.Group']", 'symmetrical': 'False', 'blank': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'is_active': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
-            'is_staff': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'is_superuser': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'last_login': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
-            'last_name': ('django.db.models.fields.CharField', [], {'max_length': '30', 'blank': 'True'}),
-            'password': ('django.db.models.fields.CharField', [], {'max_length': '128'}),
-            'user_permissions': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['auth.Permission']", 'symmetrical': 'False', 'blank': 'True'}),
-            'username': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '30'})
-        },
-        'contenttypes.contenttype': {
-            'Meta': {'ordering': "('name',)", 'unique_together': "(('app_label', 'model'),)", 'object_name': 'ContentType', 'db_table': "'django_content_type'"},
-            'app_label': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'model': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '100'})
-        },
-        'thing.apicache': {
-            'Meta': {'object_name': 'APICache'},
-            'cached_until': ('django.db.models.fields.DateTimeField', [], {}),
-            'completed_ok': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'parameters': ('django.db.models.fields.TextField', [], {}),
-            'text': ('django.db.models.fields.TextField', [], {}),
-            'url': ('django.db.models.fields.URLField', [], {'max_length': '200'})
-        },
-        'thing.apikey': {
-            'Meta': {'ordering': "('id',)", 'object_name': 'APIKey'},
-            'access_mask': ('django.db.models.fields.BigIntegerField', [], {'null': 'True', 'blank': 'True'}),
-            'corp_character': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'corporate_apikey'", 'null': 'True', 'to': "orm['thing.Character']"}),
-            'expires': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
-            'id': ('django.db.models.fields.IntegerField', [], {'primary_key': 'True'}),
-            'key_type': ('django.db.models.fields.CharField', [], {'max_length': '16', 'null': 'True', 'blank': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '64'}),
-            'paid_until': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
-            'user': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['auth.User']"}),
-            'valid': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
-            'vcode': ('django.db.models.fields.CharField', [], {'max_length': '64'})
-        },
-        'thing.asset': {
-            'Meta': {'object_name': 'Asset'},
-            'character': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['thing.Character']", 'null': 'True', 'blank': 'True'}),
-            'corporation': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['thing.Corporation']", 'null': 'True', 'blank': 'True'}),
-            'id': ('django.db.models.fields.BigIntegerField', [], {'primary_key': 'True'}),
-            'inv_flag': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['thing.InventoryFlag']"}),
-            'item': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['thing.Item']"}),
-            'level': ('django.db.models.fields.PositiveIntegerField', [], {'db_index': 'True'}),
-            'lft': ('django.db.models.fields.PositiveIntegerField', [], {'db_index': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '128', 'null': 'True', 'blank': 'True'}),
-            'parent': ('mptt.fields.TreeForeignKey', [], {'blank': 'True', 'related_name': "'children'", 'null': 'True', 'to': "orm['thing.Asset']"}),
-            'quantity': ('django.db.models.fields.IntegerField', [], {}),
-            'raw_quantity': ('django.db.models.fields.IntegerField', [], {}),
-            'rght': ('django.db.models.fields.PositiveIntegerField', [], {'db_index': 'True'}),
-            'singleton': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'station': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['thing.Station']", 'null': 'True', 'blank': 'True'}),
-            'system': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['thing.System']", 'null': 'True', 'blank': 'True'}),
-            'tree_id': ('django.db.models.fields.PositiveIntegerField', [], {'db_index': 'True'})
-        },
-        'thing.blueprint': {
-            'Meta': {'ordering': "('name',)", 'object_name': 'Blueprint'},
-            'components': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "'component_of'", 'symmetrical': 'False', 'through': "orm['thing.BlueprintComponent']", 'to': "orm['thing.Item']"}),
-            'id': ('django.db.models.fields.IntegerField', [], {'primary_key': 'True'}),
-            'item': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['thing.Item']"}),
-            'material_modifier': ('django.db.models.fields.IntegerField', [], {}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '128'}),
-            'production_time': ('django.db.models.fields.IntegerField', [], {}),
-            'productivity_modifier': ('django.db.models.fields.IntegerField', [], {}),
-            'waste_factor': ('django.db.models.fields.IntegerField', [], {})
-        },
-        'thing.blueprintcomponent': {
-            'Meta': {'object_name': 'BlueprintComponent'},
-            'blueprint': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['thing.Blueprint']"}),
-            'count': ('django.db.models.fields.IntegerField', [], {}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'item': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['thing.Item']"}),
-            'needs_waste': ('django.db.models.fields.BooleanField', [], {'default': 'True'})
-        },
-        'thing.blueprintinstance': {
-            'Meta': {'ordering': "('blueprint',)", 'object_name': 'BlueprintInstance'},
-            'blueprint': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['thing.Blueprint']"}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'material_level': ('django.db.models.fields.IntegerField', [], {'default': '0'}),
-            'original': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'productivity_level': ('django.db.models.fields.IntegerField', [], {'default': '0'}),
-            'user': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['auth.User']"})
-        },
-        'thing.campaign': {
-            'Meta': {'ordering': "('title',)", 'object_name': 'Campaign'},
-            'characters': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'to': "orm['thing.Character']", 'null': 'True', 'blank': 'True'}),
-            'corp_wallets': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'to': "orm['thing.CorpWallet']", 'null': 'True', 'blank': 'True'}),
-            'end_date': ('django.db.models.fields.DateTimeField', [], {}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'slug': ('django.db.models.fields.SlugField', [], {'max_length': '32'}),
-            'start_date': ('django.db.models.fields.DateTimeField', [], {}),
-            'title': ('django.db.models.fields.CharField', [], {'max_length': '32'}),
-            'user': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['auth.User']"})
-        },
-        'thing.character': {
-            'Meta': {'ordering': "('name',)", 'object_name': 'Character'},
-            'apikey': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['thing.APIKey']", 'null': 'True', 'blank': 'True'}),
-            'brokers_fee': ('django.db.models.fields.DecimalField', [], {'default': '1.0', 'max_digits': '3', 'decimal_places': '2'}),
-            'cha_attribute': ('django.db.models.fields.SmallIntegerField', [], {'default': '0'}),
-            'cha_bonus': ('django.db.models.fields.SmallIntegerField', [], {'default': '0'}),
-            'clone_name': ('django.db.models.fields.CharField', [], {'default': "''", 'max_length': '32'}),
-            'clone_skill_points': ('django.db.models.fields.IntegerField', [], {'default': '0'}),
-            'corporation': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['thing.Corporation']"}),
-            'factory_cost': ('django.db.models.fields.DecimalField', [], {'default': '0.0', 'max_digits': '8', 'decimal_places': '2'}),
-            'factory_per_hour': ('django.db.models.fields.DecimalField', [], {'default': '0.0', 'max_digits': '8', 'decimal_places': '2'}),
-            'id': ('django.db.models.fields.IntegerField', [], {'primary_key': 'True'}),
-            'int_attribute': ('django.db.models.fields.SmallIntegerField', [], {'default': '0'}),
-            'int_bonus': ('django.db.models.fields.SmallIntegerField', [], {'default': '0'}),
-            'mem_attribute': ('django.db.models.fields.SmallIntegerField', [], {'default': '0'}),
-            'mem_bonus': ('django.db.models.fields.SmallIntegerField', [], {'default': '0'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '64'}),
-            'per_attribute': ('django.db.models.fields.SmallIntegerField', [], {'default': '0'}),
-            'per_bonus': ('django.db.models.fields.SmallIntegerField', [], {'default': '0'}),
-            'sales_tax': ('django.db.models.fields.DecimalField', [], {'default': '1.5', 'max_digits': '3', 'decimal_places': '2'}),
-            'skill_queue': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "'training_by'", 'symmetrical': 'False', 'through': "orm['thing.SkillQueue']", 'to': "orm['thing.Skill']"}),
-            'skills': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "'learned_by'", 'symmetrical': 'False', 'through': "orm['thing.CharacterSkill']", 'to': "orm['thing.Skill']"}),
-            'wallet_balance': ('django.db.models.fields.DecimalField', [], {'default': '0.0', 'max_digits': '18', 'decimal_places': '2'}),
-            'wil_attribute': ('django.db.models.fields.SmallIntegerField', [], {'default': '0'}),
-            'wil_bonus': ('django.db.models.fields.SmallIntegerField', [], {'default': '0'})
-        },
-        'thing.characterconfig': {
-            'Meta': {'object_name': 'CharacterConfig'},
-            'anon_key': ('django.db.models.fields.CharField', [], {'max_length': '16', 'null': 'True', 'blank': 'True'}),
-            'character': ('django.db.models.fields.related.OneToOneField', [], {'related_name': "'config'", 'unique': 'True', 'primary_key': 'True', 'to': "orm['thing.Character']"}),
-            'is_public': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'show_clone': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'show_implants': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'show_skill_queue': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'show_wallet': ('django.db.models.fields.BooleanField', [], {'default': 'False'})
-        },
-        'thing.characterskill': {
-            'Meta': {'object_name': 'CharacterSkill'},
-            'character': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['thing.Character']"}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'level': ('django.db.models.fields.SmallIntegerField', [], {}),
-            'points': ('django.db.models.fields.IntegerField', [], {}),
-            'skill': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['thing.Skill']"})
-        },
-        'thing.constellation': {
-            'Meta': {'ordering': "('name',)", 'object_name': 'Constellation'},
-            'id': ('django.db.models.fields.IntegerField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '64'}),
-            'region': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['thing.Region']"})
-        },
-        'thing.corporation': {
-            'Meta': {'ordering': "('name',)", 'object_name': 'Corporation'},
-            'division1': ('django.db.models.fields.CharField', [], {'max_length': '64', 'null': 'True', 'blank': 'True'}),
-            'division2': ('django.db.models.fields.CharField', [], {'max_length': '64', 'null': 'True', 'blank': 'True'}),
-            'division3': ('django.db.models.fields.CharField', [], {'max_length': '64', 'null': 'True', 'blank': 'True'}),
-            'division4': ('django.db.models.fields.CharField', [], {'max_length': '64', 'null': 'True', 'blank': 'True'}),
-            'division5': ('django.db.models.fields.CharField', [], {'max_length': '64', 'null': 'True', 'blank': 'True'}),
-            'division6': ('django.db.models.fields.CharField', [], {'max_length': '64', 'null': 'True', 'blank': 'True'}),
-            'division7': ('django.db.models.fields.CharField', [], {'max_length': '64', 'null': 'True', 'blank': 'True'}),
-            'id': ('django.db.models.fields.IntegerField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '64'}),
-            'ticker': ('django.db.models.fields.CharField', [], {'max_length': '5', 'null': 'True', 'blank': 'True'})
-        },
-        'thing.corpwallet': {
-            'Meta': {'ordering': "('corporation', 'account_id')", 'object_name': 'CorpWallet'},
-            'account_id': ('django.db.models.fields.IntegerField', [], {'primary_key': 'True'}),
-            'account_key': ('django.db.models.fields.IntegerField', [], {}),
-            'balance': ('django.db.models.fields.DecimalField', [], {'max_digits': '18', 'decimal_places': '2'}),
-            'corporation': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['thing.Corporation']"}),
-            'description': ('django.db.models.fields.CharField', [], {'max_length': '64'})
-        },
-        'thing.event': {
-            'Meta': {'ordering': "('-issued', '-id')", 'object_name': 'Event'},
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'issued': ('django.db.models.fields.DateTimeField', [], {}),
-            'text': ('django.db.models.fields.TextField', [], {}),
-            'user': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['auth.User']"})
-        },
-        'thing.inventoryflag': {
-            'Meta': {'object_name': 'InventoryFlag'},
-            'id': ('django.db.models.fields.IntegerField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '64'}),
-            'text': ('django.db.models.fields.CharField', [], {'max_length': '128'})
-        },
-        'thing.item': {
-            'Meta': {'object_name': 'Item'},
-            'buy_price': ('django.db.models.fields.DecimalField', [], {'default': '0', 'max_digits': '15', 'decimal_places': '2'}),
-            'id': ('django.db.models.fields.IntegerField', [], {'primary_key': 'True'}),
-            'item_group': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['thing.ItemGroup']"}),
-            'market_group': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['thing.MarketGroup']", 'null': 'True', 'blank': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '128'}),
-            'portion_size': ('django.db.models.fields.IntegerField', [], {}),
-            'sell_price': ('django.db.models.fields.DecimalField', [], {'default': '0', 'max_digits': '15', 'decimal_places': '2'}),
-            'volume': ('django.db.models.fields.DecimalField', [], {'default': '0', 'max_digits': '16', 'decimal_places': '4'})
-        },
-        'thing.itemcategory': {
-            'Meta': {'object_name': 'ItemCategory'},
-            'id': ('django.db.models.fields.IntegerField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '64'})
-        },
-        'thing.itemgroup': {
-            'Meta': {'object_name': 'ItemGroup'},
-            'category': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['thing.ItemCategory']"}),
-            'id': ('django.db.models.fields.IntegerField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '64'})
-        },
-        'thing.marketgroup': {
-            'Meta': {'object_name': 'MarketGroup'},
-            'id': ('django.db.models.fields.IntegerField', [], {'primary_key': 'True'}),
-            'level': ('django.db.models.fields.PositiveIntegerField', [], {'db_index': 'True'}),
-            'lft': ('django.db.models.fields.PositiveIntegerField', [], {'db_index': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
-            'parent': ('mptt.fields.TreeForeignKey', [], {'blank': 'True', 'related_name': "'children'", 'null': 'True', 'to': "orm['thing.MarketGroup']"}),
-            'rght': ('django.db.models.fields.PositiveIntegerField', [], {'db_index': 'True'}),
-            'tree_id': ('django.db.models.fields.PositiveIntegerField', [], {'db_index': 'True'})
-        },
-        'thing.marketorder': {
-            'Meta': {'ordering': "('buy_order', 'item__name')", 'object_name': 'MarketOrder'},
-            'buy_order': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'character': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['thing.Character']"}),
-            'corp_wallet': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['thing.CorpWallet']", 'null': 'True', 'blank': 'True'}),
-            'escrow': ('django.db.models.fields.DecimalField', [], {'max_digits': '14', 'decimal_places': '2'}),
-            'expires': ('django.db.models.fields.DateTimeField', [], {'db_index': 'True'}),
-            'issued': ('django.db.models.fields.DateTimeField', [], {'db_index': 'True'}),
-            'item': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['thing.Item']"}),
-            'minimum_volume': ('django.db.models.fields.IntegerField', [], {}),
-            'order_id': ('django.db.models.fields.BigIntegerField', [], {'primary_key': 'True'}),
-            'price': ('django.db.models.fields.DecimalField', [], {'max_digits': '14', 'decimal_places': '2'}),
-            'station': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['thing.Station']"}),
-            'total_price': ('django.db.models.fields.DecimalField', [], {'max_digits': '17', 'decimal_places': '2'}),
-            'volume_entered': ('django.db.models.fields.IntegerField', [], {}),
-            'volume_remaining': ('django.db.models.fields.IntegerField', [], {})
-        },
-        'thing.pricehistory': {
-            'Meta': {'ordering': "('-date',)", 'unique_together': "(('region', 'item', 'date'),)", 'object_name': 'PriceHistory'},
-            'average': ('django.db.models.fields.DecimalField', [], {'max_digits': '18', 'decimal_places': '2'}),
-            'date': ('django.db.models.fields.DateField', [], {}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'item': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['thing.Item']"}),
-            'maximum': ('django.db.models.fields.DecimalField', [], {'max_digits': '18', 'decimal_places': '2'}),
-            'minimum': ('django.db.models.fields.DecimalField', [], {'max_digits': '18', 'decimal_places': '2'}),
-            'movement': ('django.db.models.fields.BigIntegerField', [], {}),
-            'orders': ('django.db.models.fields.IntegerField', [], {}),
-            'region': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['thing.Region']"})
-        },
-        'thing.region': {
-            'Meta': {'ordering': "('name',)", 'object_name': 'Region'},
-            'id': ('django.db.models.fields.IntegerField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '64'})
-        },
-        'thing.skill': {
-            'Meta': {'object_name': 'Skill'},
-            'item': ('django.db.models.fields.related.OneToOneField', [], {'to': "orm['thing.Item']", 'unique': 'True', 'primary_key': 'True'}),
-            'primary_attribute': ('django.db.models.fields.SmallIntegerField', [], {}),
-            'rank': ('django.db.models.fields.SmallIntegerField', [], {}),
-            'secondary_attribute': ('django.db.models.fields.SmallIntegerField', [], {})
-        },
-        'thing.skillqueue': {
-            'Meta': {'ordering': "('start_time',)", 'object_name': 'SkillQueue'},
-            'character': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['thing.Character']"}),
-            'end_sp': ('django.db.models.fields.IntegerField', [], {}),
-            'end_time': ('django.db.models.fields.DateTimeField', [], {}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'skill': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['thing.Skill']"}),
-            'start_sp': ('django.db.models.fields.IntegerField', [], {}),
-            'start_time': ('django.db.models.fields.DateTimeField', [], {}),
-            'to_level': ('django.db.models.fields.SmallIntegerField', [], {})
-        },
-        'thing.station': {
-            'Meta': {'object_name': 'Station'},
-            'id': ('django.db.models.fields.IntegerField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '128'}),
-            'short_name': ('django.db.models.fields.CharField', [], {'max_length': '64', 'null': 'True', 'blank': 'True'}),
-            'system': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['thing.System']"})
-        },
-        'thing.system': {
-            'Meta': {'ordering': "('name',)", 'object_name': 'System'},
-            'constellation': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['thing.Constellation']"}),
-            'id': ('django.db.models.fields.IntegerField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '32'})
-        },
-        'thing.transaction': {
-            'Meta': {'object_name': 'Transaction'},
-            'buy_transaction': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'character': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['thing.Character']"}),
-            'corp_wallet': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['thing.CorpWallet']", 'null': 'True', 'blank': 'True'}),
-            'date': ('django.db.models.fields.DateTimeField', [], {'db_index': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'item': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['thing.Item']"}),
-            'price': ('django.db.models.fields.DecimalField', [], {'max_digits': '14', 'decimal_places': '2'}),
-            'quantity': ('django.db.models.fields.IntegerField', [], {}),
-            'station': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['thing.Station']"}),
-            'total_price': ('django.db.models.fields.DecimalField', [], {'max_digits': '17', 'decimal_places': '2'}),
-            'transaction_id': ('django.db.models.fields.BigIntegerField', [], {})
-        },
-        'thing.userprofile': {
-            'Meta': {'object_name': 'UserProfile'},
-            'home_chars_per_row': ('django.db.models.fields.IntegerField', [], {'default': '4'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'theme': ('django.db.models.fields.CharField', [], {'default': "'theme-default'", 'max_length': '32'}),
-            'user': ('django.db.models.fields.related.OneToOneField', [], {'to': "orm['auth.User']", 'unique': 'True'})
-        }
-    }
-
-    complete_apps = ['thing']
+from django.conf import settings
+
+
+class Migration(migrations.Migration):
+
+    dependencies = [
+        migrations.swappable_dependency(settings.AUTH_USER_MODEL),
+    ]
+
+    operations = [
+        migrations.CreateModel(
+            name='Alliance',
+            fields=[
+                ('id', models.IntegerField(serialize=False, primary_key=True)),
+                ('name', models.CharField(max_length=64)),
+                ('short_name', models.CharField(max_length=5)),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='APIKey',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('keyid', models.IntegerField(verbose_name=b'Key ID', db_index=True)),
+                ('vcode', models.CharField(max_length=64, verbose_name=b'Verification code')),
+                ('access_mask', models.BigIntegerField(default=0)),
+                ('override_mask', models.BigIntegerField(default=0)),
+                ('key_type', models.CharField(default=b'', max_length=16)),
+                ('expires', models.DateTimeField(null=True, blank=True)),
+                ('paid_until', models.DateTimeField(null=True, blank=True)),
+                ('name', models.CharField(default=b'', max_length=64)),
+                ('group_name', models.CharField(default=b'', max_length=32)),
+                ('created_at', models.DateTimeField(auto_now=True)),
+                ('valid', models.BooleanField(default=True)),
+                ('needs_apikeyinfo', models.BooleanField(default=False)),
+                ('apikeyinfo_errors', models.IntegerField(default=0)),
+            ],
+            options={
+                'ordering': ('keyid',),
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='APIKeyFailure',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('keyid', models.IntegerField()),
+                ('fail_time', models.DateTimeField(db_index=True)),
+                ('fail_reason', models.CharField(max_length=255)),
+                ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL)),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Asset',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('asset_id', models.BigIntegerField(db_index=True)),
+                ('parent', models.BigIntegerField(default=0)),
+                ('corporation_id', models.IntegerField(default=0, db_index=True)),
+                ('name', models.CharField(default=b'', max_length=128)),
+                ('quantity', models.IntegerField()),
+                ('raw_quantity', models.IntegerField()),
+                ('singleton', models.BooleanField(default=False)),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='AssetSummary',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('corporation_id', models.IntegerField(default=0)),
+                ('total_items', models.BigIntegerField()),
+                ('total_volume', models.DecimalField(max_digits=12, decimal_places=2)),
+                ('total_value', models.DecimalField(max_digits=18, decimal_places=2)),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Blueprint',
+            fields=[
+                ('id', models.IntegerField(serialize=False, primary_key=True)),
+                ('name', models.CharField(max_length=128)),
+                ('productionLimit', models.IntegerField()),
+            ],
+            options={
+                'ordering': ('name',),
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='BlueprintComponent',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('activity', models.IntegerField(choices=[(0, b'None'), (1, b'Manufacturing'), (2, b'Researching Technology'), (3, b'TE Research'), (4, b'ME Research'), (5, b'Copying'), (6, b'Duplicating'), (7, b'Reverse Engineering'), (8, b'Invention')])),
+                ('count', models.IntegerField()),
+                ('consumed', models.BooleanField(default=False)),
+                ('blueprint', models.ForeignKey(to='thing.Blueprint')),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='BlueprintInstance',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('original', models.BooleanField(default=False)),
+                ('material_level', models.IntegerField(default=0)),
+                ('productivity_level', models.IntegerField(default=0)),
+                ('blueprint', models.ForeignKey(to='thing.Blueprint')),
+                ('user', models.ForeignKey(blank=True, to=settings.AUTH_USER_MODEL, null=True)),
+            ],
+            options={
+                'ordering': ('blueprint',),
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='BlueprintProduct',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('activity', models.IntegerField(choices=[(0, b'None'), (1, b'Manufacturing'), (2, b'Researching Technology'), (3, b'TE Research'), (4, b'ME Research'), (5, b'Copying'), (6, b'Duplicating'), (7, b'Reverse Engineering'), (8, b'Invention')])),
+                ('count', models.IntegerField()),
+                ('blueprint', models.ForeignKey(to='thing.Blueprint')),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Campaign',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('title', models.CharField(max_length=32)),
+                ('slug', models.SlugField(max_length=32)),
+                ('start_date', models.DateTimeField()),
+                ('end_date', models.DateTimeField()),
+            ],
+            options={
+                'ordering': ('title',),
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Character',
+            fields=[
+                ('id', models.IntegerField(serialize=False, primary_key=True)),
+                ('name', models.CharField(max_length=64)),
+            ],
+            options={
+                'ordering': ('name',),
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='CharacterConfig',
+            fields=[
+                ('character', models.OneToOneField(related_name='config', primary_key=True, serialize=False, to='thing.Character')),
+                ('is_public', models.BooleanField(default=False)),
+                ('show_implants', models.BooleanField(default=False)),
+                ('show_skill_queue', models.BooleanField(default=False)),
+                ('show_standings', models.BooleanField(default=False)),
+                ('show_wallet', models.BooleanField(default=False)),
+                ('anon_key', models.CharField(default=b'', max_length=16)),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='CharacterDetails',
+            fields=[
+                ('character', models.OneToOneField(related_name='details', primary_key=True, serialize=False, to='thing.Character')),
+                ('wallet_balance', models.DecimalField(default=0, max_digits=18, decimal_places=2)),
+                ('cha_attribute', models.SmallIntegerField(default=20)),
+                ('int_attribute', models.SmallIntegerField(default=20)),
+                ('mem_attribute', models.SmallIntegerField(default=20)),
+                ('per_attribute', models.SmallIntegerField(default=20)),
+                ('wil_attribute', models.SmallIntegerField(default=19)),
+                ('security_status', models.DecimalField(default=0, max_digits=6, decimal_places=4)),
+                ('last_known_location', models.CharField(default=b'', max_length=255)),
+                ('ship_name', models.CharField(default=b'', max_length=128)),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='CharacterSkill',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('level', models.SmallIntegerField()),
+                ('points', models.IntegerField()),
+                ('character', models.ForeignKey(to='thing.Character')),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Colony',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('planet_id', models.IntegerField()),
+                ('planet', models.CharField(max_length=128)),
+                ('planet_type', models.CharField(max_length=32)),
+                ('last_update', models.DateTimeField()),
+                ('level', models.IntegerField()),
+                ('pins', models.IntegerField()),
+                ('character', models.ForeignKey(to='thing.Character')),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Constellation',
+            fields=[
+                ('id', models.IntegerField(serialize=False, primary_key=True)),
+                ('name', models.CharField(max_length=64)),
+            ],
+            options={
+                'ordering': ('name',),
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Contract',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('contract_id', models.IntegerField(db_index=True)),
+                ('assignee_id', models.IntegerField(default=0)),
+                ('acceptor_id', models.IntegerField(default=0)),
+                ('type', models.CharField(max_length=16)),
+                ('status', models.CharField(max_length=24)),
+                ('title', models.CharField(max_length=64)),
+                ('for_corp', models.BooleanField(default=False)),
+                ('public', models.BooleanField(default=False)),
+                ('date_issued', models.DateTimeField()),
+                ('date_expired', models.DateTimeField()),
+                ('date_accepted', models.DateTimeField(null=True, blank=True)),
+                ('date_completed', models.DateTimeField(null=True, blank=True)),
+                ('num_days', models.IntegerField()),
+                ('price', models.DecimalField(max_digits=15, decimal_places=2)),
+                ('reward', models.DecimalField(max_digits=15, decimal_places=2)),
+                ('collateral', models.DecimalField(max_digits=15, decimal_places=2)),
+                ('buyout', models.DecimalField(max_digits=15, decimal_places=2)),
+                ('volume', models.DecimalField(max_digits=16, decimal_places=4)),
+                ('retrieved_items', models.BooleanField(default=False)),
+                ('character', models.ForeignKey(to='thing.Character')),
+            ],
+            options={
+                'ordering': ('-date_issued',),
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='ContractItem',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('contract_id', models.IntegerField(db_index=True)),
+                ('quantity', models.IntegerField()),
+                ('raw_quantity', models.IntegerField()),
+                ('singleton', models.BooleanField(default=False)),
+                ('included', models.BooleanField(default=False)),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Corporation',
+            fields=[
+                ('id', models.IntegerField(serialize=False, primary_key=True)),
+                ('name', models.CharField(max_length=64)),
+                ('ticker', models.CharField(default=b'', max_length=5)),
+                ('division1', models.CharField(default=b'', max_length=64)),
+                ('division2', models.CharField(default=b'', max_length=64)),
+                ('division3', models.CharField(default=b'', max_length=64)),
+                ('division4', models.CharField(default=b'', max_length=64)),
+                ('division5', models.CharField(default=b'', max_length=64)),
+                ('division6', models.CharField(default=b'', max_length=64)),
+                ('division7', models.CharField(default=b'', max_length=64)),
+                ('alliance', models.ForeignKey(blank=True, to='thing.Alliance', null=True)),
+            ],
+            options={
+                'ordering': ('name',),
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='CorporationStanding',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('standing', models.DecimalField(max_digits=4, decimal_places=2)),
+                ('character', models.ForeignKey(to='thing.Character')),
+                ('corporation', models.ForeignKey(to='thing.Corporation')),
+            ],
+            options={
+                'ordering': ('-standing',),
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='CorpWallet',
+            fields=[
+                ('account_id', models.IntegerField(serialize=False, primary_key=True)),
+                ('account_key', models.IntegerField()),
+                ('description', models.CharField(max_length=64)),
+                ('balance', models.DecimalField(max_digits=18, decimal_places=2)),
+                ('corporation', models.ForeignKey(to='thing.Corporation')),
+            ],
+            options={
+                'ordering': ('corporation', 'account_id'),
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Event',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('issued', models.DateTimeField()),
+                ('text', models.TextField()),
+                ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL)),
+            ],
+            options={
+                'ordering': ('-issued', '-id'),
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Faction',
+            fields=[
+                ('id', models.IntegerField(serialize=False, primary_key=True)),
+                ('name', models.CharField(max_length=64)),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='FactionStanding',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('standing', models.DecimalField(max_digits=4, decimal_places=2)),
+                ('character', models.ForeignKey(to='thing.Character')),
+                ('faction', models.ForeignKey(to='thing.Faction')),
+            ],
+            options={
+                'ordering': ('-standing',),
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='IndustryJob',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('job_id', models.IntegerField()),
+                ('installer_id', models.IntegerField()),
+                ('activity', models.IntegerField(choices=[(0, b'None'), (1, b'Manufacturing'), (2, b'Researching Technology'), (3, b'TE Research'), (4, b'ME Research'), (5, b'Copying'), (6, b'Duplicating'), (7, b'Reverse Engineering'), (8, b'Invention')])),
+                ('output_location_id', models.BigIntegerField()),
+                ('runs', models.IntegerField()),
+                ('team_id', models.BigIntegerField()),
+                ('licensed_runs', models.IntegerField()),
+                ('status', models.IntegerField(choices=[(1, b'Active'), (2, b'Paused (Facility Offline)'), (102, b'Cancelled'), (104, b'Delivered'), (105, b'Failed'), (999, b'Unknown')])),
+                ('duration', models.IntegerField()),
+                ('start_date', models.DateTimeField()),
+                ('end_date', models.DateTimeField()),
+                ('pause_date', models.DateTimeField()),
+                ('completed_date', models.DateTimeField()),
+                ('blueprint', models.ForeignKey(related_name='job_installed_blueprints', to='thing.Blueprint')),
+                ('character', models.ForeignKey(to='thing.Character')),
+                ('corporation', models.ForeignKey(blank=True, to='thing.Corporation', null=True)),
+            ],
+            options={
+                'ordering': ('-end_date',),
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='InventoryFlag',
+            fields=[
+                ('id', models.IntegerField(serialize=False, primary_key=True)),
+                ('name', models.CharField(max_length=64)),
+                ('text', models.CharField(max_length=128)),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Item',
+            fields=[
+                ('id', models.IntegerField(serialize=False, primary_key=True)),
+                ('name', models.CharField(max_length=128)),
+                ('portion_size', models.IntegerField()),
+                ('volume', models.DecimalField(default=0, max_digits=16, decimal_places=4)),
+                ('base_price', models.DecimalField(default=0, max_digits=15, decimal_places=2)),
+                ('sell_price', models.DecimalField(default=0, max_digits=15, decimal_places=2)),
+                ('buy_price', models.DecimalField(default=0, max_digits=15, decimal_places=2)),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Implant',
+            fields=[
+                ('item', models.OneToOneField(primary_key=True, serialize=False, to='thing.Item')),
+                ('description', models.TextField()),
+                ('charisma_modifier', models.SmallIntegerField()),
+                ('intelligence_modifier', models.SmallIntegerField()),
+                ('memory_modifier', models.SmallIntegerField()),
+                ('perception_modifier', models.SmallIntegerField()),
+                ('willpower_modifier', models.SmallIntegerField()),
+                ('implant_slot', models.SmallIntegerField()),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='ItemCategory',
+            fields=[
+                ('id', models.IntegerField(serialize=False, primary_key=True)),
+                ('name', models.CharField(max_length=64)),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='ItemGroup',
+            fields=[
+                ('id', models.IntegerField(serialize=False, primary_key=True)),
+                ('name', models.CharField(max_length=64)),
+                ('category', models.ForeignKey(to='thing.ItemCategory')),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='JournalEntry',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('date', models.DateTimeField(db_index=True)),
+                ('ref_id', models.BigIntegerField(db_index=True)),
+                ('owner1_id', models.IntegerField()),
+                ('owner2_id', models.IntegerField()),
+                ('arg_name', models.CharField(max_length=128)),
+                ('arg_id', models.BigIntegerField()),
+                ('amount', models.DecimalField(max_digits=14, decimal_places=2)),
+                ('balance', models.DecimalField(max_digits=17, decimal_places=2)),
+                ('reason', models.CharField(max_length=255)),
+                ('tax_amount', models.DecimalField(max_digits=14, decimal_places=2)),
+                ('character', models.ForeignKey(to='thing.Character')),
+                ('corp_wallet', models.ForeignKey(blank=True, to='thing.CorpWallet', null=True)),
+            ],
+            options={
+                'ordering': ('-date',),
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='MailingList',
+            fields=[
+                ('id', models.IntegerField(serialize=False, primary_key=True)),
+                ('name', models.CharField(max_length=255)),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='MailMessage',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('message_id', models.BigIntegerField()),
+                ('sender_id', models.IntegerField()),
+                ('sent_date', models.DateTimeField()),
+                ('title', models.CharField(max_length=255)),
+                ('to_corp_or_alliance_id', models.IntegerField()),
+                ('to_list_id', models.IntegerField()),
+                ('body', models.TextField(null=True, blank=True)),
+                ('read', models.BooleanField(default=False)),
+                ('character', models.ForeignKey(to='thing.Character')),
+                ('to_characters', models.ManyToManyField(related_name='+', to='thing.Character')),
+            ],
+            options={
+                'ordering': ('-sent_date',),
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='MarketGroup',
+            fields=[
+                ('id', models.IntegerField(serialize=False, primary_key=True)),
+                ('name', models.CharField(max_length=100)),
+                ('lft', models.PositiveIntegerField(editable=False, db_index=True)),
+                ('rght', models.PositiveIntegerField(editable=False, db_index=True)),
+                ('tree_id', models.PositiveIntegerField(editable=False, db_index=True)),
+                ('level', models.PositiveIntegerField(editable=False, db_index=True)),
+                ('parent', mptt.fields.TreeForeignKey(related_name='children', blank=True, to='thing.MarketGroup', null=True)),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='MarketOrder',
+            fields=[
+                ('order_id', models.BigIntegerField(serialize=False, primary_key=True)),
+                ('creator_character_id', models.IntegerField(db_index=True)),
+                ('escrow', models.DecimalField(max_digits=14, decimal_places=2)),
+                ('price', models.DecimalField(max_digits=14, decimal_places=2)),
+                ('total_price', models.DecimalField(max_digits=17, decimal_places=2)),
+                ('buy_order', models.BooleanField(default=False)),
+                ('volume_entered', models.IntegerField()),
+                ('volume_remaining', models.IntegerField()),
+                ('minimum_volume', models.IntegerField()),
+                ('issued', models.DateTimeField(db_index=True)),
+                ('expires', models.DateTimeField(db_index=True)),
+                ('character', models.ForeignKey(to='thing.Character')),
+                ('corp_wallet', models.ForeignKey(blank=True, to='thing.CorpWallet', null=True)),
+            ],
+            options={
+                'ordering': ('buy_order', 'item__name'),
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Pin',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('pin_id', models.BigIntegerField(db_index=True)),
+                ('schematic', models.IntegerField()),
+                ('cycle_time', models.IntegerField()),
+                ('quantity_per_cycle', models.IntegerField()),
+                ('installed', models.DateTimeField()),
+                ('expires', models.DateTimeField()),
+                ('last_launched', models.DateTimeField()),
+                ('content_size', models.DecimalField(default=0, max_digits=16, decimal_places=4)),
+                ('colony', models.ForeignKey(to='thing.Colony')),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='PinContent',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('quantity', models.IntegerField()),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='PriceHistory',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('date', models.DateField()),
+                ('minimum', models.DecimalField(max_digits=18, decimal_places=2)),
+                ('maximum', models.DecimalField(max_digits=18, decimal_places=2)),
+                ('average', models.DecimalField(max_digits=18, decimal_places=2)),
+                ('movement', models.BigIntegerField()),
+                ('orders', models.IntegerField()),
+            ],
+            options={
+                'ordering': ('-date',),
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='RefType',
+            fields=[
+                ('id', models.IntegerField(serialize=False, primary_key=True)),
+                ('name', models.CharField(max_length=64)),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Region',
+            fields=[
+                ('id', models.IntegerField(serialize=False, primary_key=True)),
+                ('name', models.CharField(max_length=64)),
+            ],
+            options={
+                'ordering': ('name',),
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Skill',
+            fields=[
+                ('item', models.OneToOneField(primary_key=True, serialize=False, to='thing.Item')),
+                ('rank', models.SmallIntegerField()),
+                ('description', models.TextField()),
+                ('primary_attribute', models.SmallIntegerField(choices=[(164, b'Cha'), (165, b'Int'), (166, b'Mem'), (167, b'Per'), (168, b'Wil')])),
+                ('secondary_attribute', models.SmallIntegerField(choices=[(164, b'Cha'), (165, b'Int'), (166, b'Mem'), (167, b'Per'), (168, b'Wil')])),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='SkillPlan',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(max_length=64)),
+                ('visibility', models.IntegerField(default=1, choices=[(1, b'Private'), (2, b'Public'), (3, b'Global')])),
+                ('user', models.ForeignKey(blank=True, to=settings.AUTH_USER_MODEL, null=True)),
+            ],
+            options={
+                'ordering': ('name',),
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='SkillQueue',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('start_time', models.DateTimeField()),
+                ('end_time', models.DateTimeField()),
+                ('start_sp', models.IntegerField()),
+                ('end_sp', models.IntegerField()),
+                ('to_level', models.SmallIntegerField()),
+                ('character', models.ForeignKey(to='thing.Character')),
+                ('skill', models.ForeignKey(to='thing.Skill')),
+            ],
+            options={
+                'ordering': ('start_time',),
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='SPEntry',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('position', models.IntegerField()),
+                ('skill_plan', models.ForeignKey(related_name='entries', to='thing.SkillPlan')),
+            ],
+            options={
+                'ordering': ('position',),
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='SPRemap',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('int_stat', models.IntegerField()),
+                ('mem_stat', models.IntegerField()),
+                ('per_stat', models.IntegerField()),
+                ('wil_stat', models.IntegerField()),
+                ('cha_stat', models.IntegerField()),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='SPSkill',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('level', models.IntegerField()),
+                ('priority', models.IntegerField()),
+                ('skill', models.ForeignKey(to='thing.Skill')),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Station',
+            fields=[
+                ('id', models.IntegerField(serialize=False, primary_key=True)),
+                ('name', models.CharField(max_length=128)),
+                ('short_name', models.CharField(default=b'', max_length=64)),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='System',
+            fields=[
+                ('id', models.IntegerField(serialize=False, primary_key=True)),
+                ('name', models.CharField(max_length=32)),
+                ('constellation', models.ForeignKey(to='thing.Constellation')),
+            ],
+            options={
+                'ordering': ('name',),
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='TaskState',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('keyid', models.IntegerField(db_index=True)),
+                ('url', models.CharField(max_length=64, db_index=True)),
+                ('parameter', models.IntegerField(db_index=True)),
+                ('state', models.IntegerField(db_index=True)),
+                ('mod_time', models.DateTimeField(db_index=True)),
+                ('next_time', models.DateTimeField(db_index=True)),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Transaction',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('transaction_id', models.BigIntegerField(db_index=True)),
+                ('date', models.DateTimeField(db_index=True)),
+                ('buy_transaction', models.BooleanField(default=False)),
+                ('quantity', models.IntegerField()),
+                ('price', models.DecimalField(max_digits=14, decimal_places=2)),
+                ('total_price', models.DecimalField(max_digits=17, decimal_places=2)),
+                ('character', models.ForeignKey(to='thing.Character')),
+                ('corp_wallet', models.ForeignKey(blank=True, to='thing.CorpWallet', null=True)),
+                ('item', models.ForeignKey(to='thing.Item')),
+                ('other_char', models.ForeignKey(related_name='transaction_others', blank=True, to='thing.Character', null=True)),
+                ('other_corp', models.ForeignKey(blank=True, to='thing.Corporation', null=True)),
+                ('station', models.ForeignKey(to='thing.Station')),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='UserProfile',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('last_seen', models.DateTimeField(default=datetime.datetime.now)),
+                ('can_add_keys', models.BooleanField(default=True)),
+                ('theme', models.CharField(default=b'default', max_length=32)),
+                ('show_clock', models.BooleanField(default=True)),
+                ('show_assets', models.BooleanField(default=True)),
+                ('show_blueprints', models.BooleanField(default=True)),
+                ('show_contracts', models.BooleanField(default=True)),
+                ('show_industry', models.BooleanField(default=True)),
+                ('show_orders', models.BooleanField(default=True)),
+                ('show_trade', models.BooleanField(default=True)),
+                ('show_transactions', models.BooleanField(default=True)),
+                ('show_wallet_journal', models.BooleanField(default=True)),
+                ('show_pi', models.BooleanField(default=True)),
+                ('show_item_icons', models.BooleanField(default=False)),
+                ('entries_per_page', models.IntegerField(default=100)),
+                ('home_chars_per_row', models.IntegerField(default=4)),
+                ('home_sort_order', models.CharField(default=b'apiname', max_length=12, choices=[(b'apiname', b'APIKey name'), (b'charname', b'Character name'), (b'corpname', b'Corporation name'), (b'totalsp', b'Total SP'), (b'wallet', b'Wallet balance')])),
+                ('home_sort_descending', models.BooleanField(default=False)),
+                ('home_hide_characters', models.TextField(default=b'', blank=True)),
+                ('home_show_locations', models.BooleanField(default=True)),
+                ('home_highlight_backgrounds', models.BooleanField(default=True)),
+                ('home_highlight_borders', models.BooleanField(default=True)),
+                ('home_show_separators', models.BooleanField(default=True)),
+                ('home_show_security', models.BooleanField(default=True)),
+                ('user', models.OneToOneField(related_name='profile', to=settings.AUTH_USER_MODEL)),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.AddField(
+            model_name='station',
+            name='system',
+            field=models.ForeignKey(to='thing.System'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='spentry',
+            name='sp_remap',
+            field=models.ForeignKey(blank=True, to='thing.SPRemap', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='spentry',
+            name='sp_skill',
+            field=models.ForeignKey(blank=True, to='thing.SPSkill', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='pricehistory',
+            name='item',
+            field=models.ForeignKey(to='thing.Item'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='pricehistory',
+            name='region',
+            field=models.ForeignKey(to='thing.Region'),
+            preserve_default=True,
+        ),
+        migrations.AlterUniqueTogether(
+            name='pricehistory',
+            unique_together=set([('region', 'item', 'date')]),
+        ),
+        migrations.AddField(
+            model_name='pincontent',
+            name='item',
+            field=models.ForeignKey(related_name='+', to='thing.Item'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='pincontent',
+            name='pin',
+            field=models.ForeignKey(to='thing.Pin'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='pin',
+            name='type',
+            field=models.ForeignKey(related_name='+', to='thing.Item'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='marketorder',
+            name='item',
+            field=models.ForeignKey(to='thing.Item'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='marketorder',
+            name='station',
+            field=models.ForeignKey(to='thing.Station'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='journalentry',
+            name='ref_type',
+            field=models.ForeignKey(to='thing.RefType'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='journalentry',
+            name='tax_corp',
+            field=models.ForeignKey(blank=True, to='thing.Corporation', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='item',
+            name='item_group',
+            field=models.ForeignKey(to='thing.ItemGroup'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='item',
+            name='market_group',
+            field=models.ForeignKey(blank=True, to='thing.MarketGroup', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='industryjob',
+            name='product',
+            field=models.ForeignKey(related_name='job_products', blank=True, to='thing.Item', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='industryjob',
+            name='system',
+            field=models.ForeignKey(to='thing.System'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='contractitem',
+            name='item',
+            field=models.ForeignKey(related_name='contract_items', to='thing.Item'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='contract',
+            name='corporation',
+            field=models.ForeignKey(blank=True, to='thing.Corporation', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='contract',
+            name='end_station',
+            field=models.ForeignKey(related_name='+', blank=True, to='thing.Station', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='contract',
+            name='issuer_char',
+            field=models.ForeignKey(related_name='+', blank=True, to='thing.Character', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='contract',
+            name='issuer_corp',
+            field=models.ForeignKey(related_name='+', to='thing.Corporation'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='contract',
+            name='start_station',
+            field=models.ForeignKey(related_name='+', blank=True, to='thing.Station', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='constellation',
+            name='region',
+            field=models.ForeignKey(to='thing.Region'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='colony',
+            name='system',
+            field=models.ForeignKey(to='thing.System'),
+            preserve_default=True,
+        ),
+        migrations.AlterUniqueTogether(
+            name='colony',
+            unique_together=set([('character', 'planet_id')]),
+        ),
+        migrations.AddField(
+            model_name='characterskill',
+            name='skill',
+            field=models.ForeignKey(to='thing.Skill'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='characterdetails',
+            name='implants',
+            field=models.ManyToManyField(to='thing.Implant'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='characterdetails',
+            name='ship_item',
+            field=models.ForeignKey(blank=True, to='thing.Item', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='character',
+            name='corporation',
+            field=models.ForeignKey(blank=True, to='thing.Corporation', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='campaign',
+            name='characters',
+            field=models.ManyToManyField(to='thing.Character', null=True, blank=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='campaign',
+            name='corp_wallets',
+            field=models.ManyToManyField(to='thing.CorpWallet', null=True, blank=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='campaign',
+            name='user',
+            field=models.ForeignKey(to=settings.AUTH_USER_MODEL),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='blueprintproduct',
+            name='item',
+            field=models.ForeignKey(to='thing.Item'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='blueprintcomponent',
+            name='item',
+            field=models.ForeignKey(to='thing.Item'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='assetsummary',
+            name='character',
+            field=models.ForeignKey(to='thing.Character'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='assetsummary',
+            name='station',
+            field=models.ForeignKey(blank=True, to='thing.Station', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='assetsummary',
+            name='system',
+            field=models.ForeignKey(to='thing.System'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='asset',
+            name='character',
+            field=models.ForeignKey(to='thing.Character'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='asset',
+            name='inv_flag',
+            field=models.ForeignKey(to='thing.InventoryFlag'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='asset',
+            name='item',
+            field=models.ForeignKey(to='thing.Item'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='asset',
+            name='station',
+            field=models.ForeignKey(blank=True, to='thing.Station', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='asset',
+            name='system',
+            field=models.ForeignKey(to='thing.System'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='apikey',
+            name='characters',
+            field=models.ManyToManyField(related_name='apikeys', to='thing.Character'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='apikey',
+            name='corp_character',
+            field=models.ForeignKey(related_name='corporate_apikey', blank=True, to='thing.Character', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='apikey',
+            name='corporation',
+            field=models.ForeignKey(blank=True, to='thing.Corporation', null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='apikey',
+            name='user',
+            field=models.ForeignKey(to=settings.AUTH_USER_MODEL),
+            preserve_default=True,
+        ),
+    ]

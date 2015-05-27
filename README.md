@@ -89,13 +89,12 @@ There are some common requirements for any install method, most of these
 will be installed using pip in 'Common Install Steps' below:
 
 - [Python](http://www.python.org) \>=2.7 <3.0
-- [Django](http://www.djangoproject.com) \>=1.6 <1.7
+- [Django](http://www.djangoproject.com) \>=1.7 <1.8
 - [Celery](http://docs.celeryproject.org/en/latest/) \>= 3.1 <3.2
   * This includes the celery[flavor] package that may be required for the
     [broker you choose](http://celery.readthedocs.org/en/latest/getting-started/first-steps-with-celery.html#choosing-a-broker). For example, if you wanted to use redis you would then run
     `pip install celery[redis]\<3.2`
 - [Django MPTT](https://github.com/django-mptt/django-mptt/) \>=0.5
-- [South](http://south.aeracode.org/) \>=0.7
 - [Coffin](https://github.com/coffin/coffin/) \>=0.3
 - [Jinja2](http://jinja.pocoo.org/) \>=2.6
 - A database server and relevant client library.

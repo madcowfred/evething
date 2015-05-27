@@ -47,8 +47,8 @@ class Contract(models.Model):
     type = models.CharField(max_length=16)
     status = models.CharField(max_length=24)
     title = models.CharField(max_length=64)
-    for_corp = models.BooleanField()
-    public = models.BooleanField()
+    for_corp = models.BooleanField(default=False)
+    public = models.BooleanField(default=False)
 
     date_issued = models.DateTimeField()
     date_expired = models.DateTimeField()

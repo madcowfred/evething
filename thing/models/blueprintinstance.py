@@ -37,7 +37,7 @@ class BlueprintInstance(models.Model):
     user = models.ForeignKey(User, blank=True, null=True)
     blueprint = models.ForeignKey(Blueprint)
 
-    original = models.BooleanField()
+    original = models.BooleanField(default=False)
     material_level = models.IntegerField(default=0)
     productivity_level = models.IntegerField(default=0)
 

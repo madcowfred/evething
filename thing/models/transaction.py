@@ -44,7 +44,7 @@ class Transaction(models.Model):
 
     transaction_id = models.BigIntegerField(db_index=True)
     date = models.DateTimeField(db_index=True)
-    buy_transaction = models.BooleanField()
+    buy_transaction = models.BooleanField(default=False)
     quantity = models.IntegerField()
     price = models.DecimalField(max_digits=14, decimal_places=2)
     total_price = models.DecimalField(max_digits=17, decimal_places=2)

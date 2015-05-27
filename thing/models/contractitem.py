@@ -35,8 +35,8 @@ class ContractItem(models.Model):
 
     quantity = models.IntegerField()
     raw_quantity = models.IntegerField()
-    singleton = models.BooleanField()
-    included = models.BooleanField()
+    singleton = models.BooleanField(default=False)
+    included = models.BooleanField(default=False)
 
     class Meta:
         app_label = 'thing'

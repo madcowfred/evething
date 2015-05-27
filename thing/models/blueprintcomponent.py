@@ -37,7 +37,7 @@ class BlueprintComponent(models.Model):
     activity = models.IntegerField(choices=IndustryJob.ACTIVITY_CHOICES)
     item = models.ForeignKey(Item)
     count = models.IntegerField()
-    consumed = models.BooleanField()
+    consumed = models.BooleanField(default=False)
 
     class Meta:
         app_label = 'thing'

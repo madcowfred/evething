@@ -46,7 +46,7 @@ class MarketOrder(models.Model):
     price = models.DecimalField(max_digits=14, decimal_places=2)
     total_price = models.DecimalField(max_digits=17, decimal_places=2)
 
-    buy_order = models.BooleanField()
+    buy_order = models.BooleanField(default=False)
     volume_entered = models.IntegerField()
     volume_remaining = models.IntegerField()
     minimum_volume = models.IntegerField()
