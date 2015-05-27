@@ -47,7 +47,7 @@ class Asset(models.Model):
     inv_flag = models.ForeignKey(InventoryFlag)
     quantity = models.IntegerField()
     raw_quantity = models.IntegerField()
-    singleton = models.BooleanField()
+    singleton = models.BooleanField(default=False)
 
     class Meta:
         app_label = 'thing'
