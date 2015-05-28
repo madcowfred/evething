@@ -3,4 +3,5 @@
 
 export PYTHONUNBUFFERED=1
 
-/evething/manage.py runserver 0.0.0.0:8000 --insecure
+cd /evething/
+gunicorn evething.wsgi -b 0.0.0.0

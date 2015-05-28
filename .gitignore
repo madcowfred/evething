@@ -10,3 +10,4 @@ thing/profile_middleware.py
 node_modules/
 sqlite-latest.sqlite
 celerybeat-schedule
+static-dist

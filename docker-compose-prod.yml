@@ -1,0 +1,36 @@
+# database container
+db:
+    image: postgres:latest
+    environment:
+        POSTGRES_USER: evething
+        POSTGRES_PASSWORD: evething
+# redis container
+redis:
+    image: redis:latest
+# container with Django dev server
+django:
+    build: .
+    dockerfile: docker/Dockerfile-prod
+    command: /evething/docker/gunicorn.sh
+    volumes:
+        - .:/evething  # mount current directory inside container
+    # set up links so that web knows about db, rabbit and redis
+    links:
+        - db:db
+        - redis:redis
+nginx:
+    build: .
+    dockerfile: docker/Dockerfile-nginx
+    volumes:
+        - static-dist:/evething/static-dist:ro
+    ports:
+        - "80:80"
+    links:
+        - django:django
+# container with celeryd
+#celeryd:
+#    image: evething_django
+#    command: /evething/docker/workers-prod.sh
+#    links:
+#        - db:db
+#        - redis:redis
