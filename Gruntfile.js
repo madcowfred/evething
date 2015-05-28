@@ -82,11 +82,17 @@ module.exports = function (grunt) {
         },
         less: {
             options: {
-                cleancss: true,
                 modifyVars: {
                     'icon-font-path': '"../fonts/"',
                     'fa-font-path': '"../fonts"'
-                }
+                },
+                sourceMap: true,
+                plugins: [
+                    new (require('less-plugin-clean-css'))({
+                        'advanced': true,
+                        'sourceMap': true
+                    })
+                ]
             },
             themes: {
                 files: {
