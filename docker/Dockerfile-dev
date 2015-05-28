@@ -4,28 +4,34 @@ FROM ubuntu:14.04
 MAINTAINER Eric Gillingham "Eric.J.Gillingham@jpl.nasa.gov"
 
 # Install.
-RUN sed -i 's/# \(.*multiverse$\)/\1/g' /etc/apt/sources.list && \
-apt-get update && \
-apt-get -y upgrade && \
-apt-get install -y python2.7 python2.7-dev python-virtualenv python-pip \
+RUN apt-get update && \
+    apt-get install -y python2.7 python2.7-dev python-virtualenv python-pip \
                     libpq-dev \
                     nodejs nodejs-legacy npm \
-                    build-essential wget && \
-/usr/bin/virtualenv /evething-env
+                    build-essential wget
 
-ADD . /evething
+# Setup unprivileged user
+RUN adduser --disabled-password --gecos '' evething && \
+    mkdir /evething-env && \
+    mkdir /evething && \
+    chown evething /evething-env && \
+    chown evething /evething
+
+USER evething
 WORKDIR /evething
 
-# Check for data dump
-RUN if [ ! -e sqlite-latest.sqlite ]; then wget https://www.fuzzwork.co.uk/dump/sqlite-latest.sqlite.bz2 && bunzip2 sqlite-latest.sqlite.bz2 ; fi
-
+COPY requirements.txt /evething/
+COPY docker/requirements-docker.txt docker/requirements-docker-dev.txt /evething/docker/
 # Install python deps into virtualenv, and activate at login
-RUN . /evething-env/bin/activate && \
-pip install -r /evething/requirements.txt -r /evething/docker/requirements-docker.txt -r /evething/docker/requirements-docker-dev.txt && \
-echo '. /evething-env/bin/activate' >> /root/.bashrc
+RUN /usr/bin/virtualenv /evething-env && \
+    . /evething-env/bin/activate && \
+    pip install -r /evething/requirements.txt -r /evething/docker/requirements-docker.txt -r /evething/docker/requirements-docker-dev.txt && \
+    echo '. /evething-env/bin/activate' >> $HOME/.bashrc
 
 # Add node_modules to PATH
-RUN echo 'export PATH=${PATH}:/evething/node_modules/.bin' >> /root/.bashrc
+RUN echo 'export PATH=${PATH}:/evething/node_modules/.bin' >> $HOME/.bashrc
+
+EXPOSE 8000
 
 # Define default command, this gets overwritten by docker-compose
-CMD ["bash"]
+CMD ["/evething/docker/devserver.sh"]
