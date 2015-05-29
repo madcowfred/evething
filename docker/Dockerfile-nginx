@@ -1,3 +1,4 @@
+# Pull base image.
 FROM nginx
 
 MAINTAINER Eric Gillingham "Eric.J.Gillingham@jpl.nasa.gov"

@@ -18,7 +18,7 @@ django:
     build: .
     user: evething
     dockerfile: docker/Dockerfile-dev
-    command: /evething/docker/devserver.sh
+    command: bash -c ". /evething-env/bin/activate && /evething/manage.py runserver 0.0.0.0:8000"
     volumes:
         - .:/evething  # mount current directory inside container
     ports:
@@ -27,13 +27,17 @@ django:
     links:
         - db:db
         - redis:redis
+    environment:
+        - PYTHONUNBUFFERED=1
 # container with celery worker
 celery:
     image: evething_django
     user: evething
-    command: /evething/docker/worker-dev.sh
+    command: bash -c ". /evething-env/bin/activate && celery worker -A evething -B -Q et_high,et_medium,et_low -c 2"
     volumes_from:
         - django
     links:
         - db:db
         - redis:redis
+    environment:
+        - PYTHONUNBUFFERED=1
