@@ -7,14 +7,13 @@ db:
 # redis container
 redis:
     image: redis:latest
-# container with Django dev server
+# container with gunicorn running evething
 django:
     build: .
     dockerfile: docker/Dockerfile-prod
     command: bash -c ". /evething-env/bin/activate && gunicorn evething.wsgi -b 0.0.0.0"
     volumes:
         - .:/evething  # mount current directory inside container
-    # set up links so that web knows about db, rabbit and redis
     links:
         - db:db
         - redis:redis
