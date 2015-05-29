@@ -7,7 +7,7 @@ DEBUG = True
 
 # If you keep DEBUG set to False you will need to set allowed hosts correctly.
 # https://docs.djangoproject.com/en/1.5/ref/settings/#std%3asetting-ALLOWED_HOSTS
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['django', '127.0.0.1']
 
 # this is used for a few random things, it's a pretty good idea to change it
 # http://www.miniwebtool.com/django-secret-key-generator/
@@ -39,9 +39,25 @@ DATABASES = {
     },
 }
 
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': os.getenv('DJANGO_LOG_LEVEL', 'WARNING'),
+        },
+    },
+}
+
 # change this to the public facing directory for static files, needed for
 # './manage.py collectstatic' to work
-STATIC_ROOT = '/evething-static'
+STATIC_ROOT = '/evething/static-dist'
 # override the default '/static/' for static files
 #STATIC_URL = 'http://static.evething.home'
 

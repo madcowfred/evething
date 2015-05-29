@@ -1,0 +1,8 @@
+.git
+.idea
+.gitignore
+celerybeat-schedule
+celerybeat.pid
+static-dist
+node_modules
+skill_map.pickle

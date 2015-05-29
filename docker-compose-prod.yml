@@ -1,0 +1,72 @@
+# database container
+db:
+    image: postgres:latest
+    environment:
+        POSTGRES_USER: evething
+        POSTGRES_PASSWORD: evething
+# redis container
+redis:
+    image: redis:latest
+# container with Django dev server
+django:
+    build: .
+    dockerfile: docker/Dockerfile-prod
+    command: bash -c ". /evething-env/bin/activate && gunicorn evething.wsgi -b 0.0.0.0"
+    volumes:
+        - .:/evething  # mount current directory inside container
+    # set up links so that web knows about db, rabbit and redis
+    links:
+        - db:db
+        - redis:redis
+    environment:
+        - PYTHONUNBUFFERED=1
+nginx:
+    build: .
+    dockerfile: docker/Dockerfile-nginx
+    volumes:
+        - static-dist:/evething/static-dist:ro
+    ports:
+        - "80:80"
+    links:
+        - django:django
+# celery workers
+celerybeat:
+    image: evething_django
+    volumes_from:
+        - django
+    command: bash -c ". /evething-env/bin/activate && celery beat -A evething"
+    links:
+        - db:db
+        - redis:redis
+    environment:
+        - PYTHONUNBUFFERED=1
+celerylow:
+    image: evething_django
+    volumes_from:
+        - django
+    command: bash -c ". /evething-env/bin/activate && celery worker -A evething -Q et_low -c 5"
+    links:
+        - db:db
+        - redis:redis
+    environment:
+        - PYTHONUNBUFFERED=1
+celerymedium:
+    image: evething_django
+    volumes_from:
+        - django
+    command: bash -c ". /evething-env/bin/activate && celery worker -A evething -Q et_medium -c 5"
+    links:
+        - db:db
+        - redis:redis
+    environment:
+        - PYTHONUNBUFFERED=1
+celeryhigh:
+    volumes_from:
+        - django
+    image: evething_django
+    command: bash -c ". /evething-env/bin/activate && celery worker -A evething -Q et_high -c 1"
+    links:
+        - db:db
+        - redis:redis
+    environment:
+        - PYTHONUNBUFFERED=1
