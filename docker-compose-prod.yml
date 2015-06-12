@@ -7,13 +7,17 @@ db:
 # redis container
 redis:
     image: redis:latest
+# Persistant data container
+data:
+    build: .
+    dockerfile: docker/Dockerfile-data
 # container with gunicorn running evething
 django:
     build: .
     dockerfile: docker/Dockerfile-prod
     command: bash -c ". /evething-env/bin/activate && gunicorn evething.wsgi -b 0.0.0.0"
-    volumes:
-        - .:/evething  # mount current directory inside container
+    volumes_from:
+        - data
     links:
         - db:db
         - redis:redis
@@ -22,8 +26,8 @@ django:
 nginx:
     build: .
     dockerfile: docker/Dockerfile-nginx
-    volumes:
-        - static-dist:/evething/static-dist:ro
+    volumes_from:
+        - data
     ports:
         - "80:80"
     links:
@@ -32,7 +36,7 @@ nginx:
 celerybeat:
     image: evething_django
     volumes_from:
-        - django
+        - data
     command: bash -c ". /evething-env/bin/activate && celery beat -A evething"
     links:
         - db:db
@@ -42,7 +46,7 @@ celerybeat:
 celerylow:
     image: evething_django
     volumes_from:
-        - django
+        - data
     command: bash -c ". /evething-env/bin/activate && celery worker -A evething -Q et_low -c 5"
     links:
         - db:db
@@ -52,7 +56,7 @@ celerylow:
 celerymedium:
     image: evething_django
     volumes_from:
-        - django
+        - data
     command: bash -c ". /evething-env/bin/activate && celery worker -A evething -Q et_medium -c 5"
     links:
         - db:db
@@ -61,7 +65,7 @@ celerymedium:
         - PYTHONUNBUFFERED=1
 celeryhigh:
     volumes_from:
-        - django
+        - data
     image: evething_django
     command: bash -c ". /evething-env/bin/activate && celery worker -A evething -Q et_high -c 1"
     links:
