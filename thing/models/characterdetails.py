@@ -78,7 +78,7 @@ class CharacterDetails(models.Model):
 
     @property
     def wil_bonus(self):
-        return self.__get_attr_bonus('perception')
+        return self.__get_attr_bonus('willpower')
 
     implants = models.ManyToManyField(Implant)
 

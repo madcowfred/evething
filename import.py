@@ -29,7 +29,7 @@ import os
 import sys
 import time
 
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 
 # Set up our environment and import settings
 os.environ['DJANGO_SETTINGS_MODULE'] = 'evething.settings'
@@ -412,8 +412,17 @@ class Importer:
                     continue
 
             portion_size = Decimal(data[3])
-            volume = PACKAGED.get(data[1], Decimal(str(data[4])))
-            base_price = Decimal(data[5])
+            # As of current patch sometimes the 4th and 5th fields are empty for some items :ccp:
+            try:
+                volume = PACKAGED.get(data[1], Decimal(str(data[4])))
+            except InvalidOperation:
+                volume = 0
+                pass
+            try:
+                base_price = Decimal(data[5])
+            except TypeError:
+                base_price = 0
+                pass
 
             # handle modified items
             item = data_map.get(id, None)
