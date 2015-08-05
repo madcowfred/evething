@@ -33,7 +33,7 @@ module.exports = function (grunt) {
             }
         },
         handlebars: {
-            hanldbars: {
+            handlebars: {
                 options: {
                     namespace: 'Handlebars.templates',
                     processName: function (filePath) {
