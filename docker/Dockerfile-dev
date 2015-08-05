@@ -3,19 +3,19 @@ FROM ubuntu:14.04
 
 MAINTAINER Eric Gillingham "Eric.J.Gillingham@jpl.nasa.gov"
 
-# Install.
-RUN apt-get update && \
-    apt-get install -y python2.7 python2.7-dev python-virtualenv python-pip \
-                    libpq-dev \
-                    nodejs nodejs-legacy npm \
-                    build-essential wget
-
 # Setup unprivileged user
 RUN adduser --disabled-password --gecos '' evething && \
     mkdir /evething-env && \
     mkdir /evething && \
     chown evething /evething-env && \
     chown evething /evething
+
+# Install.
+RUN apt-get update && \
+    apt-get install -y python2.7 python2.7-dev python-virtualenv python-pip \
+                    libpq-dev \
+                    nodejs nodejs-legacy npm \
+                    build-essential wget
 
 USER evething
 WORKDIR /evething
