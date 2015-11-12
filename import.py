@@ -583,7 +583,7 @@ class Importer:
         new = []
         for id, data in bulk_data.items():
             # Base materials
-            self.cursor.execute('SELECT activityID, materialTypeID, quantity, consume FROM industryActivityMaterials WHERE typeID=%s', (id,))
+            self.cursor.execute('SELECT activityID, materialTypeID, quantity FROM industryActivityMaterials WHERE typeID=%s', (id,))
             for baserow in self.cursor:
                 # blueprint 3927 references itemId 3924 which doesn't exist,
                 # so ignore it, :ccp:
@@ -593,7 +593,7 @@ class Importer:
                         activity=baserow[0],
                         item_id=baserow[1],
                         count=baserow[2],
-                        consumed=baserow[3]
+                        consumed=True
                     ))
                     added += 1
         # If there's any new ones just drop and recreate the whole lot, easier
