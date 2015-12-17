@@ -168,6 +168,13 @@ There are a few possible ways to run the workers:
      `celery worker -A evething -B -Q et_medium -c 5`
   - This keeps up with the 1070 key GoonFleet hosted version.
 
+Docker Install
+-------------
+    git clone https://github.com/OSS-EVE/Evething-Docker
+    cd Evething-Docker/compose
+    docker-compose up
+Open http://ip:3040 in a web browser.
+
 Local Install
 -------------
 
