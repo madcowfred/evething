@@ -64,7 +64,7 @@
                   <span class="fa fa-chevron-down asset-expand pos clickable" data-target=".asset-{{ asset.id }}"></span>
                   {%- endif %}
                   {% if show_item_icons -%}
-                  <img src="http://image.eveonline.com/Type/{{ asset.item.id }}_32.png" height="20" width="20">
+                  <img src="//image.eveonline.com/Type/{{ asset.item.id }}_32.png" height="20" width="20">
                   {%- endif %}
                   <span class="asset-ship-type{% if asset.z_muted %} text-muted{% endif %}">
                     {{ asset.item.name }}
@@ -99,7 +99,7 @@
                   {%- endfor %}
                   {%- if content.z_locked %}<span class="fa fa-lock"></span>{% endif %}
                   {% if show_item_icons -%}
-                  <img src="http://image.eveonline.com/Type/{{ content.item.id }}_32.png" height="16" width="16">
+                  <img src="//image.eveonline.com/Type/{{ content.item.id }}_32.png" height="16" width="16">
                   {%- endif %}
                   {{ content.item.name }}
                   {%- if content.z_blueprint == -1 %}

@@ -20,7 +20,7 @@
             {% if anonymous %}
             {% set img = STATIC_URL + 'img/anonymous_character.jpg' %}
             {% else %}
-            {% set img = 'http://image.eveonline.com/Character/%s_256.jpg' % (char.id) %}
+            {% set img = '//image.eveonline.com/Character/%s_256.jpg' % (char.id) %}
             {% endif %}
             <img class="img-responsive img-rounded" src="{{ img }}" />
             <div class="character-icons">
