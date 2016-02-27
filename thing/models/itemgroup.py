@@ -30,7 +30,7 @@ from thing.models.itemcategory import ItemCategory
 
 class ItemGroup(models.Model):
     id = models.IntegerField(primary_key=True)
-    name = models.CharField(max_length=64)
+    name = models.CharField(max_length=128)
 
     category = models.ForeignKey(ItemCategory)
 
