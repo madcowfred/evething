@@ -408,7 +408,7 @@ class Importer:
             else:
                 mg_id = int(data[2])
                 if mg_id not in mg_map:
-                    print '==> Invalid marketGroupID %s' % (mg_id)
+                    print '==> Invalid marketGroupID %s on item %s[%s]' % (mg_id, id, data[0])
                     continue
 
             portion_size = Decimal(data[3])
@@ -608,13 +608,16 @@ class Importer:
             # Base materials
             self.cursor.execute('SELECT activityID, productTypeID, quantity FROM industryActivityProducts WHERE typeID=%s', (id,))
             for baserow in self.cursor:
-                new.append(BlueprintProduct(
-                    blueprint_id=id,
-                    activity=baserow[0],
-                    item_id=baserow[1],
-                    count=baserow[2]
-                ))
-                added += 1
+                # blueprint 37016 references itemId 35882 which doesn't exist,
+                # so ignore it, :ccp:
+                if id != 37016:
+                    new.append(BlueprintProduct(
+                        blueprint_id=id,
+                        activity=baserow[0],
+                        item_id=baserow[1],
+                        count=baserow[2]
+                    ))
+                    added += 1
         # If there's any new ones just drop and recreate the whole lot, easier
         # than trying to work out what has changed for every single blueprint
         if new:

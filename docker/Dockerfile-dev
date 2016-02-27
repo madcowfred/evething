@@ -25,6 +25,7 @@ COPY docker/requirements-docker.txt docker/requirements-docker-dev.txt /evething
 # Install python deps into virtualenv, and activate at login
 RUN /usr/bin/virtualenv /evething-env && \
     . /evething-env/bin/activate && \
+    pip install -U pip && \
     pip install -r /evething/requirements.txt -r /evething/docker/requirements-docker.txt -r /evething/docker/requirements-docker-dev.txt && \
     echo '. /evething-env/bin/activate' >> $HOME/.bashrc
 
