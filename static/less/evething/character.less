@@ -50,10 +50,16 @@
   ul {
     margin-bottom: 0;
   }
-
-  .character-skills.affix {
-    top: 55px;
-    width: percentage((2 / @grid-columns));
+  @media (min-width: @screen-sm) {
+    .character-skills.affix {
+      top: 55px;
+      width: percentage((2 / @grid-columns));
+    }
+  }
+  @media (max-width: @screen-sm) {
+    .character-skills.affix {
+      position: static;
+    }
   }
 
   .panel-skills {
