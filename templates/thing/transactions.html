@@ -21,7 +21,7 @@
       <div class="row">
         <div class="col-sm-12">
           <h2>Transactions</h2>
-          
+
           <form id="filter-form" class="well well-sm form-inline" action="{{ url('thing.views.transactions') }}" method="GET">
             <div class="margin-half-bot">
               <strong class="large">Filters</strong>
@@ -71,7 +71,7 @@
             <tbody>
               {% for transaction in transactions -%}
               <tr>
-                <td class="journal-date">{{ transaction.date }}</td>
+                <td class="journal-date moment" title="{{ transaction.date }}">{{ transaction.date }}</td>
                 <td>
                   {% if transaction.corp_wallet -%}
                   {{ icons.corporation() }}

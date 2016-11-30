@@ -27,15 +27,14 @@ var EVEthing = {
 
     misc: {
         setClock: function() {
-            // set up the clock
-            var time = new Date();
-            var h = time.getUTCHours();
-            if (h < 10)
-                h = "0" + h;
-            var m = time.getUTCMinutes();
-            if (m < 10)
-                m = "0" + m;
-            $('#utc-time').text(h + ":" + m);
+            $('#utc-time').text(moment().utc().format('HH:mm'));
+        },
+
+        refreshMoments: function () {
+            EVEthing.moments.each(function (index, element) {
+                var time = moment.utc($element.attr('title'));
+                $(element).text(time.fromNow());
+            });
         },
 
         // Enable linking directly to a tab with a #location
@@ -53,7 +52,9 @@ var EVEthing = {
             });
         },
     },
-}
+    // Caching the moments selectors for performance
+    moments: $('.moment')
+};
 
 // Global ready function
 $(document).ready(function() {
@@ -76,6 +77,9 @@ $(document).ready(function() {
 
     EVEthing.misc.setClock();
     window.setInterval(EVEthing.misc.setClock, 5000);
+
+    EVEthing.misc.refreshMoments();
+    window.setInterval(EVEthing.misc.refreshMoments, 5000);
 });
 
 // Add our 'human' parser to deal with K/M/B suffixes

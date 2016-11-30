@@ -63,7 +63,7 @@
               {% set show_item_icons = user.profile.show_item_icons -%}
               {% for entry in entries -%}
               <tr>
-                <td class="journal-date">{{ entry.date }}</td>
+                <td class="journal-date moment" title="{{ entry.date }}">{{ entry.date }}</td>
                 <td>
                   {% if entry.corp_wallet -%}
                   {#<span class="fa fa-group"></span>#}
