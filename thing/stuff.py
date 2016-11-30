@@ -152,6 +152,8 @@ def build_filter(filters, filter_type, filter_comp, filter_value):
 
     params.append(('ft', filter_type))
     params.append(('fc', filter_comp))
+    if type(filter_value) == unicode:
+        filter_value = filter_value.encode('utf-8')
     params.append(('fv', filter_value))
 
     return urlencode(params)
