@@ -23,6 +23,7 @@
 
           {% include 'includes/wallet_journal_filters.html' %}
 
+          <a id="export-button" href="{{ url('thing.views.wallet_journal_export') }}" class="btn btn-info">Export filter as CSV</a>
           <strong>Balance for this filter set</strong>: {{ total_amount|default('0.00')|commas }} ISK
         </div>
       </div>
