@@ -36,6 +36,7 @@ os.environ['DJANGO_SETTINGS_MODULE'] = 'evething.settings'
 import django
 django.setup()
 from django.db import connections
+from django.db.utils import IntegrityError
 
 from thing.models import *  # NOPEP8
 
@@ -376,7 +377,11 @@ class Importer:
             added += 1
 
         if new:
-            ItemGroup.objects.bulk_create(new)
+            try:
+                ItemGroup.objects.bulk_create(new)
+            except IntegrityError, e:
+                print e.message
+                
 
         return added
 
@@ -451,7 +456,10 @@ class Importer:
             added += 1
 
         if new:
-            Item.objects.bulk_create(new)
+            try:
+                Item.objects.bulk_create(new)
+            except IntegrityError, e:
+                print e.message
 
         return added
 
@@ -536,7 +544,10 @@ class Importer:
             added += 1
 
         if new:
-            Implant.objects.bulk_create(new)
+            try:
+                Implant.objects.bulk_create(new)
+            except IntegrityError, e:
+                print e.message
 
         return added
 
@@ -600,7 +611,10 @@ class Importer:
         # than trying to work out what has changed for every single blueprint
         if new:
             BlueprintComponent.objects.all().delete()
-            BlueprintComponent.objects.bulk_create(new)
+            try:
+                BlueprintComponent.objects.bulk_create(new)
+            except IntegrityError, e:
+                print e.message
 
         # Products!
         new = []
@@ -622,7 +636,10 @@ class Importer:
         # than trying to work out what has changed for every single blueprint
         if new:
             BlueprintProduct.objects.all().delete()
-            BlueprintProduct.objects.bulk_create(new)
+            try:
+                BlueprintProduct.objects.bulk_create(new)
+            except IntegrityError, e:
+                print e.message
 
         return added
 
@@ -709,7 +726,10 @@ class Importer:
             added += 1
 
         if new:
-            Skill.objects.bulk_create(new)
+            try:
+                Skill.objects.bulk_create(new)
+            except IntegrityError, e:
+                print e.message
 
         return added
 
